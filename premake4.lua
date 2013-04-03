@@ -30,5 +30,6 @@ solution "derplanner"
         targetdir "bin/x64/release"
 
     dofile "premake/unittestpp.lua"
+    dofile "premake/tests.lua"
 
     objdir ".build/obj"
