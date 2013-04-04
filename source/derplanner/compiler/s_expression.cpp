@@ -18,4 +18,52 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
+#include "derplanner/compiler/s_expression.h"
+#include <stdlib.h>
 
+namespace derplanner {
+namespace s_expression {
+
+static const size_t chunk_node_count = 2048;
+
+struct linear_memory_chunk
+{
+    linear_memory_chunk* next;
+    size_t top;
+};
+
+static void free_allocated_chunks(linear_memory_chunk* root)
+{
+    for (linear_memory_chunk* chunk = root; chunk != 0;)
+    {
+        linear_memory_chunk* next = chunk->next;
+        free(chunk);
+        chunk = next;
+    }
+}
+
+static node* allocate_node(linear_memory_chunk* chunk)
+{
+    return 0;
+}
+
+tree::tree()
+    : root(0)
+    , _memory(0)
+{
+}
+
+tree::~tree()
+{
+    if (_memory)
+    {
+        free_allocated_chunks();
+    }
+}
+
+void tree::parse(const char* text)
+{
+}
+
+}
+}

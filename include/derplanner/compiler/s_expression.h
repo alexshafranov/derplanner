@@ -18,17 +18,13 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef DERPLANNER_S_EXPRESSION_H_
-#define DERPLANNER_S_EXPRESSION_H_
+#ifndef DERPLANNER_COMPILER_S_EXPRESSION_H_
+#define DERPLANNER_COMPILER_S_EXPRESSION_H_
 
 #include <stddef.h>
 
 namespace derplanner {
 namespace s_expression {
-
-typedef void* (*allocate_function)(size_t size);
-typedef void* (*deallocate_function)(void* ptr);
-void set_custom_allocation(allocate_function alloc, deallocate_function free);
 
 enum node_type
 {
@@ -54,38 +50,19 @@ class tree
 public:
     tree();
     ~tree();
+
     node* root;
+
+    void parse(const char* text);
+
 private:
+    tree(const tree&);
+    const tree& operator=(const tree&);
+
     void* _memory;
 };
-
-tree parse(const char* text);
 
 }
 }
 
 #endif
-
-// 
-// s_expression::tree s_expr = s_expression::parse("(10 20 40 30)");
-//
-
-// derplanner
-//      deps
-//          unittestpp
-//      tests
-//          ...
-//      include
-//          derplanner
-//              compiler
-//                  s_expression.h
-//                  ast.h
-//              runtime
-//                  ...
-//      source
-//          derplanner
-//              compiler
-//                  s_expression.cpp
-//                  ast.cpp
-//              runtime
-//                  ...
