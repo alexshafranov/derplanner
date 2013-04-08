@@ -24,12 +24,13 @@
 namespace derplanner {
 namespace s_expression {
 
-static const size_t chunk_node_count = 2048;
+static const int chunk_node_count = 2048;
 
 struct linear_memory_chunk
 {
     linear_memory_chunk* next;
-    size_t top;
+    int top;
+    node data[chunk_node_count];
 };
 
 static void free_allocated_chunks(linear_memory_chunk* root)
@@ -42,9 +43,24 @@ static void free_allocated_chunks(linear_memory_chunk* root)
     }
 }
 
-static node* allocate_node(linear_memory_chunk* chunk)
+static node* allocate_node(void*& memory)
 {
-    return 0;
+    linear_memory_chunk* chunk = reinterpret_cast<linear_memory_chunk*>(memory);
+
+    if (chunk->top >= chunk_node_count)
+    {
+        linear_memory_chunk* new_chunk = reinterpret_cast<linear_memory_chunk*>(malloc(sizeof(linear_memory_chunk)));
+
+        new_chunk->next = chunk;
+        new_chunk->top = 0;
+
+        chunk = new_chunk;
+        memory = new_chunk;
+    }
+
+    chunk->top++;
+
+    return chunk->data + chunk->top;
 }
 
 tree::tree()
@@ -57,12 +73,20 @@ tree::~tree()
 {
     if (_memory)
     {
-        free_allocated_chunks();
+        free_allocated_chunks(reinterpret_cast<linear_memory_chunk*>(_memory));
     }
 }
 
 void tree::parse(const char* text)
 {
+    if (_memory)
+    {
+        free_allocated_chunks(reinterpret_cast<linear_memory_chunk*>(_memory));
+        _memory = 0;
+        root = 0;
+    }
+
+    root = allocate_node(_memory);
 }
 
 }
