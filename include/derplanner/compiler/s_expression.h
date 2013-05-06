@@ -41,6 +41,7 @@ struct node
     int column;
     int text_begin_offset;
     int text_end_offset;
+    node* parent;
     node* first_child;
     node* sibling;
 };
@@ -53,7 +54,7 @@ public:
 
     node* root;
 
-    void parse(const char* text);
+    void parse(char* text);
 
 private:
     tree(const tree&);

@@ -20,36 +20,39 @@
 
 #include "derplanner/compiler/s_expression.h"
 #include <stdlib.h>
+#include <ctype.h>
 
 namespace derplanner {
 namespace s_expression {
 
+namespace {
+
 static const int chunk_node_count = 2048;
 
-struct linear_memory_chunk
+struct node_chunk
 {
-    linear_memory_chunk* next;
+    node_chunk* next;
     int top;
     node data[chunk_node_count];
 };
 
-static void free_allocated_chunks(linear_memory_chunk* root)
+void free_chunks(void* memory)
 {
-    for (linear_memory_chunk* chunk = root; chunk != 0;)
+    for (node_chunk* chunk = reinterpret_cast<node_chunk*>(memory); chunk != 0;)
     {
-        linear_memory_chunk* next = chunk->next;
+        node_chunk* next = chunk->next;
         free(chunk);
         chunk = next;
     }
 }
 
-static node* allocate_node(void*& memory)
+node* alloc_node(void*& memory)
 {
-    linear_memory_chunk* chunk = reinterpret_cast<linear_memory_chunk*>(memory);
+    node_chunk* chunk = reinterpret_cast<node_chunk*>(memory);
 
     if (chunk->top >= chunk_node_count)
     {
-        linear_memory_chunk* new_chunk = reinterpret_cast<linear_memory_chunk*>(malloc(sizeof(linear_memory_chunk)));
+        node_chunk* new_chunk = reinterpret_cast<node_chunk*>(malloc(sizeof(node_chunk)));
 
         new_chunk->next = chunk;
         new_chunk->top = 0;
@@ -63,6 +66,81 @@ static node* allocate_node(void*& memory)
     return chunk->data + chunk->top;
 }
 
+enum token_type
+{
+    token_error = 0,
+    token_lp,
+    token_rp,
+    token_symbol,
+    token_number,
+};
+
+struct parse_state
+{
+    void* tree_memory;
+    int line;
+    int column;
+    char* cursor;
+    node* parent;
+};
+
+inline node* push_list(parse_state& state)
+{
+    node* n = alloc_node(state.tree_memory);
+    n->parent = state.parent;
+    state.parent = n;
+    return state.parent;
+}
+
+inline node* pop_list(parse_state& state)
+{
+    node* n = state.parent;
+    state.parent = n->parent;
+    return n;
+}
+
+inline node* add_child(parse_state& state)
+{
+    node* n = alloc_node(state.tree_memory);
+    node* p = state.parent;
+
+    n->parent = p;
+    n->sibling = p->first_child;
+    p->first_child = n;
+
+    return n;
+}
+
+inline void skipws(parse_state& state)
+{
+    while (isspace(*state.cursor++));
+}
+
+inline bool has_token(parse_state& state)
+{
+    return true;
+}
+
+inline token_type next_token(parse_state& state)
+{
+    while (*state.cursor)
+    {
+        switch (*state.cursor)
+        {
+        case ' ':
+            break;
+        }
+    }
+
+    return token_error;
+}
+
+inline void match_token(parse_state& state, token_type token)
+{
+}
+
+} // unnamed namespace
+
 tree::tree()
     : root(0)
     , _memory(0)
@@ -73,20 +151,64 @@ tree::~tree()
 {
     if (_memory)
     {
-        free_allocated_chunks(reinterpret_cast<linear_memory_chunk*>(_memory));
+        free_chunks(_memory);
     }
 }
 
-void tree::parse(const char* text)
+void tree::parse(char* buffer)
 {
     if (_memory)
     {
-        free_allocated_chunks(reinterpret_cast<linear_memory_chunk*>(_memory));
+        free_chunks(_memory);
         _memory = 0;
         root = 0;
     }
 
-    root = allocate_node(_memory);
+    parse_state state;
+    state.tree_memory = _memory;
+    state.line = 0;
+    state.column = 0;
+    state.cursor = buffer;
+    state.parent = 0;
+
+    root = push_list(state);
+
+    skipws(state);
+    match_token(state, token_lp);
+
+    root->line = state.line;
+    root->column = state.column;
+
+    while (has_token(state))
+    {
+        switch (next_token(state))
+        {
+        case token_lp:
+            {
+                push_list(state);
+            }
+            break;
+        case token_rp:
+            {
+                pop_list(state);
+            }
+            break;
+        case token_number:
+            {
+                node* n = add_child(state);
+                n->type = node_number;
+            }
+            break;
+        case token_symbol:
+            {
+                node* n = add_child(state);
+                n->type = node_symbol;
+            }
+            break;
+        default:
+            break;
+        }
+    }
 }
 
 }
