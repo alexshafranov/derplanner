@@ -117,7 +117,7 @@ inline void move(parse_state& state)
     state.column++;
 }
 
-inline void skipws(parse_state& state)
+inline void skip_whitespace(parse_state& state)
 {
     while (*state.cursor == ' ' || *state.cursor == '\f' || *state.cursor == '\t' || *state.cursor == '\v')
     {
@@ -207,7 +207,7 @@ void tree::parse(char* buffer)
 
     root = push_list(state);
 
-    skipws(state);
+    skip_whitespace(state);
     match_token(state, token_lp);
 
     root->line = state.line;
