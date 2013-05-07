@@ -19,8 +19,14 @@
 //
 
 #include <unittestpp.h>
+#include <derplanner/compiler/s_expression.h>
 
-int main()
+namespace
 {
-    return UnitTest::RunAllTests();
+    TEST(trivial)
+    {
+        derplanner::s_expression::tree s_exp;
+        const char* text = "(hello world)";
+        s_exp.parse(const_cast<char*>(text));
+    }
 }
