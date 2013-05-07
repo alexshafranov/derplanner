@@ -27,7 +27,7 @@ namespace s_expression {
 
 namespace {
 
-static const int chunk_node_count = 2048;
+const int chunk_node_count = 2048;
 
 struct node_chunk
 {
