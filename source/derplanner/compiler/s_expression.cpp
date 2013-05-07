@@ -111,14 +111,38 @@ inline node* add_child(parse_state& state)
     return n;
 }
 
+inline void move(parse_state& state)
+{
+    state.cursor++;
+    state.column++;
+}
+
 inline void skipws(parse_state& state)
 {
-    while (isspace(*state.cursor++));
+    while (*state.cursor == ' ' || *state.cursor == '\f' || *state.cursor == '\t' || *state.cursor == '\v')
+    {
+        move(state);
+    }
 }
 
 inline bool has_token(parse_state& state)
 {
     return true;
+}
+
+inline void increment_line(parse_state& state)
+{
+    char c = *state.cursor;
+
+    move(state);
+
+    if ((c == '\n' || c == '\r') && (*state.cursor != c))
+    {
+        move(state);
+    }
+
+    state.line++;
+    state.column = 0;
 }
 
 inline token_type next_token(parse_state& state)
@@ -127,7 +151,17 @@ inline token_type next_token(parse_state& state)
     {
         switch (*state.cursor)
         {
-        case ' ':
+        case '\n': case '\r':
+            increment_line(state);
+            break;
+        case ' ': case '\f': case '\t': case '\v':
+            move(state);
+            break;
+        case ';':
+            while (*state.cursor != '\n' || *state.cursor != '\r' || *state.cursor != '\0')
+            {
+                move(state);
+            }
             break;
         }
     }

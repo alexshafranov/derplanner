@@ -52,9 +52,9 @@ public:
     tree();
     ~tree();
 
-    node* root;
-
     void parse(char* text);
+
+    node* root;
 
 private:
     tree(const tree&);
