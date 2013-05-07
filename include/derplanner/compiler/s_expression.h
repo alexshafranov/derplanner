@@ -21,8 +21,6 @@
 #ifndef DERPLANNER_COMPILER_S_EXPRESSION_H_
 #define DERPLANNER_COMPILER_S_EXPRESSION_H_
 
-#include <stddef.h>
-
 namespace derplanner {
 namespace s_expression {
 
@@ -39,11 +37,12 @@ struct node
     node_type type;
     int line;
     int column;
-    int text_begin_offset;
-    int text_end_offset;
+    const char* text_begin;
+    const char* text_end;
     node* parent;
     node* first_child;
-    node* sibling;
+    node* next_sibling;
+    node* prev_sibling_cyclic;
 };
 
 class tree
@@ -52,7 +51,7 @@ public:
     tree();
     ~tree();
 
-    void parse(char* text);
+    void parse(const char* text);
 
     node* root;
 
@@ -60,7 +59,7 @@ private:
     tree(const tree&);
     const tree& operator=(const tree&);
 
-    void* _memory;
+    void* memory;
 };
 
 }

@@ -18,6 +18,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
+#include <assert.h>
 #include "derplanner/compiler/s_expression.h"
 #include <stdlib.h>
 #include <ctype.h>
@@ -50,7 +51,7 @@ node* alloc_node(void*& memory)
 {
     node_chunk* chunk = reinterpret_cast<node_chunk*>(memory);
 
-    if (chunk->top >= chunk_node_count)
+    if (!chunk || chunk->top >= chunk_node_count)
     {
         node_chunk* new_chunk = reinterpret_cast<node_chunk*>(malloc(sizeof(node_chunk)));
 
@@ -80,41 +81,90 @@ struct parse_state
     void* tree_memory;
     int line;
     int column;
-    char* cursor;
+    const char* cursor;
+    const char* token_end;
     node* parent;
 };
-
-inline node* push_list(parse_state& state)
-{
-    node* n = alloc_node(state.tree_memory);
-    n->parent = state.parent;
-    state.parent = n;
-    return state.parent;
-}
-
-inline node* pop_list(parse_state& state)
-{
-    node* n = state.parent;
-    state.parent = n->parent;
-    return n;
-}
-
-inline node* add_child(parse_state& state)
-{
-    node* n = alloc_node(state.tree_memory);
-    node* p = state.parent;
-
-    n->parent = p;
-    n->sibling = p->first_child;
-    p->first_child = n;
-
-    return n;
-}
 
 inline void move(parse_state& state)
 {
     state.cursor++;
     state.column++;
+}
+
+inline void init_state(parse_state& state, const char* text, void* memory)
+{
+    state.tree_memory = memory;
+    state.line = 0;
+    state.column = 0;
+    state.cursor = text;
+    state.token_end = text;
+    state.parent = 0;
+}
+
+inline node* append_child(parse_state& state)
+{
+    node* n = alloc_node(state.tree_memory);
+    node* p = state.parent;
+
+    n->parent = p;
+    n->first_child = 0;
+    n->next_sibling = 0;
+    n->prev_sibling_cyclic = 0;
+
+    if (p)
+    {
+        node* first_child = p->first_child;
+
+        if (first_child)
+        {
+            node* last_child = first_child->prev_sibling_cyclic;
+            last_child->next_sibling = n;
+            n->prev_sibling_cyclic = last_child;
+            first_child->prev_sibling_cyclic = n;
+        }
+        else
+        {
+            p->first_child = n;
+            n->prev_sibling_cyclic = n;
+        }
+    }
+
+    return n;
+}
+
+inline node* push_list(parse_state& state)
+{
+    node* n = append_child(state);
+
+    n->type = node_list;
+    n->line = state.line;
+    n->column = state.column;
+    n->text_begin = state.cursor;
+    n->text_end = state.cursor;
+
+    state.parent = n;
+
+    return n;
+}
+
+inline node* pop_list(parse_state& state)
+{
+    node* n = state.parent;
+    n->text_end = state.cursor;
+    state.parent = n->parent;
+    return n;
+}
+
+inline node* append_node(parse_state& state, node_type type)
+{
+    node* n = append_child(state);
+    n->type = type;
+    n->line = state.line;
+    n->column = state.column;
+    n->text_begin = state.cursor;
+    n->text_end = state.token_end;
+    return n;
 }
 
 inline void skip_whitespace(parse_state& state)
@@ -127,7 +177,7 @@ inline void skip_whitespace(parse_state& state)
 
 inline bool has_token(parse_state& state)
 {
-    return true;
+    return *state.token_end != '\0';
 }
 
 inline void increment_line(parse_state& state)
@@ -145,8 +195,32 @@ inline void increment_line(parse_state& state)
     state.column = 0;
 }
 
+inline void read_symbol(parse_state& state)
+{
+    const char* begin = state.cursor;
+
+    while (true)
+    {
+        switch (*state.cursor)
+        {
+        case '\0':
+        case '\n': case '\r':
+        case ' ': case '\f': case '\t': case '\v':
+        case '(': case ')':
+            state.token_end = state.cursor;
+            state.cursor = begin;
+            return;
+        default:
+            move(state);
+            break;
+        }
+    }
+}
+
 inline token_type next_token(parse_state& state)
 {
+    state.cursor = state.token_end;
+
     while (*state.cursor)
     {
         switch (*state.cursor)
@@ -163,6 +237,15 @@ inline token_type next_token(parse_state& state)
                 move(state);
             }
             break;
+        case '(':
+            ++state.token_end;
+            return token_lp;
+        case ')':
+            ++state.token_end;
+            return token_rp;
+        default:
+            read_symbol(state);
+            return token_symbol;
         }
     }
 
@@ -171,47 +254,41 @@ inline token_type next_token(parse_state& state)
 
 inline void match_token(parse_state& state, token_type token)
 {
+    next_token(state);
 }
 
 } // unnamed namespace
 
 tree::tree()
     : root(0)
-    , _memory(0)
+    , memory(0)
 {
 }
 
 tree::~tree()
 {
-    if (_memory)
+    if (memory)
     {
-        free_chunks(_memory);
+        free_chunks(memory);
     }
 }
 
-void tree::parse(char* buffer)
+void tree::parse(const char* text)
 {
-    if (_memory)
+    if (memory)
     {
-        free_chunks(_memory);
-        _memory = 0;
+        free_chunks(memory);
+        memory = 0;
         root = 0;
     }
 
     parse_state state;
-    state.tree_memory = _memory;
-    state.line = 0;
-    state.column = 0;
-    state.cursor = buffer;
-    state.parent = 0;
-
-    root = push_list(state);
+    init_state(state, text, memory);
 
     skip_whitespace(state);
     match_token(state, token_lp);
 
-    root->line = state.line;
-    root->column = state.column;
+    root = push_list(state);
 
     while (has_token(state))
     {
@@ -229,20 +306,21 @@ void tree::parse(char* buffer)
             break;
         case token_number:
             {
-                node* n = add_child(state);
-                n->type = node_number;
+                append_node(state, node_number);
             }
             break;
         case token_symbol:
             {
-                node* n = add_child(state);
-                n->type = node_symbol;
+                append_node(state, node_symbol);
             }
             break;
         default:
+            assert(false);
             break;
         }
     }
+
+    memory = state.tree_memory;
 }
 
 }

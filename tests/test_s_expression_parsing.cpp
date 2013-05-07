@@ -18,15 +18,35 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
+#include <stdio.h>
 #include <unittestpp.h>
 #include <derplanner/compiler/s_expression.h>
+
+using namespace derplanner::s_expression;
 
 namespace
 {
     TEST(trivial)
     {
-        derplanner::s_expression::tree s_exp;
+        tree s_exp;
         const char* text = "(hello world)";
-        s_exp.parse(const_cast<char*>(text));
+        s_exp.parse(text);
+
+        node* root = s_exp.root;
+
+        CHECK(!root->next_sibling);
+        CHECK(!root->prev_sibling_cyclic);
+
+        for (node* n = root->first_child; n != 0; n = n->next_sibling)
+        {
+            printf("text:");
+
+            for (const char* c = n->text_begin; c != n->text_end; ++c)
+            {
+                printf("%c", *c);
+            }
+
+            printf("\n");
+        }
     }
 }
