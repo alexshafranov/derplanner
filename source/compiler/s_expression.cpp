@@ -191,12 +191,14 @@ inline void increment_line(parse_state& state)
     }
 
     state.line++;
-    state.column = 0;
+    state.column = 1;
 }
 
 inline void read_symbol(parse_state& state)
 {
     char* begin = state.cursor;
+    int line = state.line;
+    int column = state.column;
 
     while (true)
     {
@@ -209,6 +211,8 @@ inline void read_symbol(parse_state& state)
             state.cursor_next = state.cursor;
             state.term_loc = state.cursor;
             state.cursor = begin;
+            state.line = line;
+            state.column = column;
             return;
         default:
             move(state);
@@ -250,11 +254,13 @@ inline token_type next_token(parse_state& state)
             terminate(state);
             break;
         case '(':
-            state.cursor_next = state.cursor+1;
+            move(state);
+            state.cursor_next = state.cursor;
             terminate(state);
             return token_lp;
         case ')':
-            state.cursor_next = state.cursor+1;
+            move(state);
+            state.cursor_next = state.cursor;
             terminate(state);
             return token_rp;
         default:
