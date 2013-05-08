@@ -250,11 +250,11 @@ inline token_type next_token(parse_state& state)
             terminate(state);
             break;
         case '(':
-            ++state.cursor_next;
+            state.cursor_next = state.cursor+1;
             terminate(state);
             return token_lp;
         case ')':
-            ++state.cursor_next;
+            state.cursor_next = state.cursor+1;
             terminate(state);
             return token_rp;
         default:
