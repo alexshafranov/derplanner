@@ -72,4 +72,13 @@ namespace
         std::string actual = to_string(s_exp.root);
         CHECK_EQUAL("(hello (world) (hello planner))", actual.c_str());
     }
+
+    TEST(line_number)
+    {
+        tree s_exp;
+        char buffer[] = "(hello\nworld)";
+        s_exp.parse(buffer);
+        CHECK_EQUAL(1, s_exp.root->first_child->line);
+        CHECK_EQUAL(2, s_exp.root->first_child->next_sibling->line);
+    }
 }

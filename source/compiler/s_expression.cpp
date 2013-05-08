@@ -96,8 +96,8 @@ inline void move(parse_state& state)
 inline void init_state(parse_state& state, char* buffer, void* memory)
 {
     state.tree_memory = memory;
-    state.line = 0;
-    state.column = 0;
+    state.line = 1;
+    state.column = 1;
     state.cursor = buffer;
     state.cursor_next = buffer;
     state.term_loc = 0;
