@@ -55,6 +55,15 @@ namespace
         return result;
     }
 
+    TEST(empty)
+    {
+        tree s_exp;
+        char buffer[] = "";
+        s_exp.parse(buffer);
+        std::string actual = to_string(s_exp.root);
+        CHECK_EQUAL("()", actual.c_str());
+    }
+
     TEST(symbol_delimeters)
     {
         tree s_exp;
