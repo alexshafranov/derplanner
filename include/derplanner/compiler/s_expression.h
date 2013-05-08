@@ -37,8 +37,7 @@ struct node
     node_type type;
     int line;
     int column;
-    const char* text_begin;
-    const char* text_end;
+    char* token;
     node* parent;
     node* first_child;
     node* next_sibling;
@@ -51,7 +50,7 @@ public:
     tree();
     ~tree();
 
-    void parse(const char* text);
+    void parse(char* buffer);
 
     node* root;
 

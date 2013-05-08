@@ -81,8 +81,9 @@ struct parse_state
     void* tree_memory;
     int line;
     int column;
-    const char* cursor;
-    const char* token_end;
+    char* cursor;
+    char* cursor_next;
+    char* term_loc;
     node* parent;
 };
 
@@ -92,13 +93,14 @@ inline void move(parse_state& state)
     state.column++;
 }
 
-inline void init_state(parse_state& state, const char* text, void* memory)
+inline void init_state(parse_state& state, char* buffer, void* memory)
 {
     state.tree_memory = memory;
     state.line = 0;
     state.column = 0;
-    state.cursor = text;
-    state.token_end = text;
+    state.cursor = buffer;
+    state.cursor_next = buffer;
+    state.term_loc = 0;
     state.parent = 0;
 }
 
@@ -140,8 +142,7 @@ inline node* push_list(parse_state& state)
     n->type = node_list;
     n->line = state.line;
     n->column = state.column;
-    n->text_begin = state.cursor;
-    n->text_end = state.cursor;
+    n->token = 0;
 
     state.parent = n;
 
@@ -151,7 +152,6 @@ inline node* push_list(parse_state& state)
 inline node* pop_list(parse_state& state)
 {
     node* n = state.parent;
-    n->text_end = state.cursor;
     state.parent = n->parent;
     return n;
 }
@@ -162,8 +162,7 @@ inline node* append_node(parse_state& state, node_type type)
     n->type = type;
     n->line = state.line;
     n->column = state.column;
-    n->text_begin = state.cursor;
-    n->text_end = state.token_end;
+    n->token = state.cursor;
     return n;
 }
 
@@ -175,9 +174,9 @@ inline void skip_whitespace(parse_state& state)
     }
 }
 
-inline bool has_token(parse_state& state)
+inline bool buffer_left(parse_state& state)
 {
-    return *state.token_end != '\0';
+    return *state.cursor_next != '\0';
 }
 
 inline void increment_line(parse_state& state)
@@ -186,7 +185,7 @@ inline void increment_line(parse_state& state)
 
     move(state);
 
-    if ((c == '\n' || c == '\r') && (*state.cursor != c))
+    if ((*state.cursor == '\n' || *state.cursor == '\r') && (*state.cursor != c))
     {
         move(state);
     }
@@ -197,7 +196,7 @@ inline void increment_line(parse_state& state)
 
 inline void read_symbol(parse_state& state)
 {
-    const char* begin = state.cursor;
+    char* begin = state.cursor;
 
     while (true)
     {
@@ -207,7 +206,8 @@ inline void read_symbol(parse_state& state)
         case '\n': case '\r':
         case ' ': case '\f': case '\t': case '\v':
         case '(': case ')':
-            state.token_end = state.cursor;
+            state.cursor_next = state.cursor;
+            state.term_loc = state.cursor;
             state.cursor = begin;
             return;
         default:
@@ -217,9 +217,18 @@ inline void read_symbol(parse_state& state)
     }
 }
 
+inline void terminate(parse_state& state)
+{
+    if (state.term_loc)
+    {
+        *state.term_loc = '\0';
+        state.term_loc = 0;
+    }
+}
+
 inline token_type next_token(parse_state& state)
 {
-    state.cursor = state.token_end;
+    state.cursor = state.cursor_next;
 
     while (*state.cursor)
     {
@@ -227,21 +236,26 @@ inline token_type next_token(parse_state& state)
         {
         case '\n': case '\r':
             increment_line(state);
+            terminate(state);
             break;
         case ' ': case '\f': case '\t': case '\v':
             move(state);
+            terminate(state);
             break;
         case ';':
             while (*state.cursor != '\n' || *state.cursor != '\r' || *state.cursor != '\0')
             {
                 move(state);
             }
+            terminate(state);
             break;
         case '(':
-            ++state.token_end;
+            ++state.cursor_next;
+            terminate(state);
             return token_lp;
         case ')':
-            ++state.token_end;
+            ++state.cursor_next;
+            terminate(state);
             return token_rp;
         default:
             read_symbol(state);
@@ -273,7 +287,7 @@ tree::~tree()
     }
 }
 
-void tree::parse(const char* text)
+void tree::parse(char* buffer)
 {
     if (memory)
     {
@@ -283,14 +297,14 @@ void tree::parse(const char* text)
     }
 
     parse_state state;
-    init_state(state, text, memory);
+    init_state(state, buffer, memory);
 
     skip_whitespace(state);
     match_token(state, token_lp);
 
     root = push_list(state);
 
-    while (has_token(state))
+    while (buffer_left(state))
     {
         switch (next_token(state))
         {

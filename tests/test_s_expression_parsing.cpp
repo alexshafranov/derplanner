@@ -19,6 +19,7 @@
 //
 
 #include <stdio.h>
+#include <string.h>
 #include <unittestpp.h>
 #include <derplanner/compiler/s_expression.h>
 
@@ -29,8 +30,8 @@ namespace
     TEST(trivial)
     {
         tree s_exp;
-        const char* text = "(hello world)";
-        s_exp.parse(text);
+        char buffer[] = "(hello world hello\nplanner)";
+        s_exp.parse(buffer);
 
         node* root = s_exp.root;
 
@@ -39,14 +40,7 @@ namespace
 
         for (node* n = root->first_child; n != 0; n = n->next_sibling)
         {
-            printf("text:");
-
-            for (const char* c = n->text_begin; c != n->text_end; ++c)
-            {
-                printf("%c", *c);
-            }
-
-            printf("\n");
+            printf("text: \"%s\"\n", n->token);
         }
     }
 }
