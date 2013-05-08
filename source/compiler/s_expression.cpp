@@ -78,7 +78,7 @@ enum token_type
 
 struct parse_state
 {
-    void* tree_memory;
+    void** tree_memory;
     int line;
     int column;
     char* cursor;
@@ -87,13 +87,7 @@ struct parse_state
     node* parent;
 };
 
-inline void move(parse_state& state)
-{
-    state.cursor++;
-    state.column++;
-}
-
-inline void init_state(parse_state& state, char* buffer, void* memory)
+void init_state(parse_state& state, char* buffer, void** memory)
 {
     state.tree_memory = memory;
     state.line = 1;
@@ -104,9 +98,15 @@ inline void init_state(parse_state& state, char* buffer, void* memory)
     state.parent = 0;
 }
 
+inline void move(parse_state& state)
+{
+    state.cursor++;
+    state.column++;
+}
+
 inline node* append_child(parse_state& state)
 {
-    node* n = alloc_node(state.tree_memory);
+    node* n = alloc_node(*state.tree_memory);
     node* p = state.parent;
 
     n->parent = p;
@@ -303,7 +303,7 @@ void tree::parse(char* buffer)
     }
 
     parse_state state;
-    init_state(state, buffer, memory);
+    init_state(state, buffer, &memory);
 
     skip_whitespace(state);
     match_token(state, token_lp);
@@ -339,8 +339,6 @@ void tree::parse(char* buffer)
             break;
         }
     }
-
-    memory = state.tree_memory;
 }
 
 }
