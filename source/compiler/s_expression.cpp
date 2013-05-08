@@ -194,7 +194,7 @@ inline void increment_line(parse_state& state)
     state.column = 1;
 }
 
-inline void read_symbol(parse_state& state)
+inline void scan_symbol(parse_state& state)
 {
     char* begin = state.cursor;
     int line = state.line;
@@ -264,7 +264,7 @@ inline token_type next_token(parse_state& state)
             terminate(state);
             return token_rp;
         default:
-            read_symbol(state);
+            scan_symbol(state);
             return token_symbol;
         }
     }
