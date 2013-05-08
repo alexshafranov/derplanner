@@ -247,7 +247,7 @@ inline token_type next_token(parse_state& state)
             terminate(state);
             break;
         case ';':
-            while (*state.cursor != '\n' || *state.cursor != '\r' || *state.cursor != '\0')
+            while (*state.cursor != '\n' && *state.cursor != '\r' && *state.cursor != '\0')
             {
                 move(state);
             }

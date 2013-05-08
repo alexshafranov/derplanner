@@ -99,4 +99,20 @@ namespace
         CHECK_EQUAL(2, s_exp.root->first_child->column);
         CHECK_EQUAL(1, s_exp.root->first_child->next_sibling->column);
     }
+
+    TEST(line_comment)
+    {
+        tree s_exp;
+        // children:       n1                           n2
+        char buffer[] = "(hello ; world \n ; hello \n planner)";
+        s_exp.parse(buffer);
+        std::string actual = to_string(s_exp.root);
+        CHECK_EQUAL("(hello planner)", actual.c_str());
+        node* n1 = s_exp.root->first_child;
+        node* n2 = n1->next_sibling;
+        CHECK_EQUAL(1, n1->line);
+        CHECK_EQUAL(2, n1->column);
+        CHECK_EQUAL(3, n2->line);
+        CHECK_EQUAL(2, n2->column);
+    }
 }
