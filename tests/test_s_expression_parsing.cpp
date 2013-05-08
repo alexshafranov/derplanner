@@ -19,7 +19,7 @@
 //
 
 #include <stdio.h>
-#include <string.h>
+#include <string>
 #include <unittestpp.h>
 #include <derplanner/compiler/s_expression.h>
 
@@ -27,20 +27,49 @@ using namespace derplanner::s_expression;
 
 namespace
 {
-    TEST(trivial)
+    std::string to_string(node* root)
+    {
+        std::string result;
+
+        if (root->type == node_list)
+        {
+            result += "(";
+
+            for (node* n = root->first_child; n != 0; n = n->next_sibling)
+            {
+                result += to_string(n);
+
+                if (n != root->first_child->prev_sibling_cyclic)
+                {
+                    result += " ";
+                }
+            }
+
+            result += ")";
+        }
+        else
+        {
+            result = root->token;
+        }
+
+        return result;
+    }
+
+    TEST(symbol_delimeters)
     {
         tree s_exp;
-        char buffer[] = "(hello world hello\nplanner)";
+        char buffer[] = "(hello world  hello\nplanner)";
         s_exp.parse(buffer);
+        std::string actual = to_string(s_exp.root);
+        CHECK_EQUAL("(hello world hello planner)", actual.c_str());
+    }
 
-        node* root = s_exp.root;
-
-        CHECK(!root->next_sibling);
-        CHECK(!root->prev_sibling_cyclic);
-
-        for (node* n = root->first_child; n != 0; n = n->next_sibling)
-        {
-            printf("text: \"%s\"\n", n->token);
-        }
+    TEST(simple_hierarchy)
+    {
+        tree s_exp;
+        char buffer[] = "(hello (world) (hello planner))";
+        s_exp.parse(buffer);
+        std::string actual = to_string(s_exp.root);
+        CHECK_EQUAL("(hello (world) (hello planner))", actual.c_str());
     }
 }
