@@ -45,6 +45,9 @@ struct node
     node* prev_sibling_cyclic;
 };
 
+float as_float(const node& n);
+int as_int(const node& n);
+
 class tree
 {
 public:

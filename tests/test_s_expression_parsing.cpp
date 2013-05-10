@@ -126,6 +126,24 @@ namespace
         CHECK_EQUAL(expected, s_exp.root->first_child->type);
     }
 
+    void check_number(const char* str, float expected)
+    {
+        char buffer[128];
+        for (size_t i=0; i<strlen(str)+1 && i<128; ++i) { buffer[i] = str[i]; }
+        tree s_exp;
+        s_exp.parse(buffer);
+        CHECK_EQUAL(expected, as_float(*s_exp.root->first_child));
+    }
+
+    void check_number(const char* str, int expected)
+    {
+        char buffer[128];
+        for (size_t i=0; i<strlen(str)+1 && i<128; ++i) { buffer[i] = str[i]; }
+        tree s_exp;
+        s_exp.parse(buffer);
+        CHECK_EQUAL(expected, as_int(*s_exp.root->first_child));
+    }
+
     TEST(numbers)
     {
         check_number("(123)", node_int);
@@ -148,5 +166,7 @@ namespace
         check_number("(1e+23)", node_float);
         check_number("(+123x)", node_symbol);
         check_number("(e+10)", node_symbol);
+        check_number("(123)", 123);
+        check_number("(1.23)", 1.23f);
     }
 }

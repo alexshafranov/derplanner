@@ -434,5 +434,15 @@ void tree::parse(char* buffer)
     }
 }
 
+float as_float(const node& n)
+{
+    return static_cast<float>(strtod(n.token, 0));
+}
+
+int as_int(const node& n)
+{
+    return static_cast<int>(strtol(n.token, 0, 10));
+}
+
 }
 }
