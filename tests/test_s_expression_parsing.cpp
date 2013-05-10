@@ -176,14 +176,14 @@ namespace
             char buffer[] = "(hello world))";
             tree s_exp;
             parse_status actual = s_exp.parse(buffer);
-            CHECK_EQUAL(parse_mismatch_opening, actual);
+            CHECK_EQUAL(parse_excess_close, actual);
         }
 
         {
             char buffer[] = "((hello world)";
             tree s_exp;
             parse_status actual = s_exp.parse(buffer);
-            CHECK_EQUAL(parse_mismatch_closing, actual);
+            CHECK_EQUAL(parse_excess_open, actual);
         }
     }
 }

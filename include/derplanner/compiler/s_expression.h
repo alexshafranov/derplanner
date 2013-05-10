@@ -51,8 +51,8 @@ float as_float(const node& n);
 enum parse_status
 {
     parse_ok = 0,
-    parse_mismatch_opening,
-    parse_mismatch_closing,
+    parse_excess_open,
+    parse_excess_close,
 };
 
 class tree

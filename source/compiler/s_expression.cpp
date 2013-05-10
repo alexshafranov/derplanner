@@ -417,7 +417,7 @@ parse_status tree::parse(char* buffer)
             {
                 if (!pop_list(state))
                 {
-                    return parse_mismatch_opening;
+                    return parse_excess_close;
                 }
             }
             break;
@@ -444,7 +444,7 @@ parse_status tree::parse(char* buffer)
 
     if (state.parent)
     {
-        return parse_mismatch_closing;
+        return parse_excess_open;
     }
 
     return parse_ok;
