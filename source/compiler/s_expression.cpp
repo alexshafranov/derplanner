@@ -246,7 +246,7 @@ int scan_number_char_class(parse_state& state)
     return -1;
 }
 
-static int scan_number_transitions[] = {
+int scan_number_transitions[] = {
      1,  3,  2, -1,
     -1,  3,  2, -1,
     -1,  4, -1, -1,
