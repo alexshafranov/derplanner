@@ -99,13 +99,13 @@ void init_state(parse_state& state, char* buffer, void** memory)
     state.parent = 0;
 }
 
-inline void move(parse_state& state)
+void move(parse_state& state)
 {
     state.cursor++;
     state.column++;
 }
 
-inline node* append_child(parse_state& state)
+node* append_child(parse_state& state)
 {
     node* n = alloc_node(*state.tree_memory);
     node* p = state.parent;
@@ -136,7 +136,7 @@ inline node* append_child(parse_state& state)
     return n;
 }
 
-inline node* push_list(parse_state& state)
+node* push_list(parse_state& state)
 {
     node* n = append_child(state);
 
@@ -150,14 +150,14 @@ inline node* push_list(parse_state& state)
     return n;
 }
 
-inline node* pop_list(parse_state& state)
+node* pop_list(parse_state& state)
 {
     node* n = state.parent;
     state.parent = n->parent;
     return n;
 }
 
-inline node* append_node(parse_state& state, node_type type)
+node* append_node(parse_state& state, node_type type)
 {
     node* n = append_child(state);
     n->type = type;
@@ -167,7 +167,7 @@ inline node* append_node(parse_state& state, node_type type)
     return n;
 }
 
-inline void skip_whitespace(parse_state& state)
+void skip_whitespace(parse_state& state)
 {
     while (*state.cursor == ' ' || *state.cursor == '\f' || *state.cursor == '\t' || *state.cursor == '\v')
     {
@@ -175,12 +175,12 @@ inline void skip_whitespace(parse_state& state)
     }
 }
 
-inline bool buffer_left(parse_state& state)
+bool buffer_left(parse_state& state)
 {
     return *state.cursor_next != '\0';
 }
 
-inline void increment_line(parse_state& state)
+void increment_line(parse_state& state)
 {
     char c = *state.cursor;
 
@@ -195,7 +195,7 @@ inline void increment_line(parse_state& state)
     state.column = 1;
 }
 
-inline void scan_symbol(parse_state& state)
+void scan_symbol(parse_state& state)
 {
     char* begin = state.cursor;
     int line = state.line;
@@ -222,7 +222,7 @@ inline void scan_symbol(parse_state& state)
     }
 }
 
-inline int scan_number_char_class(parse_state& state)
+int scan_number_char_class(parse_state& state)
 {
     switch (*state.cursor)
     {
@@ -251,7 +251,7 @@ static int scan_number_transitions[] = {
     -1,  7, -1, -1,
 };
 
-inline token_type scan_number(parse_state& state)
+token_type scan_number(parse_state& state)
 {
     char* begin = state.cursor;
     int line = state.line;
@@ -300,7 +300,7 @@ inline token_type scan_number(parse_state& state)
     return token_error;
 }
 
-inline void terminate(parse_state& state)
+void terminate(parse_state& state)
 {
     if (state.term_loc)
     {
@@ -309,7 +309,7 @@ inline void terminate(parse_state& state)
     }
 }
 
-inline token_type next_token(parse_state& state)
+token_type next_token(parse_state& state)
 {
     state.cursor = state.cursor_next;
 
@@ -360,7 +360,7 @@ inline token_type next_token(parse_state& state)
     return token_error;
 }
 
-inline void match_token(parse_state& state, token_type token)
+void match_token(parse_state& state, token_type token)
 {
     next_token(state);
 }
