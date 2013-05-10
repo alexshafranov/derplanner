@@ -169,4 +169,11 @@ namespace
         check_number("(123)", 123);
         check_number("(1.23)", 1.23f);
     }
+
+    TEST(mismatching_parentheses)
+    {
+        char buffer[] = "(hello world))";
+        tree s_exp;
+        s_exp.parse(buffer);
+    }
 }
