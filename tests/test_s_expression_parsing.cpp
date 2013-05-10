@@ -172,9 +172,18 @@ namespace
 
     TEST(mismatching_parentheses)
     {
-        char buffer[] = "(hello world))";
-        tree s_exp;
-        parse_status actual = s_exp.parse(buffer);
-        CHECK_EQUAL(parse_mismatch_opening, actual);
+        {
+            char buffer[] = "(hello world))";
+            tree s_exp;
+            parse_status actual = s_exp.parse(buffer);
+            CHECK_EQUAL(parse_mismatch_opening, actual);
+        }
+
+        {
+            char buffer[] = "((hello world)";
+            tree s_exp;
+            parse_status actual = s_exp.parse(buffer);
+            CHECK_EQUAL(parse_mismatch_closing, actual);
+        }
     }
 }

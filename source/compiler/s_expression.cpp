@@ -442,6 +442,11 @@ parse_status tree::parse(char* buffer)
         }
     }
 
+    if (state.parent)
+    {
+        return parse_mismatch_closing;
+    }
+
     return parse_ok;
 }
 
