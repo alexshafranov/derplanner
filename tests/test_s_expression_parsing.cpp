@@ -61,7 +61,7 @@ namespace
         tree s_exp;
         char buffer[] = "";
         s_exp.parse(buffer);
-        std::string actual = to_string(s_exp.root);
+        std::string actual = to_string(s_exp.root());
         CHECK_EQUAL("()", actual.c_str());
     }
 
@@ -70,7 +70,7 @@ namespace
         tree s_exp;
         char buffer[] = "(hello world  hello\nplanner)";
         s_exp.parse(buffer);
-        std::string actual = to_string(s_exp.root);
+        std::string actual = to_string(s_exp.root());
         CHECK_EQUAL("(hello world hello planner)", actual.c_str());
     }
 
@@ -79,7 +79,7 @@ namespace
         tree s_exp;
         char buffer[] = "(hello (world) (hello planner))";
         s_exp.parse(buffer);
-        std::string actual = to_string(s_exp.root);
+        std::string actual = to_string(s_exp.root());
         CHECK_EQUAL("(hello (world) (hello planner))", actual.c_str());
     }
 
@@ -88,8 +88,8 @@ namespace
         tree s_exp;
         char buffer[] = "(hello\nworld)";
         s_exp.parse(buffer);
-        CHECK_EQUAL(1, s_exp.root->first_child->line);
-        CHECK_EQUAL(2, s_exp.root->first_child->next_sibling->line);
+        CHECK_EQUAL(1, s_exp.root()->first_child->line);
+        CHECK_EQUAL(2, s_exp.root()->first_child->next_sibling->line);
     }
 
     TEST(column_number)
@@ -97,8 +97,8 @@ namespace
         tree s_exp;
         char buffer[] = "(hello\nworld)";
         s_exp.parse(buffer);
-        CHECK_EQUAL(2, s_exp.root->first_child->column);
-        CHECK_EQUAL(1, s_exp.root->first_child->next_sibling->column);
+        CHECK_EQUAL(2, s_exp.root()->first_child->column);
+        CHECK_EQUAL(1, s_exp.root()->first_child->next_sibling->column);
     }
 
     TEST(line_comment)
@@ -107,9 +107,9 @@ namespace
         // children:       n1                           n2
         char buffer[] = "(hello ; world \n ; hello \n planner)";
         s_exp.parse(buffer);
-        std::string actual = to_string(s_exp.root);
+        std::string actual = to_string(s_exp.root());
         CHECK_EQUAL("(hello planner)", actual.c_str());
-        node* n1 = s_exp.root->first_child;
+        node* n1 = s_exp.root()->first_child;
         node* n2 = n1->next_sibling;
         CHECK_EQUAL(1, n1->line);
         CHECK_EQUAL(2, n1->column);
@@ -123,7 +123,7 @@ namespace
         for (size_t i=0; i<strlen(str)+1 && i<128; ++i) { buffer[i] = str[i]; }
         tree s_exp;
         s_exp.parse(buffer);
-        CHECK_EQUAL(expected, s_exp.root->first_child->type);
+        CHECK_EQUAL(expected, s_exp.root()->first_child->type);
     }
 
     void check_number(const char* str, float expected)
@@ -132,7 +132,7 @@ namespace
         for (size_t i=0; i<strlen(str)+1 && i<128; ++i) { buffer[i] = str[i]; }
         tree s_exp;
         s_exp.parse(buffer);
-        CHECK_EQUAL(expected, as_float(*s_exp.root->first_child));
+        CHECK_EQUAL(expected, as_float(*s_exp.root()->first_child));
     }
 
     void check_number(const char* str, int expected)
@@ -141,7 +141,7 @@ namespace
         for (size_t i=0; i<strlen(str)+1 && i<128; ++i) { buffer[i] = str[i]; }
         tree s_exp;
         s_exp.parse(buffer);
-        CHECK_EQUAL(expected, as_int(*s_exp.root->first_child));
+        CHECK_EQUAL(expected, as_int(*s_exp.root()->first_child));
     }
 
     TEST(numbers)

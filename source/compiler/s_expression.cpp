@@ -368,35 +368,35 @@ void match_token(parse_state& state, token_type token)
 } // unnamed namespace
 
 tree::tree()
-    : root(0)
-    , memory(0)
+    : _memory(0)
+    , _root(0)
 {
 }
 
 tree::~tree()
 {
-    if (memory)
+    if (_memory)
     {
-        free_chunks(memory);
+        free_chunks(_memory);
     }
 }
 
 parse_status tree::parse(char* buffer)
 {
-    if (memory)
+    if (_memory)
     {
-        free_chunks(memory);
-        memory = 0;
-        root = 0;
+        free_chunks(_memory);
+        _memory = 0;
+        _root = 0;
     }
 
     parse_state state;
-    init_state(state, buffer, &memory);
+    init_state(state, buffer, &_memory);
 
     skip_whitespace(state);
     match_token(state, token_lp);
 
-    root = push_list(state);
+    _root = push_list(state);
 
     while (buffer_left(state))
     {
@@ -434,6 +434,11 @@ parse_status tree::parse(char* buffer)
     }
 
     return parse_ok;
+}
+
+node* tree::root() const
+{
+    return _root;
 }
 
 float as_float(const node& n)

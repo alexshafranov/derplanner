@@ -63,14 +63,14 @@ public:
     ~tree();
 
     parse_status parse(char* buffer);
-
-    node* root;
+    node* root() const;
 
 private:
     tree(const tree&);
     const tree& operator=(const tree&);
 
-    void* memory;
+    void* _memory;
+    node* _root;
 };
 
 }
