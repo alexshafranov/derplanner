@@ -153,8 +153,14 @@ node* push_list(parse_state& state)
 node* pop_list(parse_state& state)
 {
     node* n = state.parent;
-    state.parent = n->parent;
-    return n;
+
+    if (n)
+    {
+        state.parent = n->parent;
+        return n;
+    }
+
+    return 0;
 }
 
 node* append_node(parse_state& state, node_type type)
@@ -409,7 +415,10 @@ parse_status tree::parse(char* buffer)
             break;
         case token_rp:
             {
-                pop_list(state);
+                if (!pop_list(state))
+                {
+                    return parse_mismatch_opening;
+                }
             }
             break;
         case token_int:

@@ -174,6 +174,7 @@ namespace
     {
         char buffer[] = "(hello world))";
         tree s_exp;
-        s_exp.parse(buffer);
+        parse_status actual = s_exp.parse(buffer);
+        CHECK_EQUAL(parse_mismatch_opening, actual);
     }
 }
