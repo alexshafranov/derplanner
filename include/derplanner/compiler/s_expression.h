@@ -26,7 +26,7 @@ namespace s_expression {
 
 enum node_type
 {
-    node_error = 0,
+    node_none = 0,
     node_list,
     node_symbol,
     node_int,

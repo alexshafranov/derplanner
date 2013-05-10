@@ -69,7 +69,7 @@ node* alloc_node(void*& memory)
 
 enum token_type
 {
-    token_error = 0,
+    token_none = 0,
     token_lp,
     token_rp,
     token_symbol,
@@ -275,21 +275,21 @@ token_type scan_number(parse_state& state)
 
             if (s == 3) { return token_int; }
             if (s == 4 || s == 7) { return token_float; }
-            return token_error;
+            return token_none;
         }
 
         int c = scan_number_char_class(state);
 
         if (c < 0)
         {
-            return token_error;
+            return token_none;
         }
 
         int n = scan_number_transitions[s * 4 + c];
 
         if (n < 0)
         {
-            return token_error;
+            return token_none;
         }
 
         s = n;
@@ -297,7 +297,7 @@ token_type scan_number(parse_state& state)
         move(state);
     }
 
-    return token_error;
+    return token_none;
 }
 
 void terminate(parse_state& state)
@@ -346,7 +346,7 @@ token_type next_token(parse_state& state)
             {
                 token_type t = scan_number(state);
 
-                if (t != token_error)
+                if (t != token_none)
                 {
                     return t;
                 }
@@ -357,7 +357,7 @@ token_type next_token(parse_state& state)
         }
     }
 
-    return token_error;
+    return token_none;
 }
 
 void match_token(parse_state& state, token_type token)
