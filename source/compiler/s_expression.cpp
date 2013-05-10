@@ -381,7 +381,7 @@ tree::~tree()
     }
 }
 
-void tree::parse(char* buffer)
+parse_status tree::parse(char* buffer)
 {
     if (memory)
     {
@@ -432,6 +432,8 @@ void tree::parse(char* buffer)
             break;
         }
     }
+
+    return parse_ok;
 }
 
 float as_float(const node& n)

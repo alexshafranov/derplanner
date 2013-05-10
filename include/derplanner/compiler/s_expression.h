@@ -48,13 +48,21 @@ struct node
 int as_int(const node& n);
 float as_float(const node& n);
 
+enum parse_status
+{
+    parse_ok = 0,
+    parse_mismatch_opening,
+    parse_mismatch_closing,
+    parse_out_of_memory,
+};
+
 class tree
 {
 public:
     tree();
     ~tree();
 
-    void parse(char* buffer);
+    parse_status parse(char* buffer);
 
     node* root;
 
