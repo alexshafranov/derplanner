@@ -53,7 +53,6 @@ enum parse_status
     parse_ok = 0,
     parse_mismatch_opening,
     parse_mismatch_closing,
-    parse_out_of_memory,
 };
 
 class tree
