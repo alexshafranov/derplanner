@@ -146,5 +146,7 @@ namespace
         check_number("(1e23)", node_float);
         check_number("(1e-23)", node_float);
         check_number("(1e+23)", node_float);
+        check_number("(+123x)", node_symbol);
+        check_number("(e+10)", node_symbol);
     }
 }

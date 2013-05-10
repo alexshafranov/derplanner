@@ -222,6 +222,35 @@ inline void scan_symbol(parse_state& state)
     }
 }
 
+inline int scan_number_char_class(parse_state& state)
+{
+    switch (*state.cursor)
+    {
+    case '+': case '-':
+        return 0;
+    case '0': case '1': case '2': case '3': case '4':
+    case '5': case '6': case '7': case '8': case '9':
+        return 1;
+    case '.':
+        return 2;
+    case 'e': case 'E':
+        return 3;
+    }
+
+    return -1;
+}
+
+static int scan_number_transitions[] = {
+     1,  3,  2, -1,
+    -1,  3,  2, -1,
+    -1,  4, -1, -1,
+    -1,  3,  4,  5,
+    -1,  4, -1,  5,
+     6,  7, -1, -1,
+    -1,  7, -1, -1,
+    -1,  7, -1, -1,
+};
+
 inline token_type scan_number(parse_state& state)
 {
     char* begin = state.cursor;
@@ -249,118 +278,21 @@ inline token_type scan_number(parse_state& state)
             return token_error;
         }
 
-        switch (s)
+        int c = scan_number_char_class(state);
+
+        if (c < 0)
         {
-        case 0:
-            switch (*state.cursor)
-            {
-            case '+': case '-':
-                s = 1;
-                break;
-            case '.':
-                s = 2;
-                break;
-            case '0': case '1': case '2': case '3': case '4':
-            case '5': case '6': case '7': case '8': case '9':
-                s = 3;
-                break;
-            default:
-                return token_error;
-            }
-            break;
-        case 1:
-            switch (*state.cursor)
-            {
-            case '.':
-                s = 2;
-                break;
-            case '0': case '1': case '2': case '3': case '4':
-            case '5': case '6': case '7': case '8': case '9':
-                s = 3;
-                break;
-            default:
-                return token_error;
-            }
-            break;
-        case 2:
-            switch (*state.cursor)
-            {
-            case '0': case '1': case '2': case '3': case '4':
-            case '5': case '6': case '7': case '8': case '9':
-                s = 4;
-                break;
-            default:
-                return token_error;
-            }
-            break;
-        case 3:
-            switch (*state.cursor)
-            {
-            case '.':
-                s = 4;
-                break;
-            case '0': case '1': case '2': case '3': case '4':
-            case '5': case '6': case '7': case '8': case '9':
-                s = 3;
-                break;
-            case 'e': case 'E':
-                s = 5;
-                break;
-            default:
-                return token_error;
-            }
-            break;
-        case 4:
-            switch (*state.cursor)
-            {
-            case '0': case '1': case '2': case '3': case '4':
-            case '5': case '6': case '7': case '8': case '9':
-                s = 4;
-                break;
-            case 'e': case 'E':
-                s = 5;
-                break;
-            default:
-                return token_error;
-            }
-            break;
-        case 5:
-            switch (*state.cursor)
-            {
-            case '+': case '-':
-                s = 6;
-                break;
-            case '0': case '1': case '2': case '3': case '4':
-            case '5': case '6': case '7': case '8': case '9':
-                s = 7;
-                break;
-            default:
-                return token_error;
-            }
-            break;
-        case 6:
-            switch (*state.cursor)
-            {
-            case '0': case '1': case '2': case '3': case '4':
-            case '5': case '6': case '7': case '8': case '9':
-                s = 7;
-                break;
-            default:
-                return token_error;
-            }
-            break;
-        case 7:
-            switch (*state.cursor)
-            {
-            case '0': case '1': case '2': case '3': case '4':
-            case '5': case '6': case '7': case '8': case '9':
-                s = 7;
-                break;
-            default:
-                return token_error;
-            }
-            break;
+            return token_error;
         }
+
+        int n = scan_number_transitions[s * 4 + c];
+
+        if (n < 0)
+        {
+            return token_error;
+        }
+
+        s = n;
 
         move(state);
     }
