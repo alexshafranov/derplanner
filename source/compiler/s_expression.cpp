@@ -73,7 +73,8 @@ enum token_type
     token_lp,
     token_rp,
     token_symbol,
-    token_number,
+    token_int,
+    token_float,
 };
 
 struct parse_state
@@ -221,6 +222,152 @@ inline void scan_symbol(parse_state& state)
     }
 }
 
+inline token_type scan_number(parse_state& state)
+{
+    char* begin = state.cursor;
+    int line = state.line;
+    int column = state.column;
+
+    int s = 0;
+
+    while (true)
+    {
+        switch (*state.cursor)
+        {
+        case '\0':
+        case '\n': case '\r':
+        case ' ': case '\f': case '\t': case '\v':
+        case '(': case ')':
+            state.cursor_next = state.cursor;
+            state.term_loc = state.cursor;
+            state.cursor = begin;
+            state.line = line;
+            state.column = column;
+
+            if (s == 3) { return token_int; }
+            if (s == 4 || s == 7) { return token_float; }
+            return token_error;
+        }
+
+        switch (s)
+        {
+        case 0:
+            switch (*state.cursor)
+            {
+            case '+': case '-':
+                s = 1;
+                break;
+            case '.':
+                s = 2;
+                break;
+            case '0': case '1': case '2': case '3': case '4':
+            case '5': case '6': case '7': case '8': case '9':
+                s = 3;
+                break;
+            default:
+                return token_error;
+            }
+            break;
+        case 1:
+            switch (*state.cursor)
+            {
+            case '.':
+                s = 2;
+                break;
+            case '0': case '1': case '2': case '3': case '4':
+            case '5': case '6': case '7': case '8': case '9':
+                s = 3;
+                break;
+            default:
+                return token_error;
+            }
+            break;
+        case 2:
+            switch (*state.cursor)
+            {
+            case '0': case '1': case '2': case '3': case '4':
+            case '5': case '6': case '7': case '8': case '9':
+                s = 4;
+                break;
+            default:
+                return token_error;
+            }
+            break;
+        case 3:
+            switch (*state.cursor)
+            {
+            case '.':
+                s = 4;
+                break;
+            case '0': case '1': case '2': case '3': case '4':
+            case '5': case '6': case '7': case '8': case '9':
+                s = 3;
+                break;
+            case 'e': case 'E':
+                s = 5;
+                break;
+            default:
+                return token_error;
+            }
+            break;
+        case 4:
+            switch (*state.cursor)
+            {
+            case '0': case '1': case '2': case '3': case '4':
+            case '5': case '6': case '7': case '8': case '9':
+                s = 4;
+                break;
+            case 'e': case 'E':
+                s = 5;
+                break;
+            default:
+                return token_error;
+            }
+            break;
+        case 5:
+            switch (*state.cursor)
+            {
+            case '+': case '-':
+                s = 6;
+                break;
+            case '0': case '1': case '2': case '3': case '4':
+            case '5': case '6': case '7': case '8': case '9':
+                s = 7;
+                break;
+            default:
+                return token_error;
+            }
+            break;
+        case 6:
+            switch (*state.cursor)
+            {
+            case '0': case '1': case '2': case '3': case '4':
+            case '5': case '6': case '7': case '8': case '9':
+                s = 7;
+                break;
+            default:
+                return token_error;
+            }
+            break;
+        case 7:
+            switch (*state.cursor)
+            {
+            case '0': case '1': case '2': case '3': case '4':
+            case '5': case '6': case '7': case '8': case '9':
+                s = 7;
+                break;
+            default:
+                return token_error;
+            }
+            break;
+        }
+
+        move(state);
+    }
+
+    return token_error;
+}
+
 inline void terminate(parse_state& state)
 {
     if (state.term_loc)
@@ -264,8 +411,17 @@ inline token_type next_token(parse_state& state)
             terminate(state);
             return token_rp;
         default:
-            scan_symbol(state);
-            return token_symbol;
+            {
+                token_type t = scan_number(state);
+
+                if (t != token_error)
+                {
+                    return t;
+                }
+
+                scan_symbol(state);
+                return token_symbol;
+            }
         }
     }
 
@@ -324,9 +480,14 @@ void tree::parse(char* buffer)
                 pop_list(state);
             }
             break;
-        case token_number:
+        case token_int:
             {
-                append_node(state, node_number);
+                append_node(state, node_int);
+            }
+            break;
+        case token_float:
+            {
+                append_node(state, node_float);
             }
             break;
         case token_symbol:

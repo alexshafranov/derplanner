@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <string>
+#include <string.h>
 #include <unittestpp.h>
 #include <derplanner/compiler/s_expression.h>
 
@@ -114,5 +115,36 @@ namespace
         CHECK_EQUAL(2, n1->column);
         CHECK_EQUAL(3, n2->line);
         CHECK_EQUAL(2, n2->column);
+    }
+
+    void check_number(const char* str, node_type expected)
+    {
+        char buffer[128];
+        for (size_t i=0; i<strlen(str)+1 && i<128; ++i) { buffer[i] = str[i]; }
+        tree s_exp;
+        s_exp.parse(buffer);
+        CHECK_EQUAL(expected, s_exp.root->first_child->type);
+    }
+
+    TEST(numbers)
+    {
+        check_number("(123)", node_int);
+        check_number("(+123)", node_int);
+        check_number("(-123)", node_int);
+        check_number("(123.)", node_float);
+        check_number("(.123)", node_float);
+        check_number("(+.123)", node_float);
+        check_number("(-.123)", node_float);
+        check_number("(+123.)", node_float);
+        check_number("(-123.)", node_float);
+        check_number("(1.23)", node_float);
+        check_number("(+1.23)", node_float);
+        check_number("(-1.23)", node_float);
+        check_number("(.1e+23)", node_float);
+        check_number("(+.1e+23)", node_float);
+        check_number("(-.1e+23)", node_float);
+        check_number("(1e23)", node_float);
+        check_number("(1e-23)", node_float);
+        check_number("(1e+23)", node_float);
     }
 }

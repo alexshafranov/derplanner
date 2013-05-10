@@ -29,7 +29,8 @@ enum node_type
     node_error = 0,
     node_list,
     node_symbol,
-    node_number,
+    node_int,
+    node_float,
 };
 
 struct node
