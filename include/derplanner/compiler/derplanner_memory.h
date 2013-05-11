@@ -24,7 +24,7 @@
 namespace plnnrc
 {
 
-typedef void* (alloc_func) (int size);
+typedef void* (alloc_func) (size_t size);
 typedef void (free_func)(void* ptr);
 
 }
