@@ -16,6 +16,7 @@ solution "derplanner"
 
     configuration "release"
         flags "OptimizeSpeed"
+        defines { "NDEBUG" }
 
     configuration { "debug", "x32" }
         targetdir "bin/x32/debug"

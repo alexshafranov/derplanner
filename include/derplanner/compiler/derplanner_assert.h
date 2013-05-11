@@ -18,61 +18,18 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef DERPLANNER_COMPILER_S_EXPRESSION_H_
-#define DERPLANNER_COMPILER_S_EXPRESSION_H_
+#ifndef DERPLANNER_COMPILER_DERPLANNER_ASSERT_H_
+#define DERPLANNER_COMPILER_DERPLANNER_ASSERT_H_
 
-namespace plnnr {
-namespace sexpr {
-
-enum node_type
-{
-    node_none = 0,
-    node_list,
-    node_symbol,
-    node_int,
-    node_float,
-};
-
-struct node
-{
-    node_type type;
-    int line;
-    int column;
-    char* token;
-    node* parent;
-    node* first_child;
-    node* next_sibling;
-    node* prev_sibling_cyclic;
-};
-
-int as_int(const node& n);
-float as_float(const node& n);
-
-enum parse_status
-{
-    parse_ok = 0,
-    parse_excess_open,
-    parse_excess_close,
-};
-
-class tree
-{
-public:
-    tree();
-    ~tree();
-
-    parse_status parse(char* buffer);
-    node* root() const;
-
-private:
-    tree(const tree&);
-    const tree& operator=(const tree&);
-
-    void* _memory;
-    node* _root;
-};
-
-}
-}
+// if there's no extrenal plnnrc_assert provided
+#ifndef plnnrc_assert
+    #ifdef NDEBUG
+        // http://cnicholson.net/2009/02/stupid-c-tricks-adventures-in-assert/
+        #define plnnrc_assert(e) do { (void)sizeof(e); } while ((void)(__LINE__==-1), false)
+    #else
+        #include <assert.h>
+        #define plnnrc_assert assert
+    #endif
+#endif
 
 #endif

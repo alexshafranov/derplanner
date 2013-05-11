@@ -24,7 +24,7 @@
 #include <unittestpp.h>
 #include <derplanner/compiler/s_expression.h>
 
-using namespace derplanner::s_expression;
+using namespace plnnr::sexpr;
 
 namespace
 {

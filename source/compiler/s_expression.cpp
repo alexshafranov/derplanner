@@ -18,13 +18,12 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#include <assert.h>
-#include "derplanner/compiler/s_expression.h"
 #include <stdlib.h>
-#include <ctype.h>
+#include "derplanner/compiler/derplanner_assert.h"
+#include "derplanner/compiler/s_expression.h"
 
-namespace derplanner {
-namespace s_expression {
+namespace plnnr {
+namespace sexpr {
 
 namespace {
 
@@ -54,6 +53,8 @@ node* alloc_node(void*& memory)
     if (!chunk || chunk->top >= chunk_node_count)
     {
         node_chunk* new_chunk = reinterpret_cast<node_chunk*>(malloc(sizeof(node_chunk)));
+
+        plnnrc_assert(new_chunk != 0);
 
         new_chunk->next = chunk;
         new_chunk->top = 0;
@@ -437,7 +438,7 @@ parse_status tree::parse(char* buffer)
             }
             break;
         default:
-            assert(false);
+            plnnrc_assert(false);
             break;
         }
     }
