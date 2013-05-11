@@ -21,12 +21,21 @@
 #ifndef DERPLANNER_COMPILER_DERPLANNER_MEMORY_H_
 #define DERPLANNER_COMPILER_DERPLANNER_MEMORY_H_
 
-namespace plnnrc
-{
+// for size_t
+#include <stddef.h>
 
-typedef void* (alloc_func) (size_t size);
-typedef void (free_func)(void* ptr);
+namespace plnnrc {
+namespace memory {
 
+typedef void* (*alloc_func) (size_t size);
+typedef void (*dealloc_func)(void* ptr);
+
+void set_custom(alloc_func a, dealloc_func f);
+
+void* allocate(size_t);
+void deallocate(void*);
+
+}
 }
 
 #endif

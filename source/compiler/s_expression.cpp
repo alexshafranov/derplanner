@@ -20,357 +20,358 @@
 
 #include <stdlib.h>
 #include "derplanner/compiler/derplanner_assert.h"
+#include "derplanner/compiler/derplanner_memory.h"
 #include "derplanner/compiler/s_expression.h"
 
-namespace plnnr {
+namespace plnnrc {
 namespace sexpr {
 
 namespace {
 
-const int chunk_node_count = 2048;
+    const int chunk_node_count = 2048;
 
-struct node_chunk
-{
-    node_chunk* next;
-    int top;
-    node data[chunk_node_count];
-};
-
-void free_chunks(void* memory)
-{
-    for (node_chunk* chunk = reinterpret_cast<node_chunk*>(memory); chunk != 0;)
+    struct node_chunk
     {
-        node_chunk* next = chunk->next;
-        free(chunk);
-        chunk = next;
-    }
-}
+        node_chunk* next;
+        int top;
+        node data[chunk_node_count];
+    };
 
-node* alloc_node(void*& memory)
-{
-    node_chunk* chunk = reinterpret_cast<node_chunk*>(memory);
-
-    if (!chunk || chunk->top >= chunk_node_count)
+    void free_chunks(void* memory)
     {
-        node_chunk* new_chunk = reinterpret_cast<node_chunk*>(malloc(sizeof(node_chunk)));
-
-        plnnrc_assert(new_chunk != 0);
-
-        new_chunk->next = chunk;
-        new_chunk->top = 0;
-
-        chunk = new_chunk;
-        memory = new_chunk;
-    }
-
-    chunk->top++;
-
-    return chunk->data + chunk->top;
-}
-
-enum token_type
-{
-    token_none = 0,
-    token_lp,
-    token_rp,
-    token_symbol,
-    token_int,
-    token_float,
-};
-
-struct parse_state
-{
-    void** tree_memory;
-    int line;
-    int column;
-    char* cursor;
-    char* cursor_next;
-    char* term_loc;
-    node* parent;
-};
-
-void init_state(parse_state& state, char* buffer, void** memory)
-{
-    state.tree_memory = memory;
-    state.line = 1;
-    state.column = 1;
-    state.cursor = buffer;
-    state.cursor_next = buffer;
-    state.term_loc = 0;
-    state.parent = 0;
-}
-
-void move(parse_state& state)
-{
-    state.cursor++;
-    state.column++;
-}
-
-node* append_child(parse_state& state)
-{
-    node* n = alloc_node(*state.tree_memory);
-    node* p = state.parent;
-
-    n->parent = p;
-    n->first_child = 0;
-    n->next_sibling = 0;
-    n->prev_sibling_cyclic = 0;
-
-    if (p)
-    {
-        node* first_child = p->first_child;
-
-        if (first_child)
+        for (node_chunk* chunk = reinterpret_cast<node_chunk*>(memory); chunk != 0;)
         {
-            node* last_child = first_child->prev_sibling_cyclic;
-            last_child->next_sibling = n;
-            n->prev_sibling_cyclic = last_child;
-            first_child->prev_sibling_cyclic = n;
-        }
-        else
-        {
-            p->first_child = n;
-            n->prev_sibling_cyclic = n;
+            node_chunk* next = chunk->next;
+            memory::deallocate(chunk);
+            chunk = next;
         }
     }
 
-    return n;
-}
-
-node* push_list(parse_state& state)
-{
-    node* n = append_child(state);
-
-    n->type = node_list;
-    n->line = state.line;
-    n->column = state.column;
-    n->token = 0;
-
-    state.parent = n;
-
-    return n;
-}
-
-node* pop_list(parse_state& state)
-{
-    node* n = state.parent;
-
-    if (n)
+    node* alloc_node(void*& memory)
     {
-        state.parent = n->parent;
+        node_chunk* chunk = reinterpret_cast<node_chunk*>(memory);
+
+        if (!chunk || chunk->top >= chunk_node_count)
+        {
+            node_chunk* new_chunk = reinterpret_cast<node_chunk*>(memory::allocate(sizeof(node_chunk)));
+
+            plnnrc_assert(new_chunk != 0);
+
+            new_chunk->next = chunk;
+            new_chunk->top = 0;
+
+            chunk = new_chunk;
+            memory = new_chunk;
+        }
+
+        chunk->top++;
+
+        return chunk->data + chunk->top;
+    }
+
+    enum token_type
+    {
+        token_none = 0,
+        token_lp,
+        token_rp,
+        token_symbol,
+        token_int,
+        token_float,
+    };
+
+    struct parse_state
+    {
+        void** tree_memory;
+        int line;
+        int column;
+        char* cursor;
+        char* cursor_next;
+        char* term_loc;
+        node* parent;
+    };
+
+    void init_state(parse_state& state, char* buffer, void** memory)
+    {
+        state.tree_memory = memory;
+        state.line = 1;
+        state.column = 1;
+        state.cursor = buffer;
+        state.cursor_next = buffer;
+        state.term_loc = 0;
+        state.parent = 0;
+    }
+
+    void move(parse_state& state)
+    {
+        state.cursor++;
+        state.column++;
+    }
+
+    node* append_child(parse_state& state)
+    {
+        node* n = alloc_node(*state.tree_memory);
+        node* p = state.parent;
+
+        n->parent = p;
+        n->first_child = 0;
+        n->next_sibling = 0;
+        n->prev_sibling_cyclic = 0;
+
+        if (p)
+        {
+            node* first_child = p->first_child;
+
+            if (first_child)
+            {
+                node* last_child = first_child->prev_sibling_cyclic;
+                last_child->next_sibling = n;
+                n->prev_sibling_cyclic = last_child;
+                first_child->prev_sibling_cyclic = n;
+            }
+            else
+            {
+                p->first_child = n;
+                n->prev_sibling_cyclic = n;
+            }
+        }
+
         return n;
     }
 
-    return 0;
-}
-
-node* append_node(parse_state& state, node_type type)
-{
-    node* n = append_child(state);
-    n->type = type;
-    n->line = state.line;
-    n->column = state.column;
-    n->token = state.cursor;
-    return n;
-}
-
-void skip_whitespace(parse_state& state)
-{
-    while (*state.cursor == ' ' || *state.cursor == '\f' || *state.cursor == '\t' || *state.cursor == '\v')
+    node* push_list(parse_state& state)
     {
-        move(state);
-    }
-}
+        node* n = append_child(state);
 
-bool buffer_left(parse_state& state)
-{
-    return *state.cursor_next != '\0';
-}
+        n->type = node_list;
+        n->line = state.line;
+        n->column = state.column;
+        n->token = 0;
 
-void increment_line(parse_state& state)
-{
-    char c = *state.cursor;
+        state.parent = n;
 
-    move(state);
-
-    if ((*state.cursor == '\n' || *state.cursor == '\r') && (*state.cursor != c))
-    {
-        move(state);
+        return n;
     }
 
-    state.line++;
-    state.column = 1;
-}
-
-void scan_symbol(parse_state& state)
-{
-    char* begin = state.cursor;
-    int line = state.line;
-    int column = state.column;
-
-    while (true)
+    node* pop_list(parse_state& state)
     {
-        switch (*state.cursor)
+        node* n = state.parent;
+
+        if (n)
         {
-        case '\0':
-        case '\n': case '\r':
-        case ' ': case '\f': case '\t': case '\v':
-        case '(': case ')':
-            state.cursor_next = state.cursor;
-            state.term_loc = state.cursor;
-            state.cursor = begin;
-            state.line = line;
-            state.column = column;
-            return;
-        default:
-            move(state);
-            break;
+            state.parent = n->parent;
+            return n;
         }
-    }
-}
 
-int scan_number_char_class(parse_state& state)
-{
-    switch (*state.cursor)
-    {
-    case '+': case '-':
         return 0;
-    case '0': case '1': case '2': case '3': case '4':
-    case '5': case '6': case '7': case '8': case '9':
-        return 1;
-    case '.':
-        return 2;
-    case 'e': case 'E':
-        return 3;
     }
 
-    return -1;
-}
-
-int scan_number_transitions[] = {
-     1,  3,  2, -1,
-    -1,  3,  2, -1,
-    -1,  4, -1, -1,
-    -1,  3,  4,  5,
-    -1,  4, -1,  5,
-     6,  7, -1, -1,
-    -1,  7, -1, -1,
-    -1,  7, -1, -1,
-};
-
-token_type scan_number(parse_state& state)
-{
-    char* begin = state.cursor;
-    int line = state.line;
-    int column = state.column;
-
-    int s = 0;
-
-    while (true)
+    node* append_node(parse_state& state, node_type type)
     {
-        switch (*state.cursor)
+        node* n = append_child(state);
+        n->type = type;
+        n->line = state.line;
+        n->column = state.column;
+        n->token = state.cursor;
+        return n;
+    }
+
+    void skip_whitespace(parse_state& state)
+    {
+        while (*state.cursor == ' ' || *state.cursor == '\f' || *state.cursor == '\t' || *state.cursor == '\v')
         {
-        case '\0':
-        case '\n': case '\r':
-        case ' ': case '\f': case '\t': case '\v':
-        case '(': case ')':
-            state.cursor_next = state.cursor;
-            state.term_loc = state.cursor;
-            state.cursor = begin;
-            state.line = line;
-            state.column = column;
-
-            if (s == 3) { return token_int; }
-            if (s == 4 || s == 7) { return token_float; }
-            return token_none;
+            move(state);
         }
+    }
 
-        int c = scan_number_char_class(state);
+    bool buffer_left(parse_state& state)
+    {
+        return *state.cursor_next != '\0';
+    }
 
-        if (c < 0)
-        {
-            return token_none;
-        }
-
-        int n = scan_number_transitions[s * 4 + c];
-
-        if (n < 0)
-        {
-            return token_none;
-        }
-
-        s = n;
+    void increment_line(parse_state& state)
+    {
+        char c = *state.cursor;
 
         move(state);
-    }
 
-    return token_none;
-}
-
-void terminate(parse_state& state)
-{
-    if (state.term_loc)
-    {
-        *state.term_loc = '\0';
-        state.term_loc = 0;
-    }
-}
-
-token_type next_token(parse_state& state)
-{
-    state.cursor = state.cursor_next;
-
-    while (*state.cursor)
-    {
-        switch (*state.cursor)
+        if ((*state.cursor == '\n' || *state.cursor == '\r') && (*state.cursor != c))
         {
-        case '\n': case '\r':
-            increment_line(state);
-            terminate(state);
-            break;
-        case ' ': case '\f': case '\t': case '\v':
             move(state);
-            terminate(state);
-            break;
-        case ';':
-            while (*state.cursor != '\n' && *state.cursor != '\r' && *state.cursor != '\0')
+        }
+
+        state.line++;
+        state.column = 1;
+    }
+
+    void scan_symbol(parse_state& state)
+    {
+        char* begin = state.cursor;
+        int line = state.line;
+        int column = state.column;
+
+        while (true)
+        {
+            switch (*state.cursor)
             {
+            case '\0':
+            case '\n': case '\r':
+            case ' ': case '\f': case '\t': case '\v':
+            case '(': case ')':
+                state.cursor_next = state.cursor;
+                state.term_loc = state.cursor;
+                state.cursor = begin;
+                state.line = line;
+                state.column = column;
+                return;
+            default:
                 move(state);
-            }
-            terminate(state);
-            break;
-        case '(':
-            move(state);
-            state.cursor_next = state.cursor;
-            terminate(state);
-            return token_lp;
-        case ')':
-            move(state);
-            state.cursor_next = state.cursor;
-            terminate(state);
-            return token_rp;
-        default:
-            {
-                token_type t = scan_number(state);
-
-                if (t != token_none)
-                {
-                    return t;
-                }
-
-                scan_symbol(state);
-                return token_symbol;
+                break;
             }
         }
     }
 
-    return token_none;
-}
+    int scan_number_char_class(parse_state& state)
+    {
+        switch (*state.cursor)
+        {
+        case '+': case '-':
+            return 0;
+        case '0': case '1': case '2': case '3': case '4':
+        case '5': case '6': case '7': case '8': case '9':
+            return 1;
+        case '.':
+            return 2;
+        case 'e': case 'E':
+            return 3;
+        }
 
-void match_token(parse_state& state, token_type token)
-{
-    next_token(state);
-}
+        return -1;
+    }
+
+    int scan_number_transitions[] = {
+         1,  3,  2, -1,
+        -1,  3,  2, -1,
+        -1,  4, -1, -1,
+        -1,  3,  4,  5,
+        -1,  4, -1,  5,
+         6,  7, -1, -1,
+        -1,  7, -1, -1,
+        -1,  7, -1, -1,
+    };
+
+    token_type scan_number(parse_state& state)
+    {
+        char* begin = state.cursor;
+        int line = state.line;
+        int column = state.column;
+
+        int s = 0;
+
+        while (true)
+        {
+            switch (*state.cursor)
+            {
+            case '\0':
+            case '\n': case '\r':
+            case ' ': case '\f': case '\t': case '\v':
+            case '(': case ')':
+                state.cursor_next = state.cursor;
+                state.term_loc = state.cursor;
+                state.cursor = begin;
+                state.line = line;
+                state.column = column;
+
+                if (s == 3) { return token_int; }
+                if (s == 4 || s == 7) { return token_float; }
+                return token_none;
+            }
+
+            int c = scan_number_char_class(state);
+
+            if (c < 0)
+            {
+                return token_none;
+            }
+
+            int n = scan_number_transitions[s * 4 + c];
+
+            if (n < 0)
+            {
+                return token_none;
+            }
+
+            s = n;
+
+            move(state);
+        }
+
+        return token_none;
+    }
+
+    void terminate(parse_state& state)
+    {
+        if (state.term_loc)
+        {
+            *state.term_loc = '\0';
+            state.term_loc = 0;
+        }
+    }
+
+    token_type next_token(parse_state& state)
+    {
+        state.cursor = state.cursor_next;
+
+        while (*state.cursor)
+        {
+            switch (*state.cursor)
+            {
+            case '\n': case '\r':
+                increment_line(state);
+                terminate(state);
+                break;
+            case ' ': case '\f': case '\t': case '\v':
+                move(state);
+                terminate(state);
+                break;
+            case ';':
+                while (*state.cursor != '\n' && *state.cursor != '\r' && *state.cursor != '\0')
+                {
+                    move(state);
+                }
+                terminate(state);
+                break;
+            case '(':
+                move(state);
+                state.cursor_next = state.cursor;
+                terminate(state);
+                return token_lp;
+            case ')':
+                move(state);
+                state.cursor_next = state.cursor;
+                terminate(state);
+                return token_rp;
+            default:
+                {
+                    token_type t = scan_number(state);
+
+                    if (t != token_none)
+                    {
+                        return t;
+                    }
+
+                    scan_symbol(state);
+                    return token_symbol;
+                }
+            }
+        }
+
+        return token_none;
+    }
+
+    void match_token(parse_state& state, token_type token)
+    {
+        next_token(state);
+    }
 
 } // unnamed namespace
 
