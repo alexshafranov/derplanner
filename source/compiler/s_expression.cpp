@@ -55,7 +55,10 @@ namespace {
         {
             node_chunk* new_chunk = reinterpret_cast<node_chunk*>(memory::allocate(sizeof(node_chunk)));
 
-            plnnrc_assert(new_chunk != 0);
+            if (!new_chunk)
+            {
+                return 0;
+            }
 
             new_chunk->next = chunk;
             new_chunk->top = 0;
@@ -112,6 +115,11 @@ namespace {
         node* n = alloc_node(*state.tree_memory);
         node* p = state.parent;
 
+        if (!n)
+        {
+            return 0;
+        }
+
         n->parent = p;
         n->first_child = 0;
         n->next_sibling = 0;
@@ -142,6 +150,11 @@ namespace {
     {
         node* n = append_child(state);
 
+        if (!n)
+        {
+            return 0;
+        }
+
         n->type = node_list;
         n->line = state.line;
         n->column = state.column;
@@ -168,6 +181,12 @@ namespace {
     node* append_node(parse_state& state, node_type type)
     {
         node* n = append_child(state);
+
+        if (!n)
+        {
+            return 0;
+        }
+
         n->type = type;
         n->line = state.line;
         n->column = state.column;
@@ -406,13 +425,21 @@ parse_status tree::parse(char* buffer)
 
     _root = push_list(state);
 
+    if (!_root)
+    {
+        return parse_out_of_memory;
+    }
+
     while (buffer_left(state))
     {
         switch (next_token(state))
         {
         case token_lp:
             {
-                push_list(state);
+                if (!push_list(state))
+                {
+                    return parse_out_of_memory;
+                }
             }
             break;
         case token_rp:
@@ -425,17 +452,26 @@ parse_status tree::parse(char* buffer)
             break;
         case token_int:
             {
-                append_node(state, node_int);
+                if (!append_node(state, node_int))
+                {
+                    return parse_out_of_memory;
+                }
             }
             break;
         case token_float:
             {
-                append_node(state, node_float);
+                if (!append_node(state, node_float))
+                {
+                    return parse_out_of_memory;
+                }
             }
             break;
         case token_symbol:
             {
-                append_node(state, node_symbol);
+                if (!append_node(state, node_symbol))
+                {
+                    return parse_out_of_memory;
+                }
             }
             break;
         default:
