@@ -194,14 +194,6 @@ namespace {
         return n;
     }
 
-    void skip_whitespace(parse_state& state)
-    {
-        while (*state.cursor == ' ' || *state.cursor == '\f' || *state.cursor == '\t' || *state.cursor == '\v')
-        {
-            move(state);
-        }
-    }
-
     bool buffer_left(parse_state& state)
     {
         return *state.cursor_next != '\0';
@@ -387,11 +379,6 @@ namespace {
         return token_none;
     }
 
-    void match_token(parse_state& state, token_type token)
-    {
-        next_token(state);
-    }
-
 } // unnamed namespace
 
 tree::tree()
@@ -410,6 +397,8 @@ tree::~tree()
 
 parse_status tree::parse(char* buffer)
 {
+    plnnrc_assert(buffer != 0);
+
     if (_memory)
     {
         free_chunks(_memory);
@@ -420,14 +409,18 @@ parse_status tree::parse(char* buffer)
     parse_state state;
     init_state(state, buffer, &_memory);
 
-    skip_whitespace(state);
-    match_token(state, token_lp);
-
     _root = push_list(state);
 
     if (!_root)
     {
         return parse_out_of_memory;
+    }
+
+    token_type root_token = next_token(state);
+
+    if (root_token != token_lp && root_token != token_none)
+    {
+        return parse_invalid_start;
     }
 
     while (buffer_left(state))
