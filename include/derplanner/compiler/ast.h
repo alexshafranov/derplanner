@@ -75,6 +75,7 @@ public:
     ~tree();
 
     inline node* root() { return &_root; }
+    inline const node* root() const { return &_root; }
 
     node* make_node(node_type type);
 
