@@ -64,7 +64,7 @@ public:
     ~tree();
 
     parse_status parse(char* buffer);
-    node* root() const;
+    inline node* root() const { return _root; }
 
 private:
     tree(const tree&);

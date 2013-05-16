@@ -481,11 +481,6 @@ parse_status tree::parse(char* buffer)
     return parse_ok;
 }
 
-node* tree::root() const
-{
-    return _root;
-}
-
 float as_float(const node& n)
 {
     return static_cast<float>(strtod(n.token, 0));

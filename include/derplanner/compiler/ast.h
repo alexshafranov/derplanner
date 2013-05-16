@@ -22,49 +22,68 @@
 #define DERPLANNER_COMPILER_AST_H_
 
 namespace plnnrc {
+
+namespace sexpr
+{
+    struct node;
+}
+
 namespace ast {
 
-class node
+enum node_type
 {
-public:
+    node_none = 0,
+
+    node_domain,
+
+    node_op_and,
+    node_op_or,
+    node_op_not,
+
+    node_atom,
+
+    node_term_variable,
+    node_term_int,
+    node_term_float,
+    node_term_call,
+};
+
+struct node
+{
+    node_type type;
+    sexpr::node* s_expr;
     node* parent;
     node* first_child;
     node* next_sibling;
     node* prev_sibling_cyclic;
 };
 
-class domain : public node
+inline bool is_logical_expr(const node* n)
 {
-};
+    return n->type >= node_op_and && n->type <= node_op_not;
+}
 
-class method : public node
+inline bool is_term(const node* n)
 {
-};
+    return n->type >= node_term_variable && n->type <= node_term_call;
+}
 
-class branch : public node
-{
-};
-
-enum logical_op_type
-{
-    logical_op_none = 0,
-    logical_op_or,
-    logical_op_and,
-    logical_op_not,
-};
-
-class logical_op : public node
+class tree
 {
 public:
-    logical_op_type type;
-};
+    tree();
+    ~tree();
 
-class atom : public node
-{
-};
+    inline node* root() { return &_root; }
 
-class term : public node
-{
+    node* make_node(node_type type);
+
+    void append_child(node* parent, node* child);
+    void remove_child(node* parent, node* child);
+
+private:
+    void* _memory;
+    node _root;
 };
 
 }
