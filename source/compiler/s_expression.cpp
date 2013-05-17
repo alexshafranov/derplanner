@@ -26,8 +26,8 @@
 namespace plnnrc {
 namespace sexpr {
 
-namespace {
-
+namespace
+{
     const int chunk_node_count = 2048;
 
     struct node_chunk
