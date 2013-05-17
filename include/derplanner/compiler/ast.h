@@ -68,6 +68,10 @@ inline bool is_term(const node* n)
     return n->type >= node_term_variable && n->type <= node_term_call;
 }
 
+void append_child(node* parent, node* child);
+
+void detach_node(node* n);
+
 class tree
 {
 public:
@@ -78,9 +82,6 @@ public:
     inline const node* root() const { return &_root; }
 
     node* make_node(node_type type);
-
-    void append_child(node* parent, node* child);
-    void remove_child(node* parent, node* child);
 
 private:
     void* _memory;

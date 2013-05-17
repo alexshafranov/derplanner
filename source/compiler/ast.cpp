@@ -42,12 +42,53 @@ node* tree::make_node(node_type type)
     return 0;
 }
 
-void tree::append_child(node* parent, node* child)
+void append_child(node* parent, node* child)
 {
+    plnnrc_assert(parent != 0);
+    plnnrc_assert(child != 0);
+
+    child->parent = parent;
+    node* first_child = parent->first_child;
+
+    if (first_child)
+    {
+        node* last_child = first_child->prev_sibling_cyclic;
+        last_child->next_sibling = child;
+        child->prev_sibling_cyclic = last_child;
+        first_child->prev_sibling_cyclic = child;
+    }
+    else
+    {
+        parent->first_child = child;
+        child->prev_sibling_cyclic = child;
+    }
 }
 
-void tree::remove_child(node* parent, node* child)
+void detach_node(node* n)
 {
+    plnnrc_assert(n != 0);
+
+    node* p = n->parent;
+
+    if (p)
+    {
+        plnnrc_assert(n->prev_sibling_cyclic != 0);
+
+        node* l = n->prev_sibling_cyclic;
+        node* r = n->next_sibling;
+
+        l->next_sibling = r;
+
+        if (r)
+        {
+            r->prev_sibling_cyclic = l;
+        }
+
+        if (p->first_child == n)
+        {
+            p->first_child = r;
+        }
+    }
 }
 
 }
