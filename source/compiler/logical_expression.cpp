@@ -99,5 +99,28 @@ node* build_logical_expression(tree& t, sexpr::node* s_expr)
     return root;
 }
 
+node* convert_to_nnf(tree& t, node* root)
+{
+    if (root->type == node_atom)
+    {
+        return root;
+    }
+
+    if (is_logical_op(root))
+    {
+        if (root->type == node_op_not)
+        {
+            return root;
+        }
+        else
+        {
+            return root;
+        }
+    }
+
+    plnnrc_assert(false);
+    return 0;
+}
+
 }
 }

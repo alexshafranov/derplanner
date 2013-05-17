@@ -58,7 +58,7 @@ struct node
     node* prev_sibling_cyclic;
 };
 
-inline bool is_logical_expr(const node* n)
+inline bool is_logical_op(const node* n)
 {
     return n->type >= node_op_and && n->type <= node_op_not;
 }
