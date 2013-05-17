@@ -30,7 +30,7 @@ namespace
     TEST(simple)
     {
         sexpr::tree expr;
-        char buffer[] = "(or (a) (b) (c))";
+        char buffer[] = "((or (a) (b) (c)))";
         expr.parse(buffer);
         ast::tree tree;
         ast::node* actual = ast::build_logical_expression(tree, expr.root());

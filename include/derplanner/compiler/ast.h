@@ -81,7 +81,7 @@ public:
     inline node* root() { return &_root; }
     inline const node* root() const { return &_root; }
 
-    node* make_node(node_type type);
+    node* make_node(node_type type, sexpr::node* token);
 
 private:
     void* _memory;

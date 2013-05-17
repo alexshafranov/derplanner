@@ -27,73 +27,73 @@
 namespace plnnrc {
 namespace ast {
 
-const char token_and[] = "and";
-const char token_or[]  = "or";
-const char token_not[] = "not";
+namespace
+{
+    const char token_and[] = "and";
+    const char token_or[]  = "or";
+    const char token_not[] = "not";
+
+    // forward
+    node* build_recursive(tree& t, sexpr::node* s_expr);
+
+    node* build_logical_op(tree& t, sexpr::node* s_expr, node_type op_type)
+    {
+        node* root = t.make_node(op_type, s_expr);
+        plnnrc_assert(root != 0);
+        plnnrc_assert(s_expr->first_child != 0);
+
+        for (sexpr::node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
+        {
+            node* child = build_recursive(t, c_expr);
+            append_child(root, child);
+        }
+
+        return root;
+    }
+
+    node* build_atom(tree& t, sexpr::node* s_expr)
+    {
+        node* root = t.make_node(node_atom, s_expr->first_child);
+        plnnrc_assert(root != 0);
+        return root;
+    }
+
+    node* build_recursive(tree& t, sexpr::node* s_expr)
+    {
+        plnnrc_assert(s_expr->type == sexpr::node_list);
+        sexpr::node* c_expr = s_expr->first_child;
+        plnnrc_assert(c_expr && c_expr->type == sexpr::node_symbol);
+
+        if (strncmp(c_expr->token, token_and, sizeof(token_and)) == 0)
+        {
+            return build_logical_op(t, s_expr, node_op_and);
+        }
+
+        if (strncmp(c_expr->token, token_or, sizeof(token_or)) == 0)
+        {
+            return build_logical_op(t, s_expr, node_op_or);
+        }
+
+        if (strncmp(c_expr->token, token_not, sizeof(token_not)) == 0)
+        {
+            return build_logical_op(t, s_expr, node_op_not);
+        }
+
+        return build_atom(t, s_expr);
+    }
+}
 
 node* build_logical_expression(tree& t, sexpr::node* s_expr)
 {
     plnnrc_assert(s_expr->type == sexpr::node_list);
 
-    node* root = t.make_node(node_op_and);
+    node* root = t.make_node(node_op_and, s_expr);
+    plnnrc_assert(root != 0);
 
-    if (!root)
+    for (sexpr::node* c_expr = s_expr->first_child; c_expr != 0; c_expr = c_expr->next_sibling)
     {
-        return 0;
-    }
-
-    node* parent = root;
-    sexpr::node* pexpr = s_expr;
-    sexpr::node* cexpr = s_expr->first_child;
-
-    while (cexpr != 0)
-    {
-        node* node = 0;
-
-        if (strncmp(token_and, cexpr->token, sizeof(token_and)) == 0)
-        {
-            node = t.make_node(node_op_and);
-        }
-        else if (strncmp(token_or, cexpr->token, sizeof(token_or)) == 0)
-        {
-            node = t.make_node(node_op_or);
-        }
-        else if (strncmp(token_not, cexpr->token, sizeof(token_not)) == 0)
-        {
-            node = t.make_node(node_op_not);
-        }
-        else
-        {
-            node = t.make_node(node_atom);
-        }
-
-        if (!node)
-        {
-            return 0;
-        }
-
-        append_child(parent, node);
-        node->s_expr = cexpr;
-
-        if (cexpr->first_child)
-        {
-            pexpr = cexpr;
-            cexpr = cexpr->first_child;
-            parent = node;
-        }
-        else
-        {
-            if (cexpr->next_sibling)
-            {
-                cexpr = cexpr->next_sibling;
-            }
-            else
-            {
-                cexpr = (pexpr != s_expr) ? pexpr->next_sibling : 0;
-                pexpr = pexpr->parent;
-                parent = parent->parent;
-            }
-        }
+        node* child = build_recursive(t, c_expr);
+        append_child(root, child);
     }
 
     return root;

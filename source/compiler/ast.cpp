@@ -99,13 +99,14 @@ tree::~tree()
     }
 }
 
-node* tree::make_node(node_type type)
+node* tree::make_node(node_type type, sexpr::node* token)
 {
     node* n = reinterpret_cast<node*>(pool_allocate(_memory, sizeof(node)));
 
     if (n)
     {
         n->type = type;
+        n->s_expr = token;
     }
 
     return n;
