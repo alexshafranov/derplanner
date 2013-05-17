@@ -28,12 +28,12 @@ namespace sexpr {
 
 namespace
 {
-    const int chunk_node_count = 2048;
+    const size_t chunk_node_count = 2048;
 
     struct node_chunk
     {
         node_chunk* next;
-        int top;
+        size_t top;
         node data[chunk_node_count];
     };
 

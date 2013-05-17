@@ -18,13 +18,71 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#include <string.h>
+#include <stdlib.h> // size_t
+#include <string.h> // memset
+#include <stdint.h> // unitptr_t
 #include "derplanner/compiler/derplanner_assert.h"
 #include "derplanner/compiler/derplanner_memory.h"
 #include "derplanner/compiler/ast.h"
 
 namespace plnnrc {
 namespace ast {
+
+namespace
+{
+    const size_t page_size = 64 * 1024;
+    const uintptr_t alignment = sizeof(void*);
+
+    struct page
+    {
+        page* next;
+        char* top;
+        char* end;
+    };
+
+    inline char* align(char* ptr)
+    {
+        return reinterpret_cast<char*>((reinterpret_cast<uintptr_t>(ptr) + alignment) & ~(alignment - 1));
+    }
+
+    void* pool_allocate(void*& memory, size_t size)
+    {
+        page* p = reinterpret_cast<page*>(memory);
+
+        if (!p || align(p->top) + size > p->end)
+        {
+            char* m = reinterpret_cast<char*>(memory::allocate(page_size));
+            page* n = reinterpret_cast<page*>(m);
+
+            if (!n)
+            {
+                return 0;
+            }
+
+            n->next = p;
+            n->top = m + sizeof(page);
+            n->end = m + page_size;
+
+            p = n;
+            memory = n;
+        }
+
+        char* result = align(p->top);
+        p->top = result + size;
+
+        return result;
+    }
+
+    void pool_clear(void* memory)
+    {
+        for (page* p = reinterpret_cast<page*>(memory); p != 0;)
+        {
+            page* n = p->next;
+            memory::deallocate(p);
+            p = n;
+        }
+    }
+}
 
 tree::tree()
     : _memory(0)
@@ -35,11 +93,22 @@ tree::tree()
 
 tree::~tree()
 {
+    if (_memory)
+    {
+        pool_clear(_memory);
+    }
 }
 
 node* tree::make_node(node_type type)
 {
-    return 0;
+    node* n = reinterpret_cast<node*>(pool_allocate(_memory, sizeof(node)));
+
+    if (n)
+    {
+        n->type = type;
+    }
+
+    return n;
 }
 
 void append_child(node* parent, node* child)
