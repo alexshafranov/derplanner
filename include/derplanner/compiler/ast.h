@@ -69,6 +69,7 @@ inline bool is_term(const node* n)
 }
 
 void append_child(node* parent, node* child);
+void prepend_child(node* parent, node* child);
 
 void detach_node(node* n);
 

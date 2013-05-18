@@ -142,30 +142,48 @@ void append_child(node* parent, node* child)
     }
 }
 
+void prepend_child(node* parent, node* child)
+{
+    plnnrc_assert(parent != 0);
+    plnnrc_assert(child != 0);
+
+    child->parent = parent;
+    child->prev_sibling_cyclic = child;
+    child->next_sibling = parent->first_child;
+
+    if (parent->first_child)
+    {
+        parent->first_child->prev_sibling_cyclic = child;
+    }
+
+    parent->first_child = child;
+}
+
 void detach_node(node* n)
 {
     plnnrc_assert(n != 0);
 
     node* p = n->parent;
 
-    if (p)
+    plnnrc_assert(p != 0);
+    plnnrc_assert(n->prev_sibling_cyclic != 0);
+
+    node* l = n->prev_sibling_cyclic;
+    node* r = n->next_sibling;
+
+    if (l != r)
     {
-        plnnrc_assert(n->prev_sibling_cyclic != 0);
-
-        node* l = n->prev_sibling_cyclic;
-        node* r = n->next_sibling;
-
         l->next_sibling = r;
+    }
 
-        if (r)
-        {
-            r->prev_sibling_cyclic = l;
-        }
+    if (r)
+    {
+        r->prev_sibling_cyclic = l;
+    }
 
-        if (p->first_child == n)
-        {
-            p->first_child = r;
-        }
+    if (p->first_child == n)
+    {
+        p->first_child = r;
     }
 
     n->parent = 0;
