@@ -132,14 +132,12 @@ node* convert_to_nnf(tree& t, node* root)
 
                 child->type = (child->type == node_op_and) ? node_op_or : node_op_and;
 
-                node converted_node_list;
-                converted_node_list.first_child = 0;
-                converted_node_list.next_sibling = 0;
-                converted_node_list.prev_sibling_cyclic = 0;
+                node* first_child = child->first_child;
+                node* last_child  = child->first_child->prev_sibling_cyclic;
 
-                for (node* n = child->first_child; n != 0;)
+                for (node* n = first_child; n != 0;)
                 {
-                    node* new_n  = t.make_node(node_op_not, 0);
+                    node* new_n = t.make_node(node_op_not, 0);
                     node* next_n = n->next_sibling;
 
                     detach_node(n);
@@ -147,20 +145,13 @@ node* convert_to_nnf(tree& t, node* root)
 
                     new_n = convert_to_nnf(t, new_n);
 
-                    append_child(&converted_node_list, new_n);
+                    append_child(child, new_n);
 
-                    n = next_n;
-                }
+                    if (n == last_child)
+                    {
+                        break;
+                    }
 
-                // all children are converted and reparented to new (not x) nodes
-                plnnrc_assert(child->first_child == 0);
-
-                // parent (not x) nodes to child
-                for (node* n = converted_node_list.first_child; n != 0;)
-                {
-                    node* next_n = n->next_sibling;
-                    detach_node(n);
-                    append_child(child, n);
                     n = next_n;
                 }
 
@@ -170,28 +161,22 @@ node* convert_to_nnf(tree& t, node* root)
         // recurse down the tree
         else
         {
-            node converted_node_list;
-            converted_node_list.first_child = 0;
-            converted_node_list.next_sibling = 0;
-            converted_node_list.prev_sibling_cyclic = 0;
+            node* first_child = root->first_child;
+            node* last_child  = root->first_child->prev_sibling_cyclic;
 
-            for (node* n = root->first_child; n != 0;)
+            for (node* n = first_child; n != 0;)
             {
-                plnnrc_assert(root->first_child == n);
                 node* next_n = n->next_sibling;
+
                 detach_node(n);
                 node* converted_n = convert_to_nnf(t, n);
-                append_child(&converted_node_list, converted_n);
-                n = next_n;
-            }
+                append_child(root, converted_n);
 
-            plnnrc_assert(root->first_child == 0);
+                if (n == last_child)
+                {
+                    break;
+                }
 
-            for (node* n = converted_node_list.first_child; n != 0;)
-            {
-                node* next_n = n->next_sibling;
-                detach_node(n);
-                append_child(root, n);
                 n = next_n;
             }
 
