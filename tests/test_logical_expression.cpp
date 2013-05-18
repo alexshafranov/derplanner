@@ -135,7 +135,7 @@ namespace
         expr.parse(buffer);
         ast::tree tree;
         ast::node* actual = ast::flatten(ast::build_logical_expression(tree, expr.root()));
-        const char* expected = "(and (or (not (x)) (and (not (y)) (z))))";
+        const char* expected = "(and (not (and (a) (b) (or (c) (d)) (e) (f))))";
         CHECK_EQUAL(expected, to_string(actual).c_str());
     }
 }
