@@ -169,26 +169,35 @@ node* convert_to_nnf(tree& t, node* root)
         // recurse down the tree
         else
         {
-            node converted_nodes_list;
-            converted_nodes_list.first_child = 0;
-            converted_nodes_list.next_sibling = 0;
-            converted_nodes_list.prev_sibling_cyclic = 0;
+            // node converted_nodes_list;
+            // converted_nodes_list.first_child = 0;
+            // converted_nodes_list.next_sibling = 0;
+            // converted_nodes_list.prev_sibling_cyclic = 0;
+
+            for (node* n = root->first_child; n != 0; n = n->next_sibling)
+            {
+                plnnrc_assert(n->parent == root);
+            }
 
             for (node* n = root->first_child; n != 0;)
             {
                 node* next_n = n->next_sibling;
+                plnnrc_assert(n->parent == root);
                 detach_node(n);
-                node* converted_n = convert_to_nnf(t, n);
-                append_child(&converted_nodes_list, converted_n);
+                plnnrc_assert(root->first_child == n);
+                // node* converted_n = convert_to_nnf(t, n);
+                // append_child(&converted_nodes_list, converted_n);
                 n = next_n;
             }
 
-            for (node* n = converted_nodes_list.first_child; n != 0;)
-            {
-                node* next_n = n->next_sibling;
-                append_child(root, n);
-                n = next_n;
-            }
+            // plnnrc_assert(root->first_child == 0);
+
+            // for (node* n = converted_nodes_list.first_child; n != 0;)
+            // {
+            //     node* next_n = n->next_sibling;
+            //     append_child(root, n);
+            //     n = next_n;
+            // }
 
             return root;
         }

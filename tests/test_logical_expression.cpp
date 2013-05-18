@@ -20,6 +20,7 @@
 
 #include <string>
 #include <unittestpp.h>
+#include <derplanner/compiler/derplanner_assert.h>
 #include <derplanner/compiler/s_expression.h>
 #include <derplanner/compiler/ast.h>
 #include <derplanner/compiler/logical_expression.h>
@@ -45,6 +46,7 @@ namespace
             break;
         case ast::node_atom:
             result += "(";
+            plnnrc_assert(root->s_expr && root->s_expr->token);
             result += root->s_expr->token;
             result += ")";
             break;
@@ -70,7 +72,7 @@ namespace
         return result;
     }
 
-    TEST(simple)
+    TEST(build_1)
     {
         sexpr::tree expr;
         char buffer[] = "((or (a) (b) (c)))";
@@ -80,4 +82,26 @@ namespace
         const char* expected = "(and (or (a) (b) (c)))";
         CHECK_EQUAL(expected, to_string(actual).c_str());
     }
+
+    TEST(build_2)
+    {
+        sexpr::tree expr;
+        char buffer[] = "((not (not (x))))";
+        expr.parse(buffer);
+        ast::tree tree;
+        ast::node* actual = ast::build_logical_expression(tree, expr.root());
+        const char* expected = "(and (not (not (x))))";
+        CHECK_EQUAL(expected, to_string(actual).c_str());
+    }
+
+    // TEST(nnf_conversion_1)
+    // {
+    //     sexpr::tree expr;
+    //     char buffer[] = "((not (not (x))))";
+    //     expr.parse(buffer);
+    //     ast::tree tree;
+    //     ast::node* actual = ast::convert_to_nnf(tree, ast::build_logical_expression(tree, expr.root()));
+    //     const char* expected = "(and (x))";
+    //     CHECK_EQUAL(expected, to_string(actual).c_str());
+    // }
 }

@@ -107,6 +107,10 @@ node* tree::make_node(node_type type, sexpr::node* token)
     {
         n->type = type;
         n->s_expr = token;
+        n->parent = 0;
+        n->first_child = 0;
+        n->next_sibling = 0;
+        n->prev_sibling_cyclic = 0;
     }
 
     return n;
@@ -118,11 +122,15 @@ void append_child(node* parent, node* child)
     plnnrc_assert(child != 0);
 
     child->parent = parent;
+    child->prev_sibling_cyclic = 0;
+    child->next_sibling = 0;
+
     node* first_child = parent->first_child;
 
     if (first_child)
     {
         node* last_child = first_child->prev_sibling_cyclic;
+        plnnrc_assert(last_child != 0);
         last_child->next_sibling = child;
         child->prev_sibling_cyclic = last_child;
         first_child->prev_sibling_cyclic = child;
@@ -159,6 +167,10 @@ void detach_node(node* n)
             p->first_child = r;
         }
     }
+
+    n->parent = 0;
+    n->next_sibling = 0;
+    n->prev_sibling_cyclic = 0;
 }
 
 }
