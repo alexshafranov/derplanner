@@ -115,4 +115,16 @@ namespace
         const char* expected = "(and (x))";
         CHECK_EQUAL(expected, to_string(actual).c_str());
     }
+
+    TEST(nnf_conversion_de_morgans)
+    {
+        sexpr::tree expr;
+        char buffer[] = "((not (and (x) (or (y) (not (z))))))";
+        expr.parse(buffer);
+        ast::tree tree;
+        ast::node* actual = ast::convert_to_nnf(tree, ast::build_logical_expression(tree, expr.root()));
+        // !(x && (y || !z)) -> !x || !(y || z) -> !x || (!y && z)
+        const char* expected = "(and (or (not (x)) (and (not (y)) (z))))";
+        CHECK_EQUAL(expected, to_string(actual).c_str());
+    }
 }
