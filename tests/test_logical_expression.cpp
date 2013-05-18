@@ -94,17 +94,6 @@ namespace
         CHECK_EQUAL(expected, to_string(actual).c_str());
     }
 
-    TEST(nnf_conversion_double_negative)
-    {
-        sexpr::tree expr;
-        char buffer[] = "((not (not (x))))";
-        expr.parse(buffer);
-        ast::tree tree;
-        ast::node* actual = ast::convert_to_nnf(tree, ast::build_logical_expression(tree, expr.root()));
-        const char* expected = "(and (x))";
-        CHECK_EQUAL(expected, to_string(actual).c_str());
-    }
-
     TEST(nnf_conversion_trivial)
     {
         sexpr::tree expr;
@@ -113,6 +102,17 @@ namespace
         ast::tree tree;
         ast::node* actual = ast::convert_to_nnf(tree, ast::build_logical_expression(tree, expr.root()));
         const char* expected = "(and (or (x) (y)))";
+        CHECK_EQUAL(expected, to_string(actual).c_str());
+    }
+
+    TEST(nnf_conversion_double_negative)
+    {
+        sexpr::tree expr;
+        char buffer[] = "((not (not (x))))";
+        expr.parse(buffer);
+        ast::tree tree;
+        ast::node* actual = ast::convert_to_nnf(tree, ast::build_logical_expression(tree, expr.root()));
+        const char* expected = "(and (x))";
         CHECK_EQUAL(expected, to_string(actual).c_str());
     }
 }
