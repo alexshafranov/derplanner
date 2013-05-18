@@ -42,6 +42,8 @@ node* convert_to_nnf(tree& t, node* root);
 
 node* flatten(node* root);
 
+node* convert_to_dnf(tree& t, node* root);
+
 }
 }
 

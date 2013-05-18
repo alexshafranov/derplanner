@@ -256,5 +256,73 @@ node* flatten(node* root)
     return 0;
 }
 
+namespace
+{
+    inline bool is_literal(node* root)
+    {
+        plnnrc_assert(root != 0);
+        return (root->type == node_atom) || (root->type == node_op_not);
+    }
+
+    bool is_conjunction_of_literals(node* root)
+    {
+        plnnrc_assert(root != 0);
+
+        if (root->type != node_op_and)
+        {
+            return false;
+        }
+
+        for (node* n = root->first_child; n != 0; n = n->next_sibling)
+        {
+            if (!is_literal(n))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    node* convert_to_dnf_and(tree& t, node* root)
+    {
+        plnnrc_assert(root != 0);
+        plnnrc_assert(root->type == node_op_or);
+        return root;
+    }
+
+    node* convert_to_dnf_or(tree& t, node* root)
+    {
+        plnnrc_assert(root != 0);
+        plnnrc_assert(root->type == node_op_or);
+        return root;
+    }
+}
+
+node* convert_to_dnf(tree& t, node* root)
+{
+    // empty -> (or)
+    if (is_logical_op(node) && !root->first_child)
+    {
+        return t.make_node(node_op_or, 0);
+    }
+
+    node* nnf_root = flatten(convert_to_nnf(root));
+
+    node* new_root = 0;
+
+    if (nnf_root->type == node_op_or)
+    {
+        new_root = nnf_root;
+    }
+    else
+    {
+        new_root = t.make_node(node_op_or, 0);
+        append_child(new_root, nnf_root);
+    }
+
+    return convert_to_dnf_or(t, new_root);
+}
+
 }
 }
