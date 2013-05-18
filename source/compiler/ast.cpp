@@ -165,15 +165,24 @@ void insert_child(node* after, node* child)
     plnnrc_assert(child != 0);
     plnnrc_assert(after->parent != 0);
 
-    child->parent = after->parent;
-    child->next_sibling = after->next_sibling;
-    child->prev_sibling_cyclic = after;
-    after->next_sibling = child;
+    node* l = after;
+    node* r = after->next_sibling;
+    node* p = after->parent;
 
-    if (child->next_sibling)
+    l->next_sibling = child;
+
+    if (r)
     {
-        child->next_sibling->prev_sibling_cyclic = child;
+        r->prev_sibling_cyclic = child;
     }
+    else
+    {
+        p->first_child->prev_sibling_cyclic = child;
+    }
+
+    child->prev_sibling_cyclic = l;
+    child->next_sibling = r;
+    child->parent = p;
 }
 
 void detach_node(node* n)

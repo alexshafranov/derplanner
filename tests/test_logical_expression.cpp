@@ -128,14 +128,14 @@ namespace
         CHECK_EQUAL(expected, to_string(actual).c_str());
     }
 
-    TEST(flatten_and_chain)
+    TEST(flatten_op_chains)
     {
         sexpr::tree expr;
-        char buffer[] = "((not (and (a) (and (b) (or (c) (d)) (and (e) (f))))))";
+        char buffer[] = "((not (and (a) (and (b) (or (c) (d) (or (e) (f))) (and (g) (h))))))";
         expr.parse(buffer);
         ast::tree tree;
         ast::node* actual = ast::flatten(ast::build_logical_expression(tree, expr.root()));
-        const char* expected = "(and (not (and (a) (b) (or (c) (d)) (e) (f))))";
+        const char* expected = "(and (not (and (a) (b) (or (c) (d) (e) (f)) (g) (h))))";
         CHECK_EQUAL(expected, to_string(actual).c_str());
     }
 }
