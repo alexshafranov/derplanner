@@ -94,14 +94,14 @@ namespace
         CHECK_EQUAL(expected, to_string(actual).c_str());
     }
 
-    // TEST(nnf_conversion_1)
-    // {
-    //     sexpr::tree expr;
-    //     char buffer[] = "((not (not (x))))";
-    //     expr.parse(buffer);
-    //     ast::tree tree;
-    //     ast::node* actual = ast::convert_to_nnf(tree, ast::build_logical_expression(tree, expr.root()));
-    //     const char* expected = "(and (x))";
-    //     CHECK_EQUAL(expected, to_string(actual).c_str());
-    // }
+    TEST(nnf_conversion_1)
+    {
+        sexpr::tree expr;
+        char buffer[] = "((not (not (x))))";
+        expr.parse(buffer);
+        ast::tree tree;
+        ast::node* actual = ast::convert_to_nnf(tree, ast::build_logical_expression(tree, expr.root()));
+        const char* expected = "(and (x))";
+        CHECK_EQUAL(expected, to_string(actual).c_str());
+    }
 }
