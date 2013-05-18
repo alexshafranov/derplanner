@@ -188,5 +188,73 @@ node* convert_to_nnf(tree& t, node* root)
     return 0;
 }
 
+node* flatten(node* root)
+{
+    plnnrc_assert(root != 0);
+
+    if (root->type == node_atom)
+    {
+        return root;
+    }
+
+    if (is_logical_op(root))
+    {
+        if (root->type == node_op_not)
+        {
+            if (root->first_child)
+            {
+                flatten(root->first_child);
+            }
+
+            return root;
+        }
+
+        while (true)
+        {
+            bool collapsed = false;
+
+            for (node* n = root->first_child; n != 0;)
+            {
+                node* next_n = n->next_sibling;
+
+                // collapse: (and x (and y) z) -> (and x y z); (or x (or y) z) -> (or x y z)
+                if (n->type == root->type)
+                {
+                    node* after = n;
+
+                    for (node* c = n->first_child; c != 0;)
+                    {
+                        node* next_c = c->next_sibling;
+                        insert_child(after, c);
+                        after = c;
+                        c = next_c;
+                    }
+
+                    detach_node(n);
+
+                    collapsed = true;
+                }
+
+                n = next_n;
+            }
+
+            if (!collapsed)
+            {
+                break;
+            }
+        }
+
+        for (node* n = root->first_child; n != 0; n = n->next_sibling)
+        {
+            flatten(n);
+        }
+
+        return root;
+    }
+
+    plnnrc_assert(false);
+    return 0;
+}
+
 }
 }

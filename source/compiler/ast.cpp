@@ -159,6 +159,23 @@ void prepend_child(node* parent, node* child)
     parent->first_child = child;
 }
 
+void insert_child(node* after, node* child)
+{
+    plnnrc_assert(after != 0);
+    plnnrc_assert(child != 0);
+    plnnrc_assert(after->parent != 0);
+
+    child->parent = after->parent;
+    child->next_sibling = after->next_sibling;
+    child->prev_sibling_cyclic = after;
+    after->next_sibling = child;
+
+    if (child->next_sibling)
+    {
+        child->next_sibling->prev_sibling_cyclic = child;
+    }
+}
+
 void detach_node(node* n)
 {
     plnnrc_assert(n != 0);

@@ -127,4 +127,15 @@ namespace
         const char* expected = "(and (or (not (x)) (and (not (y)) (z))))";
         CHECK_EQUAL(expected, to_string(actual).c_str());
     }
+
+    TEST(flatten_and_chain)
+    {
+        sexpr::tree expr;
+        char buffer[] = "((not (and (a) (and (b) (or (c) (d)) (and (e) (f))))))";
+        expr.parse(buffer);
+        ast::tree tree;
+        ast::node* actual = ast::flatten(ast::build_logical_expression(tree, expr.root()));
+        const char* expected = "(and (or (not (x)) (and (not (y)) (z))))";
+        CHECK_EQUAL(expected, to_string(actual).c_str());
+    }
 }
