@@ -101,6 +101,7 @@ node* build_logical_expression(tree& t, sexpr::node* s_expr)
 
 node* convert_to_nnf(tree& t, node* root)
 {
+    // (atom) is negative normal form
     if (root->type == node_atom)
     {
         return root;
@@ -108,12 +109,87 @@ node* convert_to_nnf(tree& t, node* root)
 
     if (is_logical_op(root))
     {
+        // looking down to apply double negation elimination and de-morgan's law
         if (root->type == node_op_not)
         {
-            return root;
+            node* child = root->first_child;
+
+            // (not (atom)) is negative normal form
+            if (child->type == node_atom)
+            {
+                return root;
+            }
+
+            if (is_logical_op(child))
+            {
+                if (child->type == node_op_not)
+                {
+                    // eliminate double negation: (not (not x)) = (x)
+                    return convert_to_nnf(t, child->first_child);
+                }
+
+                // de-morgan's law: (not (or x y)) = (and (not x) (not y)); (not (and x y)) = (or (not x) (not y))
+
+                child->type = (child->type == node_op_and) ? node_op_or : node_op_and;
+
+                node converted_nodes_list;
+                converted_nodes_list.first_child = 0;
+                converted_nodes_list.next_sibling = 0;
+                converted_nodes_list.prev_sibling_cyclic = 0;
+
+                for (node* n = child->first_child; n != 0;)
+                {
+                    node* new_n  = t.make_node(node_op_not, 0);
+                    node* next_n = n->next_sibling;
+
+                    detach_node(n);
+                    append_child(new_n, n);
+
+                    new_n = convert_to_nnf(t, new_n);
+
+                    append_child(&converted_nodes_list, new_n);
+
+                    n = next_n;
+                }
+
+                // all children are converted and reparented to new (not x) nodes
+                plnnrc_assert(child->first_child == 0);
+
+                // parent (not x) nodes to child
+                for (node* n = converted_nodes_list.first_child; n != 0;)
+                {
+                    node* next_n = n->next_sibling;
+                    append_child(child, n);
+                    n = next_n;
+                }
+
+                return child;
+            }
         }
+        // recurse down the tree
         else
         {
+            node converted_nodes_list;
+            converted_nodes_list.first_child = 0;
+            converted_nodes_list.next_sibling = 0;
+            converted_nodes_list.prev_sibling_cyclic = 0;
+
+            for (node* n = root->first_child; n != 0;)
+            {
+                node* next_n = n->next_sibling;
+                detach_node(n);
+                node* converted_n = convert_to_nnf(t, n);
+                append_child(&converted_nodes_list, converted_n);
+                n = next_n;
+            }
+
+            for (node* n = converted_nodes_list.first_child; n != 0;)
+            {
+                node* next_n = n->next_sibling;
+                append_child(root, n);
+                n = next_n;
+            }
+
             return root;
         }
     }
