@@ -192,7 +192,7 @@ node* convert_to_nnf(tree& t, node* root)
                 return child;
             }
         }
-        // recurse down the tree
+        // go down the tree
         else
         {
             node* first_child = root->first_child;
