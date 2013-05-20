@@ -18,6 +18,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
+#include <stdio.h>
 #include <string.h>
 #include "derplanner/compiler/derplanner_assert.h"
 #include "derplanner/compiler/s_expression.h"
@@ -201,48 +202,41 @@ void flatten(node* root)
 
     if (is_logical_op(root))
     {
-        if (root->type == node_op_not)
+        if (root->type != node_op_not)
         {
-            if (root->first_child)
+            while (true)
             {
-                flatten(root->first_child);
-            }
+                bool collapsed = false;
 
-            return;
-        }
-
-        while (true)
-        {
-            bool collapsed = false;
-
-            for (node* n = root->first_child; n != 0;)
-            {
-                node* next_n = n->next_sibling;
-
-                // collapse: (and x (and y) z) -> (and x y z); (or x (or y) z) -> (or x y z)
-                if (n->type == root->type)
+                for (node* n = root->first_child; n != 0;)
                 {
-                    node* after = n;
+                    node* next_n = n->next_sibling;
 
-                    for (node* c = n->first_child; c != 0;)
+                    // collapse: (and x (and y) z) -> (and x y z); (or x (or y) z) -> (or x y z)
+                    if (n->type == root->type)
                     {
-                        node* next_c = c->next_sibling;
-                        insert_child(after, c);
-                        after = c;
-                        c = next_c;
+                        node* after = n;
+
+                        for (node* c = n->first_child; c != 0;)
+                        {
+                            node* next_c = c->next_sibling;
+                            detach_node(c);
+                            insert_child(after, c);
+                            after = c;
+                            c = next_c;
+                        }
+
+                        detach_node(n);
+                        collapsed = true;
                     }
 
-                    detach_node(n);
-
-                    collapsed = true;
+                    n = next_n;
                 }
 
-                n = next_n;
-            }
-
-            if (!collapsed)
-            {
-                break;
+                if (!collapsed)
+                {
+                    break;
+                }
             }
         }
 
@@ -250,11 +244,7 @@ void flatten(node* root)
         {
             flatten(n);
         }
-
-        return;
     }
-
-    plnnrc_assert(false);
 }
 
 namespace
@@ -319,8 +309,8 @@ namespace
 
                 if (and_child != node_or)
                 {
-                    detach_node(and_child);
-                    append_child(new_and, and_child);
+                    node* and_child_clone = t.clone_subtree(and_child);
+                    append_child(new_and, and_child_clone);
                 }
                 else
                 {

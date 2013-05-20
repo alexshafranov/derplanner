@@ -116,6 +116,40 @@ node* tree::make_node(node_type type, sexpr::node* token)
     return n;
 }
 
+node* tree::clone_node(node* original)
+{
+    plnnrc_assert(original != 0);
+
+    node* n = reinterpret_cast<node*>(pool_allocate(_memory, sizeof(node)));
+
+    if (n)
+    {
+        n->type = original->type;
+        n->s_expr = original->s_expr;
+        n->first_child = 0;
+        n->parent = 0;
+        n->next_sibling = 0;
+        n->prev_sibling_cyclic = 0;
+    }
+
+    return n;
+}
+
+node* tree::clone_subtree(node* original)
+{
+    plnnrc_assert(original != 0);
+
+    node* clone = clone_node(original);
+
+    for (node* child_original = original->first_child; child_original != 0; child_original = child_original->next_sibling)
+    {
+        node* child_clone = clone_subtree(child_original);
+        append_child(clone, child_clone);
+    }
+
+    return clone;
+}
+
 void append_child(node* parent, node* child)
 {
     plnnrc_assert(parent != 0);
@@ -190,26 +224,28 @@ void detach_node(node* n)
     plnnrc_assert(n != 0);
 
     node* p = n->parent;
+    node* n_next = n->next_sibling;
+    node* n_prev = n->prev_sibling_cyclic;
 
     plnnrc_assert(p != 0);
-    plnnrc_assert(n->prev_sibling_cyclic != 0);
+    plnnrc_assert(n_prev != 0);
 
-    node* l = n->prev_sibling_cyclic;
-    node* r = n->next_sibling;
-
-    if (l != r)
+    if (n_next)
     {
-        l->next_sibling = r;
+        n_next->prev_sibling_cyclic = n_prev;
+    }
+    else
+    {
+        p->first_child->prev_sibling_cyclic = n_prev;
     }
 
-    if (r)
+    if (n_prev->next_sibling)
     {
-        r->prev_sibling_cyclic = l;
+        n_prev->next_sibling = n_next;
     }
-
-    if (p->first_child == n)
+    else
     {
-        p->first_child = r;
+        p->first_child = n_next;
     }
 
     n->parent = 0;
