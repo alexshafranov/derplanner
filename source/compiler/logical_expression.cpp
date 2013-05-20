@@ -40,12 +40,24 @@ namespace
     node* build_logical_op(tree& t, sexpr::node* s_expr, node_type op_type)
     {
         node* root = t.make_node(op_type, s_expr);
+
+        if (!root)
+        {
+            return 0;
+        }
+
         plnnrc_assert(root != 0);
         plnnrc_assert(s_expr->first_child != 0);
 
         for (sexpr::node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
         {
             node* child = build_recursive(t, c_expr);
+
+            if (!child)
+            {
+                return 0;
+            }
+
             append_child(root, child);
         }
 
@@ -54,9 +66,7 @@ namespace
 
     node* build_atom(tree& t, sexpr::node* s_expr)
     {
-        node* root = t.make_node(node_atom, s_expr->first_child);
-        plnnrc_assert(root != 0);
-        return root;
+        return t.make_node(node_atom, s_expr->first_child);
     }
 
     node* build_recursive(tree& t, sexpr::node* s_expr)
@@ -89,11 +99,21 @@ node* build_logical_expression(tree& t, sexpr::node* s_expr)
     plnnrc_assert(s_expr->type == sexpr::node_list);
 
     node* root = t.make_node(node_op_and, s_expr);
-    plnnrc_assert(root != 0);
+
+    if (!root)
+    {
+        return 0;
+    }
 
     for (sexpr::node* c_expr = s_expr->first_child; c_expr != 0; c_expr = c_expr->next_sibling)
     {
         node* child = build_recursive(t, c_expr);
+
+        if (!child)
+        {
+            return 0;
+        }
+
         append_child(root, child);
     }
 
