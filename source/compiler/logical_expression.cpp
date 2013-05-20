@@ -161,12 +161,23 @@ node* convert_to_nnf(tree& t, node* root)
                 for (node* n = first_child; n != 0;)
                 {
                     node* new_n = t.make_node(node_op_not, 0);
+
+                    if (!new_n)
+                    {
+                        return 0;
+                    }
+
                     node* next_n = n->next_sibling;
 
                     detach_node(n);
                     append_child(new_n, n);
 
                     new_n = convert_to_nnf(t, new_n);
+
+                    if (!new_n)
+                    {
+                        return 0;
+                    }
 
                     append_child(child, new_n);
 
@@ -192,7 +203,14 @@ node* convert_to_nnf(tree& t, node* root)
                 node* next_n = n->next_sibling;
 
                 detach_node(n);
+
                 node* converted_n = convert_to_nnf(t, n);
+
+                if (!converted_n)
+                {
+                    return 0;
+                }
+
                 append_child(root, converted_n);
 
                 if (n == last_child)
