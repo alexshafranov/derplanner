@@ -181,4 +181,16 @@ namespace
         const char* expected = "(or (and))";
         CHECK_EQUAL(expected, to_string(actual).c_str());
     }
+
+    TEST(atom_is_dnf)
+    {
+        sexpr::tree expr;
+        char buffer[] = "((x))";
+        expr.parse(buffer);
+        ast::tree tree;
+        ast::node* actual = ast::build_logical_expression(tree, expr.root());
+        actual = ast::convert_to_dnf(tree, actual);
+        const char* expected = "(or (and (x)))";
+        CHECK_EQUAL(expected, to_string(actual).c_str());
+    }
 }
