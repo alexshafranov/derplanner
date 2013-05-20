@@ -132,6 +132,8 @@ node* convert_to_nnf(tree& t, node* root)
 
                 child->type = (child->type == node_op_and) ? node_op_or : node_op_and;
 
+                plnnrc_assert(child->first_child != 0);
+
                 node* first_child = child->first_child;
                 node* last_child  = child->first_child->prev_sibling_cyclic;
 
@@ -162,7 +164,7 @@ node* convert_to_nnf(tree& t, node* root)
         else
         {
             node* first_child = root->first_child;
-            node* last_child  = root->first_child->prev_sibling_cyclic;
+            node* last_child  = root->first_child ? root->first_child->prev_sibling_cyclic : 0;
 
             for (node* n = first_child; n != 0;)
             {
