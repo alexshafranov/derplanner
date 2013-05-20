@@ -141,9 +141,20 @@ node* tree::clone_subtree(node* original)
 
     node* clone = clone_node(original);
 
+    if (!clone)
+    {
+        return 0;
+    }
+
     for (node* child_original = original->first_child; child_original != 0; child_original = child_original->next_sibling)
     {
         node* child_clone = clone_subtree(child_original);
+
+        if (!child_clone)
+        {
+            return 0;
+        }
+
         append_child(clone, child_clone);
     }
 

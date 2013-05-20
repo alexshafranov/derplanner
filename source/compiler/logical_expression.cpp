@@ -326,7 +326,7 @@ namespace
         return 0;
     }
 
-    void distribute_and(tree& t, node* node_and)
+    bool distribute_and(tree& t, node* node_and)
     {
         plnnrc_assert(node_and != 0);
         plnnrc_assert(node_and->type == node_op_and);
@@ -341,6 +341,11 @@ namespace
             node* next_or_child = or_child->next_sibling;
             node* new_and = t.make_node(node_op_and, 0);
 
+            if (!new_and)
+            {
+                return false;
+            }
+
             for (node* and_child = node_and->first_child; and_child != 0;)
             {
                 node* next_and_child = and_child->next_sibling;
@@ -348,6 +353,12 @@ namespace
                 if (and_child != node_or)
                 {
                     node* and_child_clone = t.clone_subtree(and_child);
+
+                    if (!and_child_clone)
+                    {
+                        return false;
+                    }
+
                     append_child(new_and, and_child_clone);
                 }
                 else
@@ -367,6 +378,8 @@ namespace
         }
 
         detach_node(node_and);
+
+        return true;
     }
 
     node* convert_to_dnf_or(tree& t, node* root)
@@ -385,7 +398,11 @@ namespace
                 if (!is_literal(n) && !is_conjunction_of_literals(n))
                 {
                     done = false;
-                    distribute_and(t, n);
+
+                    if (!distribute_and(t, n))
+                    {
+                        return 0;
+                    }
                 }
 
                 n = next_n;
@@ -407,6 +424,12 @@ node* convert_to_dnf(tree& t, node* root)
 
     node* nnf_root = convert_to_nnf(t, root);
     node* new_root = t.make_node(node_op_or, 0);
+
+    if (!nnf_root || !new_root)
+    {
+        return 0;
+    }
+
     append_child(new_root, nnf_root);
     flatten(new_root);
 
