@@ -18,7 +18,6 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#include <stdio.h>
 #include <string.h>
 #include "derplanner/compiler/derplanner_assert.h"
 #include "derplanner/compiler/s_expression.h"
