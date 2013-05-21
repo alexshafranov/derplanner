@@ -122,111 +122,81 @@ node* build_logical_expression(tree& t, sexpr::node* s_expr)
 
 node* convert_to_nnf(tree& t, node* root)
 {
-    // (atom) is negative normal form
-    if (root->type == node_atom)
-    {
-        return root;
-    }
+    node* p = root;
 
-    if (is_logical_op(root))
+    while (true)
     {
-        // looking down to apply double negation elimination and de-morgan's law
-        if (root->type == node_op_not)
+        if (p->type == node_op_not)
         {
-            node* child = root->first_child;
+            node* c = p->first_child;
+            plnnrc_assert(c != 0);
 
-            // (not (atom)) is negative normal form
-            if (child->type == node_atom)
+            if (is_logical_op(c))
             {
-                return root;
-            }
-
-            if (is_logical_op(child))
-            {
-                if (child->type == node_op_not)
+                // eliminate double negation: (not (not x)) = (x)
+                if (c->type == node_op_not)
                 {
-                    // eliminate double negation: (not (not x)) = (x)
-                    return convert_to_nnf(t, child->first_child);
-                }
+                    node* x = c->first_child;
+                    plnnrc_assert(x != 0);
+                    detach_node(x);
 
+                    if (p->parent)
+                    {
+                        insert_child(p, x);
+                        detach_node(p);
+                    }
+
+                    p = x;
+                }
                 // de-morgan's law: (not (or x y)) = (and (not x) (not y)); (not (and x y)) = (or (not x) (not y))
-
-                child->type = (child->type == node_op_and) ? node_op_or : node_op_and;
-
-                plnnrc_assert(child->first_child != 0);
-
-                node* first_child = child->first_child;
-                node* last_child  = child->first_child->prev_sibling_cyclic;
-
-                for (node* n = first_child; n != 0;)
+                else
                 {
-                    node* new_n = t.make_node(node_op_not, 0);
+                    p->type = (c->type == node_op_and) ? node_op_or : node_op_and;
+                    node* after = c;
 
-                    if (!new_n)
+                    for (node* x = c->first_child; x != 0;)
                     {
-                        return 0;
+                        node* next_x = x->next_sibling;
+
+                        detach_node(x);
+
+                        node* new_not = t.make_node(node_op_not, 0);
+
+                        if (!new_not)
+                        {
+                            return 0;
+                        }
+
+                        append_child(new_not, x);
+                        insert_child(after, new_not);
+                        after = new_not;
+
+                        x = next_x;
                     }
 
-                    node* next_n = n->next_sibling;
-
-                    detach_node(n);
-                    append_child(new_n, n);
-
-                    new_n = convert_to_nnf(t, new_n);
-
-                    if (!new_n)
-                    {
-                        return 0;
-                    }
-
-                    append_child(child, new_n);
-
-                    if (n == last_child)
-                    {
-                        break;
-                    }
-
-                    n = next_n;
+                    detach_node(c);
                 }
-
-                return child;
             }
         }
-        // go down the tree
+
+        if (p->first_child)
+        {
+            p = p->first_child;
+        }
         else
         {
-            node* first_child = root->first_child;
-            node* last_child  = root->first_child ? root->first_child->prev_sibling_cyclic : 0;
+            while (p != root && !p->next_sibling) { p = p->parent; }
 
-            for (node* n = first_child; n != 0;)
+            if (p == root)
             {
-                node* next_n = n->next_sibling;
-
-                detach_node(n);
-
-                node* converted_n = convert_to_nnf(t, n);
-
-                if (!converted_n)
-                {
-                    return 0;
-                }
-
-                append_child(root, converted_n);
-
-                if (n == last_child)
-                {
-                    break;
-                }
-
-                n = next_n;
+                break;
             }
 
-            return root;
+            p = p->next_sibling;
         }
     }
 
-    plnnrc_assert(false);
-    return 0;
+    return p;
 }
 
 void flatten(node* root)
