@@ -119,11 +119,33 @@ node* build_logical_expression(tree& t, sexpr::node* s_expr)
     return root;
 }
 
+namespace
+{
+    inline node* preorder_traversal_next(const node* root, node* current)
+    {
+        node* n = current;
+
+        if (n->first_child)
+        {
+            return n->first_child;
+        }
+
+        while (n != root && !n->next_sibling) { n = n->parent; }
+
+        if (n == root)
+        {
+            return 0;
+        }
+
+        return n->next_sibling;
+    }
+}
+
 node* convert_to_nnf(tree& t, node* root)
 {
-    node* p = root;
+    node* r = root;
 
-    while (true)
+    for (node* p = root; p != 0; p = preorder_traversal_next(r, p))
     {
         if (p->type == node_op_not)
         {
@@ -143,6 +165,10 @@ node* convert_to_nnf(tree& t, node* root)
                     {
                         insert_child(p, x);
                         detach_node(p);
+                    }
+                    else
+                    {
+                        r = x;
                     }
 
                     p = x;
@@ -177,25 +203,9 @@ node* convert_to_nnf(tree& t, node* root)
                 }
             }
         }
-
-        if (p->first_child)
-        {
-            p = p->first_child;
-        }
-        else
-        {
-            while (p != root && !p->next_sibling) { p = p->parent; }
-
-            if (p == root)
-            {
-                break;
-            }
-
-            p = p->next_sibling;
-        }
     }
 
-    return p;
+    return r;
 }
 
 void flatten(node* root)

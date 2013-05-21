@@ -141,8 +141,12 @@ namespace
         char buffer[] = "((not (not (x))))";
         expr.parse(buffer);
         ast::tree tree;
-        ast::node* actual = ast::convert_to_nnf(tree, ast::build_logical_expression(tree, expr.root()));
-        const char* expected = "(and (x))";
+        // ast::node* actual = ast::convert_to_nnf(tree, ast::build_logical_expression(tree, expr.root()));
+        ast::node* actual = ast::build_logical_expression(tree, expr.root());
+        actual = actual->first_child;
+        ast::detach_node(actual);
+        actual = ast::convert_to_nnf(tree, actual);
+        const char* expected = "(x)";
         CHECK_EQUAL(expected, to_string(actual).c_str());
     }
 
