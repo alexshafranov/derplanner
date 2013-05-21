@@ -212,9 +212,7 @@ void flatten(node* root)
 {
     plnnrc_assert(root != 0);
 
-    node* p = root;
-
-    while (true)
+    for (node* p = root; p != 0; p = preorder_traversal_next(root, p))
     {
         if (is_logical_op(p) && p->type != node_op_not)
         {
@@ -252,22 +250,6 @@ void flatten(node* root)
                     break;
                 }
             }
-        }
-
-        if (p->first_child)
-        {
-            p = p->first_child;
-        }
-        else
-        {
-            while (p != root && !p->next_sibling) { p = p->parent; }
-
-            if (p == root)
-            {
-                break;
-            }
-
-            p = p->next_sibling;
         }
     }
 }
