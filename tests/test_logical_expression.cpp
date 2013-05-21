@@ -156,9 +156,10 @@ namespace
         char buffer[] = "((not (and (x) (or (y) (not (z))))))";
         expr.parse(buffer);
         ast::tree tree;
-        ast::node* actual = ast::convert_to_nnf(tree, ast::build_logical_expression(tree, expr.root()));
+        ast::node* actual = ast::build_logical_expression(tree, expr.root());
+        actual = ast::convert_to_nnf(tree, actual->first_child);
         // !(x && (y || !z)) -> !x || !(y || z) -> !x || (!y && z)
-        const char* expected = "(and (or (not (x)) (and (not (y)) (z))))";
+        const char* expected = "(or (not (x)) (and (not (y)) (z)))";
         CHECK_EQUAL(expected, to_string(actual).c_str());
     }
 
