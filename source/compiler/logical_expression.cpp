@@ -233,25 +233,22 @@ void flatten(node* root)
 {
     plnnrc_assert(root != 0);
 
-    if (root->type == node_atom)
-    {
-        return;
-    }
+    node* p = root;
 
-    if (is_logical_op(root))
+    while (true)
     {
-        if (root->type != node_op_not)
+        if (is_logical_op(p) && p->type != node_op_not)
         {
             while (true)
             {
                 bool collapsed = false;
 
-                for (node* n = root->first_child; n != 0;)
+                for (node* n = p->first_child; n != 0;)
                 {
                     node* next_n = n->next_sibling;
 
                     // collapse: (and x (and y) z) -> (and x y z); (or x (or y) z) -> (or x y z)
-                    if (n->type == root->type)
+                    if (n->type == p->type)
                     {
                         node* after = n;
 
@@ -278,9 +275,20 @@ void flatten(node* root)
             }
         }
 
-        for (node* n = root->first_child; n != 0; n = n->next_sibling)
+        if (p->first_child)
         {
-            flatten(n);
+            p = p->first_child;
+        }
+        else
+        {
+            while (p != root && !p->next_sibling) { p = p->parent; }
+
+            if (p == root)
+            {
+                break;
+            }
+
+            p = p->next_sibling;
         }
     }
 }
