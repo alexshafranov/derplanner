@@ -142,6 +142,18 @@ namespace
         expr.parse(buffer);
         ast::tree tree;
         ast::node* actual = ast::build_logical_expression(tree, expr.root());
+        actual = ast::convert_to_nnf(tree, actual);
+        const char* expected = "(and (x))";
+        CHECK_EQUAL(expected, to_string(actual).c_str());
+    }
+
+    TEST(nnf_conversion_non_root_node)
+    {
+        sexpr::tree expr;
+        char buffer[] = "((not (not (x))))";
+        expr.parse(buffer);
+        ast::tree tree;
+        ast::node* actual = ast::build_logical_expression(tree, expr.root());
         // build_logical_expression always returns (and ...) as a root
         // move to the first child of (and ...) 
         // to test 'convert_to_nnf' working on a non root nodes of tree.

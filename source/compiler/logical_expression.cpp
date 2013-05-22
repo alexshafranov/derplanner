@@ -166,7 +166,8 @@ node* convert_to_nnf(tree& t, node* root)
                         insert_child(p, x);
                         detach_node(p);
                     }
-                    else
+                    
+                    if (r == p)
                     {
                         r = x;
                     }
