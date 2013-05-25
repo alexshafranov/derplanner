@@ -89,7 +89,7 @@ namespace
         int column;
         char* cursor;
         char* cursor_next;
-        char* term_loc;
+        char* terminator_location;
         node* parent;
     };
 
@@ -100,7 +100,7 @@ namespace
         state.column = 1;
         state.cursor = buffer;
         state.cursor_next = buffer;
-        state.term_loc = 0;
+        state.terminator_location = 0;
         state.parent = 0;
     }
 
@@ -229,7 +229,7 @@ namespace
             case ' ': case '\f': case '\t': case '\v':
             case '(': case ')':
                 state.cursor_next = state.cursor;
-                state.term_loc = state.cursor;
+                state.terminator_location = state.cursor;
                 state.cursor = begin;
                 state.line = line;
                 state.column = column;
@@ -287,7 +287,7 @@ namespace
             case ' ': case '\f': case '\t': case '\v':
             case '(': case ')':
                 state.cursor_next = state.cursor;
-                state.term_loc = state.cursor;
+                state.terminator_location = state.cursor;
                 state.cursor = begin;
                 state.line = line;
                 state.column = column;
@@ -321,10 +321,10 @@ namespace
 
     void terminate(parse_state& state)
     {
-        if (state.term_loc)
+        if (state.terminator_location)
         {
-            *state.term_loc = '\0';
-            state.term_loc = 0;
+            *state.terminator_location = '\0';
+            state.terminator_location = 0;
         }
     }
 
