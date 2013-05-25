@@ -83,7 +83,7 @@ public:
     inline node* root() { return &_root; }
     inline const node* root() const { return &_root; }
 
-    node* make_node(node_type type, sexpr::node* token);
+    node* make_node(node_type type, sexpr::node* token=0);
     node* clone_node(node* original);
     node* clone_subtree(node* original);
 

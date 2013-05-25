@@ -161,12 +161,14 @@ node* convert_to_nnf(tree& t, node* root)
                     plnnrc_assert(x != 0);
                     detach_node(x);
 
+                    // get rid of 'p' and 'c'
                     if (p->parent)
                     {
                         insert_child(p, x);
                         detach_node(p);
                     }
                     
+                    // update root of the tree if we're replacing it
                     if (r == p)
                     {
                         r = x;
@@ -186,7 +188,7 @@ node* convert_to_nnf(tree& t, node* root)
 
                         detach_node(x);
 
-                        node* new_not = t.make_node(node_op_not, 0);
+                        node* new_not = t.make_node(node_op_not);
 
                         if (!new_not)
                         {
@@ -309,7 +311,7 @@ namespace
         for (node* or_child = node_or->first_child; or_child != 0;)
         {
             node* next_or_child = or_child->next_sibling;
-            node* new_and = t.make_node(node_op_and, 0);
+            node* new_and = t.make_node(node_op_and);
 
             if (!new_and)
             {
@@ -393,7 +395,7 @@ node* convert_to_dnf(tree& t, node* root)
     plnnrc_assert(root);
 
     node* nnf_root = convert_to_nnf(t, root);
-    node* new_root = t.make_node(node_op_or, 0);
+    node* new_root = t.make_node(node_op_or);
 
     if (!nnf_root || !new_root)
     {
