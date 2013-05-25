@@ -283,25 +283,8 @@ namespace
 
         int s = 0;
 
-        while (true)
+        while (!is_delimeter(state))
         {
-            switch (*state.cursor)
-            {
-            case '\0':
-            case '\n': case '\r':
-            case ' ': case '\f': case '\t': case '\v':
-            case '(': case ')':
-                state.cursor_next = state.cursor;
-                state.terminator_location = state.cursor;
-                state.cursor = begin;
-                state.line = line;
-                state.column = column;
-
-                if (s == 3) { return token_int; }
-                if (s == 4 || s == 7) { return token_float; }
-                return token_none;
-            }
-
             int c = scan_number_char_class(state);
 
             if (c < 0)
@@ -319,6 +302,20 @@ namespace
             s = n;
 
             move(state);
+        }
+
+        state.cursor_next = state.cursor;
+        state.terminator_location = state.cursor;
+        state.cursor = begin;
+        state.line = line;
+        state.column = column;
+
+        switch (s)
+        {
+        case 3:
+            return token_int;
+        case 4: case 7:
+            return token_float;
         }
 
         return token_none;
