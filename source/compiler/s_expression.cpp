@@ -214,31 +214,36 @@ namespace
         state.column = 1;
     }
 
+    bool is_delimeter(parse_state& state)
+    {
+        switch (*state.cursor)
+        {
+        case '\0':
+        case '\n': case '\r':
+        case ' ': case '\f': case '\t': case '\v':
+        case '(': case ')':
+            return true;
+        }
+
+        return false;
+    }
+
     void scan_symbol(parse_state& state)
     {
         char* begin = state.cursor;
         int line = state.line;
         int column = state.column;
 
-        while (true)
+        while (!is_delimeter(state))
         {
-            switch (*state.cursor)
-            {
-            case '\0':
-            case '\n': case '\r':
-            case ' ': case '\f': case '\t': case '\v':
-            case '(': case ')':
-                state.cursor_next = state.cursor;
-                state.terminator_location = state.cursor;
-                state.cursor = begin;
-                state.line = line;
-                state.column = column;
-                return;
-            default:
-                move(state);
-                break;
-            }
+            move(state);
         }
+
+        state.cursor_next = state.cursor;
+        state.terminator_location = state.cursor;
+        state.cursor = begin;
+        state.line = line;
+        state.column = column;
     }
 
     int scan_number_char_class(parse_state& state)
