@@ -53,7 +53,7 @@ enum parse_status
     parse_ok = 0,
     parse_excess_open,
     parse_excess_close,
-    parse_invalid_start,
+    parse_expected_lp,
     parse_out_of_memory,
 };
 

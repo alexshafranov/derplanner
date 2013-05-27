@@ -422,7 +422,7 @@ parse_status tree::parse(char* buffer)
 
     if (root_token != token_lp && root_token != token_none)
     {
-        return parse_invalid_start;
+        return parse_expected_lp;
     }
 
     while (buffer_left(state))
