@@ -119,19 +119,7 @@ node* tree::make_node(node_type type, sexpr::node* token)
 node* tree::clone_node(node* original)
 {
     plnnrc_assert(original != 0);
-
-    node* n = reinterpret_cast<node*>(pool_allocate(_memory, sizeof(node)));
-
-    if (n)
-    {
-        n->type = original->type;
-        n->s_expr = original->s_expr;
-        n->first_child = 0;
-        n->parent = 0;
-        n->next_sibling = 0;
-        n->prev_sibling_cyclic = 0;
-    }
-
+    node* n = make_node(original->type, original->s_expr);
     return n;
 }
 
