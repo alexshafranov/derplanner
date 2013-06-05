@@ -84,6 +84,11 @@ inline bool is_term(const node* n)
     return n->type >= node_term_variable && n->type <= node_term_call;
 }
 
+inline bool is_task(const node* n)
+{
+    return n->type == node_method || n->type == node_operator;
+}
+
 void append_child(node* parent, node* child);
 void prepend_child(node* parent, node* child);
 void insert_child(node* after, node* child);
