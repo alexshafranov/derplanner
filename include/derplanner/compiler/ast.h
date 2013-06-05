@@ -35,6 +35,8 @@ enum node_type
     node_none = 0,
 
     node_domain,
+    node_method,
+    node_operator,
 
     node_op_and,
     node_op_or,
@@ -56,6 +58,19 @@ struct node
     node* first_child;
     node* next_sibling;
     node* prev_sibling_cyclic;
+};
+
+struct task_graph_edge;
+
+struct task : public node
+{
+    task_graph_edge* first_edge;
+};
+
+struct task_graph_edge
+{
+    task* callee;
+    task_graph_edge* next;
 };
 
 inline bool is_logical_op(const node* n)
