@@ -65,6 +65,7 @@ struct task_graph_edge;
 struct task : public node
 {
     task_graph_edge* first_edge;
+    int* argument_type_indices;
     bool visited;
 };
 
