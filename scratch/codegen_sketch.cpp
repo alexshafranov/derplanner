@@ -430,6 +430,96 @@ bool travel_by_air(travel_by_air_state_t& state, const worldstate_t& world, stac
     }
 }
 
+struct method_t
+{
+    void*           args;
+    precondition_t  branch_precond;
+    method_t* next;
+};
+
+struct frame_t;
+
+typedef bool (*precondition_t)(frame_t*);
+
+struct frame_t
+{
+    method_t*       method;
+    void*           branch_state;
+    precondition_t  branch_precond;
+};
+
+void push(frame_t* frame);
+
+bool travel_by_air_branch_0_precond(frame_t* frame)
+{
+    p4_state_t* state = reinterpret_cast<p4_state_t*>(frame.branch_state);
+
+    if (next(*state))
+    {
+        travel_by_air_branch_0_expand(frame);
+        return true;
+    }
+
+    frame->branch_precond = 0;
+
+    return false;
+}
+
+bool find_plan()
+{
+    while (top(stack))
+    {
+        frame_t* frame = top(stack);
+
+        // no more branches to try => method expansion failed
+        // - parent method shall try another binding
+        if (!frame->branch_precond)
+        {
+            pop(stack);
+            continue;
+        }
+
+        // ask current branch' precondition for a new binding
+        // - expands task list if the satisfying binding is found.
+        if (frame->branch_precond(frame))
+        {
+            // this method expansion has another methods
+            // - expand them one by one.
+            if (frame->method)
+            {
+                push_next_frame(stack, frame);
+            }
+            else
+            {
+                // this method has expanded to primitive tasks
+                // - move to the next method in a task list of the parent.
+                pop(stack);
+
+                frame_t* parent = top(stack);
+
+                while (parent && !parent->method->next)
+                {
+                    pop(stack);
+                    parent = top(stack);
+                }
+
+                // top method successfully expanded
+                // - the plan is found.
+                if (!parent)
+                {
+                    return true;
+                }
+
+                parent->method = parent->method->next;
+
+                push_next_frame(stack, parent);
+            }
+        }
+    }
+
+    return false;
+}
+
 int main()
 {
     return 0;
