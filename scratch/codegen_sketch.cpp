@@ -254,7 +254,7 @@ bool next(p4_state_t& state)
 
 // tasks
 
-enum task_t
+enum task_type
 {
     task_none = 0,
     task_root,
@@ -276,34 +276,46 @@ struct task_fly_args_t
     int y;
 };
 
-inline bool is_composite(const task_t& task)
+struct travel_args_t
 {
-    return task >= task_root && task <= task_travel_by_air;
-}
-
-struct root_state_t
-{
-    p1_state_t p1;
+    int s;
+    int f;
 };
 
-struct travel_state_t
+struct travel_by_air_args_t
 {
     int x;
     int y;
-    p2_state_t p2;
-    p3_state_t p3;
 };
 
-struct travel_by_air_state_t
+struct frame_t;
+
+typedef bool (*expand_t)(frame_t*, stack* stack);
+
+struct method_t
 {
-    int x;
-    int y;
-    p4_state_t p4;
+    expand_t  expand;
+    void*     args;
+    expand_t  tail;
+    method_t* next;
 };
 
-bool root(root_state_t& state, const worldstate_t& world, stack& plan);
-bool travel(travel_state_t& state, const worldstate_t& world, stack& plan);
-bool travel_by_air(travel_by_air_state_t& state, const worldstate_t& world, stack& plan);
+struct task_t
+{
+    task_type type;
+    void*     args;
+    task_t*   next;
+};
+
+struct frame_t
+{
+    method_t*       method;
+    void*           precondition;
+    expand_t        expand;
+    stack_ptr       rewind;
+};
+
+void push(frame_t* frame);
 
 /*
     (:method (root)
@@ -311,26 +323,29 @@ bool travel_by_air(travel_by_air_state_t& state, const worldstate_t& world, stac
         ((travel ?s ?f))
     )
 */
-
-bool root(root_state_t& state, const worldstate_t& world, stack& plan)
+bool root_branch_0_expand(frame_t* frame, stack* mstack, stack* pstack)
 {
-    init(state.p1, world);
+    p1_state_t* state = reinterpret_cast<p1_state_t*>(frame.precondition);
 
-    while (next(state.p1))
+    if (next(*state))
     {
-        travel_state_t travel_state;
-        travel_state.x = state.p1.out_s;
-        travel_state.y = state.p1.out_f;
+        method_t*      m0 = reinterpret_cast<method_t*>(mstack->push_bytes(sizeof(m0)));
+        travel_args_t* a0 = reinterpret_cast<method_t*>(mstack->push_bytes(sizeof(a0)));
 
-        stack_ptr rwnd_pos = plan.top_ptr();
+        a0->s = state->out_s;
+        a0->f = state->out_f;
 
-        if (travel(travel_state, world, plan))
-        {
-            return true;
-        }
+        m0->expand  = travel_banch_0_expand;
+        m0->args    = a0;
+        m0->tail    = 0;
+        m0->next    = 0;
 
-        plan.rewind(rwnd_pos);
+        frame->method = m0;
+
+        return true;
     }
+
+    frame->expand = 0;
 
     return false;
 }
@@ -344,46 +359,52 @@ bool root(root_state_t& state, const worldstate_t& world, stack& plan)
         ((travel_by_air ?x ?y))
     )
 */
-
-bool travel(travel_state_t& state, const worldstate_t& world, stack& plan)
+bool travel_banch_0_expand(frame_t* frame, stack* mstack, stack* pstack)
 {
-    state.p2.in_x = state.x;
-    state.p2.in_y = state.y;
-    init(state.p2, world);
+    p2_state_t* state = reinterpret_cast<p2_state_t*>(frame.precondition);
 
-    while (next(state.p2))
+    if (next(*state))
     {
-        task_ride_taxi_args_t args;
-        args.x = state.x;
-        args.y = state.y;
+        frame->method = 0;
 
-        plan.push(task_ride_taxi);
-        plan.push(&args, sizeof(args));
+        task_t*                t0 = reinterpret_cast<task_t*>(pstack->push_bytes(sizeof(t0)));
+        task_ride_taxi_args_t* a0 = reinterpret_cast<task_ride_taxi_args_t*>(pstack->push_bytes(sizeof(a0)));
+
+        a0.x = state->in_x;
+        a0.y = state->in_y;
+
+        t0->type = task_ride_taxi;
+        t0->args = a0;
 
         return true;
     }
 
-    state.p3.in_x = state.x;
-    state.p3.in_y = state.y;
-    init(state.p3, world);
+    frame->expand = travel_banch_1_expand;
+}
 
-    while (next(state.p3))
+bool travel_banch_1_expand(frame_t* frame, stack* mstack, stack* pstack)
+{
+    p3_state_t* state = reinterpret_cast<p3_state_t*>(frame.precondition);
+
+    if (next(*state))
     {
-        travel_by_air_state_t travel_by_air_state;
-        travel_by_air_state.x = state.x;
-        travel_by_air_state.y = state.y;
+        method_t*             m0 = reinterpret_cast<method_t*>(mstack->push_bytes(sizeof(m0)));
+        travel_by_air_args_t* a0 = reinterpret_cast<method_t*>(mstack->push_bytes(sizeof(a0)));
 
-        stack_ptr rwnd_pos = plan.top_ptr();
+        a0->x = state->in_x;
+        a0->y = state->in_y;
 
-        if (travel_by_air(travel_by_air_state, world, plan))
-        {
-            return true;
-        }
+        m0->expand  = travel_by_air_branch_0_expand;
+        m0->args    = a0;
+        m0->tail    = 0;
+        m0->next    = 0;
 
-        plan.rewind(rwnd_pos);
+        frame->method = m0;
+
+        return true;
     }
 
-    return false;
+    frame->expand = 0;
 }
 
 /*
@@ -392,115 +413,108 @@ bool travel(travel_state_t& state, const worldstate_t& world, stack& plan)
         ((travel ?x ?ax) (!fly ?ax ?ay) (travel ?y ?ay))
     )
 */
-
-bool travel_by_air(travel_by_air_state_t& state, const worldstate_t& world, stack& plan)
+bool travel_by_air_branch_0_expand(frame_t* frame, stack* mstack, stack* pstack)
 {
-    state.p4.in_x = state.x;
-    state.p4.in_y = state.y;
-    init(state.p4, world);
-
-    while (next(state.p4))
-    {
-        travel_state_t travel_state;
-
-        travel_state.x = state.x;
-        travel_state.y = state.p4.out_ax;
-
-        stack_ptr rwnd_pos = plan.top_ptr();
-
-        if (travel(travel_state, world, plan))         // yield travel(x, y)
-        {
-            task_fly_args_t args;
-            args.x = state.p4.out_ax;
-            args.y = state.p4.out_ay;
-
-            plan.push(task_fly);
-            plan.push(&args, sizeof(args));
-
-            travel_state.x = state.y;
-            travel_state.y = state.p4.out_ay;
-
-            if (travel(travel_state, world, plan))     // yield travel(x, y)
-            {
-                return true;
-            }
-        }
-
-        plan.rewind(rwnd_pos);
-    }
-}
-
-struct method_t
-{
-    void*           args;
-    precondition_t  branch_precond;
-    method_t* next;
-};
-
-struct frame_t;
-
-typedef bool (*precondition_t)(frame_t*);
-
-struct frame_t
-{
-    method_t*       method;
-    void*           branch_state;
-    precondition_t  branch_precond;
-};
-
-void push(frame_t* frame);
-
-bool travel_by_air_branch_0_precond(frame_t* frame)
-{
-    p4_state_t* state = reinterpret_cast<p4_state_t*>(frame.branch_state);
+    p4_state_t* state = reinterpret_cast<p4_state_t*>(frame.precondition);
 
     if (next(*state))
     {
-        travel_by_air_branch_0_expand(frame);
+        method_t*      m0 = reinterpret_cast<method_t*>(mstack->push_bytes(sizeof(m0)));
+        travel_args_t* a0 = reinterpret_cast<method_t*>(mstack->push_bytes(sizeof(a0)));
+
+        method_t*      m1 = reinterpret_cast<method_t*>(mstack->push_bytes(sizeof(m1)));
+        travel_args_t* a1 = reinterpret_cast<method_t*>(mstack->push_bytes(sizeof(a1)));
+
+        a0->s = state->in_x;
+        a0->f = state->out_ax;
+
+        a1->s = state->in_y;
+        a1->f = state->out_ay;
+
+        m0->expand  = travel_banch_0_expand;
+        m0->args    = a0;
+        m0->tail    = travel_by_air_branch_0_tail_0_expand;
+        m0->next    = m1;
+
+        m1->expand  = travel_banch_0_expand;
+        m1->args    = a1;
+        m1->tail    = 0;
+        m1->next    = 0;
+
         return true;
     }
 
-    frame->branch_precond = 0;
+    frame->expand = 0;
 
     return false;
 }
 
-bool find_plan()
+bool travel_by_air_branch_0_tail_0_expand(frame_t* frame, stack* mstack, stack* pstack)
 {
-    while (top(stack))
+    p4_state_t* state = reinterpret_cast<p4_state_t*>(frame.precondition);
+
+    task_t*          t0 = reinterpret_cast<task_t*>(pstack->push_bytes(sizeof(t0)));
+    task_fly_args_t* a0 = reinterpret_cast<task_fly_args_t*>(sizeof(a0));
+
+    a0.x = state->out_ax;
+    a0.y = state->out_ay;
+
+    t0->type = task_fly;
+    t0->args = a0;
+}
+
+void expand_method(stack* mstack, frame_t* frame)
+{
+}
+
+bool find_plan(stack& mstack, stack& pstack)
+{
+    while (top(mstack))
     {
-        frame_t* frame = top(stack);
+        frame_t* frame = top(mstack);
 
         // no more branches to try => method expansion failed
         // - parent method shall try another binding
-        if (!frame->branch_precond)
+        if (!frame->expand)
         {
-            pop(stack);
+            pstack.rewind(frame->rewind);
+            pop(mstack);
             continue;
         }
 
         // ask current branch' precondition for a new binding
         // - expands task list if the satisfying binding is found.
-        if (frame->branch_precond(frame))
+        if (frame->expand(frame))
         {
             // this method expansion has another methods
             // - expand them one by one.
             if (frame->method)
             {
-                push_next_frame(stack, frame);
+                expand_method(mstack, frame);
             }
             else
             {
                 // this method has expanded to primitive tasks
                 // - move to the next method in a task list of the parent.
-                pop(stack);
 
-                frame_t* parent = top(stack);
+                if (frame->method->tail)
+                {
+                    frame->method->tail(frame);
+                }
+
+                pop(mstack);
+
+                frame_t* parent = top(mstack);
 
                 while (parent && !parent->method->next)
                 {
-                    pop(stack);
-                    parent = top(stack);
+                    if (parent->method->tail)
+                    {
+                        parent->method->tail(parent);
+                    }
+
+                    pop(mstack);
+                    parent = top(mstack);
                 }
 
                 // top method successfully expanded
@@ -510,9 +524,14 @@ bool find_plan()
                     return true;
                 }
 
+                if (parent->method->tail)
+                {
+                    parent->method->tail(parent);
+                }
+
                 parent->method = parent->method->next;
 
-                push_next_frame(stack, parent);
+                expand_method(mstack, parent);
             }
         }
     }
