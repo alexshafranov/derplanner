@@ -323,6 +323,10 @@ void push(frame_t* frame);
         ((travel ?s ?f))
     )
 */
+void root_expand(frame_t* frame, stack* mstack, stack* pstack)
+{
+}
+
 bool root_branch_0_expand(frame_t* frame, stack* mstack, stack* pstack)
 {
     p1_state_t* state = reinterpret_cast<p1_state_t*>(frame.precondition);
@@ -465,6 +469,7 @@ bool travel_by_air_branch_0_tail_0_expand(frame_t* frame, stack* mstack, stack* 
 
 void expand_method(stack* mstack, frame_t* frame)
 {
+    frame_t* new_frame = reinterpret_cast<frame_t*>(mstack.push_bytes(sizeof(new_frame)));
 }
 
 bool find_plan(stack& mstack, stack& pstack)
