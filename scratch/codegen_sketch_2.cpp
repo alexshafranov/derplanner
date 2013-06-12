@@ -538,7 +538,7 @@ bool travel_by_air_branch_0_0_tail(branch_t* branch, stack& mstack, stack& pstac
 branch_t* push_method(branch_t* branch, stack& mstack)
 {
     void* t = mstack.top();
-    branch_t* new_branch = mstack.push<branch_t>();
+    branch_t* new_branch = mstack.push<branch_t>(true);
     new_branch->rewind = t;
     new_branch->args = branch->method->args;
     new_branch->precondition = 0;
@@ -550,16 +550,22 @@ branch_t* push_method(branch_t* branch, stack& mstack)
     return new_branch;
 }
 
-void pop(branch_t*& branch, stack& mstack)
+branch_t* top(stack& mstack)
 {
+    return static_cast<branch_t*>(mstack.object());
+}
+
+void pop(stack& mstack)
+{
+    branch_t* branch = top(mstack);
     branch_t* previous = branch->previous;
     mstack.rewind(branch->rewind);
-    branch = previous;
+    mstack.start_ = previous;
 }
 
 bool find_plan(stack& mstack, stack& pstack, const worldstate_t& world)
 {
-    branch_t* root = mstack.push<branch_t>();
+    branch_t* root = mstack.push<branch_t>(true);
     root->args = 0;
     root->precondition = 0;
     root->expand = root_expand;
@@ -568,18 +574,16 @@ bool find_plan(stack& mstack, stack& pstack, const worldstate_t& world)
     root->prewind = pstack.top();
     root->previous = 0;
 
-    branch_t* branch = root;
-
-    while (branch)
+    while (branch_t* branch = top(mstack))
     {
         if (branch->expand(branch, mstack, pstack, world))
         {
             // only primitive tasks are in the task list
             if (!branch->method)
             {
-                pop(branch, mstack);
+                pop(mstack);
 
-                while (branch)
+                while (branch = top(mstack))
                 {
                     // produce tail tasks
                     // tail tasks are primitive tasks situated in the tasklist
@@ -594,7 +598,7 @@ bool find_plan(stack& mstack, stack& pstack, const worldstate_t& world)
                         break;
                     }
 
-                    pop(branch, mstack);
+                    pop(mstack);
                 }
 
                 // top method has been successfully expanded
@@ -617,7 +621,7 @@ bool find_plan(stack& mstack, stack& pstack, const worldstate_t& world)
         else
         {
             // failed to expand method => backtrack
-            pop(branch, mstack);
+            pop(mstack);
 
             // clear parent expansion
             if (branch)
