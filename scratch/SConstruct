@@ -1,3 +1,3 @@
 
 env = Environment()
-env.Program(source='codegen_sketch_2.cpp')
+env.Program(source='codegen_sketch_2.cpp', CXXFLAGS='-g')
