@@ -29,7 +29,7 @@ struct stack
     {
         data_ = new char[size];
         top_ = data_;
-        start_ = 0;
+        object_ = 0;
     }
 
     ~stack()
@@ -44,18 +44,18 @@ struct stack
 
     void* object() const
     {
-        return start_;
+        return object_;
     }
 
     template<typename T>
-    T* push(bool start_object=false)
+    T* push(bool begin_object=false)
     {
         T* addr = reinterpret_cast<T*>(top_);
         top_ += sizeof(T);
 
-        if (start_object)
+        if (begin_object)
         {
-            start_ = addr;
+            object_ = addr;
         }
 
         return addr;
@@ -67,7 +67,7 @@ struct stack
     }
 
     char* data_;
-    void* start_;
+    void* object_;
     char* top_;
 };
 
@@ -325,10 +325,9 @@ struct method_t
 
 struct task_t
 {
-    task_type_t type;
-    void*       args;
-    task_t*     next;
-    task_t*     previous;
+    task_type_t type;   // type of the task.
+    void*       args;   // pointer to the arguments struct.
+    task_t*     link;   // 'previous' task during find_plan, reversed when plan is found.
 };
 
 // forwards
@@ -378,7 +377,7 @@ bool root_branch_0_expand(branch_t* branch, stack& mstack, stack& pstack, const 
         branch->method = m0;
         return true;
     }
-    // when there're no more bindings, set next branch for expansion
+
     branch->expand = 0;
     return false;
 }
@@ -420,7 +419,7 @@ bool travel_branch_0_expand(branch_t* branch, stack& mstack, stack& pstack, cons
         t0->args = a0;
         a0->x = args->x;
         a0->y = args->y;
-        t0->previous = previous;
+        t0->link = previous;
         branch->method = 0;
         return true;
     }
@@ -529,7 +528,7 @@ bool travel_by_air_branch_0_0_tail(branch_t* branch, stack& mstack, stack& pstac
     t0->args = a0;
     a0->x = state->out_ax;
     a0->y = state->out_ay;
-    t0->previous = previous;
+    t0->link = previous;
     return true;
 }
 
@@ -560,7 +559,7 @@ void pop(stack& mstack)
     branch_t* branch = top(mstack);
     branch_t* previous = branch->previous;
     mstack.rewind(branch->rewind);
-    mstack.start_ = previous;
+    mstack.object_ = previous;
 }
 
 bool find_plan(stack& mstack, stack& pstack, const worldstate_t& world)
@@ -633,6 +632,21 @@ bool find_plan(stack& mstack, stack& pstack, const worldstate_t& world)
     }
 
     return false;
+}
+
+task_t* reverse_task_list(task_t* head)
+{
+    task_t* new_head = 0;
+
+    while (head)
+    {
+        task_t* link = head->link;
+        head->link = new_head;
+        new_head = head;
+        head = link;
+    }
+
+    return new_head;
 }
 
 void print_task_ride_taxi(const task_t* task)
@@ -781,17 +795,10 @@ int main()
 
     printf("result=%d\n", result);
 
-    // compute forward task order
-    task_t* task = static_cast<task_t*>(pstack.object());
-
-    while (task->previous)
-    {
-        task->previous->next = task;
-        task = task->previous;
-    }
+    task_t* task = reverse_task_list(static_cast<task_t*>(pstack.object()));
 
     // print plan
-    for (task_t* t = task; t != 0; t = t->next)
+    for (task_t* t = task; t != 0; t = t->link)
     {
         print_task(t);
     }
