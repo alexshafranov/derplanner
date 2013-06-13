@@ -48,16 +48,18 @@ struct stack
     }
 
     template<typename T>
-    T* push(bool begin_object=false)
+    T* begin_object()
+    {
+        T* o = push<T>();
+        object_ = o;
+        return o;
+    }
+
+    template<typename T>
+    T* push()
     {
         T* addr = reinterpret_cast<T*>(top_);
         top_ += sizeof(T);
-
-        if (begin_object)
-        {
-            object_ = addr;
-        }
-
         return addr;
     }
 
@@ -73,66 +75,66 @@ struct stack
 
 // world state
 
-struct start_tuple_t
+struct start_tuple
 {
     int _0;
-    start_tuple_t* next;
+    start_tuple* next;
 };
 
-struct finish_tuple_t
+struct finish_tuple
 {
     int _0;
-    finish_tuple_t* next;
+    finish_tuple* next;
 };
 
-struct short_distance_tuple_t
-{
-    int _0;
-    int _1;
-    short_distance_tuple_t* next;
-};
-
-struct long_distance_tuple_t
+struct short_distance_tuple
 {
     int _0;
     int _1;
-    long_distance_tuple_t* next;
+    short_distance_tuple* next;
 };
 
-struct airport_tuple_t
+struct long_distance_tuple
 {
     int _0;
     int _1;
-    airport_tuple_t* next;
+    long_distance_tuple* next;
 };
 
-struct worldstate_t
+struct airport_tuple
 {
-    start_tuple_t*          start;
-    finish_tuple_t*         finish;
-    short_distance_tuple_t* short_distance;
-    long_distance_tuple_t*  long_distance;
-    airport_tuple_t*        airport;
+    int _0;
+    int _1;
+    airport_tuple* next;
+};
+
+struct worldstate
+{
+    start_tuple*          start;
+    finish_tuple*         finish;
+    short_distance_tuple* short_distance;
+    long_distance_tuple*  long_distance;
+    airport_tuple*        airport;
 };
 
 // preconditions
 
 // ((start ?s) (finish ?f))
-struct p1_state_t
+struct p1_state
 {
     int out_s;
     int out_f;
-    start_tuple_t*  state_start;
-    finish_tuple_t* state_finish;
+    start_tuple*  state_start;
+    finish_tuple* state_finish;
 };
 
-void init(p1_state_t& state, const worldstate_t& world)
+void init(p1_state& state, const worldstate& world)
 {
     state.state_start  = world.start;
     state.state_finish = world.finish;
 }
 
-bool next(p1_state_t& state)
+bool next(p1_state& state)
 {
     for (; state.state_start != 0; state.state_start = state.state_start->next)
     {
@@ -148,19 +150,19 @@ bool next(p1_state_t& state)
 }
 
 // ((short_distance ?x ?y))
-struct p2_state_t
+struct p2_state
 {
     int in_x;
     int in_y;
-    short_distance_tuple_t* state_short_distance;
+    short_distance_tuple* state_short_distance;
 };
 
-void init(p2_state_t& state, const worldstate_t& world)
+void init(p2_state& state, const worldstate& world)
 {
     state.state_short_distance = world.short_distance;
 }
 
-bool next(p2_state_t& state)
+bool next(p2_state& state)
 {
     for (; state.state_short_distance != 0; state.state_short_distance = state.state_short_distance->next)
     {
@@ -173,19 +175,19 @@ bool next(p2_state_t& state)
     return false;
 }
 
-struct p3_state_t
+struct p3_state
 {
     int in_x;
     int in_y;
-    long_distance_tuple_t* state_long_distance;
+    long_distance_tuple* state_long_distance;
 };
 
-void init(p3_state_t& state, const worldstate_t& world)
+void init(p3_state& state, const worldstate& world)
 {
     state.state_long_distance = world.long_distance;
 }
 
-bool next(p3_state_t& state)
+bool next(p3_state& state)
 {
     for (; state.state_long_distance != 0; state.state_long_distance = state.state_long_distance->next)
     {
@@ -199,7 +201,7 @@ bool next(p3_state_t& state)
 }
 
 // ((airport ?x ?ax) (airport ?y ?ay))
-struct p4_state_t
+struct p4_state
 {
     int in_x;
     int in_y;
@@ -207,17 +209,17 @@ struct p4_state_t
     int out_ax;
     int out_ay;
 
-    airport_tuple_t* state_airport_1;
-    airport_tuple_t* state_airport_2;
+    airport_tuple* state_airport_1;
+    airport_tuple* state_airport_2;
 };
 
-void init(p4_state_t& state, const worldstate_t& world)
+void init(p4_state& state, const worldstate& world)
 {
     state.state_airport_1 = world.airport;
     state.state_airport_2 = world.airport;
 }
 
-bool next(p4_state_t& state)
+bool next(p4_state& state)
 {
     for (; state.state_airport_1 != 0; state.state_airport_1 = state.state_airport_1->next)
     {
@@ -242,7 +244,7 @@ bool next(p4_state_t& state)
 
 // tasks
 
-enum task_type_t
+enum task_type
 {
     task_none = 0,
     task_root,
@@ -252,93 +254,72 @@ enum task_type_t
     task_fly,
 };
 
-const char* name(task_type_t task)
-{
-    switch (task)
-    {
-    case task_none:
-        return "none";
-    case task_root:
-        return "root";
-    case task_travel:
-        return "travel";
-    case task_travel_by_air:
-        return "travel_by_air";
-    case task_ride_taxi:
-        return "!ride_taxi";
-    case task_fly:
-        return "!fly";
-    }
-
-    return "error";
-}
-
-struct ride_taxi_args_t
+struct ride_taxi_args
 {
     int x;
     int y;
 };
 
-struct fly_args_t
+struct fly_args
 {
     int x;
     int y;
 };
 
-struct travel_args_t
+struct travel_args
 {
     int x;
     int y;
 };
 
-struct travel_by_air_args_t
+struct travel_by_air_args
 {
     int x;
     int y;
 };
 
-struct branch_t;
+struct method_expansion;
 
-typedef bool (*expand_f)(branch_t*, stack&, stack&, const worldstate_t&);
+typedef bool (*expand_func)(method_expansion*, stack&, stack&, const worldstate&);
 
-struct method_t;
+struct method_instance;
 
-struct branch_t
+struct method_expansion
 {
-    void*           rewind;       // stack top before pushing this branch.
-    void*           args;         // argument struct.
-    void*           precondition; // branch precondition state.
-    expand_f        expand;       // function which expands the branch task list.
-    method_t*       method;       // next method in the branch task list to expand.
-    void*           mrewind;      // stack top before expanding this branch.
-    void*           prewind;      // primitive task stack top before expanding this branch.
-    branch_t*       previous;     // parent branch on a stack.
+    void*               rewind;       // stack top before pushing this branch.
+    void*               args;         // argument struct.
+    void*               precondition; // branch precondition state.
+    expand_func         expand;       // function which expands the branch task list.
+    method_instance*    method;       // next method in the branch task list to expand.
+    void*               mrewind;      // stack top before expanding this branch.
+    void*               prewind;      // primitive task stack top before expanding this branch.
+    method_expansion*   previous;     // parent branch on a stack.
 };
 
-struct method_t
+struct method_instance
 {
-    void*     args;        // struct with arguments.
-    expand_f  tail;        // expand primitive tasks which follow after this method.
-    expand_f  expand;      // method expansion.
-    method_t* next;        // next method in task list.
+    void*               args;     // struct with arguments.
+    expand_func         tail;     // expand primitive tasks which follow after this method.
+    expand_func         expand;   // method expansion.
+    method_instance*    next;     // next method in task list.
 };
 
-struct task_t
+struct task_instance
 {
-    task_type_t type;   // type of the task.
-    void*       args;   // pointer to the arguments struct.
-    task_t*     link;   // 'previous' task during find_plan, reversed when plan is found.
+    task_type         type;    // type of the task.
+    void*             args;    // pointer to the arguments struct.
+    task_instance*    link;    // 'previous' task during find_plan, reversed when plan is found.
 };
 
 // forwards
-bool root_expand(branch_t*, stack&, stack&, const worldstate_t&);
-bool root_branch_0_expand(branch_t*, stack&, stack&, const worldstate_t&);
-bool travel_expand(branch_t*, stack&, stack&, const worldstate_t&);
-bool travel_branch_0_expand(branch_t*, stack&, stack&, const worldstate_t&);
-bool travel_branch_1_expand(branch_t*, stack&, stack&, const worldstate_t&);
-bool travel_by_air_expand(branch_t*, stack&, stack&, const worldstate_t&);
-bool travel_by_air_branch_0_expand(branch_t*, stack&, stack&, const worldstate_t&);
-bool travel_by_air_branch_0_0_tail(branch_t*, stack&, stack&, const worldstate_t&);
+bool root_expand(method_expansion*, stack&, stack&, const worldstate&);
+bool root_branch_0_expand(method_expansion*, stack&, stack&, const worldstate&);
+bool travel_expand(method_expansion*, stack&, stack&, const worldstate&);
+bool travel_branch_0_expand(method_expansion*, stack&, stack&, const worldstate&);
+bool travel_branch_1_expand(method_expansion*, stack&, stack&, const worldstate&);
+bool travel_by_air_expand(method_expansion*, stack&, stack&, const worldstate&);
+bool travel_by_air_branch_0_expand(method_expansion*, stack&, stack&, const worldstate&);
+bool travel_by_air_branch_0_0_tail(method_expansion*, stack&, stack&, const worldstate&);
 
 /*
     (:method (root)
@@ -346,39 +327,39 @@ bool travel_by_air_branch_0_0_tail(branch_t*, stack&, stack&, const worldstate_t
         ((travel ?s ?f))
     )
 */
-bool root_expand(branch_t* branch, stack& mstack, stack& pstack, const worldstate_t& world)
+bool root_expand(method_expansion* expansion, stack& mstack, stack& pstack, const worldstate& world)
 {
-    branch->mrewind = mstack.top();
-    branch->prewind = pstack.top();
+    expansion->mrewind = mstack.top();
+    expansion->prewind = pstack.top();
     // init precondition state.
-    p1_state_t* state = mstack.push<p1_state_t>();
+    p1_state* state = mstack.push<p1_state>();
     init(*state, world);
     // init branch
-    branch->precondition = state;
-    branch->expand = root_branch_0_expand;
+    expansion->precondition = state;
+    expansion->expand = root_branch_0_expand;
     // expand branch.
-    return root_branch_0_expand(branch, mstack, pstack, world);
+    return root_branch_0_expand(expansion, mstack, pstack, world);
 }
 
-bool root_branch_0_expand(branch_t* branch, stack& mstack, stack& pstack, const worldstate_t& world)
+bool root_branch_0_expand(method_expansion* expansion, stack& mstack, stack& pstack, const worldstate& world)
 {
-    p1_state_t* state = static_cast<p1_state_t*>(branch->precondition);
+    p1_state* state = static_cast<p1_state*>(expansion->precondition);
     // produce next binding
     if (next(*state))
     {
-        method_t*      m0 = mstack.push<method_t>();
-        travel_args_t* a0 = mstack.push<travel_args_t>();
+        method_instance* m0 = mstack.push<method_instance>();
+        travel_args* a0 = mstack.push<travel_args>();
         m0->args = a0;
         m0->tail = 0;
         m0->expand = travel_expand;
         m0->next = 0;
         a0->x = state->out_s;
         a0->y = state->out_f;
-        branch->method = m0;
+        expansion->method = m0;
         return true;
     }
 
-    branch->expand = 0;
+    expansion->expand = 0;
     return false;
 }
 
@@ -391,72 +372,72 @@ bool root_branch_0_expand(branch_t* branch, stack& mstack, stack& pstack, const 
         ((travel_by_air ?x ?y))
     )
 */
-bool travel_expand(branch_t* branch, stack& mstack, stack& pstack, const worldstate_t& world)
+bool travel_expand(method_expansion* expansion, stack& mstack, stack& pstack, const worldstate& world)
 {
-    branch->mrewind = mstack.top();
-    branch->prewind = pstack.top();
-    p2_state_t* state = mstack.push<p2_state_t>();
-    travel_args_t* args = static_cast<travel_args_t*>(branch->args);
+    expansion->mrewind = mstack.top();
+    expansion->prewind = pstack.top();
+    p2_state* state = mstack.push<p2_state>();
+    travel_args* args = static_cast<travel_args*>(expansion->args);
     state->in_x = args->x;
     state->in_y = args->y;
     init(*state, world);
-    branch->precondition = state;
-    branch->expand = travel_branch_0_expand;
-    return travel_branch_0_expand(branch, mstack, pstack, world);
+    expansion->precondition = state;
+    expansion->expand = travel_branch_0_expand;
+    return travel_branch_0_expand(expansion, mstack, pstack, world);
 }
 
-bool travel_branch_0_expand(branch_t* branch, stack& mstack, stack& pstack, const worldstate_t& world)
+bool travel_branch_0_expand(method_expansion* expansion, stack& mstack, stack& pstack, const worldstate& world)
 {
-    p2_state_t* state = static_cast<p2_state_t*>(branch->precondition);
-    travel_args_t* args = static_cast<travel_args_t*>(branch->args);
+    p2_state* state = static_cast<p2_state*>(expansion->precondition);
+    travel_args* args = static_cast<travel_args*>(expansion->args);
 
     if (next(*state))
     {
-        task_t* previous = static_cast<task_t*>(pstack.object());
-        task_t*           t0 = pstack.push<task_t>(true);
-        ride_taxi_args_t* a0 = pstack.push<ride_taxi_args_t>();
+        task_instance* previous = static_cast<task_instance*>(pstack.object());
+        task_instance*           t0 = pstack.begin_object<task_instance>();
+        ride_taxi_args* a0 = pstack.push<ride_taxi_args>();
         t0->type = task_ride_taxi;
         t0->args = a0;
         a0->x = args->x;
         a0->y = args->y;
         t0->link = previous;
-        branch->method = 0;
+        expansion->method = 0;
         return true;
     }
 
     // initialize next branch precondition
     {
-        p3_state_t* state = mstack.push<p3_state_t>();
+        p3_state* state = mstack.push<p3_state>();
         state->in_x = args->x;
         state->in_y = args->y;
         init(*state, world);
-        branch->precondition = state;
-        branch->expand = travel_branch_1_expand;
+        expansion->precondition = state;
+        expansion->expand = travel_branch_1_expand;
     }
 
-    return travel_branch_1_expand(branch, mstack, pstack, world);
+    return travel_branch_1_expand(expansion, mstack, pstack, world);
 }
 
-bool travel_branch_1_expand(branch_t* branch, stack& mstack, stack& pstack, const worldstate_t& world)
+bool travel_branch_1_expand(method_expansion* expansion, stack& mstack, stack& pstack, const worldstate& world)
 {
-    p3_state_t* state = static_cast<p3_state_t*>(branch->precondition);
-    travel_args_t* args = static_cast<travel_args_t*>(branch->args);
+    p3_state* state = static_cast<p3_state*>(expansion->precondition);
+    travel_args* args = static_cast<travel_args*>(expansion->args);
 
     if (next(*state))
     {
-        method_t*             m0 = mstack.push<method_t>();
-        travel_by_air_args_t* a0 = mstack.push<travel_by_air_args_t>();
+        method_instance* m0 = mstack.push<method_instance>();
+        travel_by_air_args* a0 = mstack.push<travel_by_air_args>();
         m0->args = a0;
         m0->tail = 0;
         m0->expand = travel_by_air_expand;
         m0->next = 0;
         a0->x = args->x;
         a0->y = args->y;
-        branch->method = m0;
+        expansion->method = m0;
         return true;
     }
 
-    branch->expand = 0;
+    expansion->expand = 0;
     return false;
 }
 
@@ -466,32 +447,32 @@ bool travel_branch_1_expand(branch_t* branch, stack& mstack, stack& pstack, cons
         ((travel ?x ?ax) (!fly ?ax ?ay) (travel ?y ?ay))
     )
 */
-bool travel_by_air_expand(branch_t* branch, stack& mstack, stack& pstack, const worldstate_t& world)
+bool travel_by_air_expand(method_expansion* expansion, stack& mstack, stack& pstack, const worldstate& world)
 {
-    branch->mrewind = mstack.top();
-    branch->prewind = pstack.top();
-    p4_state_t* state = mstack.push<p4_state_t>();
-    travel_by_air_args_t* args = static_cast<travel_by_air_args_t*>(branch->args);
+    expansion->mrewind = mstack.top();
+    expansion->prewind = pstack.top();
+    p4_state* state = mstack.push<p4_state>();
+    travel_by_air_args* args = static_cast<travel_by_air_args*>(expansion->args);
     state->in_x = args->x;
     state->in_y = args->y;
     init(*state, world);
-    branch->precondition = state;
-    branch->expand = travel_by_air_branch_0_expand;
-    return travel_by_air_branch_0_expand(branch, mstack, pstack, world);
+    expansion->precondition = state;
+    expansion->expand = travel_by_air_branch_0_expand;
+    return travel_by_air_branch_0_expand(expansion, mstack, pstack, world);
 }
 
-bool travel_by_air_branch_0_expand(branch_t* branch, stack& mstack, stack& pstack, const worldstate_t& world)
+bool travel_by_air_branch_0_expand(method_expansion* expansion, stack& mstack, stack& pstack, const worldstate& world)
 {
-    p4_state_t* state = static_cast<p4_state_t*>(branch->precondition);
-    travel_by_air_args_t* args = static_cast<travel_by_air_args_t*>(branch->args);
+    p4_state* state = static_cast<p4_state*>(expansion->precondition);
+    travel_by_air_args* args = static_cast<travel_by_air_args*>(expansion->args);
 
     if (next(*state))
     {
-        method_t*      m0 = mstack.push<method_t>();
-        travel_args_t* a0 = mstack.push<travel_args_t>();
+        method_instance* m0 = mstack.push<method_instance>();
+        travel_args* a0 = mstack.push<travel_args>();
 
-        method_t*      m1 = mstack.push<method_t>();
-        travel_args_t* a1 = mstack.push<travel_args_t>();
+        method_instance* m1 = mstack.push<method_instance>();
+        travel_args* a1 = mstack.push<travel_args>();
 
         m0->args = a0;
         m0->tail = travel_by_air_branch_0_0_tail;
@@ -507,23 +488,23 @@ bool travel_by_air_branch_0_expand(branch_t* branch, stack& mstack, stack& pstac
         a1->x = state->out_ay;
         a1->y = args->y;
 
-        branch->method = m0;
+        expansion->method = m0;
         return true;
     }
 
-    branch->expand = 0;
+    expansion->expand = 0;
     return false;
 }
 
-bool travel_by_air_branch_0_0_tail(branch_t* branch, stack& mstack, stack& pstack, const worldstate_t& world)
+bool travel_by_air_branch_0_0_tail(method_expansion* expansion, stack& mstack, stack& pstack, const worldstate& world)
 {
-    p4_state_t* state = static_cast<p4_state_t*>(branch->precondition);
-    travel_by_air_args_t* args = static_cast<travel_by_air_args_t*>(branch->args);
+    p4_state* state = static_cast<p4_state*>(expansion->precondition);
+    travel_by_air_args* args = static_cast<travel_by_air_args*>(expansion->args);
     (void)args;
 
-    task_t*     previous = static_cast<task_t*>(pstack.object());
-    task_t*     t0 = pstack.push<task_t>(true);
-    fly_args_t* a0 = pstack.push<fly_args_t>();
+    task_instance*     previous = static_cast<task_instance*>(pstack.object());
+    task_instance*     t0 = pstack.begin_object<task_instance>();
+    fly_args* a0 = pstack.push<fly_args>();
     t0->type = task_fly;
     t0->args = a0;
     a0->x = state->out_ax;
@@ -534,37 +515,37 @@ bool travel_by_air_branch_0_0_tail(branch_t* branch, stack& mstack, stack& pstac
 
 // runtime
 
-branch_t* push_method(branch_t* branch, stack& mstack)
+method_expansion* push_method(method_expansion* parent, stack& mstack)
 {
     void* t = mstack.top();
-    branch_t* new_branch = mstack.push<branch_t>(true);
+    method_expansion* new_branch = mstack.begin_object<method_expansion>();
     new_branch->rewind = t;
-    new_branch->args = branch->method->args;
+    new_branch->args = parent->method->args;
     new_branch->precondition = 0;
-    new_branch->expand = branch->method->expand;
+    new_branch->expand = parent->method->expand;
     new_branch->method = 0;
     new_branch->mrewind = 0;
     new_branch->prewind = 0;
-    new_branch->previous = branch;
+    new_branch->previous = parent;
     return new_branch;
 }
 
-branch_t* top(stack& mstack)
+method_expansion* top(stack& mstack)
 {
-    return static_cast<branch_t*>(mstack.object());
+    return static_cast<method_expansion*>(mstack.object());
 }
 
 void pop(stack& mstack)
 {
-    branch_t* branch = top(mstack);
-    branch_t* previous = branch->previous;
-    mstack.rewind(branch->rewind);
-    mstack.object_ = previous;
+    method_expansion* b = top(mstack);
+    method_expansion* p = b->previous;
+    mstack.rewind(b->rewind);
+    mstack.object_ = p;
 }
 
-bool find_plan(stack& mstack, stack& pstack, const worldstate_t& world)
+bool find_plan(const worldstate& world, stack& mstack, stack& pstack)
 {
-    branch_t* root = mstack.push<branch_t>(true);
+    method_expansion* root = mstack.begin_object<method_expansion>();
     root->args = 0;
     root->precondition = 0;
     root->expand = root_expand;
@@ -573,26 +554,29 @@ bool find_plan(stack& mstack, stack& pstack, const worldstate_t& world)
     root->prewind = pstack.top();
     root->previous = 0;
 
-    while (branch_t* branch = top(mstack))
+    while (method_expansion* e = top(mstack))
     {
-        if (branch->expand(branch, mstack, pstack, world))
+        if (e->expand(e, mstack, pstack, world))
         {
-            // only primitive tasks are in the task list
-            if (!branch->method)
+            if (!e->method)
             {
+                // only primitive tasks are in the task list
+                // go up, finalizing parents by producing tail primitive tasks,
+                // until we find parent expansion with next method instance to expand
+
                 pop(mstack);
 
-                while (branch = top(mstack))
+                while (e = top(mstack))
                 {
                     // produce tail tasks
                     // tail tasks are primitive tasks situated in the tasklist
-                    // after expanded method and before the next method.
-                    if (branch->method->tail)
+                    // after the method instance and before the next method instance.
+                    if (e->method->tail)
                     {
-                        branch->method->tail(branch, mstack, pstack, world);
+                        e->method->tail(e, mstack, pstack, world);
                     }
 
-                    if (branch->method->next)
+                    if (e->method->next)
                     {
                         break;
                     }
@@ -601,20 +585,22 @@ bool find_plan(stack& mstack, stack& pstack, const worldstate_t& world)
                 }
 
                 // top method has been successfully expanded
-                if (!branch)
+                // i.e. the plan is found
+                // (and stored as a primitive task instance list in pstack)
+                if (!e)
                 {
                     return true;
                 }
 
-                // otherwise move on to the next method in the tasklist.
-                branch->method = branch->method->next;
-                branch = push_method(branch, mstack);
+                // otherwise move on to the next method instance in the tasklist.
+                e->method = e->method->next;
+                e = push_method(e, mstack);
             }
-            // if there are methods to expand in the task list
             else
             {
-                // push method's branch on the stack
-                branch = push_method(branch, mstack);
+                // there're method instances to expand.
+                // push method's expansion on the stack
+                e = push_method(e, mstack);
             }
         }
         else
@@ -623,10 +609,10 @@ bool find_plan(stack& mstack, stack& pstack, const worldstate_t& world)
             pop(mstack);
 
             // clear parent expansion
-            if (branch)
+            if (e = top(mstack))
             {
-                mstack.rewind(branch->mrewind);
-                pstack.rewind(branch->prewind);
+                mstack.rewind(e->mrewind);
+                pstack.rewind(e->prewind);
             }
         }
     }
@@ -634,13 +620,13 @@ bool find_plan(stack& mstack, stack& pstack, const worldstate_t& world)
     return false;
 }
 
-task_t* reverse_task_list(task_t* head)
+task_instance* reverse_task_list(task_instance* head)
 {
-    task_t* new_head = 0;
+    task_instance* new_head = 0;
 
     while (head)
     {
-        task_t* link = head->link;
+        task_instance* link = head->link;
         head->link = new_head;
         new_head = head;
         head = link;
@@ -649,19 +635,19 @@ task_t* reverse_task_list(task_t* head)
     return new_head;
 }
 
-void print_task_ride_taxi(const task_t* task)
+void print_task_ride_taxi(const task_instance* task)
 {
-    ride_taxi_args_t* args = static_cast<ride_taxi_args_t*>(task->args);
+    ride_taxi_args* args = static_cast<ride_taxi_args*>(task->args);
     printf("!ride_taxi(%d, %d)\n", args->x, args->y);
 }
 
-void print_task_fly(const task_t* task)
+void print_task_fly(const task_instance* task)
 {
-    fly_args_t* args = static_cast<fly_args_t*>(task->args);
+    fly_args* args = static_cast<fly_args*>(task->args);
     printf("!fly(%d, %d)\n", args->x, args->y);
 }
 
-void print_task(const task_t* task)
+void print_task(const task_instance* task)
 {
     switch (task->type)
     {
@@ -704,13 +690,13 @@ int main()
 (airport spb led)
 (airport msc svo)
 */
-    worldstate_t world;
+    worldstate world;
 
-    world.start =  new start_tuple_t[1];
-    world.finish = new finish_tuple_t[1];
-    world.short_distance = new short_distance_tuple_t[4];
-    world.long_distance = new long_distance_tuple_t[8];
-    world.airport = new airport_tuple_t[2];
+    world.start =  new start_tuple[1];
+    world.finish = new finish_tuple[1];
+    world.short_distance = new short_distance_tuple[4];
+    world.long_distance = new long_distance_tuple[8];
+    world.airport = new airport_tuple[2];
 
     world.start->_0 = spb;
     world.start->next = 0;
@@ -718,7 +704,7 @@ int main()
     world.finish->_0 = msc;
     world.finish->next = 0;
 
-    short_distance_tuple_t* s = world.short_distance;
+    short_distance_tuple* s = world.short_distance;
     s->_0 = spb;
     s->_1 = led;
     s->next = s+1;
@@ -738,7 +724,7 @@ int main()
     s->_1 = msc;
     s->next = 0;
 
-    long_distance_tuple_t* l = world.long_distance;
+    long_distance_tuple* l = world.long_distance;
     l->_0 = spb;
     l->_1 = msc;
     l->next = l+1;
@@ -778,7 +764,7 @@ int main()
     l->_1 = msc;
     l->next = 0;
 
-    airport_tuple_t* a = world.airport;
+    airport_tuple* a = world.airport;
     a->_0 = spb;
     a->_1 = led;
     a->next = a+1;
@@ -791,16 +777,21 @@ int main()
     stack mstack(32768);
     stack pstack(32768);
 
-    bool result = find_plan(mstack, pstack, world);
+    bool result = find_plan(world, mstack, pstack);
 
-    printf("result=%d\n", result);
-
-    task_t* task = reverse_task_list(static_cast<task_t*>(pstack.object()));
-
-    // print plan
-    for (task_t* t = task; t != 0; t = t->link)
+    if (result)
     {
-        print_task(t);
+        task_instance* task = reverse_task_list(static_cast<task_instance*>(pstack.object()));
+
+        // print plan
+        for (task_instance* t = task; t != 0; t = t->link)
+        {
+            print_task(t);
+        }
+    }
+    else
+    {
+        printf("plan not found.\n");
     }
 
     delete [] world.start;
