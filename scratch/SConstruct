@@ -1,3 +1,3 @@
 
 env = Environment()
-env.Program(source='codegen_sketch_2.cpp', CXXFLAGS='-O3 -g')
+env.Program(source='codegen_sketch_2.cpp', CXXFLAGS='-Wall -Werror -O3 -std=c++11')

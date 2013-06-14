@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <stddef.h> // size_t
 
+// for test
+#include <iostream>
+#include <chrono>
+
 /*
 (:domain
     (:method (root)
@@ -566,7 +570,7 @@ bool find_plan(const worldstate& world, stack& mstack, stack& pstack)
 
                 pop(mstack);
 
-                while (e = top(mstack))
+                for (e=top(mstack); e != 0; pop(mstack), e=top(mstack))
                 {
                     // produce tail tasks
                     // tail tasks are primitive tasks situated in the tasklist
@@ -580,8 +584,6 @@ bool find_plan(const worldstate& world, stack& mstack, stack& pstack)
                     {
                         break;
                     }
-
-                    pop(mstack);
                 }
 
                 // top method has been successfully expanded
@@ -608,8 +610,10 @@ bool find_plan(const worldstate& world, stack& mstack, stack& pstack)
             // failed to expand method => backtrack
             pop(mstack);
 
+            e = top(mstack);
+
             // clear parent expansion
-            if (e = top(mstack))
+            if (e)
             {
                 mstack.rewind(e->mrewind);
                 pstack.rewind(e->prewind);
@@ -776,6 +780,22 @@ int main()
 
     stack mstack(32768);
     stack pstack(32768);
+
+    auto timestamp = std::chrono::high_resolution_clock::now();
+
+    for (int i=0; i<1000000; ++i)
+    {
+        find_plan(world, mstack, pstack);
+
+        mstack.top_ = mstack.data_;
+        mstack.object_ = 0;
+
+        pstack.top_ = pstack.data_;
+        pstack.object_ = 0;
+    }
+
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - timestamp);
+    std::cout << "elapsed: " << elapsed.count() / 1000.f << " s" << std::endl;
 
     bool result = find_plan(world, mstack, pstack);
 
