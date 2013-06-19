@@ -89,7 +89,7 @@ namespace
         int column;
         char* cursor;
         char* cursor_next;
-        char* terminator_location;
+        char* null_location;
         node* parent;
     };
 
@@ -100,7 +100,7 @@ namespace
         state.column = 1;
         state.cursor = buffer;
         state.cursor_next = buffer;
-        state.terminator_location = 0;
+        state.null_location = 0;
         state.parent = 0;
     }
 
@@ -240,7 +240,7 @@ namespace
         }
 
         state.cursor_next = state.cursor;
-        state.terminator_location = state.cursor;
+        state.null_location = state.cursor;
         state.cursor = begin;
         state.line = line;
         state.column = column;
@@ -305,7 +305,7 @@ namespace
         }
 
         state.cursor_next = state.cursor;
-        state.terminator_location = state.cursor;
+        state.null_location = state.cursor;
         state.cursor = begin;
         state.line = line;
         state.column = column;
@@ -321,12 +321,12 @@ namespace
         return token_none;
     }
 
-    void terminate(parse_state& state)
+    void null_terminate(parse_state& state)
     {
-        if (state.terminator_location)
+        if (state.null_location)
         {
-            *state.terminator_location = '\0';
-            state.terminator_location = 0;
+            *state.null_location = '\0';
+            state.null_location = 0;
         }
     }
 
@@ -340,28 +340,28 @@ namespace
             {
             case '\n': case '\r':
                 increment_line(state);
-                terminate(state);
+                null_terminate(state);
                 break;
             case ' ': case '\f': case '\t': case '\v':
                 move(state);
-                terminate(state);
+                null_terminate(state);
                 break;
             case ';':
                 while (*state.cursor != '\n' && *state.cursor != '\r' && *state.cursor != '\0')
                 {
                     move(state);
                 }
-                terminate(state);
+                null_terminate(state);
                 break;
             case '(':
                 move(state);
                 state.cursor_next = state.cursor;
-                terminate(state);
+                null_terminate(state);
                 return token_lp;
             case ')':
                 move(state);
                 state.cursor_next = state.cursor;
-                terminate(state);
+                null_terminate(state);
                 return token_rp;
             default:
                 {
