@@ -18,29 +18,20 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef DERPLANNER_COMPILER_IO_H_
-#define DERPLANNER_COMPILER_IO_H_
+#include <stdio.h>
+#include "derplanner/compiler/io.h"
 
-#include <stddef.h> // size_t
-
-namespace plnnrc {
-
-class writer
+namespace plnnrc
 {
-public:
-    virtual ~writer() {}
-    virtual size_t write(const void* data, size_t size) = 0;
-};
 
-class stdio_file_writer
+stdio_file_writer::stdio_file_writer(void* file_object)
+    : file_object(file_object)
 {
-public:
-    stdio_file_writer(void* file_object);
-    virtual size_t write(const void* data, size_t size);
-private:
-    void* file_object;
-};
-
 }
 
-#endif
+size_t stdio_file_writer::write(const void* data, size_t size)
+{
+    return fwrite(data, 1, size, static_cast<FILE*>(file_object));
+}
+
+}
