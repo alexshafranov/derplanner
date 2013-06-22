@@ -6,6 +6,13 @@
 #include <chrono>
 
 /*
+(:worldstate
+    (start          (int))
+    (finish         (int))
+    (short_distance (int))
+    (long_distance  (int))
+)
+
 (:domain
     (:method (root)
         ((start ?s) (finish ?f))
