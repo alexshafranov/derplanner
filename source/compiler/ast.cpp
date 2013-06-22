@@ -18,7 +18,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#include <stdlib.h> // size_t
+#include <stddef.h> // size_t
 #include <string.h> // memset
 #include <stdint.h> // unitptr_t
 #include "derplanner/compiler/derplanner_assert.h"
