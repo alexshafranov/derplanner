@@ -66,6 +66,12 @@ struct term
     int type_tag;
 };
 
+template <typename T>
+T* annotation(node* n)
+{
+    return static_cast<T*>(n->annotation);
+}
+
 inline bool is_logical_op(node_type type)
 {
     return type >= node_op_and && type <= node_op_not;
