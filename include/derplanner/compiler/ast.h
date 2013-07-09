@@ -60,21 +60,6 @@ struct node
     node* prev_sibling_cyclic;
 };
 
-struct task_graph_edge;
-
-struct task : public node
-{
-    task_graph_edge* first_edge;
-    int* argument_type_indices;
-    bool visited;
-};
-
-struct task_graph_edge
-{
-    task* callee;
-    task_graph_edge* next;
-};
-
 inline bool is_logical_op(const node* n)
 {
     return n->type >= node_op_and && n->type <= node_op_not;
@@ -83,11 +68,6 @@ inline bool is_logical_op(const node* n)
 inline bool is_term(const node* n)
 {
     return n->type >= node_term_variable && n->type <= node_term_call;
-}
-
-inline bool is_task(const node* n)
-{
-    return n->type == node_method || n->type == node_operator;
 }
 
 void append_child(node* parent, node* child);
