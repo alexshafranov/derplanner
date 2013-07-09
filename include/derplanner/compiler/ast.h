@@ -58,16 +58,32 @@ struct node
     node* first_child;
     node* next_sibling;
     node* prev_sibling_cyclic;
+    void* annotation;
 };
+
+struct term
+{
+    int type_tag;
+};
+
+inline bool is_logical_op(node_type type)
+{
+    return type >= node_op_and && type <= node_op_not;
+}
 
 inline bool is_logical_op(const node* n)
 {
-    return n->type >= node_op_and && n->type <= node_op_not;
+    return is_logical_op(n->type);
+}
+
+inline bool is_term(node_type type)
+{
+    return type >= node_term_variable && type <= node_term_call;
 }
 
 inline bool is_term(const node* n)
 {
-    return n->type >= node_term_variable && n->type <= node_term_call;
+    return is_term(n->type);
 }
 
 void append_child(node* parent, node* child);

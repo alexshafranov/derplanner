@@ -19,7 +19,7 @@
 //
 
 #include <stddef.h> // size_t
-#include <string.h> // memset
+#include <string.h> // memset, memcpy
 #include <stdint.h> // unitptr_t
 #include "derplanner/compiler/derplanner_assert.h"
 #include "derplanner/compiler/derplanner_memory.h"
@@ -82,6 +82,16 @@ namespace
             p = n;
         }
     }
+
+    size_t annotation_size(node_type type)
+    {
+        if (is_term(type))
+        {
+            return sizeof(term);
+        }
+
+        return 0;
+    }
 }
 
 tree::tree()
@@ -111,6 +121,19 @@ node* tree::make_node(node_type type, sexpr::node* token)
         n->first_child = 0;
         n->next_sibling = 0;
         n->prev_sibling_cyclic = 0;
+        n->annotation = 0;
+
+        size_t ann_size = annotation_size(type);
+
+        if (ann_size > 0)
+        {
+            n->annotation = pool_allocate(_memory, ann_size);
+
+            if (!n->annotation)
+            {
+                return 0;
+            }
+        }
     }
 
     return n;
@@ -120,6 +143,12 @@ node* tree::clone_node(node* original)
 {
     plnnrc_assert(original != 0);
     node* n = make_node(original->type, original->s_expr);
+
+    if (n && n->annotation)
+    {
+        memcpy(n->annotation, original->annotation, annotation_size(original->type));
+    }
+
     return n;
 }
 
