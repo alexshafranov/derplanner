@@ -1,5 +1,5 @@
 project "planner"
     kind "StaticLib"
-    flags { "ExtraWarnings", "FatalWarnings" }
+    flags { "ExtraWarnings", "FatalWarnings", "NoExceptions" }
     files { "../source/compiler/**.cpp" }
     includedirs { "../include" }
