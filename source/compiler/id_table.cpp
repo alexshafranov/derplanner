@@ -75,7 +75,8 @@ id_table::id_table(id_table_entry* buffer, uint32_t capacity)
     , _capacity(capacity)
     , _mask(capacity-1)
 {
-    plnnrc_assert(is_pow2(capacity));
+    plnnrc_assert(is_pow2(_capacity));
+    memset(_buffer, 0, sizeof(_buffer[0])*_capacity);
 }
 
 void id_table::insert(const char* key, ast::node* value)

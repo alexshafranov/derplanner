@@ -168,4 +168,24 @@ namespace
             CHECK(actual == &nodes[i]);
         }
     }
+
+    TEST(lookup_non_exising_keys)
+    {
+        buffer b(plnnrc::id_table_required_capacity(num_keys));
+
+        plnnrc::id_table table(b.entries, b.count);
+
+        plnnrc::ast::node nodes[num_keys];
+
+        for (unsigned i = 0; i < num_keys / 2; ++i)
+        {
+            table.insert(keys[i], &nodes[i]);
+        }
+
+        for (unsigned i = num_keys / 2; i < num_keys; ++i)
+        {
+            plnnrc::ast::node* actual = table.find(keys[i]);
+            CHECK(!actual);
+        }
+    }
 }
