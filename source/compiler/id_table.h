@@ -45,6 +45,7 @@ class id_table
 public:
     id_table(id_table_entry* buffer, uint32_t capacity);
 
+    void reset();
     void insert(const char* key, ast::node* value);
     ast::node* find(const char* key) const;
 

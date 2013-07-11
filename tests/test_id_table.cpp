@@ -154,6 +154,7 @@ namespace
         buffer b(plnnrc::id_table_required_capacity(num_keys));
 
         plnnrc::id_table table(b.entries, b.count);
+        table.reset();
 
         plnnrc::ast::node nodes[num_keys];
 
@@ -174,6 +175,7 @@ namespace
         buffer b(plnnrc::id_table_required_capacity(num_keys));
 
         plnnrc::id_table table(b.entries, b.count);
+        table.reset();
 
         plnnrc::ast::node nodes[num_keys];
 

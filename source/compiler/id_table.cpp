@@ -76,6 +76,10 @@ id_table::id_table(id_table_entry* buffer, uint32_t capacity)
     , _mask(capacity-1)
 {
     plnnrc_assert(is_pow2(_capacity));
+}
+
+void id_table::reset()
+{
     memset(_buffer, 0, sizeof(_buffer[0])*_capacity);
 }
 
