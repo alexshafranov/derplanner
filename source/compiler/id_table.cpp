@@ -65,7 +65,7 @@ namespace
     const float load_factor = 0.9f;
 }
 
-uint32_t required_capacity(uint32_t max_count)
+uint32_t id_table_required_capacity(uint32_t max_count)
 {
     return next_pow2(ceilf(max_count / load_factor));
 }

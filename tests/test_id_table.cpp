@@ -18,42 +18,10 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef DERPLANNER_COMPILER_ID_TABLE_H_
-#define DERPLANNER_COMPILER_ID_TABLE_H_
+#include <unittestpp.h>
+#include <derplanner/compiler/ast.h>
+#include "source/compiler/id_table.h"
 
-#include <stdint.h>
-#include <stddef.h>
-
-namespace plnnrc {
-
-namespace ast
+namespace
 {
-    struct node;
 }
-
-struct id_table_entry
-{
-    const char* key;
-    uint32_t    hash;
-    ast::node*  value;
-};
-
-uint32_t id_table_required_capacity(uint32_t max_count);
-
-class id_table
-{
-public:
-    id_table(id_table_entry* buffer, uint32_t capacity);
-
-    void insert(const char* key, ast::node* value);
-    ast::node* find(const char* key) const;
-
-private:
-    id_table_entry* _buffer;
-    uint32_t _capacity;
-    uint32_t _mask;
-};
-
-}
-
-#endif
