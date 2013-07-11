@@ -21,8 +21,8 @@
 #include <stddef.h> // size_t
 #include <string.h> // memset, memcpy
 #include <stdint.h> // unitptr_t
-#include "derplanner/compiler/derplanner_assert.h"
-#include "derplanner/compiler/derplanner_memory.h"
+#include "derplanner/compiler/assert.h"
+#include "derplanner/compiler/memory.h"
 #include "derplanner/compiler/ast.h"
 
 namespace plnnrc {

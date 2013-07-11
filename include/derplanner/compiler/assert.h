@@ -18,8 +18,8 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef DERPLANNER_COMPILER_DERPLANNER_ASSERT_H_
-#define DERPLANNER_COMPILER_DERPLANNER_ASSERT_H_
+#ifndef DERPLANNER_COMPILER_ASSERT_H_
+#define DERPLANNER_COMPILER_ASSERT_H_
 
 // if there's no extrenal plnnrc_assert provided
 #ifndef plnnrc_assert

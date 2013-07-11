@@ -20,7 +20,7 @@
 
 #include <string.h>
 #include <math.h>
-#include "derplanner/compiler/derplanner_assert.h"
+#include "derplanner/compiler/assert.h"
 #include "id_table.h"
 
 namespace plnnrc {

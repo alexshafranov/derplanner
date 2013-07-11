@@ -19,8 +19,8 @@
 //
 
 #include <stdlib.h>
-#include "derplanner/compiler/derplanner_assert.h"
-#include "derplanner/compiler/derplanner_memory.h"
+#include "derplanner/compiler/assert.h"
+#include "derplanner/compiler/memory.h"
 #include "derplanner/compiler/s_expression.h"
 
 namespace plnnrc {

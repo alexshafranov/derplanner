@@ -20,7 +20,7 @@
 
 #include <string>
 #include <unittestpp.h>
-#include <derplanner/compiler/derplanner_assert.h>
+#include <derplanner/compiler/assert.h>
 #include <derplanner/compiler/s_expression.h>
 #include <derplanner/compiler/ast.h>
 #include <derplanner/compiler/logical_expression.h>
