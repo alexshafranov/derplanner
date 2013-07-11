@@ -169,7 +169,7 @@ namespace
         }
     }
 
-    TEST(lookup_non_exising_keys)
+    TEST(lookup_non_existing_keys)
     {
         buffer b(plnnrc::id_table_required_capacity(num_keys));
 
