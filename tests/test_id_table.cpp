@@ -24,4 +24,148 @@
 
 namespace
 {
+    const char* keys[] = {
+        "Ailurophile",
+        "Assemblage",
+        "Becoming",
+        "Beleaguer",
+        "Brood",
+        "Bucolic",
+        "Bungalow",
+        "Chatoyant",
+        "Comely",
+        "Conflate",
+        "Cynosure",
+        "Dalliance",
+        "Demesne",
+        "Demure",
+        "Denouement",
+        "Desuetude",
+        "Desultory",
+        "Diaphanous",
+        "Dissemble",
+        "Dulcet",
+        "Ebullience",
+        "Effervescent",
+        "Efflorescence",
+        "Elision",
+        "Elixir",
+        "Eloquence",
+        "Embrocation",
+        "Emollient",
+        "Ephemeral",
+        "Epiphany",
+        "Erstwhile",
+        "Ethereal",
+        "Evanescent",
+        "Evocative",
+        "Fetching",
+        "Felicity",
+        "Forbearance",
+        "Fugacious",
+        "Furtive",
+        "Gambol",
+        "Glamour",
+        "Gossamer",
+        "Halcyon",
+        "Harbinger",
+        "Imbrication",
+        "Imbroglio",
+        "Imbue",
+        "Incipient",
+        "Ineffable",
+        "Ingenue",
+        "Inglenook",
+        "Insouciance",
+        "Inure",
+        "Labyrinthine",
+        "Lagniappe",
+        "Lagoon",
+        "Languor",
+        "Lassitude",
+        "Leisure",
+        "Lilt",
+        "Lissome",
+        "Lithe",
+        "Love",
+        "Mellifluous",
+        "Moiety",
+        "Mondegreen",
+        "Murmurous",
+        "Nemesis",
+        "Offing",
+        "Onomatopoeia",
+        "Opulent",
+        "Palimpsest",
+        "Panacea",
+        "Panoply",
+        "Pastiche",
+        "Penumbra",
+        "Petrichor",
+        "Plethora",
+        "Propinquity",
+        "Pyrrhic",
+        "Quintessential",
+        "Ratatouille",
+        "Ravel",
+        "Redolent",
+        "Riparian",
+        "Ripple",
+        "Scintilla",
+        "Sempiternal",
+        "Seraglio",
+        "Serendipity",
+        "Summery",
+        "Sumptuous",
+        "Surreptitious",
+        "Susquehanna",
+        "Susurrous",
+        "Talisman",
+        "Tintinnabulation",
+        "Umbrella",
+        "Untoward",
+        "Vestigial",
+        "Wafture",
+        "Wherewithal",
+        "Woebegone",
+    };
+
+    const size_t num_keys = sizeof(keys)/sizeof(keys[0]);
+
+    struct buffer
+    {
+        plnnrc::id_table_entry* entries;
+        size_t count;
+
+        buffer(size_t count_)
+            : count(count_)
+        {
+            entries = new plnnrc::id_table_entry[count];
+        }
+
+        ~buffer()
+        {
+            delete [] entries;
+        }
+    };
+
+    TEST(insert_and_find)
+    {
+        buffer b(plnnrc::id_table_required_capacity(num_keys));
+
+        plnnrc::id_table table(b.entries, b.count);
+
+        plnnrc::ast::node nodes[num_keys];
+
+        for (unsigned i = 0; i < num_keys; ++i)
+        {
+            table.insert(keys[i], &nodes[i]);
+        }
+
+        for (unsigned i = 0; i < num_keys; ++i)
+        {
+            plnnrc::ast::node* actual = table.find(keys[i]);
+            CHECK(actual == &nodes[i]);
+        }
+    }
 }
