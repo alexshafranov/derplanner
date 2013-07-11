@@ -18,8 +18,8 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef DERPLANNER_COMPILER_DERPLANNER_MEMORY_H_
-#define DERPLANNER_COMPILER_DERPLANNER_MEMORY_H_
+#ifndef DERPLANNER_COMPILER_MEMORY_H_
+#define DERPLANNER_COMPILER_MEMORY_H_
 
 // for size_t
 #include <stddef.h>
