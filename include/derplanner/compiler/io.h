@@ -32,7 +32,7 @@ public:
     virtual size_t write(const void* data, size_t size) = 0;
 };
 
-class stdio_file_writer
+class stdio_file_writer : public writer
 {
 public:
     stdio_file_writer(void* file_object);

@@ -22,7 +22,6 @@
 #define DERPLANNER_COMPILER_ID_TABLE_H_
 
 #include <stdint.h>
-#include <stddef.h>
 
 namespace plnnrc {
 
@@ -31,25 +30,23 @@ namespace ast
     struct node;
 }
 
-struct id_table_entry
-{
-    const char* key;
-    uint32_t    hash;
-    ast::node*  value;
-};
-
-uint32_t id_table_required_capacity(uint32_t max_count);
+struct id_table_entry;
 
 class id_table
 {
 public:
-    id_table(id_table_entry* buffer, uint32_t capacity);
+    id_table();
+    ~id_table();
 
-    void reset();
+    bool init(uint32_t max_count);
+
     void insert(const char* key, ast::node* value);
     ast::node* find(const char* key) const;
 
 private:
+    id_table(const id_table&);
+    const id_table& operator=(const id_table&);
+
     id_table_entry* _buffer;
     uint32_t _capacity;
     uint32_t _mask;

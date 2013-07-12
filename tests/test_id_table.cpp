@@ -132,29 +132,10 @@ namespace
 
     const size_t num_keys = sizeof(keys)/sizeof(keys[0]);
 
-    struct buffer
-    {
-        plnnrc::id_table_entry* entries;
-        size_t count;
-
-        buffer(size_t count_)
-            : count(count_)
-        {
-            entries = new plnnrc::id_table_entry[count];
-        }
-
-        ~buffer()
-        {
-            delete [] entries;
-        }
-    };
-
     TEST(insert_and_find)
     {
-        buffer b(plnnrc::id_table_required_capacity(num_keys));
-
-        plnnrc::id_table table(b.entries, b.count);
-        table.reset();
+        plnnrc::id_table table;
+        table.init(num_keys);
 
         plnnrc::ast::node nodes[num_keys];
 
@@ -172,10 +153,8 @@ namespace
 
     TEST(lookup_non_existing_keys)
     {
-        buffer b(plnnrc::id_table_required_capacity(num_keys));
-
-        plnnrc::id_table table(b.entries, b.count);
-        table.reset();
+        plnnrc::id_table table;
+        table.init(num_keys);
 
         plnnrc::ast::node nodes[num_keys];
 

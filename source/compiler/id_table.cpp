@@ -20,7 +20,9 @@
 
 #include <string.h>
 #include <math.h>
+#include <stddef.h>
 #include "derplanner/compiler/assert.h"
+#include "derplanner/compiler/memory.h"
 #include "id_table.h"
 
 namespace plnnrc {
@@ -37,11 +39,6 @@ namespace
         value = (value >> 16) | value;
         value++;
         return value;
-    }
-
-    inline bool is_pow2(uint32_t x)
-    {
-        return (x != 0) && !(x & (x-1));
     }
 
     // bernstein hash
@@ -63,28 +60,50 @@ namespace
     }
 
     const float load_factor = 0.9f;
+
+    inline uint32_t required_capacity(uint32_t max_count)
+    {
+        return next_pow2(ceilf(max_count / load_factor));
+    }
 }
 
-uint32_t id_table_required_capacity(uint32_t max_count)
+struct id_table_entry
 {
-    return next_pow2(ceilf(max_count / load_factor));
+    const char* key;
+    uint32_t    hash;
+    ast::node*  value;
+};
+
+id_table::id_table()
+    : _buffer(0)
+    , _capacity(0)
+    , _mask(0)
+{
 }
 
-id_table::id_table(id_table_entry* buffer, uint32_t capacity)
-    : _buffer(buffer)
-    , _capacity(capacity)
-    , _mask(capacity-1)
+bool id_table::init(uint32_t max_count)
 {
-    plnnrc_assert(is_pow2(_capacity));
+    _capacity = required_capacity(max_count);
+    _mask = _capacity - 1;
+    _buffer = static_cast<id_table_entry*>(memory::allocate(sizeof(_buffer[0])*_capacity));
+
+    if (_buffer != 0)
+    {
+        memset(_buffer, 0, sizeof(_buffer[0])*_capacity);
+    }
+
+    return _buffer != 0;
 }
 
-void id_table::reset()
+id_table::~id_table()
 {
-    memset(_buffer, 0, sizeof(_buffer[0])*_capacity);
+    memory::deallocate(_buffer);
 }
 
 void id_table::insert(const char* key, ast::node* value)
 {
+    plnnrc_assert(_buffer != 0);
+
     uint32_t hash_code = hash(key);
 
     uint32_t slot = hash_code & _mask;
@@ -126,6 +145,8 @@ void id_table::insert(const char* key, ast::node* value)
 
 ast::node* id_table::find(const char* key) const
 {
+    plnnrc_assert(_buffer != 0);
+
     uint32_t hash_code = hash(key);
 
     uint32_t slot = hash_code & _mask;
