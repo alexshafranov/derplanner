@@ -39,6 +39,9 @@ void deallocate(void*);
 }
 
 #ifndef plnnrc_alignof
+
+namespace
+{
     template <typename T>
     struct alignof_tester
     {
@@ -51,6 +54,7 @@ void deallocate(void*);
     {
         enum { value = sizeof(alignof_tester<T>) - sizeof(T) };
     };
+}
 
     #define plnnrc_alignof(T) alignof_helper<T>::value
 #endif
