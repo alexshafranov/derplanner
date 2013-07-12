@@ -56,7 +56,6 @@ void* allocate(size_t size)
 void deallocate(void* ptr)
 {
     plnnrc_assert(dealloc_f != 0);
-    plnnrc_assert(ptr != 0);
     dealloc_f(ptr);
 }
 
