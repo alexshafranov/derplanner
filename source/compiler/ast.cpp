@@ -31,7 +31,6 @@ namespace ast {
 namespace
 {
     const size_t page_size = 64 * 1024;
-    const uintptr_t alignment = sizeof(void*);
 
     struct page
     {
@@ -40,16 +39,16 @@ namespace
         char* end;
     };
 
-    inline char* align(char* ptr)
+    inline char* align(char* ptr, size_t alignment)
     {
         return reinterpret_cast<char*>((reinterpret_cast<uintptr_t>(ptr) + alignment) & ~(alignment - 1));
     }
 
-    void* pool_allocate(void*& memory, size_t size)
+    void* pool_allocate(void*& memory, size_t size, size_t alignment)
     {
         page* p = reinterpret_cast<page*>(memory);
 
-        if (!p || align(p->top) + size > p->end)
+        if (!p || align(p->top, alignment) + size > p->end)
         {
             char* m = reinterpret_cast<char*>(memory::allocate(page_size));
             page* n = reinterpret_cast<page*>(m);
@@ -67,7 +66,7 @@ namespace
             memory = n;
         }
 
-        char* result = align(p->top);
+        char* result = align(p->top, alignment);
         p->top = result + size;
 
         return result;
@@ -83,14 +82,24 @@ namespace
         }
     }
 
-    size_t annotation_size(node_type type)
+    struct annotation_trait
     {
+        size_t size;
+        size_t alignment;
+    };
+
+    annotation_trait type_annotation_trait(node_type type)
+    {
+        annotation_trait result = {0};
+
         if (is_term(type))
         {
-            return sizeof(term);
+            result.size = sizeof(term);
+            result.alignment = plnnrc_alignof(term);
+            return result;
         }
 
-        return 0;
+        return result;
     }
 }
 
@@ -111,7 +120,7 @@ tree::~tree()
 
 node* tree::make_node(node_type type, sexpr::node* token)
 {
-    node* n = reinterpret_cast<node*>(pool_allocate(_memory, sizeof(node)));
+    node* n = reinterpret_cast<node*>(pool_allocate(_memory, sizeof(node), plnnrc_alignof(node)));
 
     if (n)
     {
@@ -123,11 +132,11 @@ node* tree::make_node(node_type type, sexpr::node* token)
         n->prev_sibling_cyclic = 0;
         n->annotation = 0;
 
-        size_t ann_size = annotation_size(type);
+        annotation_trait t = type_annotation_trait(type);
 
-        if (ann_size > 0)
+        if (t.size > 0)
         {
-            n->annotation = pool_allocate(_memory, ann_size);
+            n->annotation = pool_allocate(_memory, t.size, t.alignment);
 
             if (!n->annotation)
             {
@@ -146,7 +155,7 @@ node* tree::clone_node(node* original)
 
     if (n && n->annotation)
     {
-        memcpy(n->annotation, original->annotation, annotation_size(original->type));
+        memcpy(n->annotation, original->annotation, type_annotation_trait(original->type).size);
     }
 
     return n;

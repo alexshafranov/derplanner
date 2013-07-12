@@ -38,4 +38,21 @@ void deallocate(void*);
 }
 }
 
+#ifndef plnnrc_alignof
+    template <typename T>
+    struct alignof_tester
+    {
+        char c;
+        T t;
+    };
+
+    template <typename T>
+    struct alignof_helper
+    {
+        enum { value = sizeof(alignof_tester<T>) - sizeof(T) };
+    };
+
+    #define plnnrc_alignof(T) alignof_helper<T>::value
+#endif
+
 #endif
