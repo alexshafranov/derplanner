@@ -117,6 +117,15 @@ namespace
         CHECK_EQUAL(2, n2->column);
     }
 
+    TEST(multiple_top_level_lists)
+    {
+        tree s_exp;
+        char buffer[] = "(hello) (world)";
+        s_exp.parse(buffer);
+        std::string actual = to_string(s_exp.root());
+        CHECK_EQUAL("((hello) (world))", actual.c_str());
+    }
+
     void check_number(const char* str, node_type expected)
     {
         char buffer[128];
