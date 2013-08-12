@@ -91,6 +91,7 @@ namespace
         char* cursor_next;
         char* null_location;
         node* parent;
+        node* root;
     };
 
     void init_state(parse_state& state, char* buffer, void** memory)
@@ -102,6 +103,7 @@ namespace
         state.cursor_next = buffer;
         state.null_location = 0;
         state.parent = 0;
+        state.root = 0;
     }
 
     void move(parse_state& state)
@@ -169,13 +171,13 @@ namespace
     {
         node* n = state.parent;
 
-        if (n)
+        if (!n || n == state.root)
         {
-            state.parent = n->parent;
-            return n;
+            return 0;
         }
 
-        return 0;
+        state.parent = n->parent;
+        return n;
     }
 
     node* append_node(parse_state& state, node_type type)
@@ -381,6 +383,14 @@ namespace
         return token_none;
     }
 
+    token_type lookahead_token(parse_state& state)
+    {
+        parse_state saved_state = state;
+        token_type result = next_token(state);
+        state = saved_state;
+        return result;
+    }
+
 } // unnamed namespace
 
 tree::tree()
@@ -418,7 +428,9 @@ parse_status tree::parse(char* buffer)
         return parse_out_of_memory;
     }
 
-    token_type root_token = next_token(state);
+    state.root = _root;
+
+    token_type root_token = lookahead_token(state);
 
     if (root_token != token_lp && root_token != token_none)
     {

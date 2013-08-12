@@ -96,7 +96,7 @@ namespace
         char buffer[] = "((or (a) (b) (c)))";
         expr.parse(buffer);
         ast::tree tree;
-        ast::node* actual = ast::build_logical_expression(tree, expr.root());
+        ast::node* actual = ast::build_logical_expression(tree, expr.root()->first_child);
         const char* expected = "(and (or (a) (b) (c)))";
         CHECK_EQUAL(expected, to_string(actual).c_str());
     }
@@ -107,7 +107,7 @@ namespace
         char buffer[] = "((not (not (x))))";
         expr.parse(buffer);
         ast::tree tree;
-        ast::node* actual = ast::build_logical_expression(tree, expr.root());
+        ast::node* actual = ast::build_logical_expression(tree, expr.root()->first_child);
         const char* expected = "(and (not (not (x))))";
         CHECK_EQUAL(expected, to_string(actual).c_str());
     }
@@ -119,7 +119,7 @@ namespace
             char buffer[] = "()";
             expr.parse(buffer);
             ast::tree tree;
-            ast::node* actual = ast::convert_to_nnf(tree, ast::build_logical_expression(tree, expr.root()));
+            ast::node* actual = ast::convert_to_nnf(tree, ast::build_logical_expression(tree, expr.root()->first_child));
             const char* expected = "(and)";
             CHECK_EQUAL(expected, to_string(actual).c_str());
         }
@@ -129,7 +129,7 @@ namespace
             char buffer[] = "((or (x) (y)))";
             expr.parse(buffer);
             ast::tree tree;
-            ast::node* actual = ast::convert_to_nnf(tree, ast::build_logical_expression(tree, expr.root()));
+            ast::node* actual = ast::convert_to_nnf(tree, ast::build_logical_expression(tree, expr.root()->first_child));
             const char* expected = "(and (or (x) (y)))";
             CHECK_EQUAL(expected, to_string(actual).c_str());
         }
@@ -141,7 +141,7 @@ namespace
         char buffer[] = "((not (not (x))))";
         expr.parse(buffer);
         ast::tree tree;
-        ast::node* actual = ast::build_logical_expression(tree, expr.root());
+        ast::node* actual = ast::build_logical_expression(tree, expr.root()->first_child);
         actual = ast::convert_to_nnf(tree, actual);
         const char* expected = "(and (x))";
         CHECK_EQUAL(expected, to_string(actual).c_str());
@@ -153,7 +153,7 @@ namespace
         char buffer[] = "((not (not (x))))";
         expr.parse(buffer);
         ast::tree tree;
-        ast::node* actual = ast::build_logical_expression(tree, expr.root());
+        ast::node* actual = ast::build_logical_expression(tree, expr.root()->first_child);
         // build_logical_expression always returns (and ...) as a root
         // move to the first child of (and ...) 
         // to test 'convert_to_nnf' working on a non root nodes of tree.
@@ -169,7 +169,7 @@ namespace
         char buffer[] = "((not (and (x) (or (y) (not (z))))))";
         expr.parse(buffer);
         ast::tree tree;
-        ast::node* actual = ast::build_logical_expression(tree, expr.root());
+        ast::node* actual = ast::build_logical_expression(tree, expr.root()->first_child);
         actual = ast::convert_to_nnf(tree, actual->first_child);
         // !(x && (y || !z)) -> !x || !(y || z) -> !x || (!y && z)
         const char* expected = "(or (not (x)) (and (not (y)) (z)))";
@@ -182,7 +182,7 @@ namespace
         char buffer[] = "((not (and (a) (and (b) (or (c) (d) (or (e) (f))) (and (g) (h))))))";
         expr.parse(buffer);
         ast::tree tree;
-        ast::node* actual = ast::build_logical_expression(tree, expr.root());
+        ast::node* actual = ast::build_logical_expression(tree, expr.root()->first_child);
         ast::flatten(actual);
         const char* expected = "(and (not (and (a) (b) (or (c) (d) (e) (f)) (g) (h))))";
         CHECK_EQUAL(expected, to_string(actual).c_str());
@@ -194,7 +194,7 @@ namespace
         char buffer[] = "()";
         expr.parse(buffer);
         ast::tree tree;
-        ast::node* actual = ast::build_logical_expression(tree, expr.root());
+        ast::node* actual = ast::build_logical_expression(tree, expr.root()->first_child);
         actual = ast::convert_to_dnf(tree, actual);
         const char* expected = "(or (and))";
         CHECK_EQUAL(expected, to_string(actual).c_str());
@@ -207,7 +207,7 @@ namespace
             char buffer[] = "((x))";
             expr.parse(buffer);
             ast::tree tree;
-            ast::node* actual = ast::build_logical_expression(tree, expr.root());
+            ast::node* actual = ast::build_logical_expression(tree, expr.root()->first_child);
             actual = ast::convert_to_dnf(tree, actual);
             const char* expected = "(or (and (x)))";
             CHECK_EQUAL(expected, to_string(actual).c_str());
@@ -218,7 +218,7 @@ namespace
             char buffer[] = "((not (x)))";
             expr.parse(buffer);
             ast::tree tree;
-            ast::node* actual = ast::build_logical_expression(tree, expr.root());
+            ast::node* actual = ast::build_logical_expression(tree, expr.root()->first_child);
             actual = ast::convert_to_dnf(tree, actual);
             const char* expected = "(or (and (not (x))))";
             CHECK_EQUAL(expected, to_string(actual).c_str());
@@ -231,7 +231,7 @@ namespace
         char buffer[] = "((and (q1) (or (r1) (r2)) (q2) (or (r3) (r4)) (q3)))";
         expr.parse(buffer);
         ast::tree tree;
-        ast::node* actual = ast::build_logical_expression(tree, expr.root());
+        ast::node* actual = ast::build_logical_expression(tree, expr.root()->first_child);
         actual = ast::convert_to_dnf(tree, actual);
         const char* expected = "(or (and (q1) (r1) (q2) (r3) (q3)) (and (q1) (r1) (q2) (r4) (q3)) (and (q1) (r2) (q2) (r3) (q3)) (and (q1) (r2) (q2) (r4) (q3)))";
         CHECK_EQUAL(expected, to_string(actual).c_str());
@@ -243,7 +243,7 @@ namespace
         char buffer[] = "((a) (not (or (b) (c))))";
         expr.parse(buffer);
         ast::tree tree;
-        ast::node* actual = ast::build_logical_expression(tree, expr.root());
+        ast::node* actual = ast::build_logical_expression(tree, expr.root()->first_child);
         actual = ast::convert_to_dnf(tree, actual);
         const char* expected = "(or (and (a) (not (b)) (not (c))))";
         CHECK_EQUAL(expected, to_string(actual).c_str());
@@ -255,7 +255,7 @@ namespace
         char buffer[] = "((or (a) (b)))";
         expr.parse(buffer);
         ast::tree tree;
-        ast::node* actual = ast::build_logical_expression(tree, expr.root());
+        ast::node* actual = ast::build_logical_expression(tree, expr.root()->first_child);
         actual = ast::convert_to_dnf(tree, actual);
         const char* expected = "(or (and (a)) (and (b)))";
         CHECK_EQUAL(expected, to_string(actual).c_str());
@@ -267,7 +267,7 @@ namespace
         char buffer[] = "((t1) (or (not (t2)) (and (t2) (t3) (t4))))";
         expr.parse(buffer);
         ast::tree tree;
-        ast::node* actual = ast::build_logical_expression(tree, expr.root());
+        ast::node* actual = ast::build_logical_expression(tree, expr.root()->first_child);
         actual = ast::convert_to_dnf(tree, actual);
         const char* expected = "(or (and (t1) (not (t2))) (and (t1) (t2) (t3) (t4)))";
         CHECK_EQUAL(expected, to_string(actual).c_str());
