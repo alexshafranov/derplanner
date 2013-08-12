@@ -36,6 +36,8 @@ enum node_type
 
     node_domain,
     node_method,
+    node_branch,
+    node_tasklist,
     node_operator,
 
     node_op_and,
@@ -48,6 +50,8 @@ enum node_type
     node_term_int,
     node_term_float,
     node_term_call,
+
+    node_error,
 };
 
 struct node

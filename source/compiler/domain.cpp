@@ -32,6 +32,30 @@ namespace
 {
     const char token_domain[] = ":domain";
     const char token_method[] = ":method";
+
+    node* build_task_atom(tree& t, sexpr::node* s_expr)
+    {
+        node* task_atom = t.make_node(node_atom, s_expr->first_child);
+
+        if (!task_atom)
+        {
+            return 0;
+        }
+
+        for (sexpr::node* v_expr = s_expr->first_child->next_sibling; v_expr != 0; v_expr = v_expr->next_sibling)
+        {
+            node* argument = t.make_node(node_term_variable, v_expr);
+
+            if (!argument)
+            {
+                return 0;
+            }
+
+            append_child(task_atom, argument);
+        }
+
+        return task_atom;
+    }
 }
 
 node* build_domain(tree& t, sexpr::node* s_expr)
@@ -81,23 +105,11 @@ node* build_method(tree& t, sexpr::node* s_expr)
     plnnrc_assert(task_atom_expr);
     plnnrc_assert(task_atom_expr->type == sexpr::node_list);
 
-    node* task_atom = t.make_node(node_atom, task_atom_expr->first_child);
+    node* task_atom = build_task_atom(t, task_atom_expr);
 
     if (!task_atom)
     {
         return 0;
-    }
-
-    for (sexpr::node* v_expr = task_atom_expr->first_child->next_sibling; v_expr != 0; v_expr = v_expr->next_sibling)
-    {
-        node* argument = t.make_node(node_term_variable, v_expr);
-
-        if (!argument)
-        {
-            return 0;
-        }
-
-        append_child(task_atom, argument);
     }
 
     append_child(method, task_atom);
@@ -123,7 +135,53 @@ node* build_method(tree& t, sexpr::node* s_expr)
 
 node* build_branch(tree& t, sexpr::node* s_expr)
 {
-    return 0;
+    node* branch = t.make_node(node_branch, s_expr);
+
+    if (!branch)
+    {
+        return 0;
+    }
+
+    node* precondition = build_logical_expression(t, s_expr);
+
+    if (!precondition)
+    {
+        return 0;
+    }
+
+    node* precondition_dnf = convert_to_dnf(t, precondition);
+
+    if (!precondition_dnf)
+    {
+        return 0;
+    }
+
+    append_child(branch, precondition_dnf);
+
+    sexpr::node* tasklist_expr = s_expr->next_sibling;
+
+    node* task_list = t.make_node(node_tasklist, tasklist_expr);
+
+    if (!task_list)
+    {
+        return 0;
+    }
+
+    for (sexpr::node* t_expr = tasklist_expr->first_child; t_expr != 0; t_expr = t_expr->next_sibling)
+    {
+        node* task_atom = build_task_atom(t, t_expr);
+
+        if (!task_atom)
+        {
+            return 0;
+        }
+
+        append_child(task_list, task_atom);
+    }
+
+    append_child(branch, task_list);
+
+    return branch;
 }
 
 }
