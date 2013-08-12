@@ -30,6 +30,7 @@ namespace ast {
 namespace
 {
     const char token_domain[] = ":domain";
+    const char token_method[] = ":method";
 }
 
 node* build_domain(tree& t, sexpr::node* s_expr)
