@@ -34,6 +34,10 @@ namespace
         char buffer[] = "(:domain)";
         sexpr::tree expr;
         expr.parse(buffer);
+        ast::tree tree;
+        ast::node* actual = ast::build_domain(tree, expr.root()->first_child);
+        CHECK(actual);
+        CHECK(!actual->first_child);
     }
 }
 
