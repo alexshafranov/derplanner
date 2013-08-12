@@ -481,8 +481,10 @@ parse_status tree::parse(char* buffer)
                 }
             }
             break;
-        default:
-            plnnrc_assert(false);
+        case token_none:
+            {
+                state.cursor_next = state.cursor;
+            }
             break;
         }
     }
