@@ -39,9 +39,7 @@ namespace ast {
 node* build_logical_expression(tree& t, sexpr::node* s_expr);
 
 void flatten(node* root);
-
 node* convert_to_nnf(tree& t, node* root);
-
 node* convert_to_dnf(tree& t, node* root);
 
 }
