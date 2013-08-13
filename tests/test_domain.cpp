@@ -27,42 +27,22 @@
 
 using namespace plnnrc;
 
-#define NODE_TO_STRING_CASE(NODE_TYPE, NODE, INCLUDE_TOKEN)             \
-case NODE_TYPE:                                                         \
-    if ((INCLUDE_TOKEN))                                                \
-    {                                                                   \
-        return std::string(#NODE_TYPE) + " " + (NODE)->s_expr->token;   \
-    }                                                                   \
-    else                                                                \
-    {                                                                   \
-        return std::string(#NODE_TYPE);                                 \
-    }                                                                   \
-
 std::string node_to_string(ast::node* node)
 {
+    #define PLNNRC_AST_NODE_INNER(NODE_ID) case ast::NODE_ID: return std::string(#NODE_ID);
+    #define PLNNRC_AST_NODE_LEAF(NODE_ID)  case ast::NODE_ID: return std::string(#NODE_ID) + " " + node->s_expr->token;
+
     switch (node->type)
     {
-    NODE_TO_STRING_CASE(ast::node_domain, node, false)
-    NODE_TO_STRING_CASE(ast::node_method, node, false)
-    NODE_TO_STRING_CASE(ast::node_branch, node, false)
-    NODE_TO_STRING_CASE(ast::node_tasklist, node, false)
-    NODE_TO_STRING_CASE(ast::node_operator, node, false)
-    NODE_TO_STRING_CASE(ast::node_op_and, node, false)
-    NODE_TO_STRING_CASE(ast::node_op_or, node, false)
-    NODE_TO_STRING_CASE(ast::node_op_not, node, false)
-    NODE_TO_STRING_CASE(ast::node_atom, node, true)
-    NODE_TO_STRING_CASE(ast::node_term_variable, node, true)
-    NODE_TO_STRING_CASE(ast::node_term_int, node, true)
-    NODE_TO_STRING_CASE(ast::node_term_float, node, true)
-    NODE_TO_STRING_CASE(ast::node_term_call, node, true)
-    NODE_TO_STRING_CASE(ast::node_error, node, true)
+    #include <derplanner/compiler/ast_node_tags.inc>
     default:
         plnnrc_assert(false);
-        return std::string();
+        return std::string("<error>");
     }
-}
 
-#undef NODE_TO_STRING_CASE
+    #undef PLNNRC_AST_NODE_INNER
+    #undef PLNNRC_AST_NODE_LEAF
+}
 
 std::string to_string(ast::node* root, int level=0)
 {
@@ -114,18 +94,18 @@ namespace
         std::string actual_str = to_string(actual_tree);
 
         const char* expected = \
-"ast::node_domain\n"
-"    ast::node_method\n"
-"        ast::node_atom root\n"
-"        ast::node_branch\n"
-"            ast::node_op_or\n"
-"                ast::node_op_and\n"
-"                    ast::node_atom start\n"
-"                    ast::node_atom finish\n"
-"            ast::node_tasklist\n"
-"                ast::node_atom travel\n"
-"                    ast::node_term_variable ?s\n"
-"                    ast::node_term_variable ?f";
+"node_domain\n"
+"    node_method\n"
+"        node_atom root\n"
+"        node_branch\n"
+"            node_op_or\n"
+"                node_op_and\n"
+"                    node_atom start\n"
+"                    node_atom finish\n"
+"            node_tasklist\n"
+"                node_atom travel\n"
+"                    node_term_variable ?s\n"
+"                    node_term_variable ?f";
 
         CHECK_EQUAL(expected, actual_str.c_str());
     }

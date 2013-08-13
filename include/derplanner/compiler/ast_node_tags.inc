@@ -25,3 +25,6 @@ PLNNRC_AST_NODE_LEAF(node_term_float)
 PLNNRC_AST_NODE_LEAF(node_term_call)
 
 PLNNRC_AST_NODE_LEAF(node_error)
+
+#undef PLNNRC_AST_NODE_INNER
+#undef PLNNRC_AST_NODE_LEAF
