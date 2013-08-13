@@ -31,8 +31,9 @@ namespace ast {
 
 namespace
 {
-    const char token_domain[] = ":domain";
-    const char token_method[] = ":method";
+    const char token_worldstate[]   = ":worldstate";
+    const char token_domain[]       = ":domain";
+    const char token_method[]       = ":method";
 }
 
 node* build_domain(tree& t, sexpr::node* s_expr)
@@ -163,11 +164,40 @@ node* build_branch(tree& t, sexpr::node* s_expr)
 
 node* build_worldstate(tree& t, sexpr::node* s_expr)
 {
-    node* worldstate = t.make_node(node_worldstate);
+    plnnrc_assert(s_expr->type == sexpr::node_list);
+    plnnrc_assert(s_expr->first_child);
+    plnnrc_assert(s_expr->first_child->type == sexpr::node_symbol);
+    plnnrc_assert(strncmp(s_expr->first_child->token, token_worldstate, sizeof(token_worldstate)) == 0);
+
+    node* worldstate = t.make_node(node_worldstate, s_expr);
 
     if (!worldstate)
     {
         return 0;
+    }
+
+    for (sexpr::node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
+    {
+        node* atom = t.make_node(node_atom, c_expr->first_child);
+
+        if (!atom)
+        {
+            return 0;
+        }
+
+        for (sexpr::node* t_expr = c_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
+        {
+            node* type = t.make_node(node_worldstate_type, t_expr);
+
+            if (!type)
+            {
+                return 0;
+            }
+
+            append_child(atom, type);
+        }
+
+        append_child(worldstate, atom);
     }
 
     return worldstate;

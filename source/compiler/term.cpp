@@ -27,9 +27,9 @@ namespace ast {
 
 node* build_atom(tree& t, sexpr::node* s_expr)
 {
-    node* task_atom = t.make_node(node_atom, s_expr->first_child);
+    node* atom = t.make_node(node_atom, s_expr->first_child);
 
-    if (!task_atom)
+    if (!atom)
     {
         return 0;
     }
@@ -43,10 +43,10 @@ node* build_atom(tree& t, sexpr::node* s_expr)
             return 0;
         }
 
-        append_child(task_atom, argument);
+        append_child(atom, argument);
     }
 
-    return task_atom;
+    return atom;
 }
 
 }

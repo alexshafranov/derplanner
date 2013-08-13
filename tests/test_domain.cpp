@@ -27,44 +27,72 @@
 
 using namespace plnnrc;
 
-std::string node_to_string(ast::node* node)
-{
-    #define PLNNRC_AST_NODE_INNER(NODE_ID) case ast::NODE_ID: return std::string(#NODE_ID);
-    #define PLNNRC_AST_NODE_LEAF(NODE_ID)  case ast::NODE_ID: return std::string(#NODE_ID) + " " + node->s_expr->token;
-
-    switch (node->type)
-    {
-    #include <derplanner/compiler/ast_node_tags.inc>
-    default:
-        plnnrc_assert(false);
-        return std::string("<error>");
-    }
-
-    #undef PLNNRC_AST_NODE_INNER
-    #undef PLNNRC_AST_NODE_LEAF
-}
-
-std::string to_string(ast::node* root, int level=0)
-{
-    std::string result;
-
-    for (int i = 0; i < level; ++i)
-    {
-        result += "    ";
-    }
-
-    result += node_to_string(root);
-
-    for (ast::node* child = root->first_child; child != 0; child = child->next_sibling)
-    {
-        result += "\n" + to_string(child, level+1);
-    }
-
-    return result;
-}
-
 namespace
 {
+    std::string to_string(sexpr::node* root)
+    {
+        std::string result;
+
+        if (root->type == sexpr::node_list)
+        {
+            result += "(";
+
+            for (sexpr::node* n = root->first_child; n != 0; n = n->next_sibling)
+            {
+                result += to_string(n);
+
+                if (n != root->first_child->prev_sibling_cyclic)
+                {
+                    result += " ";
+                }
+            }
+
+            result += ")";
+        }
+        else
+        {
+            result = root->token;
+        }
+
+        return result;
+    }
+
+    std::string node_to_string(ast::node* node)
+    {
+        #define PLNNRC_AST_NODE_INNER(NODE_ID) case ast::NODE_ID: return std::string(#NODE_ID);
+        #define PLNNRC_AST_NODE_LEAF(NODE_ID)  case ast::NODE_ID: return std::string(#NODE_ID) + " " + to_string(node->s_expr);
+
+        switch (node->type)
+        {
+        #include <derplanner/compiler/ast_node_tags.inc>
+        default:
+            plnnrc_assert(false);
+            return std::string("<error>");
+        }
+
+        #undef PLNNRC_AST_NODE_INNER
+        #undef PLNNRC_AST_NODE_LEAF
+    }
+
+    std::string to_string(ast::node* root, int level=0)
+    {
+        std::string result;
+
+        for (int i = 0; i < level; ++i)
+        {
+            result += "    ";
+        }
+
+        result += node_to_string(root);
+
+        for (ast::node* child = root->first_child; child != 0; child = child->next_sibling)
+        {
+            result += "\n" + to_string(child, level+1);
+        }
+
+        return result;
+    }
+
     TEST(empty_domain)
     {
         char buffer[] = "(:domain)";
@@ -108,6 +136,33 @@ namespace
 "                node_atom travel\n"
 "                    node_term_variable ?s\n"
 "                    node_term_variable ?f";
+
+        CHECK_EQUAL(expected, actual_str.c_str());
+    }
+
+    TEST(worldstate_ast_structure)
+    {
+        char buffer[] = \
+"(:worldstate               "
+"    (atomx (int) (double)) "
+"    (atomy (const char *)) "
+")                          ";
+
+        sexpr::tree expr;
+        expr.parse(buffer);
+        ast::tree tree;
+        ast::node* actual_tree = ast::build_worldstate(tree, expr.root()->first_child);
+        CHECK(actual_tree);
+        std::string actual_str = to_string(actual_tree);
+        (void)actual_str;
+
+        const char* expected = \
+"node_worldstate\n"
+"    node_atom atomx\n"
+"        node_worldstate_type (int)\n"
+"        node_worldstate_type (double)\n"
+"    node_atom atomy\n"
+"        node_worldstate_type (const char *)";
 
         CHECK_EQUAL(expected, actual_str.c_str());
     }
