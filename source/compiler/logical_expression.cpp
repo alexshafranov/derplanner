@@ -22,6 +22,7 @@
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/s_expression.h"
 #include "derplanner/compiler/ast.h"
+#include "derplanner/compiler/term.h"
 #include "derplanner/compiler/logical_expression.h"
 
 namespace plnnrc {
@@ -61,11 +62,6 @@ namespace
         }
 
         return root;
-    }
-
-    node* build_atom(tree& t, sexpr::node* s_expr)
-    {
-        return t.make_node(node_atom, s_expr->first_child);
     }
 
     node* build_recursive(tree& t, sexpr::node* s_expr)

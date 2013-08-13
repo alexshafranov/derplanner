@@ -22,6 +22,7 @@
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/s_expression.h"
 #include "derplanner/compiler/ast.h"
+#include "derplanner/compiler/term.h"
 #include "derplanner/compiler/logical_expression.h"
 #include "derplanner/compiler/domain.h"
 
@@ -32,30 +33,6 @@ namespace
 {
     const char token_domain[] = ":domain";
     const char token_method[] = ":method";
-
-    node* build_task_atom(tree& t, sexpr::node* s_expr)
-    {
-        node* task_atom = t.make_node(node_atom, s_expr->first_child);
-
-        if (!task_atom)
-        {
-            return 0;
-        }
-
-        for (sexpr::node* v_expr = s_expr->first_child->next_sibling; v_expr != 0; v_expr = v_expr->next_sibling)
-        {
-            node* argument = t.make_node(node_term_variable, v_expr);
-
-            if (!argument)
-            {
-                return 0;
-            }
-
-            append_child(task_atom, argument);
-        }
-
-        return task_atom;
-    }
 }
 
 node* build_domain(tree& t, sexpr::node* s_expr)
@@ -105,7 +82,7 @@ node* build_method(tree& t, sexpr::node* s_expr)
     plnnrc_assert(task_atom_expr);
     plnnrc_assert(task_atom_expr->type == sexpr::node_list);
 
-    node* task_atom = build_task_atom(t, task_atom_expr);
+    node* task_atom = build_atom(t, task_atom_expr);
 
     if (!task_atom)
     {
@@ -169,7 +146,7 @@ node* build_branch(tree& t, sexpr::node* s_expr)
 
     for (sexpr::node* t_expr = tasklist_expr->first_child; t_expr != 0; t_expr = t_expr->next_sibling)
     {
-        node* task_atom = build_task_atom(t, t_expr);
+        node* task_atom = build_atom(t, t_expr);
 
         if (!task_atom)
         {
