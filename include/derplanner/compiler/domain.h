@@ -39,6 +39,7 @@ namespace ast {
 node* build_domain(tree& t, sexpr::node* s_expr);
 node* build_method(tree& t, sexpr::node* s_expr);
 node* build_branch(tree& t, sexpr::node* s_expr);
+node* build_worldstate(tree& t, sexpr::node* s_expr);
 
 }
 }

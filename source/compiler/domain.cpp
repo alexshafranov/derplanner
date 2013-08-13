@@ -161,5 +161,17 @@ node* build_branch(tree& t, sexpr::node* s_expr)
     return branch;
 }
 
+node* build_worldstate(tree& t, sexpr::node* s_expr)
+{
+    node* worldstate = t.make_node(node_worldstate);
+
+    if (!worldstate)
+    {
+        return 0;
+    }
+
+    return worldstate;
+}
+
 }
 }

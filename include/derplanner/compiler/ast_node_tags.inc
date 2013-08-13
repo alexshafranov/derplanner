@@ -7,6 +7,7 @@
     #define PLNNRC_AST_NODE_LEAF(NODE_ID) PLNNRC_AST_NODE(NODE_ID)
 #endif
 
+PLNNRC_AST_NODE_INNER(node_worldstate)
 PLNNRC_AST_NODE_INNER(node_domain)
 PLNNRC_AST_NODE_INNER(node_method)
 PLNNRC_AST_NODE_INNER(node_branch)
