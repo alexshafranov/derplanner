@@ -1,0 +1,27 @@
+
+#ifndef PLNNRC_AST_NODE_INNDER
+    #define PLNNRC_AST_NODE_INNDER(NODE_ID) PLNNRC_AST_NODE(NODE_ID)
+#endif
+
+#ifndef PLNNRC_AST_NODE_LEAF
+    #define PLNNRC_AST_NODE_LEAF(NODE_ID) PLNNRC_AST_NODE(NODE_ID)
+#endif
+
+PLNNRC_AST_NODE_INNDER(node_domain)
+PLNNRC_AST_NODE_INNDER(node_method)
+PLNNRC_AST_NODE_INNDER(node_branch)
+PLNNRC_AST_NODE_INNDER(node_operator)
+PLNNRC_AST_NODE_INNDER(node_tasklist)
+
+PLNNRC_AST_NODE_INNDER(node_op_and)
+PLNNRC_AST_NODE_INNDER(node_op_or)
+PLNNRC_AST_NODE_INNDER(node_op_not)
+
+PLNNRC_AST_NODE_LEAF(node_atom)
+
+PLNNRC_AST_NODE_LEAF(node_term_variable)
+PLNNRC_AST_NODE_LEAF(node_term_int)
+PLNNRC_AST_NODE_LEAF(node_term_float)
+PLNNRC_AST_NODE_LEAF(node_term_call)
+
+PLNNRC_AST_NODE_LEAF(node_error)

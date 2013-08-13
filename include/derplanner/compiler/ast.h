@@ -34,24 +34,9 @@ enum node_type
 {
     node_none = 0,
 
-    node_domain,
-    node_method,
-    node_branch,
-    node_tasklist,
-    node_operator,
-
-    node_op_and,
-    node_op_or,
-    node_op_not,
-
-    node_atom,
-
-    node_term_variable,
-    node_term_int,
-    node_term_float,
-    node_term_call,
-
-    node_error,
+    #define PLNNRC_AST_NODE(NODE_ID) NODE_ID,
+    #include "derplanner/compiler/ast_node_tags.inc"
+    #undef PLNNRC_AST_NODE
 };
 
 struct node
