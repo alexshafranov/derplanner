@@ -115,28 +115,6 @@ node* build_logical_expression(tree& ast, sexpr::node* s_expr)
     return root;
 }
 
-namespace
-{
-    inline node* preorder_traversal_next(const node* root, node* current)
-    {
-        node* n = current;
-
-        if (n->first_child)
-        {
-            return n->first_child;
-        }
-
-        while (n != root && !n->next_sibling) { n = n->parent; }
-
-        if (n == root)
-        {
-            return 0;
-        }
-
-        return n->next_sibling;
-    }
-}
-
 node* convert_to_nnf(tree& ast, node* root)
 {
     node* r = root;

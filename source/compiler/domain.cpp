@@ -257,5 +257,51 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
     return worldstate;
 }
 
+namespace
+{
+    void seed_precondition_types(tree& ast, node* root)
+    {
+        for (node* n = root; n != 0; n = preorder_traversal_next(root, n))
+        {
+            if (n->type == node_atom)
+            {
+                node* ws_atom = ast.ws_atoms.find(n->s_expr->token);
+                plnnrc_assert(ws_atom);
+
+                node* ws_type = ws_atom->first_child;
+                plnnrc_assert(ws_type->type == node_worldstate_type);
+
+                for (node* c = n->first_child; c != 0; c = c->next_sibling)
+                {
+                    plnnrc_assert(ws_type);
+                    plnnrc_assert(ws_type->type == node_worldstate_type);
+
+                    if (c->type == node_term_variable)
+                    {
+                        annotation<term>(c)->type_tag = annotation<worldstate_type>(ws_type)->type_tag;
+                    }
+
+                    ws_type = ws_type->next_sibling;
+                }
+
+                plnnrc_assert(!ws_type);
+            }
+        }
+    }
+}
+
+void infer_types(tree& ast)
+{
+    for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+    {
+        node* method = methods.value();
+
+        for (node* branch = method->first_child; branch != 0; branch = branch->next_sibling)
+        {
+            seed_precondition_types(ast, branch->first_child);
+        }
+    }
+}
+
 }
 }

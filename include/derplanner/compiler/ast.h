@@ -88,12 +88,6 @@ inline bool is_term(const node* n)
     return is_term(n->type);
 }
 
-void append_child(node* parent, node* child);
-void prepend_child(node* parent, node* child);
-void insert_child(node* after, node* child);
-
-void detach_node(node* n);
-
 class tree
 {
 public:
@@ -115,6 +109,13 @@ private:
     void* _memory;
     node _root;
 };
+
+void append_child(node* parent, node* child);
+void prepend_child(node* parent, node* child);
+void insert_child(node* after, node* child);
+void detach_node(node* n);
+
+node* preorder_traversal_next(const node* root, node* current);
 
 }
 }

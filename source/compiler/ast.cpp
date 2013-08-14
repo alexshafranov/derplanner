@@ -297,5 +297,24 @@ void detach_node(node* n)
     n->prev_sibling_cyclic = 0;
 }
 
+node* preorder_traversal_next(const node* root, node* current)
+{
+    node* n = current;
+
+    if (n->first_child)
+    {
+        return n->first_child;
+    }
+
+    while (n != root && !n->next_sibling) { n = n->parent; }
+
+    if (n == root)
+    {
+        return 0;
+    }
+
+    return n->next_sibling;
+}
+
 }
 }
