@@ -124,6 +124,15 @@ void id_table::insert(const char* key, ast::node* value)
             return;
         }
 
+        if (hash_code == e.hash)
+        {
+            if (strcmp(key, e.key) == 0)
+            {
+                e.value = value;
+                return;
+            }
+        }
+
         uint32_t d = probe_distance(e.hash, slot, _capacity);
 
         if (d < step)

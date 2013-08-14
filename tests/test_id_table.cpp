@@ -114,4 +114,22 @@ namespace
             CHECK(!actual);
         }
     }
+
+    TEST(insert_twice)
+    {
+        plnnrc::id_table table;
+        table.init(1);
+
+        plnnrc::ast::node value1;
+        plnnrc::ast::node value2;
+
+        const char* key = "the_key";
+
+        table.insert(key, &value1);
+        table.insert(key, &value2);
+
+        plnnrc::ast::node* actual = table.find(key);
+
+        CHECK_EQUAL(&value2, actual);
+    }
 }
