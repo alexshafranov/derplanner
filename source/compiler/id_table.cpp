@@ -83,6 +83,8 @@ id_table::id_table()
 
 bool id_table::init(uint32_t max_count)
 {
+    memory::deallocate(_buffer);
+
     _capacity = required_capacity(max_count);
     _mask = _capacity - 1;
     _buffer = static_cast<id_table_entry*>(memory::allocate(sizeof(_buffer[0])*_capacity));
