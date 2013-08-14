@@ -36,14 +36,14 @@ namespace
     const char token_method[]       = ":method";
 }
 
-node* build_domain(tree& t, sexpr::node* s_expr)
+node* build_domain(tree& ast, sexpr::node* s_expr)
 {
     plnnrc_assert(s_expr->type == sexpr::node_list);
     plnnrc_assert(s_expr->first_child);
     plnnrc_assert(s_expr->first_child->type == sexpr::node_symbol);
     plnnrc_assert(strncmp(s_expr->first_child->token, token_domain, sizeof(token_domain)) == 0);
 
-    node* domain = t.make_node(node_domain, s_expr);
+    node* domain = ast.make_node(node_domain, s_expr);
 
     if (!domain)
     {
@@ -52,7 +52,7 @@ node* build_domain(tree& t, sexpr::node* s_expr)
 
     for (sexpr::node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
     {
-        node* method = build_method(t, c_expr);
+        node* method = build_method(ast, c_expr);
 
         if (!method)
         {
@@ -65,14 +65,14 @@ node* build_domain(tree& t, sexpr::node* s_expr)
     return domain;
 }
 
-node* build_method(tree& t, sexpr::node* s_expr)
+node* build_method(tree& ast, sexpr::node* s_expr)
 {
     plnnrc_assert(s_expr->type == sexpr::node_list);
     plnnrc_assert(s_expr->first_child);
     plnnrc_assert(s_expr->first_child->type == sexpr::node_symbol);
     plnnrc_assert(strncmp(s_expr->first_child->token, token_method, sizeof(token_method)) == 0);
 
-    node* method = t.make_node(node_method, s_expr);
+    node* method = ast.make_node(node_method, s_expr);
 
     if (!method)
     {
@@ -83,7 +83,7 @@ node* build_method(tree& t, sexpr::node* s_expr)
     plnnrc_assert(task_atom_expr);
     plnnrc_assert(task_atom_expr->type == sexpr::node_list);
 
-    node* task_atom = build_atom(t, task_atom_expr);
+    node* task_atom = build_atom(ast, task_atom_expr);
 
     if (!task_atom)
     {
@@ -96,7 +96,7 @@ node* build_method(tree& t, sexpr::node* s_expr)
 
     while (branch_precond_expr)
     {
-        node* branch = build_branch(t, branch_precond_expr);
+        node* branch = build_branch(ast, branch_precond_expr);
 
         if (!branch)
         {
@@ -111,23 +111,23 @@ node* build_method(tree& t, sexpr::node* s_expr)
     return method;
 }
 
-node* build_branch(tree& t, sexpr::node* s_expr)
+node* build_branch(tree& ast, sexpr::node* s_expr)
 {
-    node* branch = t.make_node(node_branch, s_expr);
+    node* branch = ast.make_node(node_branch, s_expr);
 
     if (!branch)
     {
         return 0;
     }
 
-    node* precondition = build_logical_expression(t, s_expr);
+    node* precondition = build_logical_expression(ast, s_expr);
 
     if (!precondition)
     {
         return 0;
     }
 
-    node* precondition_dnf = convert_to_dnf(t, precondition);
+    node* precondition_dnf = convert_to_dnf(ast, precondition);
 
     if (!precondition_dnf)
     {
@@ -138,7 +138,7 @@ node* build_branch(tree& t, sexpr::node* s_expr)
 
     sexpr::node* tasklist_expr = s_expr->next_sibling;
 
-    node* task_list = t.make_node(node_tasklist, tasklist_expr);
+    node* task_list = ast.make_node(node_tasklist, tasklist_expr);
 
     if (!task_list)
     {
@@ -147,7 +147,7 @@ node* build_branch(tree& t, sexpr::node* s_expr)
 
     for (sexpr::node* t_expr = tasklist_expr->first_child; t_expr != 0; t_expr = t_expr->next_sibling)
     {
-        node* task_atom = build_atom(t, t_expr);
+        node* task_atom = build_atom(ast, t_expr);
 
         if (!task_atom)
         {
@@ -162,14 +162,14 @@ node* build_branch(tree& t, sexpr::node* s_expr)
     return branch;
 }
 
-node* build_worldstate(tree& t, sexpr::node* s_expr)
+node* build_worldstate(tree& ast, sexpr::node* s_expr)
 {
     plnnrc_assert(s_expr->type == sexpr::node_list);
     plnnrc_assert(s_expr->first_child);
     plnnrc_assert(s_expr->first_child->type == sexpr::node_symbol);
     plnnrc_assert(strncmp(s_expr->first_child->token, token_worldstate, sizeof(token_worldstate)) == 0);
 
-    node* worldstate = t.make_node(node_worldstate, s_expr);
+    node* worldstate = ast.make_node(node_worldstate, s_expr);
 
     if (!worldstate)
     {
@@ -178,7 +178,7 @@ node* build_worldstate(tree& t, sexpr::node* s_expr)
 
     for (sexpr::node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
     {
-        node* atom = t.make_node(node_atom, c_expr->first_child);
+        node* atom = ast.make_node(node_atom, c_expr->first_child);
 
         if (!atom)
         {
@@ -187,7 +187,7 @@ node* build_worldstate(tree& t, sexpr::node* s_expr)
 
         for (sexpr::node* t_expr = c_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
         {
-            node* type = t.make_node(node_worldstate_type, t_expr);
+            node* type = ast.make_node(node_worldstate_type, t_expr);
 
             if (!type)
             {

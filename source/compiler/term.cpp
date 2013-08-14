@@ -25,9 +25,9 @@
 namespace plnnrc {
 namespace ast {
 
-node* build_atom(tree& t, sexpr::node* s_expr)
+node* build_atom(tree& ast, sexpr::node* s_expr)
 {
-    node* atom = t.make_node(node_atom, s_expr->first_child);
+    node* atom = ast.make_node(node_atom, s_expr->first_child);
 
     if (!atom)
     {
@@ -36,7 +36,7 @@ node* build_atom(tree& t, sexpr::node* s_expr)
 
     for (sexpr::node* v_expr = s_expr->first_child->next_sibling; v_expr != 0; v_expr = v_expr->next_sibling)
     {
-        node* argument = t.make_node(node_term_variable, v_expr);
+        node* argument = ast.make_node(node_term_variable, v_expr);
 
         if (!argument)
         {

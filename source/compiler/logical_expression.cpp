@@ -35,11 +35,11 @@ namespace
     const char token_not[] = "not";
 
     // forward
-    node* build_recursive(tree& t, sexpr::node* s_expr);
+    node* build_recursive(tree& ast, sexpr::node* s_expr);
 
-    node* build_logical_op(tree& t, sexpr::node* s_expr, node_type op_type)
+    node* build_logical_op(tree& ast, sexpr::node* s_expr, node_type op_type)
     {
-        node* root = t.make_node(op_type, s_expr);
+        node* root = ast.make_node(op_type, s_expr);
 
         if (!root)
         {
@@ -51,7 +51,7 @@ namespace
 
         for (sexpr::node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
         {
-            node* child = build_recursive(t, c_expr);
+            node* child = build_recursive(ast, c_expr);
 
             if (!child)
             {
@@ -64,7 +64,7 @@ namespace
         return root;
     }
 
-    node* build_recursive(tree& t, sexpr::node* s_expr)
+    node* build_recursive(tree& ast, sexpr::node* s_expr)
     {
         plnnrc_assert(s_expr->type == sexpr::node_list);
         sexpr::node* c_expr = s_expr->first_child;
@@ -72,28 +72,28 @@ namespace
 
         if (strncmp(c_expr->token, token_and, sizeof(token_and)) == 0)
         {
-            return build_logical_op(t, s_expr, node_op_and);
+            return build_logical_op(ast, s_expr, node_op_and);
         }
 
         if (strncmp(c_expr->token, token_or, sizeof(token_or)) == 0)
         {
-            return build_logical_op(t, s_expr, node_op_or);
+            return build_logical_op(ast, s_expr, node_op_or);
         }
 
         if (strncmp(c_expr->token, token_not, sizeof(token_not)) == 0)
         {
-            return build_logical_op(t, s_expr, node_op_not);
+            return build_logical_op(ast, s_expr, node_op_not);
         }
 
-        return build_atom(t, s_expr);
+        return build_atom(ast, s_expr);
     }
 }
 
-node* build_logical_expression(tree& t, sexpr::node* s_expr)
+node* build_logical_expression(tree& ast, sexpr::node* s_expr)
 {
     plnnrc_assert(s_expr->type == sexpr::node_list);
 
-    node* root = t.make_node(node_op_and, s_expr);
+    node* root = ast.make_node(node_op_and, s_expr);
 
     if (!root)
     {
@@ -102,7 +102,7 @@ node* build_logical_expression(tree& t, sexpr::node* s_expr)
 
     for (sexpr::node* c_expr = s_expr->first_child; c_expr != 0; c_expr = c_expr->next_sibling)
     {
-        node* child = build_recursive(t, c_expr);
+        node* child = build_recursive(ast, c_expr);
 
         if (!child)
         {
@@ -137,7 +137,7 @@ namespace
     }
 }
 
-node* convert_to_nnf(tree& t, node* root)
+node* convert_to_nnf(tree& ast, node* root)
 {
     node* r = root;
 
@@ -184,7 +184,7 @@ node* convert_to_nnf(tree& t, node* root)
 
                         detach_node(x);
 
-                        node* new_not = t.make_node(node_op_not);
+                        node* new_not = ast.make_node(node_op_not);
 
                         if (!new_not)
                         {
@@ -294,7 +294,7 @@ namespace
         return 0;
     }
 
-    bool distribute_and(tree& t, node* node_and)
+    bool distribute_and(tree& ast, node* node_and)
     {
         plnnrc_assert(node_and != 0);
         plnnrc_assert(node_and->type == node_op_and);
@@ -307,7 +307,7 @@ namespace
         for (node* or_child = node_or->first_child; or_child != 0;)
         {
             node* next_or_child = or_child->next_sibling;
-            node* new_and = t.make_node(node_op_and);
+            node* new_and = ast.make_node(node_op_and);
 
             if (!new_and)
             {
@@ -320,7 +320,7 @@ namespace
 
                 if (and_child != node_or)
                 {
-                    node* and_child_clone = t.clone_subtree(and_child);
+                    node* and_child_clone = ast.clone_subtree(and_child);
 
                     if (!and_child_clone)
                     {
@@ -350,7 +350,7 @@ namespace
         return true;
     }
 
-    node* convert_to_dnf_or(tree& t, node* root)
+    node* convert_to_dnf_or(tree& ast, node* root)
     {
         plnnrc_assert(root != 0);
         plnnrc_assert(root->type == node_op_or);
@@ -367,7 +367,7 @@ namespace
                 {
                     done = false;
 
-                    if (!distribute_and(t, n))
+                    if (!distribute_and(ast, n))
                     {
                         return 0;
                     }
@@ -386,12 +386,12 @@ namespace
     }
 }
 
-node* convert_to_dnf(tree& t, node* root)
+node* convert_to_dnf(tree& ast, node* root)
 {
     plnnrc_assert(root);
 
-    node* nnf_root = convert_to_nnf(t, root);
-    node* new_root = t.make_node(node_op_or);
+    node* nnf_root = convert_to_nnf(ast, root);
+    node* new_root = ast.make_node(node_op_or);
 
     if (!nnf_root || !new_root)
     {
@@ -401,7 +401,7 @@ node* convert_to_dnf(tree& t, node* root)
     append_child(new_root, nnf_root);
     flatten(new_root);
 
-    return convert_to_dnf_or(t, new_root);
+    return convert_to_dnf_or(ast, new_root);
 }
 
 }

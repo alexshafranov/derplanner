@@ -36,7 +36,7 @@ namespace ast
 
 namespace ast {
 
-node* build_atom(tree& t, sexpr::node* s_expr);
+node* build_atom(tree& ast, sexpr::node* s_expr);
 
 }
 }
