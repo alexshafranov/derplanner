@@ -99,6 +99,13 @@ namespace
             return result;
         }
 
+        if (type == node_worldstate_type)
+        {
+            result.size = sizeof(worldstate_type);
+            result.alignment = plnnrc_alignof(worldstate_type);
+            return result;
+        }
+
         return result;
     }
 }

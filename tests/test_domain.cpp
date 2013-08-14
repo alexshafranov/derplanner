@@ -154,7 +154,6 @@ namespace
         ast::node* actual_tree = ast::build_worldstate(tree, expr.root()->first_child);
         CHECK(actual_tree);
         std::string actual_str = to_string(actual_tree);
-        (void)actual_str;
 
         const char* expected = \
 "node_worldstate\n"
@@ -165,5 +164,25 @@ namespace
 "        node_worldstate_type (const char *)";
 
         CHECK_EQUAL(expected, actual_str.c_str());
+    }
+
+    TEST(worldstate_atom_table)
+    {
+        char buffer[] = \
+"(:worldstate               "
+"    (atomx (int) (int))    "
+"    (atomy (double))       "
+")                          ";
+
+        sexpr::tree expr;
+        expr.parse(buffer);
+        ast::tree tree;
+        ast::node* root = ast::build_worldstate(tree, expr.root()->first_child);
+
+        ast::node* atomx = root->first_child;
+        ast::node* atomy = root->first_child->next_sibling;
+
+        CHECK_EQUAL(atomx, tree.ws_atoms.find("atomx"));
+        CHECK_EQUAL(atomy, tree.ws_atoms.find("atomy"));
     }
 }

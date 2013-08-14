@@ -199,6 +199,8 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
         return 0;
     }
 
+    int type_tag = 1;
+
     for (sexpr::node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
     {
         node* atom = ast.make_node(node_atom, c_expr->first_child);
@@ -212,18 +214,24 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
 
         for (sexpr::node* t_expr = c_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
         {
-            node* type = ast.ws_types.find(t_expr->first_child->token);
+            node* type = ast.make_node(node_worldstate_type, t_expr);
 
             if (!type)
             {
-                type = ast.make_node(node_worldstate_type, t_expr);
+                return 0;
+            }
 
-                if (!type)
-                {
-                    return 0;
-                }
+            node* type_proto = ast.ws_types.find(t_expr->first_child->token);
 
+            if (!type_proto)
+            {
+                annotation<worldstate_type>(type)->type_tag = type_tag;
                 ast.ws_types.insert(t_expr->first_child->token, type);
+                type_tag++;
+            }
+            else
+            {
+                annotation<worldstate_type>(type)->type_tag = annotation<worldstate_type>(type_proto)->type_tag;
             }
 
             append_child(atom, type);

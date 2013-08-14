@@ -52,6 +52,11 @@ struct node
     void* annotation;
 };
 
+struct worldstate_type
+{
+    int type_tag;
+};
+
 struct term
 {
     int type_tag;
