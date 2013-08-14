@@ -64,7 +64,7 @@ namespace
 
         switch (node->type)
         {
-        #include <derplanner/compiler/ast_node_tags.inc>
+        #include <derplanner/compiler/ast_node_tags.inl>
         default:
             plnnrc_assert(false);
             return std::string("<error>");

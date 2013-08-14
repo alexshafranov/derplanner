@@ -35,7 +35,7 @@ enum node_type
     node_none = 0,
 
     #define PLNNRC_AST_NODE(NODE_ID) NODE_ID,
-    #include "derplanner/compiler/ast_node_tags.inc"
+    #include "derplanner/compiler/ast_node_tags.inl"
     #undef PLNNRC_AST_NODE
 };
 
