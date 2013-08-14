@@ -78,6 +78,7 @@ id_table::id_table()
     : _buffer(0)
     , _capacity(0)
     , _mask(0)
+    , _count(0)
 {
 }
 
@@ -86,6 +87,7 @@ bool id_table::init(uint32_t max_count)
     memory::deallocate(_buffer);
 
     _capacity = required_capacity(max_count);
+    _count = 0;
     _mask = _capacity - 1;
     _buffer = static_cast<id_table_entry*>(memory::allocate(sizeof(_buffer[0])*_capacity));
 
@@ -121,6 +123,7 @@ void id_table::insert(const char* key, ast::node* value)
             e.key = key;
             e.value = value;
             e.hash = hash_code;
+            _count++;
             return;
         }
 

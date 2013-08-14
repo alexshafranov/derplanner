@@ -94,6 +94,8 @@ namespace
             plnnrc::ast::node* actual = table.find(keys[i]);
             CHECK(actual == &nodes[i]);
         }
+
+        CHECK_EQUAL(num_keys, table.count());
     }
 
     TEST(lookup_non_existing_keys)
@@ -131,5 +133,6 @@ namespace
         plnnrc::ast::node* actual = table.find(key);
 
         CHECK_EQUAL(&value2, actual);
+        CHECK_EQUAL(1u, table.count());
     }
 }

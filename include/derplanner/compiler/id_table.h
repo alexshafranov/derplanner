@@ -43,6 +43,8 @@ public:
     void insert(const char* key, ast::node* value);
     ast::node* find(const char* key) const;
 
+    unsigned count() const { return _count; }
+
 private:
     id_table(const id_table&);
     const id_table& operator=(const id_table&);
@@ -50,6 +52,7 @@ private:
     id_table_entry* _buffer;
     uint32_t _capacity;
     uint32_t _mask;
+    unsigned _count;
 };
 
 }
