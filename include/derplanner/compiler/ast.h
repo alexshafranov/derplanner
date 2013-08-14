@@ -102,7 +102,8 @@ public:
     node* clone_node(node* original);
     node* clone_subtree(node* original);
 
-    id_table worldstate_types;
+    id_table ws_atoms;
+    id_table ws_types;
 
 private:
     void* _memory;
