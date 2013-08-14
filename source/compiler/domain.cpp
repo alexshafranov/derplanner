@@ -50,6 +50,18 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
         return 0;
     }
 
+    unsigned method_count = 0;
+
+    for (sexpr::node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
+    {
+        method_count++;
+    }
+
+    if (!ast.methods.init(method_count))
+    {
+        return 0;
+    }
+
     for (sexpr::node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
     {
         node* method = build_method(ast, c_expr);
@@ -91,6 +103,8 @@ node* build_method(tree& ast, sexpr::node* s_expr)
     }
 
     append_child(method, task_atom);
+
+    ast.methods.insert(task_atom->s_expr->token, method);
 
     sexpr::node* branch_precond_expr = task_atom_expr->next_sibling;
 

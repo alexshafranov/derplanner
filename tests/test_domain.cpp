@@ -140,6 +140,29 @@ namespace
         CHECK_EQUAL(expected, actual_str.c_str());
     }
 
+    TEST(method_table)
+    {
+        char buffer[] = \
+"(:domain                         "
+"    (:method (m1 ?x ?y))         "
+"    (:method (m2 ?z ?w))         "
+")                                ";
+
+        sexpr::tree expr;
+        expr.parse(buffer);
+        ast::tree tree;
+
+        ast::node* root = ast::build_domain(tree, expr.root()->first_child);
+        CHECK(root);
+
+        ast::node* m1 = root->first_child;
+        ast::node* m2 = root->first_child->next_sibling;
+
+        CHECK_EQUAL(2u, tree.methods.count());
+        CHECK_EQUAL(m1, tree.methods.find("m1"));
+        CHECK_EQUAL(m2, tree.methods.find("m2"));
+    }
+
     TEST(worldstate_ast_structure)
     {
         char buffer[] = \
