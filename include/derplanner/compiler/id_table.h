@@ -31,6 +31,23 @@ namespace ast
 }
 
 struct id_table_entry;
+class id_table;
+
+class id_table_values
+{
+public:
+    id_table_values();
+    id_table_values(const id_table* table);
+    id_table_values(const id_table_values& values);
+    id_table_values& operator=(const id_table_values& values);
+
+    bool empty() const;
+    ast::node* pop();
+
+private:
+    uint32_t _slot;
+    const id_table* _table;
+};
 
 class id_table
 {
@@ -45,7 +62,11 @@ public:
 
     unsigned count() const { return _count; }
 
+    id_table_values values() const;
+
 private:
+    friend id_table_values;
+
     id_table(const id_table&);
     const id_table& operator=(const id_table&);
 

@@ -135,4 +135,38 @@ namespace
         CHECK_EQUAL(&value2, actual);
         CHECK_EQUAL(1u, table.count());
     }
+
+    TEST(value_iteration)
+    {
+        plnnrc::id_table table;
+        table.init(3);
+
+        plnnrc::ast::node value1;
+        plnnrc::ast::node value2;
+        plnnrc::ast::node value3;
+
+        CHECK(table.values().empty());
+
+        table.insert("key1", &value1);
+        table.insert("key2", &value2);
+        table.insert("key3", &value3);
+
+        plnnrc::id_table_values values = table.values();
+
+        plnnrc::ast::node* v;
+
+        CHECK(!values.empty());
+        v = values.pop();
+        CHECK(v == &value1 || v == &value2 || v == &value3);
+
+        CHECK(!values.empty());
+        v = values.pop();
+        CHECK(v == &value1 || v == &value2 || v == &value3);
+
+        CHECK(!values.empty());
+        v = values.pop();
+        CHECK(v == &value1 || v == &value2 || v == &value3);
+
+        CHECK(values.empty());
+    }
 }

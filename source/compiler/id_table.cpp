@@ -195,4 +195,71 @@ ast::node* id_table::find(const char* key) const
     return 0;
 }
 
+id_table_values::id_table_values()
+    : _slot(0xffffffff)
+    , _table(0)
+{
+}
+
+id_table_values::id_table_values(const id_table* table)
+    : _slot(0xffffffff)
+    , _table(table)
+{
+    for (uint32_t s = 0; s < _table->_capacity; ++s)
+    {
+        if (_table->_buffer[s].key)
+        {
+            _slot = s;
+            break;
+        }
+    }
+}
+
+id_table_values::id_table_values(const id_table_values& values)
+    : _slot(values._slot)
+    , _table(values._table)
+{
+}
+
+id_table_values& id_table_values::operator=(const id_table_values& values)
+{
+    _slot = values._slot;
+    _table = values._table;
+    return *this;
+}
+
+bool id_table_values::empty() const
+{
+    return _slot == 0xffffffff;
+}
+
+ast::node* id_table_values::pop()
+{
+    if (empty())
+    {
+        return 0;
+    }
+
+    ast::node* result = _table->_buffer[_slot].value;
+
+    uint32_t s = _slot + 1;
+    _slot = 0xffffffff;
+
+    for (; s < _table->_capacity; ++s)
+    {
+        if (_table->_buffer[s].key)
+        {
+            _slot = s;
+            break;
+        }
+    }
+
+    return result;
+}
+
+id_table_values id_table::values() const
+{
+    return id_table_values(this);
+}
+
 }
