@@ -20,7 +20,7 @@
 
 #include <unittestpp.h>
 #include <derplanner/compiler/ast.h>
-#include "source/compiler/id_table.h"
+#include <derplanner/compiler/id_table.h>
 
 namespace
 {

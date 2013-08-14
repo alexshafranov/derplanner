@@ -21,6 +21,8 @@
 #ifndef DERPLANNER_COMPILER_AST_H_
 #define DERPLANNER_COMPILER_AST_H_
 
+#include "derplanner/compiler/id_table.h"
+
 namespace plnnrc {
 
 namespace sexpr
@@ -99,6 +101,8 @@ public:
     node* make_node(node_type type, sexpr::node* token=0);
     node* clone_node(node* original);
     node* clone_subtree(node* original);
+
+    id_table worldstate_types;
 
 private:
     void* _memory;

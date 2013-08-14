@@ -23,7 +23,7 @@
 #include <stddef.h>
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/memory.h"
-#include "id_table.h"
+#include "derplanner/compiler/id_table.h"
 
 namespace plnnrc {
 
