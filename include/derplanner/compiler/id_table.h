@@ -42,7 +42,8 @@ public:
     id_table_values& operator=(const id_table_values& values);
 
     bool empty() const;
-    ast::node* pop();
+    void pop();
+    ast::node* value() const;
 
 private:
     uint32_t _slot;

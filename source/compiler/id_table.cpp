@@ -233,28 +233,28 @@ bool id_table_values::empty() const
     return _slot == 0xffffffff;
 }
 
-ast::node* id_table_values::pop()
+void id_table_values::pop()
 {
-    if (empty())
+    if (!empty())
     {
-        return 0;
-    }
+        uint32_t s = _slot + 1;
+        _slot = 0xffffffff;
 
-    ast::node* result = _table->_buffer[_slot].value;
-
-    uint32_t s = _slot + 1;
-    _slot = 0xffffffff;
-
-    for (; s < _table->_capacity; ++s)
-    {
-        if (_table->_buffer[s].key)
+        for (; s < _table->_capacity; ++s)
         {
-            _slot = s;
-            break;
+            if (_table->_buffer[s].key)
+            {
+                _slot = s;
+                break;
+            }
         }
     }
+}
 
-    return result;
+ast::node* id_table_values::value() const
+{
+    plnnrc_assert(!empty() && _table);
+    return _table->_buffer[_slot].value;
 }
 
 id_table_values id_table::values() const

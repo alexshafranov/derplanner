@@ -156,16 +156,19 @@ namespace
         plnnrc::ast::node* v;
 
         CHECK(!values.empty());
-        v = values.pop();
+        v = values.value();
         CHECK(v == &value1 || v == &value2 || v == &value3);
+        values.pop();
 
         CHECK(!values.empty());
-        v = values.pop();
+        v = values.value();
         CHECK(v == &value1 || v == &value2 || v == &value3);
+        values.pop();
 
         CHECK(!values.empty());
-        v = values.pop();
+        v = values.value();
         CHECK(v == &value1 || v == &value2 || v == &value3);
+        values.pop();
 
         CHECK(values.empty());
     }
