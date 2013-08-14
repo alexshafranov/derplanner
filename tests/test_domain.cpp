@@ -185,4 +185,41 @@ namespace
         CHECK_EQUAL(atomx, tree.ws_atoms.find("atomx"));
         CHECK_EQUAL(atomy, tree.ws_atoms.find("atomy"));
     }
+
+    TEST(worldstate_type_table)
+    {
+        char buffer[] = \
+"(:worldstate               "
+"    (atomx (int) (int))    "
+"    (atomy (double))       "
+")                          ";
+
+        sexpr::tree expr;
+        expr.parse(buffer);
+        ast::tree tree;
+        ast::node* root = ast::build_worldstate(tree, expr.root()->first_child);
+
+        ast::node* atomx = root->first_child;
+        ast::node* atomy = root->first_child->next_sibling;
+
+        ast::node* atomx_arg1 = atomx->first_child;
+        ast::node* atomx_arg2 = atomx->first_child->next_sibling;
+        ast::node* atomy_arg1 = atomy->first_child;
+
+        int atomx_arg1_type_tag = ast::annotation<ast::worldstate_type>(atomx_arg1)->type_tag;
+        int atomx_arg2_type_tag = ast::annotation<ast::worldstate_type>(atomx_arg2)->type_tag;
+        int atomy_arg1_type_tag = ast::annotation<ast::worldstate_type>(atomy_arg1)->type_tag;
+
+        CHECK(atomx_arg1_type_tag == atomx_arg2_type_tag);
+        CHECK(atomx_arg1_type_tag != atomy_arg1_type_tag);
+
+        ast::node* ws_type_int = tree.ws_types.find("int");
+        CHECK(ws_type_int);
+
+        ast::node* ws_type_double = tree.ws_types.find("double");
+        CHECK(ws_type_double);
+
+        CHECK(atomx_arg1 == ws_type_int || atomx_arg2 == ws_type_int);
+        CHECK(atomy_arg1 == ws_type_double);
+    }
 }
