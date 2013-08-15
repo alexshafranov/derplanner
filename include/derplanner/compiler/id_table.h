@@ -30,7 +30,6 @@ namespace ast
     struct node;
 }
 
-struct id_table_entry;
 class id_table;
 
 class id_table_values
@@ -49,6 +48,8 @@ private:
     uint32_t _slot;
     const id_table* _table;
 };
+
+struct id_table_entry;
 
 class id_table
 {
