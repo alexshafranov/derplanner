@@ -59,7 +59,8 @@ struct worldstate_type
 
 struct term
 {
-    int type_tag;
+    int   type_tag;
+    node* var_def;
 };
 
 template <typename T>

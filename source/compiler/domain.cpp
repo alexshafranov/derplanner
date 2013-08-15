@@ -288,6 +288,58 @@ namespace
             }
         }
     }
+
+    void link_to_parameter(node* parameter, node* root)
+    {
+        const char* id = parameter->s_expr->token;
+        plnnrc_assert(id);
+
+        for (node* n = root; n != 0; n = preorder_traversal_next(root, n))
+        {
+            if (n->type == node_term_variable)
+            {
+                if (strcmp(n->s_expr->token, id) == 0)
+                {
+                    annotation<term>(n)->var_def = parameter;
+                }
+            }
+        }
+    }
+
+    void link_to_variable(node* variable, node* root, node* first)
+    {
+        const char* id = variable->s_expr->token;
+        plnnrc_assert(id);
+
+        for (node* n = first; n != 0; n = preorder_traversal_next(root, n))
+        {
+            if (n->type == node_term_variable && !annotation<term>(n)->var_def)
+            {
+                if (strcmp(n->s_expr->token, id) == 0)
+                {
+                    annotation<term>(n)->var_def = variable;
+                }
+            }
+        }
+    }
+
+    void link_branch_variables(node* method_atom, node* precondition, node* tasklist)
+    {
+        for (node* p = method_atom->first_child; p != 0; p = p->next_sibling)
+        {
+            link_to_parameter(p, precondition);
+            link_to_parameter(p, tasklist);
+        }
+
+        for (node* n = precondition; n != 0; n = preorder_traversal_next(precondition, n))
+        {
+            if (n->type == node_term_variable && !annotation<term>(n)->var_def)
+            {
+                link_to_variable(n, precondition, preorder_traversal_next(precondition, n));
+                link_to_variable(n, tasklist, tasklist);
+            }
+        }
+    }
 }
 
 void infer_types(tree& ast)
@@ -299,6 +351,25 @@ void infer_types(tree& ast)
         for (node* branch = method->first_child; branch != 0; branch = branch->next_sibling)
         {
             seed_precondition_types(ast, branch->first_child);
+        }
+
+        link_variables(method);
+    }
+}
+
+void link_variables(node* method)
+{
+    node* atom = method->first_child;
+    plnnrc_assert(atom && atom->type == node_atom);
+
+    for (node* branch = atom->next_sibling; branch != 0; branch = branch->next_sibling)
+    {
+        if (branch->first_child)
+        {
+            node* precondition = branch->first_child;
+            node* tasklist = precondition->next_sibling;
+            plnnrc_assert(tasklist);
+            link_branch_variables(atom, precondition, tasklist);
         }
     }
 }
