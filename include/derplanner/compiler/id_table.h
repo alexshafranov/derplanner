@@ -59,7 +59,7 @@ public:
 
     bool init(uint32_t max_count);
 
-    void insert(const char* key, ast::node* value);
+    bool insert(const char* key, ast::node* value);
     ast::node* find(const char* key) const;
 
     unsigned count() const { return _count; }
@@ -71,6 +71,10 @@ private:
 
     id_table(const id_table&);
     const id_table& operator=(const id_table&);
+
+    bool _allocate(uint32_t new_capacity);
+    bool _grow();
+    void _insert(uint32_t hash_code, const char* key, ast::node* value);
 
     id_table_entry* _buffer;
     uint32_t _capacity;

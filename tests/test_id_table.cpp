@@ -172,4 +172,28 @@ namespace
 
         CHECK(values.empty());
     }
+
+    TEST(table_grows)
+    {
+        plnnrc::id_table table;
+
+        // allocate for 2 elems initially
+        table.init(2);
+
+        // but insert much more
+        plnnrc::ast::node nodes[num_keys];
+
+        for (unsigned i = 0; i < num_keys; ++i)
+        {
+            table.insert(keys[i], &nodes[i]);
+        }
+
+        for (unsigned i = 0; i < num_keys; ++i)
+        {
+            plnnrc::ast::node* actual = table.find(keys[i]);
+            CHECK(actual == &nodes[i]);
+        }
+
+        CHECK_EQUAL(num_keys, table.count());
+    }
 }

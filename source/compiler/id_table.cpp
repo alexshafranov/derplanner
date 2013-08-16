@@ -85,18 +85,7 @@ id_table::id_table()
 bool id_table::init(uint32_t max_count)
 {
     memory::deallocate(_buffer);
-
-    _capacity = required_capacity(max_count);
-    _count = 0;
-    _mask = _capacity - 1;
-    _buffer = static_cast<id_table_entry*>(memory::allocate(sizeof(_buffer[0])*_capacity));
-
-    if (_buffer != 0)
-    {
-        memset(_buffer, 0, sizeof(_buffer[0])*_capacity);
-    }
-
-    return _buffer != 0;
+    return _allocate(required_capacity(max_count));
 }
 
 id_table::~id_table()
@@ -104,11 +93,27 @@ id_table::~id_table()
     memory::deallocate(_buffer);
 }
 
-void id_table::insert(const char* key, ast::node* value)
+bool id_table::_allocate(uint32_t new_capacity)
+{
+    id_table_entry* buffer = static_cast<id_table_entry*>(memory::allocate(sizeof(buffer[0])*new_capacity));
+
+    if (!buffer)
+    {
+        return false;
+    }
+
+    _count = 0;
+    _capacity = new_capacity;
+    _mask = _capacity - 1;
+    _buffer = buffer;
+    memset(_buffer, 0, sizeof(_buffer[0])*_capacity);
+
+    return true;
+}
+
+void id_table::_insert(uint32_t hash_code, const char* key, ast::node* value)
 {
     plnnrc_assert(_buffer != 0);
-
-    uint32_t hash_code = hash(key);
 
     uint32_t slot = hash_code & _mask;
 
@@ -155,6 +160,52 @@ void id_table::insert(const char* key, ast::node* value)
     }
 
     plnnrc_assert(false);
+}
+
+bool id_table::_grow()
+{
+    plnnrc_assert(_buffer != 0);
+
+    id_table_entry* old_buffer = _buffer;
+    uint32_t old_capacity = _capacity;
+
+    if (!_allocate(old_capacity*2))
+    {
+        return false;
+    }
+
+    for (uint32_t i = 0; i < old_capacity; ++i)
+    {
+        id_table_entry& old_entry = old_buffer[i];
+
+        if (old_entry.key)
+        {
+            _insert(old_entry.hash, old_entry.key, old_entry.value);
+        }
+    }
+
+    memory::deallocate(old_buffer);
+
+    return true;
+}
+
+bool id_table::insert(const char* key, ast::node* value)
+{
+    plnnrc_assert(_buffer != 0);
+
+    if (_count + 1 >= _capacity * load_factor)
+    {
+        if (!_grow())
+        {
+            return false;
+        }
+    }
+
+    uint32_t hash_code = hash(key);
+
+    _insert(hash_code, key, value);
+
+    return true;
 }
 
 ast::node* id_table::find(const char* key) const
