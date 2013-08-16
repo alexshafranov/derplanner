@@ -191,16 +191,10 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
     }
 
     unsigned total_atom_count = 0;
-    unsigned total_term_count = 0;
 
     for (sexpr::node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
     {
         total_atom_count++;
-
-        for (sexpr::node* t_expr = c_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
-        {
-            total_term_count++;
-        }
     }
 
     if (!ast.ws_atoms.init(total_atom_count))
@@ -208,7 +202,7 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
         return 0;
     }
 
-    if (!ast.ws_types.init(total_term_count))
+    if (!ast.ws_types.init(32))
     {
         return 0;
     }
@@ -240,7 +234,12 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
             if (!type_proto)
             {
                 annotation<worldstate_type>(type)->type_tag = type_tag;
-                ast.ws_types.insert(t_expr->first_child->token, type);
+
+                if (!ast.ws_types.insert(t_expr->first_child->token, type))
+                {
+                    return 0;
+                }
+
                 type_tag++;
             }
             else
