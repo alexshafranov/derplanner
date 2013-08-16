@@ -34,6 +34,12 @@ namespace
     const char token_worldstate[]   = ":worldstate";
     const char token_domain[]       = ":domain";
     const char token_method[]       = ":method";
+
+    inline bool is_operator(tree& ast, node* atom)
+    {
+        plnnrc_assert(atom->type == node_atom);
+        return !ast.methods.find(atom->s_expr->token);
+    }
 }
 
 node* build_domain(tree& ast, sexpr::node* s_expr)
@@ -72,6 +78,56 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
         }
 
         append_child(domain, method);
+    }
+
+    if (!ast.operators.init(32))
+    {
+        return 0;
+    }
+
+    for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+    {
+        node* method = methods.value();
+        node* method_atom = method->first_child;
+        plnnrc_assert(method_atom && method_atom->type == node_atom);
+
+        for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
+        {
+            plnnrc_assert(branch->first_child);
+            node* tasklist = branch->first_child->next_sibling;
+            plnnrc_assert(tasklist);
+
+            for (node* task = tasklist->first_child; task != 0; task = task->next_sibling)
+            {
+                if (is_operator(ast, task))
+                {
+                    node* operatr = ast.make_node(node_operator);
+
+                    if (ast.operators.find(task->s_expr->token))
+                    {
+                        // check number of arguments here.
+                        continue;
+                    }
+
+                    if (!ast.operators.insert(task->s_expr->token, operatr))
+                    {
+                        return 0;
+                    }
+
+                    for (node* arg = task->first_child; arg != 0; arg = arg->next_sibling)
+                    {
+                        node* param = ast.make_node(node_term_variable);
+
+                        if (!param)
+                        {
+                            return 0;
+                        }
+
+                        append_child(operatr, param);
+                    }
+                }
+            }
+        }
     }
 
     return domain;
@@ -287,12 +343,6 @@ namespace
     {
         plnnrc_assert(is_term(node));
         annotation<term>(node)->type_tag = new_type_tag;
-    }
-
-    inline bool is_operator(tree& ast, node* atom)
-    {
-        plnnrc_assert(atom->type == node_atom);
-        return !ast.methods.find(atom->s_expr->token);
     }
 
     void seed_precondition_types(tree& ast, node* root)

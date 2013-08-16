@@ -105,6 +105,7 @@ public:
     id_table ws_atoms;
     id_table ws_types;
     id_table methods;
+    id_table operators;
 
 private:
     void* _memory;
