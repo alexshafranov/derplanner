@@ -342,21 +342,6 @@ namespace
     }
 }
 
-void infer_types(tree& ast)
-{
-    for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
-    {
-        node* method = methods.value();
-
-        for (node* branch = method->first_child; branch != 0; branch = branch->next_sibling)
-        {
-            seed_precondition_types(ast, branch->first_child);
-        }
-
-        link_variables(method);
-    }
-}
-
 void link_variables(node* method)
 {
     node* atom = method->first_child;
@@ -371,6 +356,21 @@ void link_variables(node* method)
             plnnrc_assert(tasklist);
             link_branch_variables(atom, precondition, tasklist);
         }
+    }
+}
+
+void infer_types(tree& ast)
+{
+    for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+    {
+        node* method = methods.value();
+
+        for (node* branch = method->first_child; branch != 0; branch = branch->next_sibling)
+        {
+            seed_precondition_types(ast, branch->first_child);
+        }
+
+        link_variables(method);
     }
 }
 
