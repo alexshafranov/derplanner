@@ -259,36 +259,41 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
 
 namespace
 {
-
-    bool is_bound(node* var)
+    inline bool is_bound(node* var)
     {
         plnnrc_assert(var->type == node_term_variable);
         return annotation<term>(var)->var_def != 0;
     }
 
-    node* definition(node* var)
+    inline node* definition(node* var)
     {
         plnnrc_assert(var->type == node_term_variable);
         return annotation<term>(var)->var_def;
     }
 
-    bool is_parameter(node* var)
+    inline bool is_parameter(node* var)
     {
         plnnrc_assert(var->type == node_term_variable);
         plnnrc_assert(var->parent && var->parent->parent);
         return var->parent->parent->type == node_method;
     }
 
-    int type_tag(node* node)
+    inline int type_tag(node* node)
     {
         plnnrc_assert(is_term(node));
         return annotation<term>(node)->type_tag;
     }
 
-    void type_tag(node* node, int new_type_tag)
+    inline void type_tag(node* node, int new_type_tag)
     {
         plnnrc_assert(is_term(node));
         annotation<term>(node)->type_tag = new_type_tag;
+    }
+
+    inline bool is_operator(tree& ast, node* atom)
+    {
+        plnnrc_assert(atom->type == node_atom);
+        return !ast.methods.find(atom->s_expr->token);
     }
 
     void seed_precondition_types(tree& ast, node* root)
@@ -394,8 +399,10 @@ void infer_types(tree& ast)
     for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
     {
         node* method = methods.value();
+        node* method_atom = method->first_child;
+        plnnrc_assert(method_atom && method_atom->type == node_atom);
 
-        for (node* branch = method->first_child; branch != 0; branch = branch->next_sibling)
+        for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
         {
             seed_precondition_types(ast, branch->first_child);
         }
@@ -406,8 +413,10 @@ void infer_types(tree& ast)
     for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
     {
         node* method = methods.value();
+        node* method_atom = method->first_child;
+        plnnrc_assert(method_atom && method_atom->type == node_atom);
 
-        for (node* branch = method->first_child; branch != 0; branch = branch->next_sibling)
+        for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
         {
             node* precondition = branch->first_child;
             plnnrc_assert(precondition);
@@ -427,6 +436,59 @@ void infer_types(tree& ast)
 
                         plnnrc_assert(type_tag(def) == type_tag(var));
                     }
+                }
+            }
+        }
+    }
+
+    for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+    {
+        node* method = methods.value();
+        node* method_atom = method->first_child;
+        plnnrc_assert(method_atom && method_atom->type == node_atom);
+
+        for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
+        {
+            plnnrc_assert(branch->first_child);
+            node* tasklist = branch->first_child->next_sibling;
+            plnnrc_assert(tasklist);
+
+            for (node* task = tasklist->first_child; task != 0; task = task->next_sibling)
+            {
+                if (is_operator(ast, task))
+                {
+                    for (node* arg = task->first_child; arg != 0; arg = arg->next_sibling)
+                    {
+                        plnnrc_assert(arg->type == node_term_variable);
+                        plnnrc_assert(is_bound(arg));
+                        node* def = definition(arg);
+                        plnnrc_assert(type_tag(def) != 0);
+                        type_tag(arg, type_tag(def));
+                    }
+                }
+                else
+                {
+                    node* param = method_atom->first_child;
+
+                    for (node* arg = task->first_child; arg != 0; arg = arg->next_sibling)
+                    {
+                        plnnrc_assert(param);
+                        plnnrc_assert(arg->type == node_term_variable);
+                        plnnrc_assert(is_bound(arg));
+                        node* def = definition(arg);
+                        plnnrc_assert(type_tag(def) != 0);
+
+                        if (!type_tag(param))
+                        {
+                            type_tag(param, type_tag(def));
+                        }
+
+                        plnnrc_assert(type_tag(param) == type_tag(def));
+
+                        param = param->next_sibling;
+                    }
+
+                    plnnrc_assert(!param);
                 }
             }
         }
