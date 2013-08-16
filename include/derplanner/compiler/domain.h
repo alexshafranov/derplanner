@@ -37,8 +37,6 @@ namespace ast
 namespace ast {
 
 node* build_domain(tree& ast, sexpr::node* s_expr);
-node* build_method(tree& ast, sexpr::node* s_expr);
-node* build_branch(tree& ast, sexpr::node* s_expr);
 node* build_worldstate(tree& ast, sexpr::node* s_expr);
 
 void infer_types(tree& ast);

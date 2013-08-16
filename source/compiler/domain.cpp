@@ -40,6 +40,9 @@ namespace
         plnnrc_assert(atom->type == node_atom);
         return !ast.methods.find(atom->s_expr->token);
     }
+
+    node* build_method(tree& ast, sexpr::node* s_expr);
+    node* build_branch(tree& ast, sexpr::node* s_expr);
 }
 
 node* build_domain(tree& ast, sexpr::node* s_expr)
@@ -147,103 +150,106 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
     return domain;
 }
 
-node* build_method(tree& ast, sexpr::node* s_expr)
+namespace
 {
-    plnnrc_assert(s_expr->type == sexpr::node_list);
-    plnnrc_assert(s_expr->first_child);
-    plnnrc_assert(s_expr->first_child->type == sexpr::node_symbol);
-    plnnrc_assert(strncmp(s_expr->first_child->token, token_method, sizeof(token_method)) == 0);
-
-    node* method = ast.make_node(node_method, s_expr);
-
-    if (!method)
+    node* build_method(tree& ast, sexpr::node* s_expr)
     {
-        return 0;
-    }
+        plnnrc_assert(s_expr->type == sexpr::node_list);
+        plnnrc_assert(s_expr->first_child);
+        plnnrc_assert(s_expr->first_child->type == sexpr::node_symbol);
+        plnnrc_assert(strncmp(s_expr->first_child->token, token_method, sizeof(token_method)) == 0);
 
-    sexpr::node* task_atom_expr = s_expr->first_child->next_sibling;
-    plnnrc_assert(task_atom_expr);
-    plnnrc_assert(task_atom_expr->type == sexpr::node_list);
+        node* method = ast.make_node(node_method, s_expr);
 
-    node* task_atom = build_atom(ast, task_atom_expr);
-
-    if (!task_atom)
-    {
-        return 0;
-    }
-
-    append_child(method, task_atom);
-
-    ast.methods.insert(task_atom->s_expr->token, method);
-
-    sexpr::node* branch_precond_expr = task_atom_expr->next_sibling;
-
-    while (branch_precond_expr)
-    {
-        node* branch = build_branch(ast, branch_precond_expr);
-
-        if (!branch)
+        if (!method)
         {
             return 0;
         }
 
-        append_child(method, branch);
+        sexpr::node* task_atom_expr = s_expr->first_child->next_sibling;
+        plnnrc_assert(task_atom_expr);
+        plnnrc_assert(task_atom_expr->type == sexpr::node_list);
 
-        branch_precond_expr = branch_precond_expr->next_sibling->next_sibling;
-    }
-
-    return method;
-}
-
-node* build_branch(tree& ast, sexpr::node* s_expr)
-{
-    node* branch = ast.make_node(node_branch, s_expr);
-
-    if (!branch)
-    {
-        return 0;
-    }
-
-    node* precondition = build_logical_expression(ast, s_expr);
-
-    if (!precondition)
-    {
-        return 0;
-    }
-
-    node* precondition_dnf = convert_to_dnf(ast, precondition);
-
-    if (!precondition_dnf)
-    {
-        return 0;
-    }
-
-    append_child(branch, precondition_dnf);
-
-    sexpr::node* tasklist_expr = s_expr->next_sibling;
-
-    node* task_list = ast.make_node(node_tasklist, tasklist_expr);
-
-    if (!task_list)
-    {
-        return 0;
-    }
-
-    for (sexpr::node* t_expr = tasklist_expr->first_child; t_expr != 0; t_expr = t_expr->next_sibling)
-    {
-        node* task_atom = build_atom(ast, t_expr);
+        node* task_atom = build_atom(ast, task_atom_expr);
 
         if (!task_atom)
         {
             return 0;
         }
 
-        append_child(task_list, task_atom);
+        append_child(method, task_atom);
+
+        ast.methods.insert(task_atom->s_expr->token, method);
+
+        sexpr::node* branch_precond_expr = task_atom_expr->next_sibling;
+
+        while (branch_precond_expr)
+        {
+            node* branch = build_branch(ast, branch_precond_expr);
+
+            if (!branch)
+            {
+                return 0;
+            }
+
+            append_child(method, branch);
+
+            branch_precond_expr = branch_precond_expr->next_sibling->next_sibling;
+        }
+
+        return method;
     }
 
-    append_child(branch, task_list);
+    node* build_branch(tree& ast, sexpr::node* s_expr)
+    {
+        node* branch = ast.make_node(node_branch, s_expr);
 
-    return branch;
+        if (!branch)
+        {
+            return 0;
+        }
+
+        node* precondition = build_logical_expression(ast, s_expr);
+
+        if (!precondition)
+        {
+            return 0;
+        }
+
+        node* precondition_dnf = convert_to_dnf(ast, precondition);
+
+        if (!precondition_dnf)
+        {
+            return 0;
+        }
+
+        append_child(branch, precondition_dnf);
+
+        sexpr::node* tasklist_expr = s_expr->next_sibling;
+
+        node* task_list = ast.make_node(node_tasklist, tasklist_expr);
+
+        if (!task_list)
+        {
+            return 0;
+        }
+
+        for (sexpr::node* t_expr = tasklist_expr->first_child; t_expr != 0; t_expr = t_expr->next_sibling)
+        {
+            node* task_atom = build_atom(ast, t_expr);
+
+            if (!task_atom)
+            {
+                return 0;
+            }
+
+            append_child(task_list, task_atom);
+        }
+
+        append_child(branch, task_list);
+
+        return branch;
+    }
 }
 
 node* build_worldstate(tree& ast, sexpr::node* s_expr)
