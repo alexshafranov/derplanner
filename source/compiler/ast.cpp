@@ -149,6 +149,8 @@ node* tree::make_node(node_type type, sexpr::node* token)
             {
                 return 0;
             }
+
+            memset(n->annotation, 0, t.size);
         }
     }
 

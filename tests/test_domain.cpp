@@ -245,4 +245,52 @@ namespace
         CHECK(atomx_arg1 == ws_type_int || atomx_arg2 == ws_type_int);
         CHECK(atomy_arg1 == ws_type_double);
     }
+
+    TEST(type_inference)
+    {
+        char buffer[] = \
+"(:worldstate                   "
+"    (ax (type1) (type1))       "
+"    (ay (type2) (type3))       "
+"    (az (type2))               "
+")                              "
+"                               "
+"(:domain                       "
+"   (:method (m1 ?u ?v)         "
+"       ((ax ?t ?u) (ay ?k ?v)) "
+"       ((m2 ?t ?k))            "
+"   )                           "
+"                               "
+"   (:method (m2 ?u ?v)         "
+"       ((az ?v))               "
+"       ((!o ?u ?v))            "
+"   )                           "
+")                              ";
+
+        sexpr::tree expr;
+        expr.parse(buffer);
+        ast::tree tree;
+        ast::build_worldstate(tree, expr.root()->first_child);
+        ast::build_domain(tree, expr.root()->first_child->next_sibling);
+        ast::infer_types(tree);
+
+        const int type1 = 1;
+        const int type2 = 2;
+        const int type3 = 3;
+
+        ast::node* m1_atom = tree.methods.find("m1")->first_child;
+        ast::node* m2_atom = tree.methods.find("m2")->first_child;
+
+        ast::node* m1_u = m1_atom->first_child;
+        ast::node* m1_v = m1_atom->first_child->next_sibling;
+
+        ast::node* m2_u = m2_atom->first_child;
+        ast::node* m2_v = m2_atom->first_child->next_sibling;
+
+        CHECK_EQUAL(type1, ast::annotation<ast::term>(m1_u)->type_tag);
+        CHECK_EQUAL(type3, ast::annotation<ast::term>(m1_v)->type_tag);
+
+        CHECK_EQUAL(type1, ast::annotation<ast::term>(m2_u)->type_tag);
+        CHECK_EQUAL(type2, ast::annotation<ast::term>(m2_v)->type_tag);
+    }
 }

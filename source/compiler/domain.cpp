@@ -328,6 +328,7 @@ namespace
 
     void link_to_parameter(node* parameter, node* root)
     {
+        plnnrc_assert(parameter->type == node_term_variable);
         const char* id = parameter->s_expr->token;
         plnnrc_assert(id);
 
@@ -345,6 +346,7 @@ namespace
 
     void link_to_variable(node* variable, node* root, node* first)
     {
+        plnnrc_assert(variable->type == node_term_variable);
         const char* id = variable->s_expr->token;
         plnnrc_assert(id);
 
@@ -468,7 +470,12 @@ void infer_types(tree& ast)
                 }
                 else
                 {
-                    node* param = method_atom->first_child;
+                    node* callee = ast.methods.find(task->s_expr->token);
+                    plnnrc_assert(callee);
+                    node* callee_atom = callee->first_child;
+                    plnnrc_assert(callee_atom && callee_atom->type == node_atom);
+
+                    node* param = callee_atom->first_child;
 
                     for (node* arg = task->first_child; arg != 0; arg = arg->next_sibling)
                     {
