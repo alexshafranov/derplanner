@@ -103,6 +103,20 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
                 {
                     node* operatr = ast.make_node(node_operator);
 
+                    if (!operatr)
+                    {
+                        return 0;
+                    }
+
+                    node* operator_atom = ast.make_node(node_atom, task->first_child->s_expr);
+
+                    if (!operator_atom)
+                    {
+                        return 0;
+                    }
+
+                    append_child(operatr, operator_atom);
+
                     if (ast.operators.find(task->s_expr->token))
                     {
                         // check number of arguments here.
@@ -123,7 +137,7 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
                             return 0;
                         }
 
-                        append_child(operatr, param);
+                        append_child(operator_atom, param);
                     }
                 }
             }
@@ -506,46 +520,39 @@ void infer_types(tree& ast)
 
             for (node* task = tasklist->first_child; task != 0; task = task->next_sibling)
             {
-                if (is_operator(ast, task))
+                node* callee = ast.methods.find(task->s_expr->token);
+
+                if (!callee)
                 {
-                    for (node* arg = task->first_child; arg != 0; arg = arg->next_sibling)
-                    {
-                        plnnrc_assert(arg->type == node_term_variable);
-                        plnnrc_assert(is_bound(arg));
-                        node* def = definition(arg);
-                        plnnrc_assert(type_tag(def) != 0);
-                        type_tag(arg, type_tag(def));
-                    }
+                    callee = ast.operators.find(task->s_expr->token);
                 }
-                else
+
+                plnnrc_assert(callee);
+
+                node* callee_atom = callee->first_child;
+                plnnrc_assert(callee_atom && callee_atom->type == node_atom);
+
+                node* param = callee_atom->first_child;
+
+                for (node* arg = task->first_child; arg != 0; arg = arg->next_sibling)
                 {
-                    node* callee = ast.methods.find(task->s_expr->token);
-                    plnnrc_assert(callee);
-                    node* callee_atom = callee->first_child;
-                    plnnrc_assert(callee_atom && callee_atom->type == node_atom);
+                    plnnrc_assert(param);
+                    plnnrc_assert(arg->type == node_term_variable);
+                    plnnrc_assert(is_bound(arg));
+                    node* def = definition(arg);
+                    plnnrc_assert(type_tag(def) != 0);
 
-                    node* param = callee_atom->first_child;
-
-                    for (node* arg = task->first_child; arg != 0; arg = arg->next_sibling)
+                    if (!type_tag(param))
                     {
-                        plnnrc_assert(param);
-                        plnnrc_assert(arg->type == node_term_variable);
-                        plnnrc_assert(is_bound(arg));
-                        node* def = definition(arg);
-                        plnnrc_assert(type_tag(def) != 0);
-
-                        if (!type_tag(param))
-                        {
-                            type_tag(param, type_tag(def));
-                        }
-
-                        plnnrc_assert(type_tag(param) == type_tag(def));
-
-                        param = param->next_sibling;
+                        type_tag(param, type_tag(def));
                     }
 
-                    plnnrc_assert(!param);
+                    plnnrc_assert(type_tag(param) == type_tag(def));
+
+                    param = param->next_sibling;
                 }
+
+                plnnrc_assert(!param);
             }
         }
     }
