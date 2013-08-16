@@ -259,6 +259,38 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
 
 namespace
 {
+
+    bool is_bound(node* var)
+    {
+        plnnrc_assert(var->type == node_term_variable);
+        return annotation<term>(var)->var_def != 0;
+    }
+
+    node* definition(node* var)
+    {
+        plnnrc_assert(var->type == node_term_variable);
+        return annotation<term>(var)->var_def;
+    }
+
+    bool is_parameter(node* var)
+    {
+        plnnrc_assert(var->type == node_term_variable);
+        plnnrc_assert(var->parent && var->parent->parent);
+        return var->parent->parent->type == node_method;
+    }
+
+    int type_tag(node* node)
+    {
+        plnnrc_assert(is_term(node));
+        return annotation<term>(node)->type_tag;
+    }
+
+    void type_tag(node* node, int new_type_tag)
+    {
+        plnnrc_assert(is_term(node));
+        annotation<term>(node)->type_tag = new_type_tag;
+    }
+
     void seed_precondition_types(tree& ast, node* root)
     {
         for (node* n = root; n != 0; n = preorder_traversal_next(root, n))
@@ -278,7 +310,7 @@ namespace
 
                     if (c->type == node_term_variable)
                     {
-                        annotation<term>(c)->type_tag = annotation<worldstate_type>(ws_type)->type_tag;
+                        type_tag(c, annotation<worldstate_type>(ws_type)->type_tag);
                     }
 
                     ws_type = ws_type->next_sibling;
@@ -340,18 +372,16 @@ namespace
             }
         }
     }
-}
 
-void link_variables(node* method)
-{
-    node* atom = method->first_child;
-    plnnrc_assert(atom && atom->type == node_atom);
-
-    for (node* branch = atom->next_sibling; branch != 0; branch = branch->next_sibling)
+    void link_variables(node* method)
     {
-        if (branch->first_child)
+        node* atom = method->first_child;
+        plnnrc_assert(atom && atom->type == node_atom);
+
+        for (node* branch = atom->next_sibling; branch != 0; branch = branch->next_sibling)
         {
             node* precondition = branch->first_child;
+            plnnrc_assert(precondition);
             node* tasklist = precondition->next_sibling;
             plnnrc_assert(tasklist);
             link_branch_variables(atom, precondition, tasklist);
@@ -371,6 +401,35 @@ void infer_types(tree& ast)
         }
 
         link_variables(method);
+    }
+
+    for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+    {
+        node* method = methods.value();
+
+        for (node* branch = method->first_child; branch != 0; branch = branch->next_sibling)
+        {
+            node* precondition = branch->first_child;
+            plnnrc_assert(precondition);
+
+            for (node* var = precondition; var != 0; var = preorder_traversal_next(precondition, var))
+            {
+                if (var->type == node_term_variable && is_bound(var))
+                {
+                    node* def = definition(var);
+
+                    if (is_parameter(def))
+                    {
+                        if (!type_tag(def))
+                        {
+                            type_tag(def, type_tag(var));
+                        }
+
+                        plnnrc_assert(type_tag(def) == type_tag(var));
+                    }
+                }
+            }
+        }
     }
 }
 
