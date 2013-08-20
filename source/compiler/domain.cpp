@@ -601,6 +601,7 @@ bool generate_worldstate(tree& ast, node* worldstate, writer& output)
         write(output, "struct "); write(output, atom->s_expr->token);
         write(output, "\n");
         write(output, "{");
+        write(output, "\n");
 
         unsigned param_index = 0;
 
@@ -612,11 +613,12 @@ bool generate_worldstate(tree& ast, node* worldstate, writer& output)
             sprintf(buffer, "%d", param_index);
             write(output, buffer);
             write(output, ";");
+            write(output, "\n");
             ++param_index;
         }
 
         write(output, "};");
-        write(output, "\n");
+        write(output, "\n\n");
     }
 
     return true;

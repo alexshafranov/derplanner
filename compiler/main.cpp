@@ -18,8 +18,55 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
+#include <stdio.h>
 
-int main()
+#include <derplanner/compiler/io.h>
+#include <derplanner/compiler/s_expression.h>
+#include <derplanner/compiler/ast.h>
+#include <derplanner/compiler/domain.h>
+
+using namespace plnnrc;
+
+size_t file_size(const char* path)
 {
-    return 0;
+    FILE* fd = fopen(path, "rb");
+    fseek(fd, 0, SEEK_END);
+    size_t input_size = ftell(fd);
+    fseek(fd, 0, SEEK_SET);
+    fclose(fd);
+    return input_size;
+}
+
+int main(int argc, char** argv)
+{
+    const char* input_path = argv[1];
+    const char* output_path = argv[2];
+
+    FILE* fd = fopen(input_path, "rt");
+
+    size_t input_size = file_size(input_path);
+
+    char* input_data = new char[input_size];
+
+    {
+        size_t rb = fread(input_data, sizeof(char), input_size, fd);
+        (void)rb;
+    }
+
+    fclose(fd);
+
+    fd = fopen(output_path, "wt");
+
+    stdio_file_writer writer(fd);
+
+    sexpr::tree expr;
+    expr.parse(input_data);
+
+    ast::tree tree;
+    ast::node* worldstate = ast::build_worldstate(tree, expr.root()->first_child);
+
+    ast::generate_worldstate(tree, worldstate, writer);
+
+    delete [] input_data;
+    fclose(fd);
 }
