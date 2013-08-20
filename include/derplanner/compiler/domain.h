@@ -34,12 +34,16 @@ namespace ast
     class  tree;
 }
 
+class writer;
+
 namespace ast {
 
 node* build_domain(tree& ast, sexpr::node* s_expr);
 node* build_worldstate(tree& ast, sexpr::node* s_expr);
 
 void infer_types(tree& ast);
+
+bool generate_worldstate(tree& ast, writer& output);
 
 }
 }

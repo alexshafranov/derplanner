@@ -62,7 +62,7 @@ public:
     bool insert(const char* key, ast::node* value);
     ast::node* find(const char* key) const;
 
-    unsigned count() const { return _count; }
+    uint32_t count() const { return _count; }
 
     id_table_values values() const;
 
@@ -79,7 +79,7 @@ private:
     id_table_entry* _buffer;
     uint32_t _capacity;
     uint32_t _mask;
-    unsigned _count;
+    uint32_t _count;
 };
 
 }

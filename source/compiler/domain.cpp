@@ -20,6 +20,7 @@
 
 #include <string.h>
 #include "derplanner/compiler/assert.h"
+#include "derplanner/compiler/io.h"
 #include "derplanner/compiler/s_expression.h"
 #include "derplanner/compiler/ast.h"
 #include "derplanner/compiler/term.h"
@@ -578,6 +579,11 @@ void infer_types(tree& ast)
             }
         }
     }
+}
+
+bool generate_worldstate(tree& ast, writer& output)
+{
+    return true;
 }
 
 }
