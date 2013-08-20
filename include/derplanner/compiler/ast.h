@@ -115,7 +115,7 @@ public:
     id_table methods;
     id_table operators;
 
-    node_array worldstate_types;
+    node_array type_tag_to_node;
 
 private:
     void* _memory;

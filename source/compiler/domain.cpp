@@ -329,6 +329,22 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
         append_child(worldstate, atom);
     }
 
+    if (!ast.type_tag_to_node.init(ast.ws_types.count() + 1))
+    {
+        return 0;
+    }
+
+    ast.type_tag_to_node[0] = 0;
+
+    for (id_table_values types = ast.ws_types.values(); !types.empty(); types.pop())
+    {
+        node* ws_type = types.value();
+        int type_tag = annotation<worldstate_type>(ws_type)->type_tag;
+        ast.type_tag_to_node[type_tag] = ws_type;
+    }
+
+    plnnrc_assert(!ast.type_tag_to_node[0]);
+
     return worldstate;
 }
 
