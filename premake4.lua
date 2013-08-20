@@ -33,5 +33,6 @@ solution "derplanner"
     dofile "premake/library.lua"
     dofile "premake/unittestpp.lua"
     dofile "premake/tests.lua"
+    dofile "premake/compiler.lua"
 
     objdir ".build/obj"
