@@ -22,6 +22,7 @@
 #define DERPLANNER_COMPILER_AST_H_
 
 #include "derplanner/compiler/id_table.h"
+#include "derplanner/compiler/node_array.h"
 
 namespace plnnrc {
 
@@ -114,7 +115,7 @@ public:
     id_table methods;
     id_table operators;
 
-    node* worldstate_types;
+    node_array worldstate_types;
 
 private:
     void* _memory;
