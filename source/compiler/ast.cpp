@@ -111,7 +111,8 @@ namespace
 }
 
 tree::tree()
-    : _memory(0)
+    : worldstate_types(0)
+    , _memory(0)
 {
     memset(&_root, 0, sizeof(_root));
     _root.type = node_domain;
@@ -123,6 +124,8 @@ tree::~tree()
     {
         pool_clear(_memory);
     }
+
+    delete [] worldstate_types;
 }
 
 node* tree::make_node(node_type type, sexpr::node* token)

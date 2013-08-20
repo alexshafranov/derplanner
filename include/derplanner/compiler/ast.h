@@ -114,6 +114,8 @@ public:
     id_table methods;
     id_table operators;
 
+    node* worldstate_types;
+
 private:
     void* _memory;
     node _root;
