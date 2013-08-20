@@ -19,6 +19,7 @@
 //
 
 #include <string.h>
+#include <stdio.h>
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/io.h"
 #include "derplanner/compiler/s_expression.h"
@@ -581,8 +582,43 @@ void infer_types(tree& ast)
     }
 }
 
-bool generate_worldstate(tree& ast, writer& output)
+namespace
 {
+    void write(writer& output, const char* str)
+    {
+        output.write(str, strlen(str));
+    }
+}
+
+bool generate_worldstate(tree& ast, node* worldstate, writer& output)
+{
+    plnnrc_assert(worldstate && worldstate->type == node_worldstate);
+
+    char buffer[10];
+
+    for (node* atom = worldstate->first_child; atom != 0; atom = atom->next_sibling)
+    {
+        write(output, "struct "); write(output, atom->s_expr->token);
+        write(output, "\n");
+        write(output, "{");
+
+        unsigned param_index = 0;
+
+        for (node* param = atom->first_child; param != 0; param = param->next_sibling)
+        {
+            write(output, "\t");
+            write(output, param->s_expr->first_child->token);
+            write(output, " _");
+            sprintf(buffer, "%d", param_index);
+            write(output, buffer);
+            write(output, ";");
+            ++param_index;
+        }
+
+        write(output, "};");
+        write(output, "\n");
+    }
+
     return true;
 }
 
