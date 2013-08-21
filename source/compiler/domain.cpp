@@ -618,12 +618,23 @@ bool generate_worldstate(tree& ast, node* worldstate, writer& output)
         }
 
         write(output, "\t");
-        write(output, atom->s_expr->token); write(output, "_tuple"); write(output, "* next;");
+        write(output, atom->s_expr->token); write(output, "_tuple* next;");
         write(output, "\n");
 
         write(output, "};");
         write(output, "\n\n");
     }
+
+    write(output, "struct worldstate\n");
+    write(output, "{\n");
+
+    for (node* atom = worldstate->first_child; atom != 0; atom = atom->next_sibling)
+    {
+        write(output, "\t");
+        write(output, atom->s_expr->token); write(output, "_tuple* "); write(output, atom->s_expr->token); write(output, ";\n");
+    }
+
+    write(output, "};\n\n");
 
     return true;
 }
