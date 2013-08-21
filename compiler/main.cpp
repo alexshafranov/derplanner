@@ -64,8 +64,12 @@ int main(int argc, char** argv)
 
     ast::tree tree;
     ast::node* worldstate = ast::build_worldstate(tree, expr.root()->first_child);
+    ast::node* domain = ast::build_domain(tree, expr.root()->first_child->next_sibling);
+
+    ast::infer_types(tree);
 
     ast::generate_worldstate(tree, worldstate, writer);
+    ast::generate_domain(tree, domain, writer);
 
     delete [] input_data;
     fclose(fd);

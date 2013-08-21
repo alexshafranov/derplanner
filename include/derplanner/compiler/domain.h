@@ -45,6 +45,8 @@ void infer_types(tree& ast);
 
 bool generate_worldstate(tree& ast, node* worldstate, writer& output);
 
+bool generate_domain(tree& ast, node* domain, writer& output);
+
 }
 }
 

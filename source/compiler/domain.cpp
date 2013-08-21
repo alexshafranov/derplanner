@@ -639,5 +639,102 @@ bool generate_worldstate(tree& ast, node* worldstate, writer& output)
     return true;
 }
 
+namespace
+{
+    // ((start ?s) (finish ?f))
+    // struct p1_state
+    // {
+    //     int out_s;
+    //     int out_f;
+    //     start_tuple*  state_start;
+    //     finish_tuple* state_finish;
+    // };
+
+    bool generate_precondition_state(tree& ast, node* root, unsigned branch_index, writer& output)
+    {
+        char buffer[10];
+        sprintf(buffer, "%d", branch_index);
+        write(output, "struct p");
+        write(output, buffer);
+        write(output, "_state\n");
+        write(output, "{\n");
+
+        unsigned in_param_index = 0;
+        unsigned out_param_index = 0;
+
+        for (node* n = root; n != 0; n = preorder_traversal_next(root, n))
+        {
+            if (n->type == node_term_variable)
+            {
+                node* def = definition(n);
+
+                if (def && is_parameter(def))
+                {
+                    node* ws_type = ast.type_tag_to_node[type_tag(def)];
+                    write(output, "\t");
+                    write(output, ws_type->s_expr->first_child->token);
+                    write(output, " ");
+                    write(output, "in_");
+                    sprintf(buffer, "%d", in_param_index);
+                    write(output, buffer);
+                    write(output, ";\n");
+                    ++in_param_index;
+                }
+            }
+        }
+
+        for (node* n = root; n != 0; n = preorder_traversal_next(root, n))
+        {
+            if (n->type == node_term_variable)
+            {
+                if (!definition(n))
+                {
+                    node* ws_type = ast.type_tag_to_node[type_tag(n)];
+                    write(output, "\t");
+                    write(output, ws_type->s_expr->first_child->token);
+                    write(output, " ");
+                    write(output, "out_");
+                    sprintf(buffer, "%d", out_param_index);
+                    write(output, buffer);
+                    write(output, ";\n");
+                    ++out_param_index;
+                }
+            }
+        }
+
+        write(output, "};\n\n");
+
+        return true;
+    }
+}
+
+bool generate_domain(tree& ast, node* domain, writer& output)
+{
+    plnnrc_assert(domain && domain->type == node_domain);
+
+    unsigned branch_index = 0;
+
+    for (node* method = domain->first_child; method != 0; method = method->next_sibling)
+    {
+        plnnrc_assert(method->type == node_method);
+
+        for (node* branch = method->first_child->next_sibling; branch != 0; branch = branch->next_sibling)
+        {
+            plnnrc_assert(branch->type == node_branch);
+
+            node* precondition = branch->first_child;
+
+            if (!generate_precondition_state(ast, precondition, branch_index, output))
+            {
+                return false;
+            }
+
+            ++branch_index;
+        }
+    }
+
+    return true;
+}
+
 }
 }
