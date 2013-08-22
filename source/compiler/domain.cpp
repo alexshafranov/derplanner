@@ -702,6 +702,7 @@ namespace
             }
         }
 
+        write(output, "\tint stage;\n");
         write(output, "};\n\n");
 
         return true;
