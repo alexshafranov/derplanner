@@ -707,6 +707,20 @@ namespace
 
         return true;
     }
+
+    bool generate_precondition_next(tree& ast, node* root, unsigned branch_index, writer& output)
+    {
+        char buffer[10];
+        sprintf(buffer, "%d", branch_index);
+
+        write(output, "bool next(");
+        write(output, "p");
+        write(output, buffer);
+        write(output, "_state& state, worldstate& world)\n{\n");
+        write(output, "\tPLNNRC_COROUTINE_BEGIN(state);\n");
+        write(output, "\tPLNNRC_COROUTINE_END();\n}\n\n");
+        return true;
+    }
 }
 
 bool generate_domain(tree& ast, node* domain, writer& output)
@@ -726,6 +740,11 @@ bool generate_domain(tree& ast, node* domain, writer& output)
             node* precondition = branch->first_child;
 
             if (!generate_precondition_state(ast, precondition, branch_index, output))
+            {
+                return false;
+            }
+
+            if (!generate_precondition_next(ast, precondition, branch_index, output))
             {
                 return false;
             }
