@@ -708,8 +708,87 @@ namespace
         return true;
     }
 
+    bool generate_atom(tree& ast, node* root, writer& output)
+    {
+        plnnrc_assert(root->type == node_atom);
+
+        const char* atom_id = root->s_expr->token;
+
+        write(output, "for (state.");
+        write(output, atom_id);
+        write(output, " = world.");
+        write(output, atom_id);
+        write(output, "; state.");
+        write(output, atom_id);
+        write(output, " != 0; ");
+        write(output, "state.");
+        write(output, atom_id);
+        write(output, " = ");
+        write(output, "state.");
+        write(output, atom_id);
+        write(output, "->next)\n{\n");
+
+        return true;
+    }
+
+    bool generate_or(tree& ast, node* root, writer& output);
+
+    bool generate_and(tree& ast, node* root, writer& output)
+    {
+        plnnrc_assert(root->type == node_op_and);
+
+        for (node* child = root->first_child; child != 0; child = child->next_sibling)
+        {
+            switch (child->type)
+            {
+            case node_op_or:
+                generate_or(ast, child, output);
+                break;
+            case node_op_and:
+                generate_and(ast, child, output);
+                break;
+            case node_atom:
+                generate_atom(ast, child, output);
+                break;
+            default:
+                break;
+            }
+        }
+
+        write(output, "}\n");
+
+        return true;
+    }
+
+    bool generate_or(tree& ast, node* root, writer& output)
+    {
+        plnnrc_assert(root->type == node_op_or);
+
+        for (node* child = root->first_child; child != 0; child = child->next_sibling)
+        {
+            switch (child->type)
+            {
+            case node_op_or:
+                generate_or(ast, child, output);
+                break;
+            case node_op_and:
+                generate_and(ast, child, output);
+                break;
+            case node_atom:
+                generate_atom(ast, child, output);
+                break;
+            default:
+                break;
+            }
+        }
+
+        return true;
+    }
+
     bool generate_precondition_next(tree& ast, node* root, unsigned branch_index, writer& output)
     {
+        plnnrc_assert(is_logical_op(root));
+
         char buffer[10];
         sprintf(buffer, "%d", branch_index);
 
@@ -718,6 +797,12 @@ namespace
         write(output, buffer);
         write(output, "_state& state, worldstate& world)\n{\n");
         write(output, "\tPLNNRC_COROUTINE_BEGIN(state);\n");
+
+        if (!generate_or(ast, root, output))
+        {
+            return false;
+        }
+
         write(output, "\tPLNNRC_COROUTINE_END();\n}\n\n");
         return true;
     }
