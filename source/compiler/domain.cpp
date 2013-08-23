@@ -708,12 +708,21 @@ namespace
         return true;
     }
 
-    bool generate_atom(tree& ast, node* root, writer& output)
+    void indent(writer& output, int level)
     {
-        plnnrc_assert(root->type == node_atom);
+        for (int i = 0; i < level; ++i)
+        {
+            write(output, "\t");
+        }
+    }
+
+    bool generate_literal(tree& ast, node* root, writer& output, int indent_level)
+    {
+        plnnrc_assert(root->type == node_op_not || root->type == node_atom);
 
         const char* atom_id = root->s_expr->token;
 
+        indent(output, indent_level);
         write(output, "for (state.");
         write(output, atom_id);
         write(output, " = world.");
@@ -726,22 +735,10 @@ namespace
         write(output, " = ");
         write(output, "state.");
         write(output, atom_id);
-        write(output, "->next)\n{\n");
+        write(output, "->next)\n");
+        indent(output, indent_level);
+        write(output, "{\n");
 
-        return true;
-    }
-
-    bool generate_literal(tree& ast, node* root, writer& output, int indent_level)
-    {
-        plnnrc_assert(root->type == node_op_not || root->type == node_atom);
-
-        for (int i = 0; i < indent_level; ++i)
-        {
-            write(output, "\t");
-        }
-
-        write(output, root->s_expr->token);
-        write(output, "\n");
         return true;
     }
 
@@ -761,6 +758,12 @@ namespace
             ++child_indent_level;
         }
 
+        for (int i = child_indent_level-1; i >= indent_level; --i)
+        {
+            indent(output, i);
+            write(output, "}\n");
+        }
+
         return true;
     }
 
@@ -768,7 +771,7 @@ namespace
     {
         plnnrc_assert(root->type == node_op_or);
 
-        int indent_level = 1;
+        int indent_level = 0;
 
         for (node* child = root->first_child; child != 0; child = child->next_sibling)
         {
@@ -779,6 +782,12 @@ namespace
                 {
                     return false;
                 }
+
+                if (child != root->first_child->prev_sibling_cyclic)
+                {
+                    write(output, "\n");
+                }
+
                 break;
             case node_atom:
             case node_op_not:
@@ -809,7 +818,7 @@ namespace
         write(output, "p");
         write(output, buffer);
         write(output, "_state& state, worldstate& world)\n{\n");
-        write(output, "\tPLNNRC_COROUTINE_BEGIN(state);\n");
+        write(output, "\tPLNNRC_COROUTINE_BEGIN(state);\n\n");
 
         if (!generate_precondition_satisfier(ast, root, output))
         {
