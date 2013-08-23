@@ -731,56 +731,69 @@ namespace
         return true;
     }
 
-    bool generate_or(tree& ast, node* root, writer& output);
+    bool generate_literal(tree& ast, node* root, writer& output, int indent_level)
+    {
+        plnnrc_assert(root->type == node_op_not || root->type == node_atom);
 
-    bool generate_and(tree& ast, node* root, writer& output)
+        for (int i = 0; i < indent_level; ++i)
+        {
+            write(output, "\t");
+        }
+
+        write(output, root->s_expr->token);
+        write(output, "\n");
+        return true;
+    }
+
+    bool generate_conjunctive_clause(tree& ast, node* root, writer& output, int indent_level)
     {
         plnnrc_assert(root->type == node_op_and);
 
+        int child_indent_level = indent_level;
+
         for (node* child = root->first_child; child != 0; child = child->next_sibling)
         {
-            switch (child->type)
+            if (!generate_literal(ast, child, output, child_indent_level))
             {
-            case node_op_or:
-                generate_or(ast, child, output);
-                break;
-            case node_op_and:
-                generate_and(ast, child, output);
-                break;
-            case node_atom:
-                generate_atom(ast, child, output);
-                break;
-            default:
-                break;
+                return false;
             }
-        }
 
-        write(output, "}\n");
+            ++child_indent_level;
+        }
 
         return true;
     }
 
-    bool generate_or(tree& ast, node* root, writer& output)
+    bool generate_precondition_satisfier(tree& ast, node* root, writer& output)
     {
         plnnrc_assert(root->type == node_op_or);
+
+        int indent_level = 1;
 
         for (node* child = root->first_child; child != 0; child = child->next_sibling)
         {
             switch (child->type)
             {
-            case node_op_or:
-                generate_or(ast, child, output);
-                break;
             case node_op_and:
-                generate_and(ast, child, output);
+                if (!generate_conjunctive_clause(ast, child, output, indent_level+1))
+                {
+                    return false;
+                }
                 break;
             case node_atom:
-                generate_atom(ast, child, output);
+            case node_op_not:
+                if (!generate_literal(ast, child, output, indent_level+1))
+                {
+                    return false;
+                }
                 break;
             default:
-                break;
+                plnnrc_assert(false);
+                return false;
             }
         }
+
+        write(output, "\n");
 
         return true;
     }
@@ -798,7 +811,7 @@ namespace
         write(output, "_state& state, worldstate& world)\n{\n");
         write(output, "\tPLNNRC_COROUTINE_BEGIN(state);\n");
 
-        if (!generate_or(ast, root, output))
+        if (!generate_precondition_satisfier(ast, root, output))
         {
             return false;
         }
