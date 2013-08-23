@@ -702,6 +702,19 @@ namespace
             }
         }
 
+        for (node* n = root; n != 0; n = preorder_traversal_next(root, n))
+        {
+            if (n->type == node_atom)
+            {
+                const char* id = n->s_expr->token;
+                write(output, "\t");
+                write(output, id);
+                write(output, "_tuple* ");
+                write(output, id);
+                write(output, ";\n");
+            }
+        }
+
         write(output, "\tint stage;\n");
         write(output, "};\n\n");
 
