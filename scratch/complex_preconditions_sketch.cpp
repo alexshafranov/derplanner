@@ -48,17 +48,20 @@ bool next(p1_state& state, worldstate& world)
 
     for (state.ax = world.ax; state.ax != 0; state.ax = state.ax->next)
     {
-        if (state.ax->_1 == state.in_u)
+        if (state.ax->_1 != state.in_u)
         {
-            state.out_t = state.ax->_0;
+            continue;
+        }
 
-            for (state.ay = world.ay; state.ay != 0; state.ay = state.ay->next)
+        for (state.ay = world.ay; state.ay != 0; state.ay = state.ay->next)
+        {
+            if (state.ay->_0 == state.ax->_0 && state.ay->_1 == state.in_v)
             {
-                if (state.ay->_0 == state.out_t && state.ay->_1 == state.in_v)
-                {
-                    PLNNRC_COROUTINE_YIELD(state);
-                }
+                continue;
             }
+
+            state.out_t = state.ax->_0;
+            PLNNRC_COROUTINE_YIELD(state);
         }
     }
 

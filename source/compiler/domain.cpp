@@ -659,8 +659,7 @@ namespace
         write(output, "_state\n");
         write(output, "{\n");
 
-        unsigned in_param_index = 0;
-        unsigned out_param_index = 0;
+        int var_index = 0;
 
         for (node* n = root; n != 0; n = preorder_traversal_next(root, n))
         {
@@ -668,36 +667,18 @@ namespace
             {
                 node* def = definition(n);
 
-                if (def && is_parameter(def))
-                {
-                    node* ws_type = ast.type_tag_to_node[type_tag(def)];
-                    write(output, "\t");
-                    write(output, ws_type->s_expr->first_child->token);
-                    write(output, " ");
-                    write(output, "in_");
-                    sprintf(buffer, "%d", in_param_index);
-                    write(output, buffer);
-                    write(output, ";\n");
-                    ++in_param_index;
-                }
-            }
-        }
-
-        for (node* n = root; n != 0; n = preorder_traversal_next(root, n))
-        {
-            if (n->type == node_term_variable)
-            {
-                if (!definition(n))
+                if (!def || is_parameter(def))
                 {
                     node* ws_type = ast.type_tag_to_node[type_tag(n)];
                     write(output, "\t");
                     write(output, ws_type->s_expr->first_child->token);
                     write(output, " ");
                     write(output, "out_");
-                    sprintf(buffer, "%d", out_param_index);
+                    sprintf(buffer, "%d", var_index);
                     write(output, buffer);
                     write(output, ";\n");
-                    ++out_param_index;
+                    annotation<term>(n)->var_index = var_index;
+                    ++var_index;
                 }
             }
         }
@@ -751,6 +732,23 @@ namespace
         write(output, "->next)\n");
         indent(output, indent_level);
         write(output, "{\n");
+
+        node* atom = root;
+        bool negative = false;
+
+        if (root->type == node_op_not)
+        {
+            atom = root->first_child;
+            negative = true;
+        }
+
+        for (node* term = atom->first_child; term != 0; term = term->next_sibling)
+        {
+            if (term->type == node_term_variable)
+            {
+                (void)negative;
+            }
+        }
 
         return true;
     }

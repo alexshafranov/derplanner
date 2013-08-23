@@ -61,6 +61,7 @@ struct worldstate_type
 struct term
 {
     int   type_tag;
+    int   var_index;
     node* var_def;
 };
 
