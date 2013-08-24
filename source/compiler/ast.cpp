@@ -106,6 +106,13 @@ namespace
             return result;
         }
 
+        if (type == node_atom)
+        {
+            result.size = sizeof(atom);
+            result.alignment = plnnrc_alignof(atom);
+            return result;
+        }
+
         return result;
     }
 }

@@ -641,15 +641,6 @@ bool generate_worldstate(tree& ast, node* worldstate, writer& output)
 
 namespace
 {
-    // ((start ?s) (finish ?f))
-    // struct p1_state
-    // {
-    //     int out_s;
-    //     int out_f;
-    //     start_tuple*  state_start;
-    //     finish_tuple* state_finish;
-    // };
-
     bool generate_precondition_state(tree& ast, node* root, unsigned branch_index, writer& output)
     {
         char buffer[10];
@@ -710,6 +701,8 @@ namespace
             }
         }
 
+        int atom_index = 0;
+
         for (node* n = root; n != 0; n = preorder_traversal_next(root, n))
         {
             if (n->type == node_atom)
@@ -719,7 +712,14 @@ namespace
                 write(output, id);
                 write(output, "_tuple* ");
                 write(output, id);
+                sprintf(buffer, "%d", atom_index);
+                write(output, "_");
+                write(output, buffer);
                 write(output, ";\n");
+
+                annotation<atom>(n)->index = atom_index;
+
+                ++atom_index;
             }
         }
 
@@ -742,20 +742,32 @@ namespace
         plnnrc_assert(root->type == node_op_not || root->type == node_atom);
 
         const char* atom_id = root->s_expr->token;
+        int atom_index = annotation<atom>(root)->index;
+
+        char buffer[10];
+        sprintf(buffer, "%d", atom_index);
 
         indent(output, indent_level);
         write(output, "for (state.");
         write(output, atom_id);
+        write(output, "_");
+        write(output, buffer);
         write(output, " = world.");
         write(output, atom_id);
         write(output, "; state.");
         write(output, atom_id);
+        write(output, "_");
+        write(output, buffer);
         write(output, " != 0; ");
         write(output, "state.");
         write(output, atom_id);
+        write(output, "_");
+        write(output, buffer);
         write(output, " = ");
         write(output, "state.");
         write(output, atom_id);
+        write(output, "_");
+        write(output, buffer);
         write(output, "->next)\n");
         indent(output, indent_level);
         write(output, "{\n");

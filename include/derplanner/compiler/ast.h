@@ -65,6 +65,11 @@ struct term
     node* var_def;
 };
 
+struct atom
+{
+    int index;
+};
+
 template <typename T>
 T* annotation(node* n)
 {
