@@ -659,6 +659,19 @@ namespace
         write(output, "_state\n");
         write(output, "{\n");
 
+        for (node* n = root; n != 0; n = preorder_traversal_next(root, n))
+        {
+            if (n->type == node_term_variable)
+            {
+                node* def = definition(n);
+
+                if (def)
+                {
+                    annotation<term>(def)->var_index = -1;
+                }
+            }
+        }
+
         int var_index = 0;
 
         for (node* n = root; n != 0; n = preorder_traversal_next(root, n))
@@ -667,18 +680,32 @@ namespace
             {
                 node* def = definition(n);
 
-                if (!def || is_parameter(def))
+                if (!def || annotation<term>(def)->var_index == -1)
                 {
+                    if (def)
+                    {
+                        annotation<term>(def)->var_index = var_index;
+                        annotation<term>(n)->var_index = var_index;
+                    }
+                    else
+                    {
+                        annotation<term>(n)->var_index = var_index;
+                    }
+
                     node* ws_type = ast.type_tag_to_node[type_tag(n)];
                     write(output, "\t");
                     write(output, ws_type->s_expr->first_child->token);
                     write(output, " ");
-                    write(output, "out_");
+                    write(output, "_");
                     sprintf(buffer, "%d", var_index);
                     write(output, buffer);
                     write(output, ";\n");
-                    annotation<term>(n)->var_index = var_index;
+
                     ++var_index;
+                }
+                else
+                {
+                    annotation<term>(n)->var_index = annotation<term>(def)->var_index;
                 }
             }
         }
