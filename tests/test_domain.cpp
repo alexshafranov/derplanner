@@ -229,9 +229,9 @@ namespace
         ast::node* atomx_arg2 = atomx->first_child->next_sibling;
         ast::node* atomy_arg1 = atomy->first_child;
 
-        int atomx_arg1_type_tag = ast::annotation<ast::worldstate_type>(atomx_arg1)->type_tag;
-        int atomx_arg2_type_tag = ast::annotation<ast::worldstate_type>(atomx_arg2)->type_tag;
-        int atomy_arg1_type_tag = ast::annotation<ast::worldstate_type>(atomy_arg1)->type_tag;
+        int atomx_arg1_type_tag = ast::annotation<ast::ws_type_ann>(atomx_arg1)->type_tag;
+        int atomx_arg2_type_tag = ast::annotation<ast::ws_type_ann>(atomx_arg2)->type_tag;
+        int atomy_arg1_type_tag = ast::annotation<ast::ws_type_ann>(atomy_arg1)->type_tag;
 
         CHECK(atomx_arg1_type_tag == atomx_arg2_type_tag);
         CHECK(atomx_arg1_type_tag != atomy_arg1_type_tag);

@@ -101,15 +101,15 @@ namespace
 
         if (type == node_worldstate_type)
         {
-            result.size = sizeof(worldstate_type);
-            result.alignment = plnnrc_alignof(worldstate_type);
+            result.size = sizeof(ws_type_ann);
+            result.alignment = plnnrc_alignof(ws_type_ann);
             return result;
         }
 
         if (type == node_atom)
         {
-            result.size = sizeof(atom);
-            result.alignment = plnnrc_alignof(atom);
+            result.size = sizeof(atom_ann);
+            result.alignment = plnnrc_alignof(atom_ann);
             return result;
         }
 

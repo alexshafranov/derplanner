@@ -53,7 +53,7 @@ struct node
     void* annotation;
 };
 
-struct worldstate_type
+struct ws_type_ann
 {
     int type_tag;
 };
@@ -65,7 +65,7 @@ struct term_ann
     node* var_def;
 };
 
-struct atom
+struct atom_ann
 {
     int index;
 };
