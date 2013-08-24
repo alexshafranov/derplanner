@@ -311,7 +311,7 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
 
             if (!type_proto)
             {
-                annotation<worldstate_type>(type)->type_tag = type_tag;
+                annotation<ws_type_ann>(type)->type_tag = type_tag;
 
                 if (!ast.ws_types.insert(t_expr->first_child->token, type))
                 {
@@ -322,7 +322,7 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
             }
             else
             {
-                annotation<worldstate_type>(type)->type_tag = annotation<worldstate_type>(type_proto)->type_tag;
+                annotation<ws_type_ann>(type)->type_tag = annotation<ws_type_ann>(type_proto)->type_tag;
             }
 
             append_child(atom, type);
@@ -341,7 +341,7 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
     for (id_table_values types = ast.ws_types.values(); !types.empty(); types.pop())
     {
         node* ws_type = types.value();
-        int type_tag = annotation<worldstate_type>(ws_type)->type_tag;
+        int type_tag = annotation<ws_type_ann>(ws_type)->type_tag;
         ast.type_tag_to_node[type_tag] = ws_type;
     }
 
@@ -402,7 +402,7 @@ namespace
 
                     if (c->type == node_term_variable)
                     {
-                        type_tag(c, annotation<worldstate_type>(ws_type)->type_tag);
+                        type_tag(c, annotation<ws_type_ann>(ws_type)->type_tag);
                     }
 
                     ws_type = ws_type->next_sibling;
@@ -717,7 +717,7 @@ namespace
                 write(output, buffer);
                 write(output, ";\n");
 
-                annotation<atom>(n)->index = atom_index;
+                annotation<atom_ann>(n)->index = atom_index;
 
                 ++atom_index;
             }
@@ -742,51 +742,99 @@ namespace
         plnnrc_assert(root->type == node_op_not || root->type == node_atom);
 
         node* atom = root;
-        bool negative = false;
 
         if (root->type == node_op_not)
         {
             atom = root->first_child;
-            negative = true;
         }
 
-        // const char* atom_id = atom->s_expr->token;
-        // int atom_index = annotation<atom>(atom)->index;
+        const char* atom_id = atom->s_expr->token;
+        int atom_index = annotation<atom_ann>(atom)->index;
 
-        // char buffer[10];
-        // sprintf(buffer, "%d", atom_index);
+        char buffer[10];
+        sprintf(buffer, "%d", atom_index);
 
-        // indent(output, indent_level);
-        // write(output, "for (state.");
-        // write(output, atom_id);
-        // write(output, "_");
-        // write(output, buffer);
-        // write(output, " = world.");
-        // write(output, atom_id);
-        // write(output, "; state.");
-        // write(output, atom_id);
-        // write(output, "_");
-        // write(output, buffer);
-        // write(output, " != 0; ");
-        // write(output, "state.");
-        // write(output, atom_id);
-        // write(output, "_");
-        // write(output, buffer);
-        // write(output, " = ");
-        // write(output, "state.");
-        // write(output, atom_id);
-        // write(output, "_");
-        // write(output, buffer);
-        // write(output, "->next)\n");
-        // indent(output, indent_level);
-        // write(output, "{\n");
+        indent(output, indent_level);
+        write(output, "for (state.");
+        write(output, atom_id);
+        write(output, "_");
+        write(output, buffer);
+        write(output, " = world.");
+        write(output, atom_id);
+        write(output, "; state.");
+        write(output, atom_id);
+        write(output, "_");
+        write(output, buffer);
+        write(output, " != 0; ");
+        write(output, "state.");
+        write(output, atom_id);
+        write(output, "_");
+        write(output, buffer);
+        write(output, " = ");
+        write(output, "state.");
+        write(output, atom_id);
+        write(output, "_");
+        write(output, buffer);
+        write(output, "->next)\n");
+        indent(output, indent_level);
+        write(output, "{\n");
+
+        int atom_param_index = 0;
 
         for (node* term = atom->first_child; term != 0; term = term->next_sibling)
         {
-            if (term->type == node_term_variable)
+            if (term->type == node_term_variable && definition(term))
             {
-                (void)negative;
+                indent(output, indent_level+1);
+
+                write(output, "if (state.");
+                write(output, atom_id);
+                write(output, "_");
+                sprintf(buffer, "%d", atom_index);
+                write(output, buffer);
+                write(output, "->_");
+                sprintf(buffer, "%d", atom_param_index);
+                write(output, buffer);
+                write(output, " != state._");
+                int var_index = annotation<term_ann>(term)->var_index;
+                sprintf(buffer, "%d", var_index);
+                write(output, buffer);
+                write(output, ")\n");
+                indent(output, indent_level+1);
+                write(output, "{\n");
+                indent(output, indent_level+2);
+                write(output, "continue;\n");
+                indent(output, indent_level+1);
+                write(output, "}\n\n");
             }
+
+            ++atom_param_index;
+        }
+
+        atom_param_index = 0;
+
+        for (node* term = atom->first_child; term != 0; term = term->next_sibling)
+        {
+            if (term->type == node_term_variable && !definition(term))
+            {
+                indent(output, indent_level+1);
+                write(output, "state._");
+                int var_index = annotation<term_ann>(term)->var_index;
+                sprintf(buffer, "%d", var_index);
+                write(output, buffer);
+                write(output, " = ");
+                write(output, "state.");
+                write(output, atom_id);
+                write(output, "_");
+                sprintf(buffer, "%d", atom_index);
+                write(output, buffer);
+                sprintf(buffer, "%d", atom_param_index);
+                write(output, "->_");
+                write(output, buffer);
+                write(output, ";\n\n");
+            }
+
+            ++atom_param_index;
         }
 
         return true;
@@ -807,6 +855,9 @@ namespace
 
             ++child_indent_level;
         }
+
+        indent(output, child_indent_level);
+        write(output, "PLNNRC_COROUTINE_YIELD(state);\n");
 
         for (int i = child_indent_level-1; i >= indent_level; --i)
         {
