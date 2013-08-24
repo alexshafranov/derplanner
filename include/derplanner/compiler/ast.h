@@ -58,7 +58,7 @@ struct worldstate_type
     int type_tag;
 };
 
-struct term
+struct term_ann
 {
     int   type_tag;
     int   var_index;

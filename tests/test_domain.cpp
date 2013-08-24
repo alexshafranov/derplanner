@@ -287,10 +287,10 @@ namespace
         ast::node* m2_u = m2_atom->first_child;
         ast::node* m2_v = m2_atom->first_child->next_sibling;
 
-        CHECK_EQUAL(type1, ast::annotation<ast::term>(m1_u)->type_tag);
-        CHECK_EQUAL(type3, ast::annotation<ast::term>(m1_v)->type_tag);
+        CHECK_EQUAL(type1, ast::annotation<ast::term_ann>(m1_u)->type_tag);
+        CHECK_EQUAL(type3, ast::annotation<ast::term_ann>(m1_v)->type_tag);
 
-        CHECK_EQUAL(type1, ast::annotation<ast::term>(m2_u)->type_tag);
-        CHECK_EQUAL(type2, ast::annotation<ast::term>(m2_v)->type_tag);
+        CHECK_EQUAL(type1, ast::annotation<ast::term_ann>(m2_u)->type_tag);
+        CHECK_EQUAL(type2, ast::annotation<ast::term_ann>(m2_v)->type_tag);
     }
 }

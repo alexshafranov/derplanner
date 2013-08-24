@@ -94,8 +94,8 @@ namespace
 
         if (is_term(type))
         {
-            result.size = sizeof(term);
-            result.alignment = plnnrc_alignof(term);
+            result.size = sizeof(term_ann);
+            result.alignment = plnnrc_alignof(term_ann);
             return result;
         }
 

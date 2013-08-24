@@ -355,13 +355,13 @@ namespace
     inline bool is_bound(node* var)
     {
         plnnrc_assert(var->type == node_term_variable);
-        return annotation<term>(var)->var_def != 0;
+        return annotation<term_ann>(var)->var_def != 0;
     }
 
     inline node* definition(node* var)
     {
         plnnrc_assert(var->type == node_term_variable);
-        return annotation<term>(var)->var_def;
+        return annotation<term_ann>(var)->var_def;
     }
 
     inline bool is_parameter(node* var)
@@ -374,13 +374,13 @@ namespace
     inline int type_tag(node* node)
     {
         plnnrc_assert(is_term(node));
-        return annotation<term>(node)->type_tag;
+        return annotation<term_ann>(node)->type_tag;
     }
 
     inline void type_tag(node* node, int new_type_tag)
     {
         plnnrc_assert(is_term(node));
-        annotation<term>(node)->type_tag = new_type_tag;
+        annotation<term_ann>(node)->type_tag = new_type_tag;
     }
 
     void seed_precondition_types(tree& ast, node* root)
@@ -425,7 +425,7 @@ namespace
             {
                 if (strcmp(n->s_expr->token, id) == 0)
                 {
-                    annotation<term>(n)->var_def = parameter;
+                    annotation<term_ann>(n)->var_def = parameter;
                 }
             }
         }
@@ -439,11 +439,11 @@ namespace
 
         for (node* n = first; n != 0; n = preorder_traversal_next(root, n))
         {
-            if (n->type == node_term_variable && !annotation<term>(n)->var_def)
+            if (n->type == node_term_variable && !annotation<term_ann>(n)->var_def)
             {
                 if (strcmp(n->s_expr->token, id) == 0)
                 {
-                    annotation<term>(n)->var_def = variable;
+                    annotation<term_ann>(n)->var_def = variable;
                 }
             }
         }
@@ -459,7 +459,7 @@ namespace
 
         for (node* n = precondition; n != 0; n = preorder_traversal_next(precondition, n))
         {
-            if (n->type == node_term_variable && !annotation<term>(n)->var_def)
+            if (n->type == node_term_variable && !annotation<term_ann>(n)->var_def)
             {
                 link_to_variable(n, precondition, preorder_traversal_next(precondition, n));
                 link_to_variable(n, tasklist, tasklist);
@@ -658,7 +658,7 @@ namespace
 
                 if (def)
                 {
-                    annotation<term>(def)->var_index = -1;
+                    annotation<term_ann>(def)->var_index = -1;
                 }
             }
         }
@@ -671,16 +671,16 @@ namespace
             {
                 node* def = definition(n);
 
-                if (!def || annotation<term>(def)->var_index == -1)
+                if (!def || annotation<term_ann>(def)->var_index == -1)
                 {
                     if (def)
                     {
-                        annotation<term>(def)->var_index = var_index;
-                        annotation<term>(n)->var_index = var_index;
+                        annotation<term_ann>(def)->var_index = var_index;
+                        annotation<term_ann>(n)->var_index = var_index;
                     }
                     else
                     {
-                        annotation<term>(n)->var_index = var_index;
+                        annotation<term_ann>(n)->var_index = var_index;
                     }
 
                     node* ws_type = ast.type_tag_to_node[type_tag(n)];
@@ -696,7 +696,7 @@ namespace
                 }
                 else
                 {
-                    annotation<term>(n)->var_index = annotation<term>(def)->var_index;
+                    annotation<term_ann>(n)->var_index = annotation<term_ann>(def)->var_index;
                 }
             }
         }
@@ -741,37 +741,6 @@ namespace
     {
         plnnrc_assert(root->type == node_op_not || root->type == node_atom);
 
-        const char* atom_id = root->s_expr->token;
-        int atom_index = annotation<atom>(root)->index;
-
-        char buffer[10];
-        sprintf(buffer, "%d", atom_index);
-
-        indent(output, indent_level);
-        write(output, "for (state.");
-        write(output, atom_id);
-        write(output, "_");
-        write(output, buffer);
-        write(output, " = world.");
-        write(output, atom_id);
-        write(output, "; state.");
-        write(output, atom_id);
-        write(output, "_");
-        write(output, buffer);
-        write(output, " != 0; ");
-        write(output, "state.");
-        write(output, atom_id);
-        write(output, "_");
-        write(output, buffer);
-        write(output, " = ");
-        write(output, "state.");
-        write(output, atom_id);
-        write(output, "_");
-        write(output, buffer);
-        write(output, "->next)\n");
-        indent(output, indent_level);
-        write(output, "{\n");
-
         node* atom = root;
         bool negative = false;
 
@@ -780,6 +749,37 @@ namespace
             atom = root->first_child;
             negative = true;
         }
+
+        // const char* atom_id = atom->s_expr->token;
+        // int atom_index = annotation<atom>(atom)->index;
+
+        // char buffer[10];
+        // sprintf(buffer, "%d", atom_index);
+
+        // indent(output, indent_level);
+        // write(output, "for (state.");
+        // write(output, atom_id);
+        // write(output, "_");
+        // write(output, buffer);
+        // write(output, " = world.");
+        // write(output, atom_id);
+        // write(output, "; state.");
+        // write(output, atom_id);
+        // write(output, "_");
+        // write(output, buffer);
+        // write(output, " != 0; ");
+        // write(output, "state.");
+        // write(output, atom_id);
+        // write(output, "_");
+        // write(output, buffer);
+        // write(output, " = ");
+        // write(output, "state.");
+        // write(output, atom_id);
+        // write(output, "_");
+        // write(output, buffer);
+        // write(output, "->next)\n");
+        // indent(output, indent_level);
+        // write(output, "{\n");
 
         for (node* term = atom->first_child; term != 0; term = term->next_sibling)
         {
