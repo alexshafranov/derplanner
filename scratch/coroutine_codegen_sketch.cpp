@@ -537,14 +537,7 @@ bool travel_by_air_branch_0_expand(method_instance& method, stack& mstack, stack
 bool find_plan(worldstate& world, stack& mstack, stack& tstack)
 {
     method_instance* root = mstack.begin_object<method_instance>();
-    root->expand = root_branch_0_expand;
-    root->mrewind_obj = 0;
-    root->mrewind_top = 0;
-    root->trewind_obj = 0;
-    root->trewind_top = 0;
-    root->expanded = false;
-    root->stage = 0;
-    root->precondition = 0;
+    init(root, root_branch_0_expand, 0, 0, 0);
 
     while (mstack.top<method_instance>())
     {
