@@ -340,6 +340,13 @@ struct task_instance
     task_instance* link;
 };
 
+void init(task_instance* task, int task_type, void* args, task_instance* link)
+{
+    task->type = task_type;
+    task->args = args;
+    task->link = link;
+}
+
 // Forwards
 
 bool root_branch_0_expand(method_instance& method, stack& mstack, stack& tstack, worldstate& world);
@@ -372,9 +379,7 @@ bool root_branch_0_expand(method_instance& method, stack& mstack, stack& tstack,
             void* mrewind_top = mstack.top_();
             method_instance* m0 = mstack.begin_object<method_instance>();
             travel_args* a0 = mstack.push<travel_args>();
-
             init(m0, travel_branch_0_expand, a0, prev, mrewind_top);
-
             a0->_0 = precondition->_0;
             a0->_1 = precondition->_1;
         }
@@ -411,11 +416,9 @@ bool travel_branch_0_expand(method_instance& method, stack& mstack, stack& tstac
             task_instance* prev = tstack.top<task_instance>();
             task_instance* task = tstack.begin_object<task_instance>();
             ride_taxi_args* args = tstack.push<ride_taxi_args>();
+            init(task, task_ride_taxi, args, prev);
             args->_0 = method_args->_0;
             args->_1 = method_args->_1;
-            task->args = args;
-            task->link = prev;
-            task->type = task_ride_taxi;
         }
 
         method.expanded = true;
@@ -454,9 +457,7 @@ bool travel_branch_1_expand(method_instance& method, stack& mstack, stack& tstac
             void* mrewind_top = mstack.top_();
             method_instance* m = mstack.begin_object<method_instance>();
             travel_by_air_args* args = mstack.push<travel_by_air_args>();
-
             init(m, travel_by_air_branch_0_expand, args, prev, mrewind_top);
-
             args->_0 = method_args->_0;
             args->_1 = method_args->_1;
         }
@@ -499,13 +500,7 @@ bool travel_by_air_branch_0_expand(method_instance& method, stack& mstack, stack
             void* mrewind_top = mstack.top_();
             method_instance* m = mstack.begin_object<method_instance>();
             travel_args* args = mstack.push<travel_args>();
-            m->expand = travel_branch_0_expand;
-            m->args = args;
-            m->expanded = false;
-            m->stage = 0;
-            m->precondition = 0;
-            m->mrewind_obj = prev;
-            m->mrewind_top = mrewind_top;
+            init(m, travel_branch_0_expand, args, prev, mrewind_top);
             args->_0 = method_args->_0;
             args->_1 = precondition->_1;
         }
@@ -516,9 +511,7 @@ bool travel_by_air_branch_0_expand(method_instance& method, stack& mstack, stack
             task_instance* prev = tstack.top<task_instance>();
             task_instance* task = tstack.begin_object<task_instance>();
             fly_args* args = tstack.push<fly_args>();
-            task->type = task_fly;
-            task->args = args;
-            task->link = prev;
+            init(task, task_fly, args, prev);
             args->_0 = precondition->_1;
             args->_1 = precondition->_3;
         }
@@ -528,13 +521,7 @@ bool travel_by_air_branch_0_expand(method_instance& method, stack& mstack, stack
             void* mrewind_top = mstack.top_();
             method_instance* m = mstack.begin_object<method_instance>();
             travel_args* args = mstack.push<travel_args>();
-            m->expand = travel_branch_0_expand;
-            m->args = args;
-            m->expanded = false;
-            m->stage = 0;
-            m->precondition = 0;
-            m->mrewind_obj = prev;
-            m->mrewind_top = mrewind_top;
+            init(m, travel_branch_0_expand, args, prev, mrewind_top);
             args->_0 = precondition->_3;
             args->_1 = method_args->_1;
         }
