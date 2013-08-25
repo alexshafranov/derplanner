@@ -320,6 +320,19 @@ struct method_instance
     int stage;
 };
 
+void init(method_instance* method, expand_func expand, void* args, void* mrewind_obj, void* mrewind_top)
+{
+    method->expand = expand;
+    method->args = args;
+    method->precondition = 0;
+    method->mrewind_obj = mrewind_obj;
+    method->mrewind_top = mrewind_top;
+    method->trewind_obj = 0;
+    method->trewind_top = 0;
+    method->expanded = false;
+    method->stage = 0;
+}
+
 struct task_instance
 {
     int            type;
@@ -359,13 +372,9 @@ bool root_branch_0_expand(method_instance& method, stack& mstack, stack& tstack,
             void* mrewind_top = mstack.top_();
             method_instance* m0 = mstack.begin_object<method_instance>();
             travel_args* a0 = mstack.push<travel_args>();
-            m0->args = a0;
-            m0->expand = travel_branch_0_expand;
-            m0->stage = 0;
-            m0->precondition = 0;
-            m0->expanded = false;
-            m0->mrewind_obj = prev;
-            m0->mrewind_top = mrewind_top;
+
+            init(m0, travel_branch_0_expand, a0, prev, mrewind_top);
+
             a0->_0 = precondition->_0;
             a0->_1 = precondition->_1;
         }
@@ -445,13 +454,9 @@ bool travel_branch_1_expand(method_instance& method, stack& mstack, stack& tstac
             void* mrewind_top = mstack.top_();
             method_instance* m = mstack.begin_object<method_instance>();
             travel_by_air_args* args = mstack.push<travel_by_air_args>();
-            m->expand = travel_by_air_branch_0_expand;
-            m->stage = 0;
-            m->precondition = 0;
-            m->args = args;
-            m->expanded = false;
-            m->mrewind_obj = prev;
-            m->mrewind_top = mrewind_top;
+
+            init(m, travel_by_air_branch_0_expand, args, prev, mrewind_top);
+
             args->_0 = method_args->_0;
             args->_1 = method_args->_1;
         }
