@@ -9,6 +9,8 @@
 #define PLNNRC_COROUTINE_YIELD(state) do { (state).stage = __LINE__; return true; case __LINE__:; } while (0)
 #define PLNNRC_COROUTINE_END() } return false
 
+#define PLNRC_PRINT printf
+
 // Stack
 
 class stack
@@ -136,6 +138,8 @@ struct p0_state
 
 bool next(p0_state& state, worldstate& world)
 {
+    //PLNRC_PRINT("p0_state next, stage=%d\n", state.stage);
+
     PLNNRC_COROUTINE_BEGIN(state);
 
     for (state.start_0 = world.start; state.start_0 != 0; state.start_0 = state.start_0->next)
@@ -163,6 +167,8 @@ struct p1_state
 
 bool next(p1_state& state, worldstate& world)
 {
+    //PLNRC_PRINT("p1_state next, stage=%d\n", state.stage);
+
     PLNNRC_COROUTINE_BEGIN(state);
 
     for (state.short_distance_0 = world.short_distance; state.short_distance_0 != 0; state.short_distance_0 = state.short_distance_0->next)
@@ -193,6 +199,8 @@ struct p2_state
 
 bool next(p2_state& state, worldstate& world)
 {
+    //PLNRC_PRINT("p2_state next, stage=%d\n", state.stage);
+
     PLNNRC_COROUTINE_BEGIN(state);
 
     for (state.long_distance_0 = world.long_distance; state.long_distance_0 != 0; state.long_distance_0 = state.long_distance_0->next)
@@ -226,6 +234,8 @@ struct p3_state
 
 bool next(p3_state& state, worldstate& world)
 {
+    //PLNRC_PRINT("p3_state next, stage=%d\n", state.stage);
+
     PLNNRC_COROUTINE_BEGIN(state);
 
     for (state.airport_0 = world.airport; state.airport_0 != 0; state.airport_0 = state.airport_0->next)
@@ -292,17 +302,12 @@ struct method_instance;
 
 typedef bool (*expand_func)(method_instance&, stack&, stack&, worldstate& world);
 
-struct branch_state
-{
-    void* precondition;
-    int stage;
-};
-
 struct method_instance
 {
     expand_func expand;
     void* args;
-    branch_state branch;
+
+    void* precondition;
 
     void* trewind_obj;
     void* trewind_top;
@@ -324,48 +329,28 @@ struct task_instance
 
 // Forwards
 
-bool root_expand(method_instance& instance, stack& mstack, stack& tstack, worldstate& world);
 bool root_branch_0_expand(method_instance& method, stack& mstack, stack& tstack, worldstate& world);
-bool travel_expand(method_instance& instance, stack& mstack, stack& tstack, worldstate& world);
 bool travel_branch_0_expand(method_instance& method, stack& mstack, stack& tstack, worldstate& world);
 bool travel_branch_1_expand(method_instance& method, stack& mstack, stack& tstack, worldstate& world);
-bool travel_by_air_expand(method_instance& instance, stack& mstack, stack& tstack, worldstate& world);
 bool travel_by_air_branch_0_expand(method_instance& instance, stack& mstack, stack& tstack, worldstate& world);
 
 // Method Expansions
 
-bool root_expand(method_instance& instance, stack& mstack, stack& tstack, worldstate& world)
-{
-    // printf("root_expand, stage=%d\n", instance->stage);
-
-    PLNNRC_COROUTINE_BEGIN(instance);
-
-    instance.trewind_obj = tstack.top<task_instance>();
-    instance.trewind_top = tstack.top_();
-
-    {
-        p0_state* pstate = mstack.push<p0_state>();
-        pstate->stage = 0;
-
-        instance.branch.precondition = pstate;
-        instance.branch.stage = 0;
-    }
-
-    while (root_branch_0_expand(instance, mstack, tstack, world))
-    {
-        PLNNRC_COROUTINE_YIELD(instance);
-    }
-
-    PLNNRC_COROUTINE_END();
-}
-
 bool root_branch_0_expand(method_instance& method, stack& mstack, stack& tstack, worldstate& world)
 {
-    // printf("root_branch_0_expand, stage=%d\n", method.branch.stage);
+    //PLNRC_PRINT("root_branch_0_expand, stage=%d\n", method.stage);
 
-    p0_state* precondition = static_cast<p0_state*>(method.branch.precondition);
+    p0_state* precondition = static_cast<p0_state*>(method.precondition);
 
-    PLNNRC_COROUTINE_BEGIN(method.branch);
+    PLNNRC_COROUTINE_BEGIN(method);
+
+    method.trewind_obj = tstack.top<task_instance>();
+    method.trewind_top = tstack.top_();
+
+    precondition = mstack.push<p0_state>();
+    precondition->stage = 0;
+
+    method.precondition = precondition;
 
     while (next(*precondition, world))
     {
@@ -375,8 +360,9 @@ bool root_branch_0_expand(method_instance& method, stack& mstack, stack& tstack,
             method_instance* m0 = mstack.begin_object<method_instance>();
             travel_args* a0 = mstack.push<travel_args>();
             m0->args = a0;
-            m0->expand = travel_expand;
+            m0->expand = travel_branch_0_expand;
             m0->stage = 0;
+            m0->precondition = 0;
             m0->expanded = false;
             m0->mrewind_obj = prev;
             m0->mrewind_top = mrewind_top;
@@ -385,66 +371,32 @@ bool root_branch_0_expand(method_instance& method, stack& mstack, stack& tstack,
         }
 
         method.expanded = true;
-
-        PLNNRC_COROUTINE_YIELD(method.branch);
+        PLNNRC_COROUTINE_YIELD(method);
     }
 
-    PLNNRC_COROUTINE_END();
-}
-
-bool travel_expand(method_instance& instance, stack& mstack, stack& tstack, worldstate& world)
-{
-    travel_args* args = static_cast<travel_args*>(instance.args);
-
-    // printf("travel_expand, stage=%d, 0=%d 1=%d\n", instance.stage, args->_0, args->_1);
-
-    PLNNRC_COROUTINE_BEGIN(instance);
-
-    instance.trewind_obj = tstack.top<task_instance>();
-    instance.trewind_top = tstack.top_();
-
-    {
-        p1_state* pstate = mstack.push<p1_state>();
-        pstate->_0 = args->_0;
-        pstate->_1 = args->_1;
-        pstate->stage = 0;
-
-        instance.branch.precondition = pstate;
-        instance.branch.stage = 0;
-    }
-
-    while (travel_branch_0_expand(instance, mstack, tstack, world))
-    {
-        PLNNRC_COROUTINE_YIELD(instance);
-    }
-
-    {
-        p2_state* pstate = mstack.push<p2_state>();
-        pstate->_0 = args->_0;
-        pstate->_1 = args->_1;
-        pstate->stage = 0;
-
-        instance.branch.precondition = pstate;
-        instance.branch.stage = 0;
-    }
-
-    while (travel_branch_1_expand(instance, mstack, tstack, world))
-    {
-        PLNNRC_COROUTINE_YIELD(instance);
-    }
-
+    method.expand = 0;
     PLNNRC_COROUTINE_END();
 }
 
 bool travel_branch_0_expand(method_instance& method, stack& mstack, stack& tstack, worldstate& world)
 {
     travel_args* method_args = static_cast<travel_args*>(method.args);
-    // printf("travel_branch_0_expand, stage=%d, 0=%d, 1=%d\n", method.branch.stage, method_args->_0, method_args->_1);
-    p1_state* pstate = static_cast<p1_state*>(method.branch.precondition);
+    //PLNRC_PRINT("travel_branch_0_expand, stage=%d, 0=%d, 1=%d\n", method.stage, method_args->_0, method_args->_1);
+    p1_state* precondition = static_cast<p1_state*>(method.precondition);
 
-    PLNNRC_COROUTINE_BEGIN(method.branch);
+    PLNNRC_COROUTINE_BEGIN(method);
 
-    while (next(*pstate, world))
+    method.trewind_obj = tstack.top<task_instance>();
+    method.trewind_top = tstack.top_();
+
+    precondition = mstack.push<p1_state>();
+    precondition->_0 = method_args->_0;
+    precondition->_1 = method_args->_1;
+    precondition->stage = 0;
+
+    method.precondition = precondition;
+
+    while (next(*precondition, world))
     {
         {
             task_instance* prev = tstack.top<task_instance>();
@@ -458,9 +410,12 @@ bool travel_branch_0_expand(method_instance& method, stack& mstack, stack& tstac
         }
 
         method.expanded = true;
-
-        PLNNRC_COROUTINE_YIELD(method.branch);
+        PLNNRC_COROUTINE_YIELD(method);
     }
+
+    method.stage = 0;
+    method.expand = travel_branch_1_expand;
+    return travel_branch_1_expand(method, mstack, tstack, world);
 
     PLNNRC_COROUTINE_END();
 }
@@ -468,22 +423,33 @@ bool travel_branch_0_expand(method_instance& method, stack& mstack, stack& tstac
 bool travel_branch_1_expand(method_instance& method, stack& mstack, stack& tstack, worldstate& world)
 {
     travel_args* method_args = static_cast<travel_args*>(method.args);
-    // printf("travel_branch_1_expand, stage=%d, 0=%d, 1=%d\n", method.branch.stage, method_args->_0, method_args->_1);
-    p2_state* pstate = static_cast<p2_state*>(method.branch.precondition);
+    //PLNRC_PRINT("travel_branch_1_expand, stage=%d, 0=%d, 1=%d\n", method.stage, method_args->_0, method_args->_1);
+    p2_state* precondition = static_cast<p2_state*>(method.precondition);
 
-    PLNNRC_COROUTINE_BEGIN(method.branch);
+    PLNNRC_COROUTINE_BEGIN(method);
 
-    while (next(*pstate, world))
+    method.trewind_obj = tstack.top<task_instance>();
+    method.trewind_top = tstack.top_();
+
+    precondition = mstack.push<p2_state>();
+    precondition->_0 = method_args->_0;
+    precondition->_1 = method_args->_1;
+    precondition->stage = 0;
+
+    method.precondition = precondition;
+
+    while (next(*precondition, world))
     {
         {
             method_instance* prev = mstack.top<method_instance>();
             void* mrewind_top = mstack.top_();
             method_instance* m = mstack.begin_object<method_instance>();
             travel_by_air_args* args = mstack.push<travel_by_air_args>();
-            m->expand = travel_by_air_expand;
+            m->expand = travel_by_air_branch_0_expand;
+            m->stage = 0;
+            m->precondition = 0;
             m->args = args;
             m->expanded = false;
-            m->stage = 0;
             m->mrewind_obj = prev;
             m->mrewind_top = mrewind_top;
             args->_0 = method_args->_0;
@@ -491,10 +457,10 @@ bool travel_branch_1_expand(method_instance& method, stack& mstack, stack& tstac
         }
 
         method.expanded = true;
-
-        PLNNRC_COROUTINE_YIELD(method.branch);
+        PLNNRC_COROUTINE_YIELD(method);
     }
 
+    method.expand = 0;
     PLNNRC_COROUTINE_END();
 }
 
@@ -503,60 +469,43 @@ bool travel_branch_1_expand(method_instance& method, stack& mstack, stack& tstac
 //     ((travel ?x ?ax) (!fly ?ax ?ay) (travel ?y ?ay))
 // )
 
-bool travel_by_air_expand(method_instance& instance, stack& mstack, stack& tstack, worldstate& world)
-{
-    travel_by_air_args* args = static_cast<travel_by_air_args*>(instance.args);
-    // printf("travel_by_air_expand, stage=%d, 0=%d, 1=%d\n", instance->stage, args->_0, args->_1);
-
-    PLNNRC_COROUTINE_BEGIN(instance);
-
-    instance.trewind_obj = tstack.top<task_instance>();
-    instance.trewind_top = tstack.top_();
-
-    {
-        p3_state* pstate = mstack.push<p3_state>();
-        pstate->_0 = args->_0;
-        pstate->_2 = args->_1;
-        pstate->stage = 0;
-
-        instance.branch.precondition = pstate;
-        instance.branch.stage = 0;
-    }
-
-    while (travel_by_air_branch_0_expand(instance, mstack, tstack, world))
-    {
-        PLNNRC_COROUTINE_YIELD(instance);
-    }
-
-    PLNNRC_COROUTINE_END();
-}
-
 bool travel_by_air_branch_0_expand(method_instance& method, stack& mstack, stack& tstack, worldstate& world)
 {
     travel_by_air_args* method_args = static_cast<travel_by_air_args*>(method.args);
-    // printf("travel_by_air_branch_0_expand, stage=%d, 0=%d, 1=%d\n", method.branch.stage, method_args->_0, method_args->_1);
-    p3_state* pstate = static_cast<p3_state*>(method.branch.precondition);
+    //PLNRC_PRINT("travel_by_air_branch_0_expand, stage=%d, 0=%d, 1=%d\n", method.stage, method_args->_0, method_args->_1);
+    p3_state* precondition = static_cast<p3_state*>(method.precondition);
 
-    PLNNRC_COROUTINE_BEGIN(method.branch);
+    PLNNRC_COROUTINE_BEGIN(method);
 
-    while (next(*pstate, world))
+    method.trewind_obj = tstack.top<task_instance>();
+    method.trewind_top = tstack.top_();
+
+    precondition = mstack.push<p3_state>();
+    precondition->_0 = method_args->_0;
+    precondition->_2 = method_args->_1;
+    precondition->stage = 0;
+
+    method.precondition = precondition;
+
+    while (next(*precondition, world))
     {
         {
             method_instance* prev = mstack.top<method_instance>();
             void* mrewind_top = mstack.top_();
             method_instance* m = mstack.begin_object<method_instance>();
             travel_args* args = mstack.push<travel_args>();
-            m->expand = travel_expand;
+            m->expand = travel_branch_0_expand;
             m->args = args;
             m->expanded = false;
             m->stage = 0;
+            m->precondition = 0;
             m->mrewind_obj = prev;
             m->mrewind_top = mrewind_top;
             args->_0 = method_args->_0;
-            args->_1 = pstate->_1;
+            args->_1 = precondition->_1;
         }
 
-        PLNNRC_COROUTINE_YIELD(method.branch);
+        PLNNRC_COROUTINE_YIELD(method);
 
         {
             task_instance* prev = tstack.top<task_instance>();
@@ -565,8 +514,8 @@ bool travel_by_air_branch_0_expand(method_instance& method, stack& mstack, stack
             task->type = task_fly;
             task->args = args;
             task->link = prev;
-            args->_0 = pstate->_1;
-            args->_1 = pstate->_3;
+            args->_0 = precondition->_1;
+            args->_1 = precondition->_3;
         }
 
         {
@@ -574,34 +523,36 @@ bool travel_by_air_branch_0_expand(method_instance& method, stack& mstack, stack
             void* mrewind_top = mstack.top_();
             method_instance* m = mstack.begin_object<method_instance>();
             travel_args* args = mstack.push<travel_args>();
-            m->expand = travel_expand;
+            m->expand = travel_branch_0_expand;
             m->args = args;
             m->expanded = false;
             m->stage = 0;
+            m->precondition = 0;
             m->mrewind_obj = prev;
             m->mrewind_top = mrewind_top;
-            args->_0 = pstate->_3;
+            args->_0 = precondition->_3;
             args->_1 = method_args->_1;
         }
 
         method.expanded = true;
-
-        PLNNRC_COROUTINE_YIELD(method.branch);
+        PLNNRC_COROUTINE_YIELD(method);
     }
 
+    method.expand = 0;
     PLNNRC_COROUTINE_END();
 }
 
 bool find_plan(worldstate& world, stack& mstack, stack& tstack)
 {
     method_instance* root = mstack.begin_object<method_instance>();
-    root->expand = root_expand;
+    root->expand = root_branch_0_expand;
     root->mrewind_obj = 0;
     root->mrewind_top = 0;
     root->trewind_obj = 0;
     root->trewind_top = 0;
     root->expanded = false;
     root->stage = 0;
+    root->precondition = 0;
 
     while (mstack.top<method_instance>())
     {
@@ -609,11 +560,11 @@ bool find_plan(worldstate& world, stack& mstack, stack& tstack)
 
         if (method->expand(*method, mstack, tstack, world))
         {
-            // printf("->expanded\n");
+            //PLNRC_PRINT("->expanded\n");
 
             if (method == mstack.top<method_instance>())
             {
-                // printf("->top\n");
+                //PLNRC_PRINT("->top\n");
 
                 while (method != root && method->expanded)
                 {
@@ -623,14 +574,14 @@ bool find_plan(worldstate& world, stack& mstack, stack& tstack)
 
                 if (method == root)
                 {
-                    // printf("Done true.\n");
+                    //PLNRC_PRINT("Done true.\n");
                     return true;
                 }
             }
         }
         else
         {
-            // printf("->backtrack!\n");
+            //PLNRC_PRINT("->backtrack!\n");
 
             tstack.rewind<task_instance>(method->trewind_obj, method->trewind_top);
             mstack.rewind<method_instance>(method->mrewind_obj, method->mrewind_top);
@@ -638,7 +589,7 @@ bool find_plan(worldstate& world, stack& mstack, stack& tstack)
 
             if (method == root)
             {
-                // printf("Done false.\n");
+                //PLNRC_PRINT("Done false.\n");
                 return false;
             }
         }
