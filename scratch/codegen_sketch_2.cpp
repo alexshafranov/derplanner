@@ -5,6 +5,10 @@
 #include <iostream>
 #include <chrono>
 
+#define PLNNRC_COROUTINE_BEGIN(state) switch ((state).stage) { case 0:
+#define PLNNRC_COROUTINE_YIELD(state) do { (state).stage = __LINE__; return true; case __LINE__:; } while (0)
+#define PLNNRC_COROUTINE_END() } return false
+
 /*
 (:worldstate
     (start          (int))
@@ -130,127 +134,140 @@ struct worldstate
 
 // preconditions
 
-// ((start ?s) (finish ?f))
 struct p1_state
 {
     int out_s;
     int out_f;
-    start_tuple*  state_start;
-    finish_tuple* state_finish;
+    start_tuple* start_0;
+    finish_tuple* finish_1;
+    int stage;
 };
 
-void init(p1_state& state, const worldstate& world)
-{
-    state.state_start  = world.start;
-    state.state_finish = world.finish;
-}
+// ((start ?s) (finish ?f))
 
-bool next(p1_state& state)
+bool next(p1_state& state, worldstate& world)
 {
-    for (; state.state_start != 0; state.state_start = state.state_start->next)
+    PLNNRC_COROUTINE_BEGIN(state);
+
+    for (state.start_0 = world.start; state.start_0 != 0; state.start_0 = state.start_0->next)
     {
-        for (; state.state_finish != 0; state.state_finish = state.state_finish->next)
+        state.out_s = state.start_0->_0;
+
+        for (state.finish_1 = world.finish; state.finish_1 != 0; state.finish_1 = state.finish_1->next)
         {
-            state.out_s = state.state_start->_0;
-            state.out_f = state.state_finish->_0;
-            return true;
+            state.out_f = state.finish_1->_0;
+
+            PLNNRC_COROUTINE_YIELD(state);
         }
     }
 
-    return false;
+    PLNNRC_COROUTINE_END();
 }
 
-// ((short_distance ?x ?y))
 struct p2_state
 {
     int in_x;
     int in_y;
-    short_distance_tuple* state_short_distance;
+    short_distance_tuple* short_distance_0;
+    int stage;
 };
 
-void init(p2_state& state, const worldstate& world)
-{
-    state.state_short_distance = world.short_distance;
-}
+// ((short_distance ?x ?y))
 
-bool next(p2_state& state)
+bool next(p2_state& state, worldstate& world)
 {
-    for (; state.state_short_distance != 0; state.state_short_distance = state.state_short_distance->next)
+    PLNNRC_COROUTINE_BEGIN(state);
+
+    for (state.short_distance_0 = world.short_distance; state.short_distance_0 != 0; state.short_distance_0 = state.short_distance_0->next)
     {
-        if (state.state_short_distance->_0 == state.in_x && state.state_short_distance->_1 == state.in_y)
+        if (state.short_distance_0->_0 != state.in_x)
         {
-            return true;
+            continue;
         }
+
+        if (state.short_distance_0->_1 != state.in_y)
+        {
+            continue;
+        }
+
+        PLNNRC_COROUTINE_YIELD(state);
     }
 
-    return false;
+    PLNNRC_COROUTINE_END();
 }
 
 struct p3_state
 {
     int in_x;
     int in_y;
-    long_distance_tuple* state_long_distance;
+    long_distance_tuple* long_distance_0;
+    int stage;
 };
 
-void init(p3_state& state, const worldstate& world)
-{
-    state.state_long_distance = world.long_distance;
-}
+// ((long_distance ?x ?y))
 
-bool next(p3_state& state)
+bool next(p3_state& state, worldstate& world)
 {
-    for (; state.state_long_distance != 0; state.state_long_distance = state.state_long_distance->next)
+    PLNNRC_COROUTINE_BEGIN(state);
+
+    for (state.long_distance_0 = world.long_distance; state.long_distance_0 != 0; state.long_distance_0 = state.long_distance_0->next)
     {
-        if (state.state_long_distance->_0 == state.in_x && state.state_long_distance->_1 == state.in_y)
+        if (state.long_distance_0->_0 != state.in_x)
         {
-            return true;
+            continue;
         }
+
+        if (state.long_distance_0->_1 != state.in_y)
+        {
+            continue;
+        }
+
+        PLNNRC_COROUTINE_YIELD(state);
     }
 
-    return false;
+    PLNNRC_COROUTINE_END();
 }
 
-// ((airport ?x ?ax) (airport ?y ?ay))
 struct p4_state
 {
     int in_x;
-    int in_y;
-
     int out_ax;
+    int in_y;
     int out_ay;
-
-    airport_tuple* state_airport_1;
-    airport_tuple* state_airport_2;
+    airport_tuple* airport_0;
+    airport_tuple* airport_1;
+    int stage;
 };
 
-void init(p4_state& state, const worldstate& world)
-{
-    state.state_airport_1 = world.airport;
-    state.state_airport_2 = world.airport;
-}
+// ((airport ?x ?ax) (airport ?y ?ay))
 
-bool next(p4_state& state)
+bool next(p4_state& state, worldstate& world)
 {
-    for (; state.state_airport_1 != 0; state.state_airport_1 = state.state_airport_1->next)
+    PLNNRC_COROUTINE_BEGIN(state);
+
+    for (state.airport_0 = world.airport; state.airport_0 != 0; state.airport_0 = state.airport_0->next)
     {
-        if (state.state_airport_1->_0 == state.in_x)
+        if (state.airport_0->_0 != state.in_x)
         {
-            state.out_ax = state.state_airport_1->_1;
+            continue;
+        }
 
-            for (; state.state_airport_2 != 0; state.state_airport_2 = state.state_airport_2->next)
+        state.out_ax = state.airport_0->_1;
+
+        for (state.airport_1 = world.airport; state.airport_1 != 0; state.airport_1 = state.airport_1->next)
+        {
+            if (state.airport_1->_0 != state.in_y)
             {
-                if (state.state_airport_2->_0 == state.in_y)
-                {
-                    state.out_ay = state.state_airport_2->_1;
-                    state.state_airport_2 = state.state_airport_2->next;
-                    return true;
-                }
+                continue;
             }
+
+            state.out_ay = state.airport_1->_1;
+
+            PLNNRC_COROUTINE_YIELD(state);
         }
     }
 
-    return false;
+    PLNNRC_COROUTINE_END();
 }
 
 // tasks
@@ -291,7 +308,7 @@ struct travel_by_air_args
 
 struct method_expansion;
 
-typedef bool (*expand_func)(method_expansion*, stack&, stack&, const worldstate&);
+typedef bool (*expand_func)(method_expansion*, stack&, stack&, worldstate&);
 
 struct method_instance;
 
@@ -323,14 +340,14 @@ struct task_instance
 };
 
 // forwards
-bool root_expand(method_expansion*, stack&, stack&, const worldstate&);
-bool root_branch_0_expand(method_expansion*, stack&, stack&, const worldstate&);
-bool travel_expand(method_expansion*, stack&, stack&, const worldstate&);
-bool travel_branch_0_expand(method_expansion*, stack&, stack&, const worldstate&);
-bool travel_branch_1_expand(method_expansion*, stack&, stack&, const worldstate&);
-bool travel_by_air_expand(method_expansion*, stack&, stack&, const worldstate&);
-bool travel_by_air_branch_0_expand(method_expansion*, stack&, stack&, const worldstate&);
-bool travel_by_air_branch_0_0_tail(method_expansion*, stack&, stack&, const worldstate&);
+bool root_expand(method_expansion*, stack&, stack&, worldstate&);
+bool root_branch_0_expand(method_expansion*, stack&, stack&, worldstate&);
+bool travel_expand(method_expansion*, stack&, stack&, worldstate&);
+bool travel_branch_0_expand(method_expansion*, stack&, stack&, worldstate&);
+bool travel_branch_1_expand(method_expansion*, stack&, stack&, worldstate&);
+bool travel_by_air_expand(method_expansion*, stack&, stack&, worldstate&);
+bool travel_by_air_branch_0_expand(method_expansion*, stack&, stack&, worldstate&);
+bool travel_by_air_branch_0_0_tail(method_expansion*, stack&, stack&, worldstate&);
 
 /*
     (:method (root)
@@ -338,13 +355,13 @@ bool travel_by_air_branch_0_0_tail(method_expansion*, stack&, stack&, const worl
         ((travel ?s ?f))
     )
 */
-bool root_expand(method_expansion* expansion, stack& mstack, stack& pstack, const worldstate& world)
+bool root_expand(method_expansion* expansion, stack& mstack, stack& pstack, worldstate& world)
 {
     expansion->mrewind = mstack.top();
     expansion->prewind = pstack.top();
     // init precondition state.
     p1_state* state = mstack.push<p1_state>();
-    init(*state, world);
+    state->stage = 0;
     // init branch
     expansion->precondition = state;
     expansion->expand = root_branch_0_expand;
@@ -352,11 +369,11 @@ bool root_expand(method_expansion* expansion, stack& mstack, stack& pstack, cons
     return root_branch_0_expand(expansion, mstack, pstack, world);
 }
 
-bool root_branch_0_expand(method_expansion* expansion, stack& mstack, stack& pstack, const worldstate& world)
+bool root_branch_0_expand(method_expansion* expansion, stack& mstack, stack& pstack, worldstate& world)
 {
     p1_state* state = static_cast<p1_state*>(expansion->precondition);
     // produce next binding
-    if (next(*state))
+    if (next(*state, world))
     {
         method_instance* m0 = mstack.push<method_instance>();
         travel_args* a0 = mstack.push<travel_args>();
@@ -383,7 +400,7 @@ bool root_branch_0_expand(method_expansion* expansion, stack& mstack, stack& pst
         ((travel_by_air ?x ?y))
     )
 */
-bool travel_expand(method_expansion* expansion, stack& mstack, stack& pstack, const worldstate& world)
+bool travel_expand(method_expansion* expansion, stack& mstack, stack& pstack, worldstate& world)
 {
     expansion->mrewind = mstack.top();
     expansion->prewind = pstack.top();
@@ -391,18 +408,18 @@ bool travel_expand(method_expansion* expansion, stack& mstack, stack& pstack, co
     travel_args* args = static_cast<travel_args*>(expansion->args);
     state->in_x = args->x;
     state->in_y = args->y;
-    init(*state, world);
+    state->stage = 0;
     expansion->precondition = state;
     expansion->expand = travel_branch_0_expand;
     return travel_branch_0_expand(expansion, mstack, pstack, world);
 }
 
-bool travel_branch_0_expand(method_expansion* expansion, stack& mstack, stack& pstack, const worldstate& world)
+bool travel_branch_0_expand(method_expansion* expansion, stack& mstack, stack& pstack, worldstate& world)
 {
     p2_state* state = static_cast<p2_state*>(expansion->precondition);
     travel_args* args = static_cast<travel_args*>(expansion->args);
 
-    if (next(*state))
+    if (next(*state, world))
     {
         task_instance* previous = static_cast<task_instance*>(pstack.object());
         task_instance*           t0 = pstack.begin_object<task_instance>();
@@ -421,7 +438,7 @@ bool travel_branch_0_expand(method_expansion* expansion, stack& mstack, stack& p
         p3_state* state = mstack.push<p3_state>();
         state->in_x = args->x;
         state->in_y = args->y;
-        init(*state, world);
+        state->stage = 0;
         expansion->precondition = state;
         expansion->expand = travel_branch_1_expand;
     }
@@ -429,12 +446,12 @@ bool travel_branch_0_expand(method_expansion* expansion, stack& mstack, stack& p
     return travel_branch_1_expand(expansion, mstack, pstack, world);
 }
 
-bool travel_branch_1_expand(method_expansion* expansion, stack& mstack, stack& pstack, const worldstate& world)
+bool travel_branch_1_expand(method_expansion* expansion, stack& mstack, stack& pstack, worldstate& world)
 {
     p3_state* state = static_cast<p3_state*>(expansion->precondition);
     travel_args* args = static_cast<travel_args*>(expansion->args);
 
-    if (next(*state))
+    if (next(*state, world))
     {
         method_instance* m0 = mstack.push<method_instance>();
         travel_by_air_args* a0 = mstack.push<travel_by_air_args>();
@@ -458,7 +475,7 @@ bool travel_branch_1_expand(method_expansion* expansion, stack& mstack, stack& p
         ((travel ?x ?ax) (!fly ?ax ?ay) (travel ?y ?ay))
     )
 */
-bool travel_by_air_expand(method_expansion* expansion, stack& mstack, stack& pstack, const worldstate& world)
+bool travel_by_air_expand(method_expansion* expansion, stack& mstack, stack& pstack, worldstate& world)
 {
     expansion->mrewind = mstack.top();
     expansion->prewind = pstack.top();
@@ -466,18 +483,18 @@ bool travel_by_air_expand(method_expansion* expansion, stack& mstack, stack& pst
     travel_by_air_args* args = static_cast<travel_by_air_args*>(expansion->args);
     state->in_x = args->x;
     state->in_y = args->y;
-    init(*state, world);
+    state->stage = 0;
     expansion->precondition = state;
     expansion->expand = travel_by_air_branch_0_expand;
     return travel_by_air_branch_0_expand(expansion, mstack, pstack, world);
 }
 
-bool travel_by_air_branch_0_expand(method_expansion* expansion, stack& mstack, stack& pstack, const worldstate& world)
+bool travel_by_air_branch_0_expand(method_expansion* expansion, stack& mstack, stack& pstack, worldstate& world)
 {
     p4_state* state = static_cast<p4_state*>(expansion->precondition);
     travel_by_air_args* args = static_cast<travel_by_air_args*>(expansion->args);
 
-    if (next(*state))
+    if (next(*state, world))
     {
         method_instance* m0 = mstack.push<method_instance>();
         travel_args* a0 = mstack.push<travel_args>();
@@ -507,7 +524,7 @@ bool travel_by_air_branch_0_expand(method_expansion* expansion, stack& mstack, s
     return false;
 }
 
-bool travel_by_air_branch_0_0_tail(method_expansion* expansion, stack& mstack, stack& pstack, const worldstate& world)
+bool travel_by_air_branch_0_0_tail(method_expansion* expansion, stack& mstack, stack& pstack, worldstate& world)
 {
     p4_state* state = static_cast<p4_state*>(expansion->precondition);
     travel_by_air_args* args = static_cast<travel_by_air_args*>(expansion->args);
@@ -554,7 +571,7 @@ void pop(stack& mstack)
     mstack.object_ = p;
 }
 
-bool find_plan(const worldstate& world, stack& mstack, stack& pstack)
+bool find_plan(worldstate& world, stack& mstack, stack& pstack)
 {
     method_expansion* root = mstack.begin_object<method_expansion>();
     root->args = 0;
