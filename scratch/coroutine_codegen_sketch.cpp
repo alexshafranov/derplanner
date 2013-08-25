@@ -322,6 +322,8 @@ struct method_instance
     void* mrewind_obj;
     void* mrewind_top;
 
+    bool expanded;
+
     int stage;
 };
 
@@ -387,11 +389,14 @@ bool root_branch_0_expand(method_instance* method, stack& mstack, stack& tstack,
             m0->args = a0;
             m0->expand = travel_expand;
             m0->stage = 0;
+            m0->expanded = false;
             m0->mrewind_obj = prev;
             m0->mrewind_top = mrewind_top;
             a0->_0 = precondition->_0;
             a0->_1 = precondition->_1;
         }
+
+        method->expanded = true;
 
         PLNNRC_COROUTINE_YIELD(method->branch);
     }
@@ -468,6 +473,8 @@ bool travel_branch_0_expand(method_instance* method, stack& mstack, stack& tstac
             task->type = task_ride_taxi;
         }
 
+        method->expanded = true;
+
         PLNNRC_COROUTINE_YIELD(method->branch);
     }
 
@@ -492,12 +499,15 @@ bool travel_branch_1_expand(method_instance* method, stack& mstack, stack& tstac
             travel_by_air_args* args = mstack.push<travel_by_air_args>();
             m->expand = travel_by_air_expand;
             m->args = args;
+            m->expanded = false;
             m->stage = 0;
             m->mrewind_obj = prev;
             m->mrewind_top = mrewind_top;
             args->_0 = method_args->_0;
             args->_1 = method_args->_1;
         }
+
+        method->expanded = true;
 
         PLNNRC_COROUTINE_YIELD(method->branch);
     }
@@ -555,6 +565,7 @@ bool travel_by_air_branch_0_expand(method_instance* method, stack& mstack, stack
             travel_args* args = mstack.push<travel_args>();
             m->expand = travel_expand;
             m->args = args;
+            m->expanded = false;
             m->stage = 0;
             m->mrewind_obj = prev;
             m->mrewind_top = mrewind_top;
@@ -594,6 +605,7 @@ bool travel_by_air_branch_0_expand(method_instance* method, stack& mstack, stack
             m->args = args;
             printf("\t2 method args, 0=%d, 1=%d\n", method_args->_0, method_args->_1);
 
+            m->expanded = false;
             m->stage = 0;
             m->mrewind_obj = prev;
             m->mrewind_top = mrewind_top;
@@ -603,6 +615,8 @@ bool travel_by_air_branch_0_expand(method_instance* method, stack& mstack, stack
             printf("travel_by_air_branch_0_expand travel_expand 0=%d 1=%d\n", args->_0, args->_1);
             printf("\t3 method args, 0=%d, 1=%d\n", method_args->_0, method_args->_1);
         }
+
+        method->expanded = true;
 
         PLNNRC_COROUTINE_YIELD(method->branch);
     }
@@ -618,6 +632,7 @@ bool find_plan(worldstate& world, stack& mstack, stack& tstack)
     root->mrewind_top = 0;
     root->trewind_obj = 0;
     root->trewind_top = 0;
+    root->expanded = false;
     root->stage = 0;
 
     while (mstack.top<method_instance>())
@@ -632,12 +647,15 @@ bool find_plan(worldstate& world, stack& mstack, stack& tstack)
             {
                 printf("top method\n");
 
-                mstack.rewind<method_instance>(method->mrewind_obj, method->mrewind_top);
+                while (method != root && method->expanded)
+                {
+                    mstack.rewind<method_instance>(method->mrewind_obj, method->mrewind_top);
+                    method = mstack.top<method_instance>();
+                }
 
                 if (method == root)
                 {
-                    printf("done.");
-
+                    printf("done.\n");
                     return true;
                 }
             }
@@ -645,6 +663,7 @@ bool find_plan(worldstate& world, stack& mstack, stack& tstack)
         else
         {
             printf("backtrack!\n");
+
             tstack.rewind<task_instance>(method->trewind_obj, method->trewind_top);
             mstack.rewind<method_instance>(method->mrewind_obj, method->mrewind_top);
 
