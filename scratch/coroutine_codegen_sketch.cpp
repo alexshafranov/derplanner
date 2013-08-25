@@ -611,7 +611,7 @@ bool find_plan(worldstate& world, stack& mstack, stack& tstack)
         {
             // printf("->expanded\n");
 
-            if (mstack.top<method_instance>() == method)
+            if (method == mstack.top<method_instance>())
             {
                 // printf("->top\n");
 
@@ -634,8 +634,9 @@ bool find_plan(worldstate& world, stack& mstack, stack& tstack)
 
             tstack.rewind<task_instance>(method->trewind_obj, method->trewind_top);
             mstack.rewind<method_instance>(method->mrewind_obj, method->mrewind_top);
+            method = mstack.top<method_instance>();
 
-            if (mstack.top<method_instance>() == root)
+            if (method == root)
             {
                 // printf("Done false.\n");
                 return false;
