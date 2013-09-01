@@ -362,16 +362,10 @@ method_instance* rewind_top_method(plannerstate& pstate, bool rewind_tasks)
 bool next_branch(plannerstate& pstate, expand_func expand, worldstate& world)
 {
     method_instance* method = pstate.top_method;
-
-    if (expand)
-    {
-        method->stage = 0;
-        method->expand = expand;
-        return method->expand(pstate, world);
-    }
-
-    method->expand = 0;
-    return false;
+    method->stage = 0;
+    method->expand = expand;
+    pstate.mstack->rewind(reinterpret_cast<char*>(method) + sizeof(method_instance));
+    return method->expand(pstate, world);
 }
 
 // Forwards
@@ -413,7 +407,6 @@ bool root_branch_0_expand(plannerstate& pstate, worldstate& world)
         PLNNRC_COROUTINE_YIELD(*method);
     }
 
-    return next_branch(pstate, 0, world);
     PLNNRC_COROUTINE_END();
 }
 
@@ -484,7 +477,6 @@ bool travel_branch_1_expand(plannerstate& pstate, worldstate& world)
         PLNNRC_COROUTINE_YIELD(*method);
     }
 
-    return next_branch(pstate, 0, world);
     PLNNRC_COROUTINE_END();
 }
 
@@ -543,7 +535,6 @@ bool travel_by_air_branch_0_expand(plannerstate& pstate, worldstate& world)
         PLNNRC_COROUTINE_YIELD(*method);
     }
 
-    return next_branch(pstate, 0, world);
     PLNNRC_COROUTINE_END();
 }
 
