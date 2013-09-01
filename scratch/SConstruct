@@ -1,6 +1,3 @@
 
 env = Environment(CXXFLAGS='-Wall -Werror -O3 -std=c++11')
-env.Program(source='codegen_sketch_2.cpp')
-env.Program(source='coroutine.cpp')
-env.Program(source='complex_preconditions_sketch.cpp')
-env.Program(source='coroutine_codegen_sketch.cpp')
+env.Program(source='travel_domain_sketch.cpp')
