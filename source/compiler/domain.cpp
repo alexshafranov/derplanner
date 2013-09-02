@@ -113,7 +113,7 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
                         return 0;
                     }
 
-                    node* operator_atom = ast.make_node(node_atom, task->first_child->s_expr);
+                    node* operator_atom = ast.make_node(node_atom, task->s_expr);
 
                     if (!operator_atom)
                     {
@@ -929,6 +929,25 @@ namespace
         write(output, "\tPLNNRC_COROUTINE_END();\n}\n\n");
         return true;
     }
+
+    bool generate_operators_enum(tree& ast, writer& output)
+    {
+        write(output, "enum task_type\n{\n");
+        write(output, "\ttask_none=0,\n");
+
+        for (id_table_values operators = ast.operators.values(); !operators.empty(); operators.pop())
+        {
+            node* operatr = operators.value();
+            node* operator_atom = operatr->first_child;
+            write(output, "\ttask_");
+            write(output, operator_atom->s_expr->token);
+            write(output, ",\n");
+        }
+
+        write(output, "}\n");
+
+        return true;
+    }
 }
 
 bool generate_domain(tree& ast, node* domain, writer& output)
@@ -959,6 +978,11 @@ bool generate_domain(tree& ast, node* domain, writer& output)
 
             ++branch_index;
         }
+    }
+
+    if (!generate_operators_enum(ast, output))
+    {
+        return false;
     }
 
     return true;
