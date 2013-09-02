@@ -89,7 +89,7 @@ task_instance* push_task(planner_state& pstate, int task_type);
 method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks);
 bool next_branch(planner_state& pstate, expand_func expand, void* worldstate);
 
-bool find_plan(planner_state& pstate, void* worldstate);
+bool find_plan(planner_state& pstate, expand_func root_method, void* worldstate);
 task_instance* reverse_task_list(task_instance* head);
 
 }
