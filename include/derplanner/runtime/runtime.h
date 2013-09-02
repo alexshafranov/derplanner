@@ -53,10 +53,9 @@ T* push(stack& s)
     return static_cast<T*>(s.push(sizeof(T), sizeof(T)));
 }
 
-struct method_instance;
-struct plannerstate;
+struct planner_state;
 
-typedef bool (*expand_func)(plannerstate&, worldstate& world);
+typedef bool (*expand_func)(planner_state&, void*);
 
 struct method_instance
 {
@@ -77,7 +76,7 @@ struct task_instance
     task_instance* link;
 };
 
-struct plannerstate
+struct planner_state
 {
     method_instance* top_method;
     task_instance* top_task;
@@ -85,12 +84,12 @@ struct plannerstate
     stack* tstack;
 };
 
-method_instance* push_method(plannerstate& pstate, expand_func expand);
-task_instance* push_task(plannerstate& pstate, int task_type);
-method_instance* rewind_top_method(plannerstate& pstate, bool rewind_tasks);
-bool next_branch(plannerstate& pstate, expand_func expand, worldstate& world);
+method_instance* push_method(planner_state& pstate, expand_func expand);
+task_instance* push_task(planner_state& pstate, int task_type);
+method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks);
+bool next_branch(planner_state& pstate, expand_func expand, void* worldstate);
 
-bool find_plan(plannerstate& pstate, worldstate& world);
+bool find_plan(planner_state& pstate, void* worldstate);
 task_instance* reverse_task_list(task_instance* head);
 
 }
