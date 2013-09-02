@@ -21,45 +21,77 @@
 #ifndef DERPLANNER_RUNTIME_RUNTIME_H_
 #define DERPLANNER_RUNTIME_RUNTIME_H_
 
+#include <stddef.h> // size_t
+
 namespace plnnr
 {
 
-struct stack
+class stack
 {
+public:
+    stack(size_t capacity);
+    ~stack();
+
+    void* push(size_t size, size_t alignment);
+    void rewind(void* position);
+    void reset();
+
+    void* top() const;
+
+private:
+    stack(const stack&);
+    const stack& operator=(const stack&);
+
+    size_t _capacity;
+    char* _buffer;
+    char* _top;
 };
 
-struct method_expansion;
+template <typename T>
+T* push(stack& s)
+{
+    return static_cast<T*>(s.push(sizeof(T), sizeof(T)));
+}
 
-typedef bool (*expand_func)(method_expansion*, stack&, stack&, void*);
+struct method_instance;
+struct plannerstate;
+
+typedef bool (*expand_func)(plannerstate&, worldstate& world);
 
 struct method_instance
 {
-    void*               args;     // struct with arguments.
-    expand_func         tail;     // expand primitive tasks which follow after this method.
-    expand_func         expand;   // method expansion.
-    method_instance*    next;     // next method in task list.
-};
-
-struct method_expansion
-{
-    void*               rewind;       // stack top before pushing this branch.
-    void*               args;         // argument struct.
-    void*               precondition; // branch precondition state.
-    expand_func         expand;       // function which expands the branch task list.
-    method_instance*    method;       // next method in the branch task list to expand.
-    void*               mrewind;      // stack top before expanding this branch.
-    void*               prewind;      // primitive task stack top before expanding this branch.
-    method_expansion*   previous;     // parent branch on a stack.
+    expand_func expand;
+    void* args;
+    void* precondition;
+    void* mrewind;
+    void* trewind;
+    method_instance* parent;
+    bool expanded;
+    int stage;
 };
 
 struct task_instance
 {
-    unsigned          type;    // type of the task.
-    void*             args;    // pointer to the arguments struct.
-    task_instance*    link;    // 'previous' task during find_plan, reversed when plan is found.
+    int type;
+    void* args;
+    task_instance* link;
 };
 
-bool find_plan(void* world, stack& mstack, stack& pstack);
+struct plannerstate
+{
+    method_instance* top_method;
+    task_instance* top_task;
+    stack* mstack;
+    stack* tstack;
+};
+
+method_instance* push_method(plannerstate& pstate, expand_func expand);
+task_instance* push_task(plannerstate& pstate, int task_type);
+method_instance* rewind_top_method(plannerstate& pstate, bool rewind_tasks);
+bool next_branch(plannerstate& pstate, expand_func expand, worldstate& world);
+
+bool find_plan(plannerstate& pstate, worldstate& world);
+task_instance* reverse_task_list(task_instance* head);
 
 }
 
