@@ -48,7 +48,7 @@ private:
 };
 
 template <typename T>
-T* push(stack& s)
+T* push(stack* s)
 {
     return static_cast<T*>(s.push(sizeof(T), sizeof(T)));
 }

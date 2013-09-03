@@ -28,12 +28,11 @@ public:
         delete [] _buffer;
     }
 
-    template <typename T>
-    T* push()
+    void* push(size_t size)
     {
         char* top = _top;
-        _top += sizeof(T);
-        return reinterpret_cast<T*>(top);
+        _top += size;
+        return top;
     }
 
     void* top()
@@ -56,6 +55,12 @@ private:
     char* _buffer;
     char* _top;
 };
+
+template <typename T>
+T* push(stack* s)
+{
+    return static_cast<T*>(s->push(sizeof(T)));
+}
 
 // World State
 
@@ -306,7 +311,7 @@ struct planner_state
 
 method_instance* push_method(planner_state& pstate, expand_func expand)
 {
-    method_instance* new_method = pstate.mstack->push<method_instance>();
+    method_instance* new_method = push<method_instance>(pstate.mstack);
     new_method->expand = expand;
     new_method->args = 0;
     new_method->parent = pstate.top_method;
@@ -323,7 +328,7 @@ method_instance* push_method(planner_state& pstate, expand_func expand)
 
 task_instance* push_task(planner_state& pstate, int task_type)
 {
-    task_instance* new_task = pstate.tstack->push<task_instance>();
+    task_instance* new_task = push<task_instance>(pstate.tstack);
     new_task->type = task_type;
     new_task->args = 0;
     new_task->link = pstate.top_task;
@@ -387,7 +392,7 @@ bool root_branch_0_expand(planner_state& pstate, void* world)
 
     PLNNRC_COROUTINE_BEGIN(*method);
 
-    precondition = pstate.mstack->push<p0_state>();
+    precondition = push<p0_state>(pstate.mstack);
     precondition->stage = 0;
 
     method->precondition = precondition;
@@ -398,7 +403,7 @@ bool root_branch_0_expand(planner_state& pstate, void* world)
     {
         {
             method_instance* m = push_method(pstate, travel_branch_0_expand);
-            travel_args* a = pstate.mstack->push<travel_args>();
+            travel_args* a = push<travel_args>(pstate.mstack);
             a->_0 = precondition->_0;
             a->_1 = precondition->_1;
             m->args = a;
@@ -421,7 +426,7 @@ bool travel_branch_0_expand(planner_state& pstate, void* world)
 
     PLNNRC_COROUTINE_BEGIN(*method);
 
-    precondition = pstate.mstack->push<p1_state>();
+    precondition = push<p1_state>(pstate.mstack);
     precondition->_0 = method_args->_0;
     precondition->_1 = method_args->_1;
     precondition->stage = 0;
@@ -434,7 +439,7 @@ bool travel_branch_0_expand(planner_state& pstate, void* world)
     {
         {
             task_instance* t = push_task(pstate, task_ride_taxi);
-            ride_taxi_args* a = pstate.tstack->push<ride_taxi_args>();
+            ride_taxi_args* a = push<ride_taxi_args>(pstate.tstack);
             a->_0 = method_args->_0;
             a->_1 = method_args->_1;
             t->args = a;
@@ -458,7 +463,7 @@ bool travel_branch_1_expand(planner_state& pstate, void* world)
 
     PLNNRC_COROUTINE_BEGIN(*method);
 
-    precondition = pstate.mstack->push<p2_state>();
+    precondition = push<p2_state>(pstate.mstack);
     precondition->_0 = method_args->_0;
     precondition->_1 = method_args->_1;
     precondition->stage = 0;
@@ -470,7 +475,7 @@ bool travel_branch_1_expand(planner_state& pstate, void* world)
     {
         {
             method_instance* m = push_method(pstate, travel_by_air_branch_0_expand);
-            travel_by_air_args* a = pstate.mstack->push<travel_by_air_args>();
+            travel_by_air_args* a = push<travel_by_air_args>(pstate.mstack);
             a->_0 = method_args->_0;
             a->_1 = method_args->_1;
             m->args = a;
@@ -498,7 +503,7 @@ bool travel_by_air_branch_0_expand(planner_state& pstate, void* world)
 
     PLNNRC_COROUTINE_BEGIN(*method);
 
-    precondition = pstate.mstack->push<p3_state>();
+    precondition = push<p3_state>(pstate.mstack);
     precondition->_0 = method_args->_0;
     precondition->_2 = method_args->_1;
     precondition->stage = 0;
@@ -511,7 +516,7 @@ bool travel_by_air_branch_0_expand(planner_state& pstate, void* world)
     {
         {
             method_instance* m = push_method(pstate, travel_branch_0_expand);
-            travel_args* a = pstate.mstack->push<travel_args>();
+            travel_args* a = push<travel_args>(pstate.mstack);
             a->_0 = method_args->_0;
             a->_1 = precondition->_1;
             m->args = a;
@@ -521,7 +526,7 @@ bool travel_by_air_branch_0_expand(planner_state& pstate, void* world)
 
         {
             task_instance* t = push_task(pstate, task_fly);
-            fly_args* a = pstate.tstack->push<fly_args>();
+            fly_args* a = push<fly_args>(pstate.tstack);
             a->_0 = precondition->_1;
             a->_1 = precondition->_3;
             t->args = a;
@@ -529,7 +534,7 @@ bool travel_by_air_branch_0_expand(planner_state& pstate, void* world)
 
         {
             method_instance* m = push_method(pstate, travel_branch_0_expand);
-            travel_args* a = pstate.mstack->push<travel_args>();
+            travel_args* a = push<travel_args>(pstate.mstack);
             a->_0 = precondition->_3;
             a->_1 = method_args->_1;
             m->args = a;
