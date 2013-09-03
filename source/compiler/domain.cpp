@@ -1011,6 +1011,75 @@ namespace
 
         return true;
     }
+
+    bool generate_methods(tree& ast, node* domain, writer& output)
+    {
+        char buffer[10];
+
+        unsigned precondition_index = 0;
+
+        for (node* method = domain->first_child; method != 0; method = method->next_sibling)
+        {
+            plnnrc_assert(method->type == node_method);
+
+            node* atom = method->first_child;
+            const char* method_name = atom->s_expr->token;
+
+            unsigned branch_index = 0;
+
+            for (node* branch = method->first_child->next_sibling; branch != 0; branch = branch->next_sibling)
+            {
+                plnnrc_assert(branch->type == node_branch);
+
+                write(output, "bool ");
+                write(output, method_name);
+                write(output, "_branch_");
+                sprintf(buffer, "%d", branch_index);
+                write(output, buffer);
+                write(output, "_expand");
+                write(output, "(planner_state& pstate, void* world)");
+                write(output, "\n{\n");
+
+                write(output, "\tmethod_instance* method = pstate.top_method;\n");
+
+                write(output, "\tp");
+                sprintf(buffer, "%d", precondition_index);
+                write(output, buffer);
+                write(output, "_state* precondition = static_cast<p");
+                write(output, buffer);
+                write(output, "_state*>(method->precondition);\n");
+                write(output, "\tworldstate* wstate = static_cast<worldstate*>(world);\n");
+
+                if (has_parameters(method))
+                {
+                    write(output, "\t");
+                    write(output, method_name);
+                    write(output, "_args* method_args = static_cast<");
+                    write(output, method_name);
+                    write(output, "_args*>(method->args);\n");
+                }
+
+                write(output, "\n\tPLNNRC_COROUTINE_BEGIN(*method);\n\n");
+
+                write(output, "\tprecondition = push<p");
+                sprintf(buffer, "%d", precondition_index);
+                write(output, buffer);
+                write(output, "_state>(pstate.mstack);\n");
+                write(output, "\tprecondition->stage = 0;\n");
+
+                write(output, "\tmethod->precondition = precondition;\n");
+                write(output, "\tmethod->mrewind = pstate.mstack->top();\n");
+                write(output, "\tmethod->trewind = pstate.tstack->top();\n");
+
+                write(output, "}\n\n");
+
+                ++branch_index;
+                ++precondition_index;
+            }
+        }
+
+        return true;
+    }
 }
 
 bool generate_domain(tree& ast, node* domain, writer& output)
@@ -1049,6 +1118,11 @@ bool generate_domain(tree& ast, node* domain, writer& output)
     }
 
     if (!generate_param_structs(ast, output))
+    {
+        return false;
+    }
+
+    if (!generate_methods(ast, domain, output))
     {
         return false;
     }
