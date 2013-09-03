@@ -384,6 +384,7 @@ bool travel_by_air_branch_0_expand(planner_state&, void* world);
 
 bool root_branch_0_expand(planner_state& pstate, void* world)
 {
+    // Local Vars.
     method_instance* method = pstate.top_method;
     p0_state* precondition = static_cast<p0_state*>(method->precondition);
     worldstate* wstate = static_cast<worldstate*>(world);
@@ -392,6 +393,7 @@ bool root_branch_0_expand(planner_state& pstate, void* world)
 
     PLNNRC_COROUTINE_BEGIN(*method);
 
+    // Create Precondition.
     precondition = push<p0_state>(pstate.mstack);
     precondition->stage = 0;
 
@@ -399,8 +401,10 @@ bool root_branch_0_expand(planner_state& pstate, void* world)
     method->mrewind = pstate.mstack->top();
     method->trewind = pstate.tstack->top();
 
+    // Generate precondition satisfiers.
     while (next(*precondition, *wstate))
     {
+        // Push tasks.
         {
             method_instance* m = push_method(pstate, travel_branch_0_expand);
             travel_args* a = push<travel_args>(pstate.mstack);
@@ -413,6 +417,7 @@ bool root_branch_0_expand(planner_state& pstate, void* world)
         PLNNRC_COROUTINE_YIELD(*method);
     }
 
+    // Begin next branch or stop.
     PLNNRC_COROUTINE_END();
 }
 

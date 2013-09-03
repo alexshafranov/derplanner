@@ -371,6 +371,14 @@ namespace
         return var->parent->parent->type == node_method;
     }
 
+    inline bool has_parameters(node* task)
+    {
+        node* atom = task->first_child;
+        plnnrc_assert(atom);
+        plnnrc_assert(atom->type == node_atom);
+        return atom->first_child != 0;
+    }
+
     inline int type_tag(node* node)
     {
         plnnrc_assert(is_term(node));
@@ -967,16 +975,15 @@ namespace
 
         for (node* param = atom->first_child; param != 0; param = param->next_sibling)
         {
-            // node_term_variable
             node* ws_type = ast.type_tag_to_node[type_tag(param)];
             write(output, "\t");
             write(output, ws_type->s_expr->first_child->token);
             write(output, " ");
             write(output, "_");
+            annotation<term_ann>(param)->var_index = param_index;
             sprintf(buffer, "%d", param_index);
             write(output, buffer);
             write(output, ";\n");
-
             ++param_index;
         }
 
