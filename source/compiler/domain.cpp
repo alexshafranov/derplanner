@@ -944,7 +944,63 @@ namespace
             write(output, ",\n");
         }
 
-        write(output, "}\n");
+        write(output, "};\n\n");
+
+        return true;
+    }
+
+    bool generate_param_struct(tree& ast, node* task, writer& output)
+    {
+        char buffer[10];
+        node* atom = task->first_child;
+
+        if (!atom->first_child)
+        {
+            return true;
+        }
+
+        write(output, "struct ");
+        write(output, atom->s_expr->token);
+        write(output, "_args\n{\n");
+
+        int param_index = 0;
+
+        for (node* param = atom->first_child; param != 0; param = param->next_sibling)
+        {
+            // node_term_variable
+            node* ws_type = ast.type_tag_to_node[type_tag(param)];
+            write(output, "\t");
+            write(output, ws_type->s_expr->first_child->token);
+            write(output, " ");
+            write(output, "_");
+            sprintf(buffer, "%d", param_index);
+            write(output, buffer);
+            write(output, ";\n");
+
+            ++param_index;
+        }
+
+        write(output, "};\n\n");
+        return true;
+    }
+
+    bool generate_param_structs(tree& ast, writer& output)
+    {
+        for (id_table_values operators = ast.operators.values(); !operators.empty(); operators.pop())
+        {
+            if (!generate_param_struct(ast, operators.value(), output))
+            {
+                return false;
+            }
+        }
+
+        for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+        {
+            if (!generate_param_struct(ast, methods.value(), output))
+            {
+                return false;
+            }
+        }
 
         return true;
     }
@@ -981,6 +1037,11 @@ bool generate_domain(tree& ast, node* domain, writer& output)
     }
 
     if (!generate_operators_enum(ast, output))
+    {
+        return false;
+    }
+
+    if (!generate_param_structs(ast, output))
     {
         return false;
     }
