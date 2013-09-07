@@ -391,6 +391,19 @@ namespace
         annotation<term_ann>(node)->type_tag = new_type_tag;
     }
 
+    inline node* first_parameter_usage(node* parameter, node* precondition)
+    {
+        for (node* var = precondition; var != 0; var = preorder_traversal_next(precondition, var))
+        {
+            if (var->type == node_term_variable && parameter == definition(var))
+            {
+                return var;
+            }
+        }
+
+        return 0;
+    }
+
     void seed_precondition_types(tree& ast, node* root)
     {
         for (node* n = root; n != 0; n = preorder_traversal_next(root, n))
@@ -1031,6 +1044,8 @@ namespace
             {
                 plnnrc_assert(branch->type == node_branch);
 
+                node* precondition = branch->first_child;
+
                 write(output, "bool ");
                 write(output, method_name);
                 write(output, "_branch_");
@@ -1066,6 +1081,27 @@ namespace
                 write(output, buffer);
                 write(output, "_state>(pstate.mstack);\n");
                 write(output, "\tprecondition->stage = 0;\n");
+
+                for (node* param = atom->first_child; param != 0; param = param->next_sibling)
+                {
+                    node* var = first_parameter_usage(param, precondition);
+
+                    if (var)
+                    {
+                        int param_index = annotation<term_ann>(param)->var_index;
+                        int var_index = annotation<term_ann>(var)->var_index;
+
+                        write(output, "\tprecondition->_");
+                        sprintf(buffer, "%d", var_index);
+                        write(output, buffer);
+                        write(output, " = method_args->_");
+                        sprintf(buffer, "%d", param_index);
+                        write(output, buffer);
+                        write(output, ";\n");
+                    }
+                }
+
+                write(output, "\n");
 
                 write(output, "\tmethod->precondition = precondition;\n");
                 write(output, "\tmethod->mrewind = pstate.mstack->top();\n");
