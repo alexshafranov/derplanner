@@ -473,6 +473,7 @@ bool travel_branch_1_expand(planner_state& pstate, void* world)
     precondition->_1 = method_args->_1;
     precondition->stage = 0;
 
+    method->precondition = precondition;
     method->mrewind = pstate.mstack->top();
     method->trewind = pstate.tstack->top();
 
