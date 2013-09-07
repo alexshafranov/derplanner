@@ -1045,6 +1045,9 @@ namespace
                 plnnrc_assert(branch->type == node_branch);
 
                 node* precondition = branch->first_child;
+                node* tasklist = precondition->next_sibling;
+
+                plnnrc_assert(tasklist->type == node_tasklist);
 
                 write(output, "bool ");
                 write(output, method_name);
@@ -1105,7 +1108,97 @@ namespace
 
                 write(output, "\tmethod->precondition = precondition;\n");
                 write(output, "\tmethod->mrewind = pstate.mstack->top();\n");
-                write(output, "\tmethod->trewind = pstate.tstack->top();\n");
+                write(output, "\tmethod->trewind = pstate.tstack->top();\n\n");
+
+                write(output, "\twhile (next(*precondition, *wstate))\n\t{\n");
+
+                for (node* task_atom = tasklist->first_child; task_atom != 0; task_atom = task_atom->next_sibling)
+                {
+                    write(output, "\t\t{\n");
+
+                    if (ast.operators.find(task_atom->s_expr->token))
+                    {
+                        write(output, "\t\t\ttask_instance* t = push_task(pstate, task_");
+                        write(output, task_atom->s_expr->token);
+                        write(output, ");\n");
+
+                        write(output, "\t\t\t");
+                        write(output, task_atom->s_expr->token);
+                        write(output, "_args* a = push<");
+                        write(output, task_atom->s_expr->token);
+                        write(output, "_args>(pstate.tstack);\n");
+                    }
+                    else
+                    {
+                        plnnrc_assert(ast.methods.find(task_atom->s_expr->token));
+                        write(output, "\t\t\tmethod_instance* t = push_method(pstate, ");
+                        write(output, task_atom->s_expr->token);
+                        write(output, "_branch_0_expand);\n");
+
+                        write(output, "\t\t\t");
+                        write(output, task_atom->s_expr->token);
+                        write(output, "_args* a = push<");
+                        write(output, task_atom->s_expr->token);
+                        write(output, "_args>(pstate.mstack);\n");
+                    }
+
+                    int param_index = 0;
+
+                    for (node* arg = task_atom->first_child; arg != 0; arg = arg->next_sibling)
+                    {
+                        plnnrc_assert(arg->type == node_term_variable);
+                        node* def = definition(arg);
+                        plnnrc_assert(def);
+
+                        sprintf(buffer, "%d", param_index);
+                        write(output, "\t\t\ta->_");
+                        write(output, buffer);
+                        write(output, " = ");
+
+                        if (is_parameter(def))
+                        {
+                            write(output, "method_args->_");
+                        }
+                        else
+                        {
+                            write(output, "precondition->_");
+                        }
+
+                        int var_index = annotation<term_ann>(def)->var_index;
+                        sprintf(buffer, "%d", var_index);
+                        write(output, buffer);
+                        write(output, ";\n");
+
+                        ++param_index;
+                    }
+
+                    write(output, "\t\t\tt->args = a;\n");
+                    write(output, "\t\t}\n");
+
+                    if (is_last(task_atom, tasklist))
+                    {
+                        write(output, "\t\tmethod->expanded = true;\n");
+                    }
+
+                    if (ast.methods.find(task_atom->s_expr->token) || is_last(task_atom, tasklist))
+                    {
+                        write(output, "\t\tPLNNRC_COROUTINE_YIELD(*method);\n");
+                    }
+                }
+
+                write(output, "\t}\n\n");
+
+                if (!is_last(branch, method))
+                {
+                    write(output, "\treturn next_branch(pstate, ");
+                    write(output, method_name);
+                    write(output, "_branch_");
+                    sprintf(buffer, "%d", branch_index+1);
+                    write(output, buffer);
+                    write(output, "_expand, world);\n");
+                }
+
+                write(output, "\tPLNNRC_COROUTINE_END();\n");
 
                 write(output, "}\n\n");
 
