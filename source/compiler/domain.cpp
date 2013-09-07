@@ -951,6 +951,37 @@ namespace
         return true;
     }
 
+    bool generate_preconditions(tree& ast, node* domain, writer& output)
+    {
+        unsigned branch_index = 0;
+
+        for (node* method = domain->first_child; method != 0; method = method->next_sibling)
+        {
+            plnnrc_assert(method->type == node_method);
+
+            for (node* branch = method->first_child->next_sibling; branch != 0; branch = branch->next_sibling)
+            {
+                plnnrc_assert(branch->type == node_branch);
+
+                node* precondition = branch->first_child;
+
+                if (!generate_precondition_state(ast, precondition, branch_index, output))
+                {
+                    return false;
+                }
+
+                if (!generate_precondition_next(ast, precondition, branch_index, output))
+                {
+                    return false;
+                }
+
+                ++branch_index;
+            }
+        }
+
+        return true;
+    }
+
     bool generate_operators_enum(tree& ast, writer& output)
     {
         write(output, "enum task_type\n{\n");
@@ -1215,30 +1246,9 @@ bool generate_domain(tree& ast, node* domain, writer& output)
 {
     plnnrc_assert(domain && domain->type == node_domain);
 
-    unsigned branch_index = 0;
-
-    for (node* method = domain->first_child; method != 0; method = method->next_sibling)
+    if (!generate_preconditions(ast, domain, output))
     {
-        plnnrc_assert(method->type == node_method);
-
-        for (node* branch = method->first_child->next_sibling; branch != 0; branch = branch->next_sibling)
-        {
-            plnnrc_assert(branch->type == node_branch);
-
-            node* precondition = branch->first_child;
-
-            if (!generate_precondition_state(ast, precondition, branch_index, output))
-            {
-                return false;
-            }
-
-            if (!generate_precondition_next(ast, precondition, branch_index, output))
-            {
-                return false;
-            }
-
-            ++branch_index;
-        }
+        return false;
     }
 
     if (!generate_operators_enum(ast, output))
