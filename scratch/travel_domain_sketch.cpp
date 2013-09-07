@@ -62,219 +62,6 @@ T* push(stack* s)
     return static_cast<T*>(s->push(sizeof(T)));
 }
 
-// World State
-
-struct start_tuple
-{
-    int _0;
-    start_tuple* next;
-};
-
-struct finish_tuple
-{
-    int _0;
-    finish_tuple* next;
-};
-
-struct short_distance_tuple
-{
-    int _0;
-    int _1;
-    short_distance_tuple* next;
-};
-
-struct long_distance_tuple
-{
-    int _0;
-    int _1;
-    long_distance_tuple* next;
-};
-
-struct airport_tuple
-{
-    int _0;
-    int _1;
-    airport_tuple* next;
-};
-
-struct worldstate
-{
-    start_tuple* start;
-    finish_tuple* finish;
-    short_distance_tuple* short_distance;
-    long_distance_tuple* long_distance;
-    airport_tuple* airport;
-};
-
-struct p0_state
-{
-    int _0;
-    int _1;
-    start_tuple* start_0;
-    finish_tuple* finish_1;
-    int stage;
-};
-
-bool next(p0_state& state, worldstate& world)
-{
-    //PLNRC_PRINT("p0_state next, stage=%d\n", state.stage);
-
-    PLNNRC_COROUTINE_BEGIN(state);
-
-    for (state.start_0 = world.start; state.start_0 != 0; state.start_0 = state.start_0->next)
-    {
-        state._0 = state.start_0->_0;
-
-        for (state.finish_1 = world.finish; state.finish_1 != 0; state.finish_1 = state.finish_1->next)
-        {
-            state._1 = state.finish_1->_0;
-
-            PLNNRC_COROUTINE_YIELD(state);
-        }
-    }
-
-    PLNNRC_COROUTINE_END();
-}
-
-struct p1_state
-{
-    int _0;
-    int _1;
-    short_distance_tuple* short_distance_0;
-    int stage;
-};
-
-bool next(p1_state& state, worldstate& world)
-{
-    //PLNRC_PRINT("p1_state next, stage=%d\n", state.stage);
-
-    PLNNRC_COROUTINE_BEGIN(state);
-
-    for (state.short_distance_0 = world.short_distance; state.short_distance_0 != 0; state.short_distance_0 = state.short_distance_0->next)
-    {
-        if (state.short_distance_0->_0 != state._0)
-        {
-            continue;
-        }
-
-        if (state.short_distance_0->_1 != state._1)
-        {
-            continue;
-        }
-
-        PLNNRC_COROUTINE_YIELD(state);
-    }
-
-    PLNNRC_COROUTINE_END();
-}
-
-struct p2_state
-{
-    int _0;
-    int _1;
-    long_distance_tuple* long_distance_0;
-    int stage;
-};
-
-bool next(p2_state& state, worldstate& world)
-{
-    //PLNRC_PRINT("p2_state next, stage=%d\n", state.stage);
-
-    PLNNRC_COROUTINE_BEGIN(state);
-
-    for (state.long_distance_0 = world.long_distance; state.long_distance_0 != 0; state.long_distance_0 = state.long_distance_0->next)
-    {
-        if (state.long_distance_0->_0 != state._0)
-        {
-            continue;
-        }
-
-        if (state.long_distance_0->_1 != state._1)
-        {
-            continue;
-        }
-
-        PLNNRC_COROUTINE_YIELD(state);
-    }
-
-    PLNNRC_COROUTINE_END();
-}
-
-struct p3_state
-{
-    int _0;
-    int _1;
-    int _2;
-    int _3;
-    airport_tuple* airport_0;
-    airport_tuple* airport_1;
-    int stage;
-};
-
-bool next(p3_state& state, worldstate& world)
-{
-    //PLNRC_PRINT("p3_state next, stage=%d\n", state.stage);
-
-    PLNNRC_COROUTINE_BEGIN(state);
-
-    for (state.airport_0 = world.airport; state.airport_0 != 0; state.airport_0 = state.airport_0->next)
-    {
-        if (state.airport_0->_0 != state._0)
-        {
-            continue;
-        }
-
-        state._1 = state.airport_0->_1;
-
-        for (state.airport_1 = world.airport; state.airport_1 != 0; state.airport_1 = state.airport_1->next)
-        {
-            if (state.airport_1->_0 != state._2)
-            {
-                continue;
-            }
-
-            state._3 = state.airport_1->_1;
-
-            PLNNRC_COROUTINE_YIELD(state);
-        }
-    }
-
-    PLNNRC_COROUTINE_END();
-}
-
-// Primitive tasks
-
-enum task_type
-{
-    task_none = 0,
-    task_ride_taxi,
-    task_fly,
-};
-
-struct travel_args
-{
-    int _0;
-    int _1;
-};
-
-struct travel_by_air_args
-{
-    int _0;
-    int _1;
-};
-
-struct ride_taxi_args
-{
-    int _0;
-    int _1;
-};
-
-struct fly_args
-{
-    int _0;
-    int _1;
-};
-
 // Runtime Structs
 
 struct method_instance;
@@ -380,20 +167,215 @@ bool travel_branch_0_expand(planner_state&, void* world);
 bool travel_branch_1_expand(planner_state&, void* world);
 bool travel_by_air_branch_0_expand(planner_state&, void* world);
 
-// Method Expansions
+struct start_tuple
+{
+    int _0;
+    start_tuple* next;
+};
+
+struct finish_tuple
+{
+    int _0;
+    finish_tuple* next;
+};
+
+struct short_distance_tuple
+{
+    int _0;
+    int _1;
+    short_distance_tuple* next;
+};
+
+struct long_distance_tuple
+{
+    int _0;
+    int _1;
+    long_distance_tuple* next;
+};
+
+struct airport_tuple
+{
+    int _0;
+    int _1;
+    airport_tuple* next;
+};
+
+struct worldstate
+{
+    start_tuple* start;
+    finish_tuple* finish;
+    short_distance_tuple* short_distance;
+    long_distance_tuple* long_distance;
+    airport_tuple* airport;
+};
+
+struct p0_state
+{
+    int _0;
+    int _1;
+    start_tuple* start_0;
+    finish_tuple* finish_1;
+    int stage;
+};
+
+bool next(p0_state& state, worldstate& world)
+{
+    PLNNRC_COROUTINE_BEGIN(state);
+
+    for (state.start_0 = world.start; state.start_0 != 0; state.start_0 = state.start_0->next)
+    {
+        state._0 = state.start_0->_0;
+
+        for (state.finish_1 = world.finish; state.finish_1 != 0; state.finish_1 = state.finish_1->next)
+        {
+            state._1 = state.finish_1->_0;
+
+            PLNNRC_COROUTINE_YIELD(state);
+        }
+    }
+
+    PLNNRC_COROUTINE_END();
+}
+
+struct p1_state
+{
+    int _0;
+    int _1;
+    short_distance_tuple* short_distance_0;
+    int stage;
+};
+
+bool next(p1_state& state, worldstate& world)
+{
+    PLNNRC_COROUTINE_BEGIN(state);
+
+    for (state.short_distance_0 = world.short_distance; state.short_distance_0 != 0; state.short_distance_0 = state.short_distance_0->next)
+    {
+        if (state.short_distance_0->_0 != state._0)
+        {
+            continue;
+        }
+
+        if (state.short_distance_0->_1 != state._1)
+        {
+            continue;
+        }
+
+        PLNNRC_COROUTINE_YIELD(state);
+    }
+
+    PLNNRC_COROUTINE_END();
+}
+
+struct p2_state
+{
+    int _0;
+    int _1;
+    long_distance_tuple* long_distance_0;
+    int stage;
+};
+
+bool next(p2_state& state, worldstate& world)
+{
+    PLNNRC_COROUTINE_BEGIN(state);
+
+    for (state.long_distance_0 = world.long_distance; state.long_distance_0 != 0; state.long_distance_0 = state.long_distance_0->next)
+    {
+        if (state.long_distance_0->_0 != state._0)
+        {
+            continue;
+        }
+
+        if (state.long_distance_0->_1 != state._1)
+        {
+            continue;
+        }
+
+        PLNNRC_COROUTINE_YIELD(state);
+    }
+
+    PLNNRC_COROUTINE_END();
+}
+
+struct p3_state
+{
+    int _0;
+    int _1;
+    int _2;
+    int _3;
+    airport_tuple* airport_0;
+    airport_tuple* airport_1;
+    int stage;
+};
+
+bool next(p3_state& state, worldstate& world)
+{
+    PLNNRC_COROUTINE_BEGIN(state);
+
+    for (state.airport_0 = world.airport; state.airport_0 != 0; state.airport_0 = state.airport_0->next)
+    {
+        if (state.airport_0->_0 != state._0)
+        {
+            continue;
+        }
+
+        state._1 = state.airport_0->_1;
+
+        for (state.airport_1 = world.airport; state.airport_1 != 0; state.airport_1 = state.airport_1->next)
+        {
+            if (state.airport_1->_0 != state._2)
+            {
+                continue;
+            }
+
+            state._3 = state.airport_1->_1;
+
+            PLNNRC_COROUTINE_YIELD(state);
+        }
+    }
+
+    PLNNRC_COROUTINE_END();
+}
+
+enum task_type
+{
+    task_none=0,
+    task_op_fly,
+    task_op_ride_taxi,
+};
+
+struct op_fly_args
+{
+    int _0;
+    int _1;
+};
+
+struct op_ride_taxi_args
+{
+    int _0;
+    int _1;
+};
+
+struct travel_args
+{
+    int _0;
+    int _1;
+};
+
+struct travel_by_air_args
+{
+    int _0;
+    int _1;
+};
 
 bool root_branch_0_expand(planner_state& pstate, void* world)
 {
-    // Local Vars.
     method_instance* method = pstate.top_method;
     p0_state* precondition = static_cast<p0_state*>(method->precondition);
     worldstate* wstate = static_cast<worldstate*>(world);
 
-    //PLNRC_PRINT("root_branch_0_expand, stage=%d\n", method->stage);
-
     PLNNRC_COROUTINE_BEGIN(*method);
 
-    // Create Precondition.
     precondition = push<p0_state>(pstate.mstack);
     precondition->stage = 0;
 
@@ -401,23 +383,19 @@ bool root_branch_0_expand(planner_state& pstate, void* world)
     method->mrewind = pstate.mstack->top();
     method->trewind = pstate.tstack->top();
 
-    // Generate precondition satisfiers.
     while (next(*precondition, *wstate))
     {
-        // Push tasks.
         {
-            method_instance* m = push_method(pstate, travel_branch_0_expand);
+            method_instance* t = push_method(pstate, travel_branch_0_expand);
             travel_args* a = push<travel_args>(pstate.mstack);
             a->_0 = precondition->_0;
             a->_1 = precondition->_1;
-            m->args = a;
+            t->args = a;
         }
-
         method->expanded = true;
         PLNNRC_COROUTINE_YIELD(*method);
     }
 
-    // Begin next branch or stop.
     PLNNRC_COROUTINE_END();
 }
 
@@ -425,16 +403,15 @@ bool travel_branch_0_expand(planner_state& pstate, void* world)
 {
     method_instance* method = pstate.top_method;
     p1_state* precondition = static_cast<p1_state*>(method->precondition);
-    travel_args* method_args = static_cast<travel_args*>(method->args);
     worldstate* wstate = static_cast<worldstate*>(world);
-    //PLNRC_PRINT("travel_branch_0_expand, stage=%d, 0=%d, 1=%d\n", method->stage, method_args->_0, method_args->_1);
+    travel_args* method_args = static_cast<travel_args*>(method->args);
 
     PLNNRC_COROUTINE_BEGIN(*method);
 
     precondition = push<p1_state>(pstate.mstack);
+    precondition->stage = 0;
     precondition->_0 = method_args->_0;
     precondition->_1 = method_args->_1;
-    precondition->stage = 0;
 
     method->precondition = precondition;
     method->mrewind = pstate.mstack->top();
@@ -443,13 +420,12 @@ bool travel_branch_0_expand(planner_state& pstate, void* world)
     while (next(*precondition, *wstate))
     {
         {
-            task_instance* t = push_task(pstate, task_ride_taxi);
-            ride_taxi_args* a = push<ride_taxi_args>(pstate.tstack);
+            task_instance* t = push_task(pstate, task_op_ride_taxi);
+            op_ride_taxi_args* a = push<op_ride_taxi_args>(pstate.tstack);
             a->_0 = method_args->_0;
             a->_1 = method_args->_1;
             t->args = a;
         }
-
         method->expanded = true;
         PLNNRC_COROUTINE_YIELD(*method);
     }
@@ -462,16 +438,15 @@ bool travel_branch_1_expand(planner_state& pstate, void* world)
 {
     method_instance* method = pstate.top_method;
     p2_state* precondition = static_cast<p2_state*>(method->precondition);
-    travel_args* method_args = static_cast<travel_args*>(method->args);
     worldstate* wstate = static_cast<worldstate*>(world);
-    //PLNRC_PRINT("travel_branch_1_expand, stage=%d, 0=%d, 1=%d\n", method->stage, method_args->_0, method_args->_1);
+    travel_args* method_args = static_cast<travel_args*>(method->args);
 
     PLNNRC_COROUTINE_BEGIN(*method);
 
     precondition = push<p2_state>(pstate.mstack);
+    precondition->stage = 0;
     precondition->_0 = method_args->_0;
     precondition->_1 = method_args->_1;
-    precondition->stage = 0;
 
     method->precondition = precondition;
     method->mrewind = pstate.mstack->top();
@@ -480,13 +455,12 @@ bool travel_branch_1_expand(planner_state& pstate, void* world)
     while (next(*precondition, *wstate))
     {
         {
-            method_instance* m = push_method(pstate, travel_by_air_branch_0_expand);
+            method_instance* t = push_method(pstate, travel_by_air_branch_0_expand);
             travel_by_air_args* a = push<travel_by_air_args>(pstate.mstack);
             a->_0 = method_args->_0;
             a->_1 = method_args->_1;
-            m->args = a;
+            t->args = a;
         }
-
         method->expanded = true;
         PLNNRC_COROUTINE_YIELD(*method);
     }
@@ -494,25 +468,19 @@ bool travel_branch_1_expand(planner_state& pstate, void* world)
     PLNNRC_COROUTINE_END();
 }
 
-// (:method (travel_by_air ?x ?y)
-//     ((or (and (airport ?x ?ax) (airport ?y ?ay)) (and (start ?x) (finish ?y))))
-//     ((travel ?x ?ax) (!fly ?ax ?ay) (travel ?y ?ay))
-// )
-
 bool travel_by_air_branch_0_expand(planner_state& pstate, void* world)
 {
     method_instance* method = pstate.top_method;
     p3_state* precondition = static_cast<p3_state*>(method->precondition);
-    travel_by_air_args* method_args = static_cast<travel_by_air_args*>(method->args);
     worldstate* wstate = static_cast<worldstate*>(world);
-    //PLNRC_PRINT("travel_by_air_branch_0_expand, stage=%d, 0=%d, 1=%d\n", method->stage, method_args->_0, method_args->_1);
+    travel_by_air_args* method_args = static_cast<travel_by_air_args*>(method->args);
 
     PLNNRC_COROUTINE_BEGIN(*method);
 
     precondition = push<p3_state>(pstate.mstack);
+    precondition->stage = 0;
     precondition->_0 = method_args->_0;
     precondition->_2 = method_args->_1;
-    precondition->stage = 0;
 
     method->precondition = precondition;
     method->mrewind = pstate.mstack->top();
@@ -521,31 +489,27 @@ bool travel_by_air_branch_0_expand(planner_state& pstate, void* world)
     while (next(*precondition, *wstate))
     {
         {
-            method_instance* m = push_method(pstate, travel_branch_0_expand);
+            method_instance* t = push_method(pstate, travel_branch_0_expand);
             travel_args* a = push<travel_args>(pstate.mstack);
             a->_0 = method_args->_0;
             a->_1 = precondition->_1;
-            m->args = a;
+            t->args = a;
         }
-
         PLNNRC_COROUTINE_YIELD(*method);
-
         {
-            task_instance* t = push_task(pstate, task_fly);
-            fly_args* a = push<fly_args>(pstate.tstack);
+            task_instance* t = push_task(pstate, task_op_fly);
+            op_fly_args* a = push<op_fly_args>(pstate.tstack);
             a->_0 = precondition->_1;
             a->_1 = precondition->_3;
             t->args = a;
         }
-
         {
-            method_instance* m = push_method(pstate, travel_branch_0_expand);
+            method_instance* t = push_method(pstate, travel_branch_0_expand);
             travel_args* a = push<travel_args>(pstate.mstack);
             a->_0 = precondition->_3;
             a->_1 = method_args->_1;
-            m->args = a;
+            t->args = a;
         }
-
         method->expanded = true;
         PLNNRC_COROUTINE_YIELD(*method);
     }
@@ -605,13 +569,13 @@ task_instance* reverse_task_list(task_instance* head)
 
 void print_task_ride_taxi(const task_instance* task)
 {
-    ride_taxi_args* args = static_cast<ride_taxi_args*>(task->args);
+    op_ride_taxi_args* args = static_cast<op_ride_taxi_args*>(task->args);
     printf("!ride_taxi(%d, %d)\n", args->_0, args->_1);
 }
 
 void print_task_fly(const task_instance* task)
 {
-    fly_args* args = static_cast<fly_args*>(task->args);
+    op_fly_args* args = static_cast<op_fly_args*>(task->args);
     printf("!fly(%d, %d)\n", args->_0, args->_1);
 }
 
@@ -619,10 +583,10 @@ void print_task(const task_instance* task)
 {
     switch (task->type)
     {
-    case task_ride_taxi:
+    case task_op_ride_taxi:
         print_task_ride_taxi(task);
         break;
-    case task_fly:
+    case task_op_fly:
         print_task_fly(task);
         break;
     default:
