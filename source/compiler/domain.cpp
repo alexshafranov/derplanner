@@ -905,7 +905,7 @@ namespace
                     return false;
                 }
 
-                if (child != root->first_child->prev_sibling_cyclic)
+                if (!is_last(child, root))
                 {
                     write(output, "\n");
                 }

@@ -40,7 +40,7 @@ namespace
             {
                 result += to_string(n);
 
-                if (n != root->first_child->prev_sibling_cyclic)
+                if (!is_last(n, root))
                 {
                     result += " ";
                 }

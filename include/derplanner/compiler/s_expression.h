@@ -48,6 +48,11 @@ struct node
 int as_int(const node& n);
 float as_float(const node& n);
 
+inline bool is_last(node* child, node* parent)
+{
+    return child == parent->first_child->prev_sibling_cyclic;
+}
+
 enum parse_status
 {
     parse_ok = 0,
