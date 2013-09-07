@@ -141,7 +141,7 @@ node* convert_to_nnf(tree& ast, node* root)
                         insert_child(p, x);
                         detach_node(p);
                     }
-                    
+
                     // update root of the tree if we're replacing it
                     if (r == p)
                     {
