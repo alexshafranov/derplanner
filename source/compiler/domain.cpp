@@ -1147,7 +1147,7 @@ namespace
                 {
                     write(output, "\t\t{\n");
 
-                    if (ast.operators.find(task_atom->s_expr->token))
+                    if (is_operator(ast, task_atom))
                     {
                         write(output, "\t\t\ttask_instance* t = push_task(pstate, task_");
                         write(output, task_atom->s_expr->token);
