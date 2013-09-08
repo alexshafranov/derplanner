@@ -21,10 +21,17 @@
 #ifndef DERPLANNER_COMPILER_FORMATTER_H_
 #define DERPLANNER_COMPILER_FORMATTER_H_
 
+#include "derplanner/compiler/io.h"
+
 namespace plnnrc {
 
-class Formatter
+class formatter
 {
+public:
+    formatter(writer& output);
+
+private:
+    writer& _output;
 };
 
 }
