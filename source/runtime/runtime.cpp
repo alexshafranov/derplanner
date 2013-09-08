@@ -58,32 +58,116 @@ void stack::reset()
 
 method_instance* push_method(planner_state& pstate, expand_func expand)
 {
-    return 0;
+    method_instance* new_method = push<method_instance>(pstate.mstack);
+    new_method->expand = expand;
+    new_method->args = 0;
+    new_method->parent = pstate.top_method;
+    new_method->precondition = 0;
+    new_method->trewind = 0;
+    new_method->mrewind = 0;
+    new_method->expanded = false;
+    new_method->stage = 0;
+
+    pstate.top_method = new_method;
+
+    return new_method;
 }
 
 task_instance* push_task(planner_state& pstate, int task_type)
 {
-    return 0;
+    task_instance* new_task = push<task_instance>(pstate.tstack);
+    new_task->type = task_type;
+    new_task->args = 0;
+    new_task->link = pstate.top_task;
+
+    pstate.top_task = new_task;
+
+    return new_task;
 }
 
 method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks)
 {
-    return 0;
+    method_instance* old_top = pstate.top_method;
+    method_instance* new_top = old_top->parent;
+
+    if (new_top)
+    {
+        pstate.mstack->rewind(new_top->mrewind);
+
+        if (rewind_tasks && new_top->trewind < pstate.tstack->top())
+        {
+            // todo: align trewind to task_instance here
+            task_instance* task = static_cast<task_instance*>(new_top->trewind);
+            task_instance* top_task = task->link;
+
+            pstate.tstack->rewind(new_top->trewind);
+
+            pstate.top_task = top_task;
+        }
+    }
+
+    pstate.top_method = new_top;
+
+    return new_top;
 }
 
 bool next_branch(planner_state& pstate, expand_func expand, void* worldstate)
 {
-    return false;
+    method_instance* method = pstate.top_method;
+    method->stage = 0;
+    method->expand = expand;
+    pstate.mstack->rewind(reinterpret_cast<char*>(method) + sizeof(method_instance));
+    return method->expand(pstate, worldstate);
 }
 
 bool find_plan(planner_state& pstate, expand_func root_method, void* worldstate)
 {
+    push_method(pstate, root_method);
+
+    while (pstate.top_method)
+    {
+        method_instance* method = pstate.top_method;
+
+        // if found satisfying preconditions
+        if (method->expand(pstate, worldstate))
+        {
+            // if expanded to primitive tasks
+            if (method == pstate.top_method)
+            {
+                while (method && method->expanded)
+                {
+                    method = rewind_top_method(pstate, false);
+                }
+
+                if (!method)
+                {
+                    return true;
+                }
+            }
+        }
+        // backtrack otherwise
+        else
+        {
+            rewind_top_method(pstate, true);
+        }
+    }
+
     return false;
 }
 
 task_instance* reverse_task_list(task_instance* head)
 {
-    return 0;
+    task_instance* new_head = 0;
+
+    while (head)
+    {
+        task_instance* link = head->link;
+        head->link = new_head;
+        new_head = head;
+        head = link;
+    }
+
+    return new_head;
 }
 
 }
