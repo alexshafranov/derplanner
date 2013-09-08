@@ -18,21 +18,12 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#include <stdint.h> // unitptr_t
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/memory.h"
 #include "pool.h"
 
 namespace plnnrc {
 namespace pool {
-
-namespace
-{
-    inline void* align(void* ptr, size_t alignment)
-    {
-        return reinterpret_cast<void*>((reinterpret_cast<uintptr_t>(ptr) + alignment) & ~(alignment - 1));
-    }
-}
 
 struct page
 {
@@ -63,9 +54,9 @@ handle* init(size_t page_size)
         return 0;
     }
 
-    handle* pool = static_cast<handle*>(align(memory, plnnrc_alignof(handle)));
+    handle* pool = static_cast<handle*>(memory::align(memory, plnnrc_alignof(handle)));
     void* after_pool = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(pool) + sizeof(handle));
-    page* head = static_cast<page*>(align(after_pool, plnnrc_alignof(page)));
+    page* head = static_cast<page*>(memory::align(after_pool, plnnrc_alignof(page)));
 
     head->prev = 0;
     head->memory = memory;
@@ -82,7 +73,7 @@ void* allocate(handle* pool, size_t bytes, size_t alignment)
 {
     page* p = pool->head;
 
-    if (static_cast<char*>(align(p->top, alignment)) + bytes > p->end)
+    if (static_cast<char*>(memory::align(p->top, alignment)) + bytes > p->end)
     {
         void* memory = memory::allocate(pool->page_size);
 
@@ -91,7 +82,7 @@ void* allocate(handle* pool, size_t bytes, size_t alignment)
             return 0;
         }
 
-        p = static_cast<page*>(align(memory, plnnrc_alignof(page)));
+        p = static_cast<page*>(memory::align(memory, plnnrc_alignof(page)));
         p->prev = pool->head;
         p->memory = memory;
         p->top = reinterpret_cast<char*>(p) + sizeof(page);
@@ -99,7 +90,7 @@ void* allocate(handle* pool, size_t bytes, size_t alignment)
         pool->head = p;
     }
 
-    void* result = align(p->top, alignment);
+    void* result = memory::align(p->top, alignment);
     p->top = static_cast<char*>(result) + bytes;
 
     return result;

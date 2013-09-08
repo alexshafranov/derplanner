@@ -1,5 +1,5 @@
-project "planner"
+project "libruntime"
     kind "StaticLib"
     flags { "ExtraWarnings", "FatalWarnings", "NoExceptions" }
-    files { "../source/compiler/**.cpp" }
+    files { "../source/runtime/**.cpp" }
     includedirs { "../include" }

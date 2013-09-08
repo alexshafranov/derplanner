@@ -18,13 +18,13 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef DERPLANNER_COMPILER_MEMORY_H_
-#define DERPLANNER_COMPILER_MEMORY_H_
+#ifndef DERPLANNER_RUNTIME_MEMORY_H_
+#define DERPLANNER_RUNTIME_MEMORY_H_
 
 #include <stddef.h> // for size_t
-#include <stdint.h> // uintptr_t
+#include <stdint.h> // for uintptr_t
 
-namespace plnnrc {
+namespace plnnr {
 namespace memory {
 
 typedef void* (*alloc_func) (size_t size);
@@ -43,7 +43,7 @@ inline void* align(void* ptr, size_t alignment)
 }
 }
 
-#ifndef plnnrc_alignof
+#ifndef plnnr_alignof
 
 namespace
 {
@@ -61,7 +61,7 @@ namespace
     };
 }
 
-    #define plnnrc_alignof(T) alignof_helper<T>::value
+    #define plnnr_alignof(T) alignof_helper<T>::value
 #endif
 
 #endif

@@ -30,7 +30,8 @@ solution "derplanner"
     configuration { "release", "x64" }
         targetdir "bin/x64/release"
 
-    dofile "premake/library.lua"
+    dofile "premake/libcompiler.lua"
+    dofile "premake/libruntime.lua"
     dofile "premake/unittestpp.lua"
     dofile "premake/tests.lua"
     dofile "premake/compiler.lua"

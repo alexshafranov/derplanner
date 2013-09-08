@@ -23,6 +23,8 @@
 
 #include <stddef.h> // size_t
 
+#include "derplanner/runtime/memory.h"
+
 namespace plnnr
 {
 
@@ -33,10 +35,11 @@ public:
     ~stack();
 
     void* push(size_t size, size_t alignment);
+
     void rewind(void* position);
     void reset();
 
-    void* top() const;
+    void* top() const { return _top; }
 
 private:
     stack(const stack&);
@@ -50,7 +53,7 @@ private:
 template <typename T>
 T* push(stack* s)
 {
-    return static_cast<T*>(s.push(sizeof(T), sizeof(T)));
+    return static_cast<T*>(s->push(sizeof(T), plnnr_alignof(T)));
 }
 
 struct planner_state;

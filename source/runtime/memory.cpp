@@ -18,50 +18,46 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef DERPLANNER_COMPILER_MEMORY_H_
-#define DERPLANNER_COMPILER_MEMORY_H_
+#include <stdlib.h>
+#include "derplanner/runtime/memory.h"
+#include "derplanner/runtime/assert.h"
 
-#include <stddef.h> // for size_t
-#include <stdint.h> // uintptr_t
-
-namespace plnnrc {
+namespace plnnr {
 namespace memory {
-
-typedef void* (*alloc_func) (size_t size);
-typedef void (*dealloc_func)(void* ptr);
-
-void set_custom(alloc_func a, dealloc_func f);
-
-void* allocate(size_t);
-void deallocate(void*);
-
-inline void* align(void* ptr, size_t alignment)
-{
-    return reinterpret_cast<void*>((reinterpret_cast<uintptr_t>(ptr) + alignment) & ~(alignment - 1));
-}
-
-}
-}
-
-#ifndef plnnrc_alignof
 
 namespace
 {
-    template <typename T>
-    struct alignof_tester
+    void* default_alloc(size_t size)
     {
-        char c;
-        T t;
-    };
+        return ::malloc(size);
+    }
 
-    template <typename T>
-    struct alignof_helper
+    void default_dealloc(void* ptr)
     {
-        enum { value = sizeof(alignof_tester<T>) - sizeof(T) };
-    };
+        ::free(ptr);
+    }
+
+    alloc_func alloc_f = default_alloc;
+    dealloc_func  dealloc_f  = default_dealloc;
 }
 
-    #define plnnrc_alignof(T) alignof_helper<T>::value
-#endif
+void set_custom(alloc_func a, dealloc_func f)
+{
+    alloc_f = a;
+    dealloc_f  = f;
+}
 
-#endif
+void* allocate(size_t size)
+{
+    plnnr_assert(alloc_f != 0);
+    return alloc_f(size);
+}
+
+void deallocate(void* ptr)
+{
+    plnnr_assert(dealloc_f != 0);
+    dealloc_f(ptr);
+}
+
+}
+}

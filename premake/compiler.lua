@@ -3,7 +3,7 @@ project "compiler"
     flags { "ExtraWarnings", "FatalWarnings" }
     files { "../compiler/*.cpp" }
     includedirs { "../include" }
-    links { "planner" }
+    links { "libcompiler" }
     configuration { "vs*" }
         defines { "_CRT_SECURE_NO_WARNINGS" }
     configuration {}
