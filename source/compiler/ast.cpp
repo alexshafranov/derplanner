@@ -21,6 +21,7 @@
 #include <stddef.h> // size_t
 #include <string.h> // memset, memcpy
 #include <stdint.h> // unitptr_t
+#include "pool.h"
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/memory.h"
 #include "derplanner/compiler/ast.h"
@@ -31,56 +32,6 @@ namespace ast {
 namespace
 {
     const size_t page_size = 64 * 1024;
-
-    struct page
-    {
-        page* next;
-        char* top;
-        char* end;
-    };
-
-    inline char* align(char* ptr, size_t alignment)
-    {
-        return reinterpret_cast<char*>((reinterpret_cast<uintptr_t>(ptr) + alignment) & ~(alignment - 1));
-    }
-
-    void* pool_allocate(void*& memory, size_t size, size_t alignment)
-    {
-        page* p = reinterpret_cast<page*>(memory);
-
-        if (!p || align(p->top, alignment) + size > p->end)
-        {
-            char* m = reinterpret_cast<char*>(memory::allocate(page_size));
-            page* n = reinterpret_cast<page*>(m);
-
-            if (!n)
-            {
-                return 0;
-            }
-
-            n->next = p;
-            n->top = m + sizeof(page);
-            n->end = m + page_size;
-
-            p = n;
-            memory = n;
-        }
-
-        char* result = align(p->top, alignment);
-        p->top = result + size;
-
-        return result;
-    }
-
-    void pool_clear(void* memory)
-    {
-        for (page* p = reinterpret_cast<page*>(memory); p != 0;)
-        {
-            page* n = p->next;
-            memory::deallocate(p);
-            p = n;
-        }
-    }
 
     struct annotation_trait
     {
@@ -118,7 +69,7 @@ namespace
 }
 
 tree::tree()
-    : _memory(0)
+    : _pool(0)
 {
     memset(&_root, 0, sizeof(_root));
     _root.type = node_domain;
@@ -126,15 +77,27 @@ tree::tree()
 
 tree::~tree()
 {
-    if (_memory)
+    if (_pool)
     {
-        pool_clear(_memory);
+        pool::clear(_pool);
     }
 }
 
 node* tree::make_node(node_type type, sexpr::node* token)
 {
-    node* n = reinterpret_cast<node*>(pool_allocate(_memory, sizeof(node), plnnrc_alignof(node)));
+    if (!_pool)
+    {
+        pool::handle* pool = pool::init(page_size);
+
+        if (!pool)
+        {
+            return 0;
+        }
+
+        _pool = pool;
+    }
+
+    node* n = static_cast<node*>(pool::allocate(_pool, sizeof(node), plnnrc_alignof(node)));
 
     if (n)
     {
@@ -150,7 +113,7 @@ node* tree::make_node(node_type type, sexpr::node* token)
 
         if (t.size > 0)
         {
-            n->annotation = pool_allocate(_memory, t.size, t.alignment);
+            n->annotation = pool::allocate(_pool, t.size, t.alignment);
 
             if (!n->annotation)
             {

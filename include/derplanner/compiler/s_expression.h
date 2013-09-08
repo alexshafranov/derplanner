@@ -22,6 +22,12 @@
 #define DERPLANNER_COMPILER_S_EXPRESSION_H_
 
 namespace plnnrc {
+
+namespace pool
+{
+    struct handle;
+}
+
 namespace sexpr {
 
 enum node_type
@@ -75,7 +81,7 @@ private:
     tree(const tree&);
     const tree& operator=(const tree&);
 
-    void* _memory;
+    pool::handle* _pool;
     node* _root;
 };
 

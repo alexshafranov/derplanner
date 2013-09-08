@@ -31,6 +31,11 @@ namespace sexpr
     struct node;
 }
 
+namespace pool
+{
+    struct handle;
+}
+
 namespace ast {
 
 enum node_type
@@ -129,7 +134,7 @@ public:
     node_array type_tag_to_node;
 
 private:
-    void* _memory;
+    pool::handle* _pool;
     node _root;
 };
 

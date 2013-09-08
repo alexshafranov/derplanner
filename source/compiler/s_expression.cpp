@@ -19,6 +19,7 @@
 //
 
 #include <stdlib.h>
+#include "pool.h"
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/memory.h"
 #include "derplanner/compiler/s_expression.h"
@@ -28,48 +29,11 @@ namespace sexpr {
 
 namespace
 {
-    const size_t chunk_node_count = 2048;
+    const size_t page_size = 32 * 1024;
 
-    struct node_chunk
+    node* alloc_node(pool::handle* pool)
     {
-        node_chunk* next;
-        size_t top;
-        node data[chunk_node_count];
-    };
-
-    void free_chunks(void* memory)
-    {
-        for (node_chunk* chunk = reinterpret_cast<node_chunk*>(memory); chunk != 0;)
-        {
-            node_chunk* next = chunk->next;
-            memory::deallocate(chunk);
-            chunk = next;
-        }
-    }
-
-    node* alloc_node(void*& memory)
-    {
-        node_chunk* chunk = reinterpret_cast<node_chunk*>(memory);
-
-        if (!chunk || chunk->top >= chunk_node_count)
-        {
-            node_chunk* new_chunk = reinterpret_cast<node_chunk*>(memory::allocate(sizeof(node_chunk)));
-
-            if (!new_chunk)
-            {
-                return 0;
-            }
-
-            new_chunk->next = chunk;
-            new_chunk->top = 0;
-
-            chunk = new_chunk;
-            memory = new_chunk;
-        }
-
-        chunk->top++;
-
-        return chunk->data + chunk->top;
+        return static_cast<node*>(pool::allocate(pool, sizeof(node), plnnrc_alignof(node)));
     }
 
     enum token_type
@@ -84,7 +48,7 @@ namespace
 
     struct parse_state
     {
-        void** tree_memory;
+        pool::handle* pool;
         int line;
         int column;
         char* cursor;
@@ -94,9 +58,9 @@ namespace
         node* root;
     };
 
-    void init_state(parse_state& state, char* buffer, void** memory)
+    void init_state(parse_state& state, char* buffer, pool::handle* pool)
     {
-        state.tree_memory = memory;
+        state.pool = pool;
         state.line = 1;
         state.column = 1;
         state.cursor = buffer;
@@ -114,7 +78,7 @@ namespace
 
     node* append_child(parse_state& state)
     {
-        node* n = alloc_node(*state.tree_memory);
+        node* n = alloc_node(state.pool);
         node* p = state.parent;
 
         if (!n)
@@ -394,16 +358,16 @@ namespace
 } // unnamed namespace
 
 tree::tree()
-    : _memory(0)
+    : _pool(0)
     , _root(0)
 {
 }
 
 tree::~tree()
 {
-    if (_memory)
+    if (_pool)
     {
-        free_chunks(_memory);
+        pool::clear(_pool);
     }
 }
 
@@ -411,15 +375,24 @@ parse_status tree::parse(char* buffer)
 {
     plnnrc_assert(buffer != 0);
 
-    if (_memory)
+    if (_pool)
     {
-        free_chunks(_memory);
-        _memory = 0;
+        pool::clear(_pool);
+        _pool = 0;
         _root = 0;
     }
 
+    pool::handle* pool = pool::init(page_size);
+
+    if (!pool)
+    {
+        return parse_out_of_memory;
+    }
+
+    _pool = pool;
+
     parse_state state;
-    init_state(state, buffer, &_memory);
+    init_state(state, buffer, _pool);
 
     _root = push_list(state);
 
