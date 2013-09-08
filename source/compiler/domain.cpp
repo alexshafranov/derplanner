@@ -878,7 +878,7 @@ namespace
         }
 
         indent(output, child_indent_level);
-        write(output, "PLNNRC_COROUTINE_YIELD(state);\n");
+        write(output, "PLNNR_COROUTINE_YIELD(state);\n");
 
         for (int i = child_indent_level-1; i >= indent_level; --i)
         {
@@ -940,14 +940,14 @@ namespace
         write(output, "p");
         write(output, buffer);
         write(output, "_state& state, worldstate& world)\n{\n");
-        write(output, "\tPLNNRC_COROUTINE_BEGIN(state);\n\n");
+        write(output, "\tPLNNR_COROUTINE_BEGIN(state);\n\n");
 
         if (!generate_precondition_satisfier(ast, root, output))
         {
             return false;
         }
 
-        write(output, "\tPLNNRC_COROUTINE_END();\n}\n\n");
+        write(output, "\tPLNNR_COROUTINE_END();\n}\n\n");
         return true;
     }
 
@@ -1108,7 +1108,7 @@ namespace
                     write(output, "_args*>(method->args);\n");
                 }
 
-                write(output, "\n\tPLNNRC_COROUTINE_BEGIN(*method);\n\n");
+                write(output, "\n\tPLNNR_COROUTINE_BEGIN(*method);\n\n");
 
                 write(output, "\tprecondition = push<p");
                 sprintf(buffer, "%d", precondition_index);
@@ -1213,7 +1213,7 @@ namespace
 
                     if (ast.methods.find(task_atom->s_expr->token) || is_last(task_atom, tasklist))
                     {
-                        write(output, "\t\tPLNNRC_COROUTINE_YIELD(*method);\n");
+                        write(output, "\t\tPLNNR_COROUTINE_YIELD(*method);\n");
                     }
                 }
 
@@ -1229,7 +1229,7 @@ namespace
                     write(output, "_expand, world);\n");
                 }
 
-                write(output, "\tPLNNRC_COROUTINE_END();\n");
+                write(output, "\tPLNNR_COROUTINE_END();\n");
 
                 write(output, "}\n\n");
 
