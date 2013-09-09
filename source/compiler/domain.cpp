@@ -604,12 +604,9 @@ void infer_types(tree& ast)
     }
 }
 
-namespace
+void write(formatter& output, const char* s)
 {
-    void write(formatter& output, const char* str)
-    {
-        output.write(str);
-    }
+    output.write(s);
 }
 
 bool generate_worldstate(tree& ast, node* worldstate, writer& writer)
@@ -653,12 +650,7 @@ namespace
 {
     bool generate_precondition_state(tree& ast, node* root, unsigned branch_index, formatter& output)
     {
-        char buffer[10];
-        sprintf(buffer, "%d", branch_index);
-        write(output, "struct p");
-        write(output, buffer);
-        write(output, "_state\n");
-        write(output, "{\n");
+        output.write("struct p%d_state\n{\n", branch_index);
 
         for (node* n = root; n != 0; n = preorder_traversal_next(root, n))
         {
@@ -694,13 +686,8 @@ namespace
                     }
 
                     node* ws_type = ast.type_tag_to_node[type_tag(n)];
-                    write(output, "\t");
-                    write(output, ws_type->s_expr->first_child->token);
-                    write(output, " ");
-                    write(output, "_");
-                    sprintf(buffer, "%d", var_index);
-                    write(output, buffer);
-                    write(output, ";\n");
+
+                    output.write("\t%s _%d;\n", ws_type->s_expr->first_child->token, var_index);
 
                     ++var_index;
                 }
@@ -718,14 +705,8 @@ namespace
             if (n->type == node_atom)
             {
                 const char* id = n->s_expr->token;
-                write(output, "\t");
-                write(output, id);
-                write(output, "_tuple* ");
-                write(output, id);
-                sprintf(buffer, "%d", atom_index);
-                write(output, "_");
-                write(output, buffer);
-                write(output, ";\n");
+
+                output.write("\t%s_tuple* %s_%d;\n", id, id, atom_index);
 
                 annotation<atom_ann>(n)->index = atom_index;
 
@@ -733,8 +714,7 @@ namespace
             }
         }
 
-        write(output, "\tint stage;\n");
-        write(output, "};\n\n");
+        output.write("\tint stage;\n};\n\n");
 
         return true;
     }
@@ -743,7 +723,7 @@ namespace
     {
         for (int i = 0; i < level; ++i)
         {
-            write(output, "\t");
+            output.write("\t");
         }
     }
 
@@ -761,33 +741,17 @@ namespace
         const char* atom_id = atom->s_expr->token;
         int atom_index = annotation<atom_ann>(atom)->index;
 
-        char buffer[10];
-        sprintf(buffer, "%d", atom_index);
+        indent(output, indent_level);
+
+        output.write("for (state.%s_%d = world.%s; state.%s_%d != 0; state.%s_%d = state.%s_%d->next)\n",
+            atom_id, atom_index,
+            atom_id,
+            atom_id, atom_index,
+            atom_id, atom_index,
+            atom_id, atom_index);
 
         indent(output, indent_level);
-        write(output, "for (state.");
-        write(output, atom_id);
-        write(output, "_");
-        write(output, buffer);
-        write(output, " = world.");
-        write(output, atom_id);
-        write(output, "; state.");
-        write(output, atom_id);
-        write(output, "_");
-        write(output, buffer);
-        write(output, " != 0; ");
-        write(output, "state.");
-        write(output, atom_id);
-        write(output, "_");
-        write(output, buffer);
-        write(output, " = ");
-        write(output, "state.");
-        write(output, atom_id);
-        write(output, "_");
-        write(output, buffer);
-        write(output, "->next)\n");
-        indent(output, indent_level);
-        write(output, "{\n");
+        output.write("{\n");
 
         int atom_param_index = 0;
 
@@ -796,26 +760,14 @@ namespace
             if (term->type == node_term_variable && definition(term))
             {
                 indent(output, indent_level+1);
-
-                write(output, "if (state.");
-                write(output, atom_id);
-                write(output, "_");
-                sprintf(buffer, "%d", atom_index);
-                write(output, buffer);
-                write(output, "->_");
-                sprintf(buffer, "%d", atom_param_index);
-                write(output, buffer);
-                write(output, " != state._");
                 int var_index = annotation<term_ann>(term)->var_index;
-                sprintf(buffer, "%d", var_index);
-                write(output, buffer);
-                write(output, ")\n");
+                output.write("if (state.%s_%d->_%d != state._%d)\n", atom_id, atom_index, atom_param_index, var_index);
                 indent(output, indent_level+1);
-                write(output, "{\n");
+                output.write("{\n");
                 indent(output, indent_level+2);
-                write(output, "continue;\n");
+                output.write("continue;\n");
                 indent(output, indent_level+1);
-                write(output, "}\n\n");
+                output.write("}\n\n");
             }
 
             ++atom_param_index;
@@ -828,20 +780,8 @@ namespace
             if (term->type == node_term_variable && !definition(term))
             {
                 indent(output, indent_level+1);
-                write(output, "state._");
                 int var_index = annotation<term_ann>(term)->var_index;
-                sprintf(buffer, "%d", var_index);
-                write(output, buffer);
-                write(output, " = ");
-                write(output, "state.");
-                write(output, atom_id);
-                write(output, "_");
-                sprintf(buffer, "%d", atom_index);
-                write(output, buffer);
-                sprintf(buffer, "%d", atom_param_index);
-                write(output, "->_");
-                write(output, buffer);
-                write(output, ";\n\n");
+                output.write("state._%d = state.%s_%d->_%d;\n\n", var_index, atom_id, atom_index, atom_param_index);
             }
 
             ++atom_param_index;
@@ -867,12 +807,12 @@ namespace
         }
 
         indent(output, child_indent_level);
-        write(output, "PLNNR_COROUTINE_YIELD(state);\n");
+        output.write("PLNNR_COROUTINE_YIELD(state);\n");
 
         for (int i = child_indent_level-1; i >= indent_level; --i)
         {
             indent(output, i);
-            write(output, "}\n");
+            output.write("}\n");
         }
 
         return true;
@@ -913,7 +853,7 @@ namespace
             }
         }
 
-        write(output, "\n");
+        output.write("\n");
 
         return true;
     }
@@ -922,21 +862,16 @@ namespace
     {
         plnnrc_assert(is_logical_op(root));
 
-        char buffer[10];
-        sprintf(buffer, "%d", branch_index);
-
-        write(output, "bool next(");
-        write(output, "p");
-        write(output, buffer);
-        write(output, "_state& state, worldstate& world)\n{\n");
-        write(output, "\tPLNNR_COROUTINE_BEGIN(state);\n\n");
+        output.write("bool next(p%d_state& state, worldstate& world)\n{\n", branch_index);
+        output.write("\tPLNNR_COROUTINE_BEGIN(state);\n\n");
 
         if (!generate_precondition_satisfier(ast, root, output))
         {
             return false;
         }
 
-        write(output, "\tPLNNR_COROUTINE_END();\n}\n\n");
+        output.write("\tPLNNR_COROUTINE_END();\n}\n\n");
+
         return true;
     }
 
