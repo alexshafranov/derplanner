@@ -34,10 +34,21 @@ public:
 
     bool init(size_t buffer_size);
 
+    void write(const char* format, ...);
+    void flush();
+
 private:
+    formatter(const formatter&);
+    const formatter& operator=(const formatter&);
+
+    void _putc(char c);
+    void _puts(const char* s);
+    void _puti(int n);
+
     writer& _output;
     char* _buffer;
-    size_t _buffer_size;
+    char* _buffer_top;
+    char* _buffer_end;
 };
 
 }

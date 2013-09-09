@@ -20,6 +20,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include "formatter.h"
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/io.h"
 #include "derplanner/compiler/s_expression.h"
@@ -605,15 +606,22 @@ void infer_types(tree& ast)
 
 namespace
 {
-    void write(writer& output, const char* str)
+    void write(formatter& output, const char* str)
     {
-        output.write(str, strlen(str));
+        output.write(str);
     }
 }
 
-bool generate_worldstate(tree& ast, node* worldstate, writer& output)
+bool generate_worldstate(tree& ast, node* worldstate, writer& writer)
 {
     plnnrc_assert(worldstate && worldstate->type == node_worldstate);
+
+    formatter output(writer);
+
+    if (!output.init(4096))
+    {
+        return false;
+    }
 
     char buffer[10];
 
@@ -662,7 +670,7 @@ bool generate_worldstate(tree& ast, node* worldstate, writer& output)
 
 namespace
 {
-    bool generate_precondition_state(tree& ast, node* root, unsigned branch_index, writer& output)
+    bool generate_precondition_state(tree& ast, node* root, unsigned branch_index, formatter& output)
     {
         char buffer[10];
         sprintf(buffer, "%d", branch_index);
@@ -750,7 +758,7 @@ namespace
         return true;
     }
 
-    void indent(writer& output, int level)
+    void indent(formatter& output, int level)
     {
         for (int i = 0; i < level; ++i)
         {
@@ -758,7 +766,7 @@ namespace
         }
     }
 
-    bool generate_literal(tree& ast, node* root, writer& output, int indent_level)
+    bool generate_literal(tree& ast, node* root, formatter& output, int indent_level)
     {
         plnnrc_assert(root->type == node_op_not || root->type == node_atom);
 
@@ -861,7 +869,7 @@ namespace
         return true;
     }
 
-    bool generate_conjunctive_clause(tree& ast, node* root, writer& output, int indent_level)
+    bool generate_conjunctive_clause(tree& ast, node* root, formatter& output, int indent_level)
     {
         plnnrc_assert(root->type == node_op_and);
 
@@ -889,7 +897,7 @@ namespace
         return true;
     }
 
-    bool generate_precondition_satisfier(tree& ast, node* root, writer& output)
+    bool generate_precondition_satisfier(tree& ast, node* root, formatter& output)
     {
         plnnrc_assert(root->type == node_op_or);
 
@@ -929,7 +937,7 @@ namespace
         return true;
     }
 
-    bool generate_precondition_next(tree& ast, node* root, unsigned branch_index, writer& output)
+    bool generate_precondition_next(tree& ast, node* root, unsigned branch_index, formatter& output)
     {
         plnnrc_assert(is_logical_op(root));
 
@@ -951,7 +959,7 @@ namespace
         return true;
     }
 
-    bool generate_preconditions(tree& ast, node* domain, writer& output)
+    bool generate_preconditions(tree& ast, node* domain, formatter& output)
     {
         unsigned branch_index = 0;
 
@@ -982,7 +990,7 @@ namespace
         return true;
     }
 
-    bool generate_operators_enum(tree& ast, writer& output)
+    bool generate_operators_enum(tree& ast, formatter& output)
     {
         write(output, "enum task_type\n{\n");
         write(output, "\ttask_none=0,\n");
@@ -1001,7 +1009,7 @@ namespace
         return true;
     }
 
-    bool generate_param_struct(tree& ast, node* task, writer& output)
+    bool generate_param_struct(tree& ast, node* task, formatter& output)
     {
         char buffer[10];
         node* atom = task->first_child;
@@ -1035,7 +1043,7 @@ namespace
         return true;
     }
 
-    bool generate_param_structs(tree& ast, writer& output)
+    bool generate_param_structs(tree& ast, formatter& output)
     {
         for (id_table_values operators = ast.operators.values(); !operators.empty(); operators.pop())
         {
@@ -1056,7 +1064,7 @@ namespace
         return true;
     }
 
-    bool generate_methods(tree& ast, node* domain, writer& output)
+    bool generate_methods(tree& ast, node* domain, formatter& output)
     {
         char buffer[10];
 
@@ -1242,9 +1250,16 @@ namespace
     }
 }
 
-bool generate_domain(tree& ast, node* domain, writer& output)
+bool generate_domain(tree& ast, node* domain, writer& writer)
 {
     plnnrc_assert(domain && domain->type == node_domain);
+
+    formatter output(writer);
+
+    if (!output.init(4096))
+    {
+        return false;
+    }
 
     if (!generate_preconditions(ast, domain, output))
     {
