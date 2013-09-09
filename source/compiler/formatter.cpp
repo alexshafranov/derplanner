@@ -119,11 +119,44 @@ void formatter::_puts(const char* s)
     }
 
     memcpy(_buffer_top, s, length);
+    _buffer_top += length;
 }
 
 void formatter::_puti(int n)
 {
-    _puts("239");
+    const char* digits = "0123456789";
+    int t = n;
+
+    if (n < 0)
+    {
+        _putc('-');
+        t = -n;
+    }
+
+    int num_digits = 0;
+
+    if (t == 0)
+    {
+        num_digits = 1;
+    }
+
+    while (t)
+    {
+        num_digits++;
+        t /= 10;
+    }
+
+    for (int i = 0; i < num_digits; ++i)
+    {
+        int p = 1;
+
+        for (int j = 1; j < num_digits-i; ++j)
+        {
+            p *= 10;
+        }
+
+        _putc(digits[(n / p) % 10]);
+    }
 }
 
 void formatter::flush()
