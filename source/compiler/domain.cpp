@@ -623,47 +623,28 @@ bool generate_worldstate(tree& ast, node* worldstate, writer& writer)
         return false;
     }
 
-    char buffer[10];
-
     for (node* atom = worldstate->first_child; atom != 0; atom = atom->next_sibling)
     {
-        write(output, "struct "); write(output, atom->s_expr->token); write(output, "_tuple");
-        write(output, "\n");
-        write(output, "{");
-        write(output, "\n");
+        output.write("struct %s_tuple\n{\n", atom->s_expr->token);
 
         unsigned param_index = 0;
 
         for (node* param = atom->first_child; param != 0; param = param->next_sibling)
         {
-            write(output, "\t");
-            write(output, param->s_expr->first_child->token);
-            write(output, " _");
-            sprintf(buffer, "%d", param_index);
-            write(output, buffer);
-            write(output, ";");
-            write(output, "\n");
-            ++param_index;
+            output.write("\t%s _%d;\n", param->s_expr->first_child->token, param_index++);
         }
 
-        write(output, "\t");
-        write(output, atom->s_expr->token); write(output, "_tuple* next;");
-        write(output, "\n");
-
-        write(output, "};");
-        write(output, "\n\n");
+        output.write("\t%s_tuple* next;\n};\n\n");
     }
 
-    write(output, "struct worldstate\n");
-    write(output, "{\n");
+    output.write("struct worldstate\n{\n");
 
     for (node* atom = worldstate->first_child; atom != 0; atom = atom->next_sibling)
     {
-        write(output, "\t");
-        write(output, atom->s_expr->token); write(output, "_tuple* "); write(output, atom->s_expr->token); write(output, ";\n");
+        output.write("\t%s_tuple* %s;\n", atom->s_expr->token, atom->s_expr->token);
     }
 
-    write(output, "};\n\n");
+    output.write("};\n\n");
 
     return true;
 }
