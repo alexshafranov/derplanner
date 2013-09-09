@@ -18,4 +18,38 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
+#include "derplanner/compiler/memory.h"
 #include "formatter.h"
+
+namespace plnnrc {
+
+formatter::formatter(writer& output)
+    : _output(output)
+    , _buffer(0)
+    , _buffer_size(0)
+{
+}
+
+formatter::~formatter()
+{
+    memory::deallocate(_buffer);
+}
+
+bool formatter::init(size_t buffer_size)
+{
+    void* buffer = memory::allocate(buffer_size);
+
+    if (!buffer)
+    {
+        return false;
+    }
+
+    memory::deallocate(_buffer);
+
+    _buffer = static_cast<char*>(buffer);
+    _buffer_size = buffer_size;
+
+    return true;
+}
+
+}

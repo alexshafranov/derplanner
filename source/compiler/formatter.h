@@ -21,6 +21,7 @@
 #ifndef DERPLANNER_COMPILER_FORMATTER_H_
 #define DERPLANNER_COMPILER_FORMATTER_H_
 
+#include <stddef.h> // size_t
 #include "derplanner/compiler/io.h"
 
 namespace plnnrc {
@@ -29,9 +30,14 @@ class formatter
 {
 public:
     formatter(writer& output);
+    ~formatter();
+
+    bool init(size_t buffer_size);
 
 private:
     writer& _output;
+    char* _buffer;
+    size_t _buffer_size;
 };
 
 }
