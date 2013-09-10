@@ -101,8 +101,6 @@ inline bool is_term(const node* n)
     return is_term(n->type);
 }
 
-node* preorder_traversal_next(const node* root, node* current);
-
 class tree
 {
 public:
