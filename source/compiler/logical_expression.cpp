@@ -23,6 +23,7 @@
 #include "derplanner/compiler/s_expression.h"
 #include "derplanner/compiler/ast.h"
 #include "derplanner/compiler/term.h"
+#include "derplanner/compiler/generic_node_ops.h"
 #include "derplanner/compiler/logical_expression.h"
 
 namespace plnnrc {

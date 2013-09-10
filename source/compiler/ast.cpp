@@ -24,6 +24,7 @@
 #include "pool.h"
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/memory.h"
+#include "derplanner/compiler/generic_node_ops.h"
 #include "derplanner/compiler/ast.h"
 
 namespace plnnrc {
@@ -164,109 +165,6 @@ node* tree::clone_subtree(node* original)
     }
 
     return clone;
-}
-
-void append_child(node* parent, node* child)
-{
-    plnnrc_assert(parent != 0);
-    plnnrc_assert(child != 0);
-
-    child->parent = parent;
-    child->prev_sibling_cyclic = 0;
-    child->next_sibling = 0;
-
-    node* first_child = parent->first_child;
-
-    if (first_child)
-    {
-        node* last_child = first_child->prev_sibling_cyclic;
-        plnnrc_assert(last_child != 0);
-        last_child->next_sibling = child;
-        child->prev_sibling_cyclic = last_child;
-        first_child->prev_sibling_cyclic = child;
-    }
-    else
-    {
-        parent->first_child = child;
-        child->prev_sibling_cyclic = child;
-    }
-}
-
-void prepend_child(node* parent, node* child)
-{
-    plnnrc_assert(parent != 0);
-    plnnrc_assert(child != 0);
-
-    child->parent = parent;
-    child->prev_sibling_cyclic = child;
-    child->next_sibling = parent->first_child;
-
-    if (parent->first_child)
-    {
-        parent->first_child->prev_sibling_cyclic = child;
-    }
-
-    parent->first_child = child;
-}
-
-void insert_child(node* after, node* child)
-{
-    plnnrc_assert(after != 0);
-    plnnrc_assert(child != 0);
-    plnnrc_assert(after->parent != 0);
-
-    node* l = after;
-    node* r = after->next_sibling;
-    node* p = after->parent;
-
-    l->next_sibling = child;
-
-    if (r)
-    {
-        r->prev_sibling_cyclic = child;
-    }
-    else
-    {
-        p->first_child->prev_sibling_cyclic = child;
-    }
-
-    child->prev_sibling_cyclic = l;
-    child->next_sibling = r;
-    child->parent = p;
-}
-
-void detach_node(node* n)
-{
-    plnnrc_assert(n != 0);
-
-    node* p = n->parent;
-    node* n_next = n->next_sibling;
-    node* n_prev = n->prev_sibling_cyclic;
-
-    plnnrc_assert(p != 0);
-    plnnrc_assert(n_prev != 0);
-
-    if (n_next)
-    {
-        n_next->prev_sibling_cyclic = n_prev;
-    }
-    else
-    {
-        p->first_child->prev_sibling_cyclic = n_prev;
-    }
-
-    if (n_prev->next_sibling)
-    {
-        n_prev->next_sibling = n_next;
-    }
-    else
-    {
-        p->first_child = n_next;
-    }
-
-    n->parent = 0;
-    n->next_sibling = 0;
-    n->prev_sibling_cyclic = 0;
 }
 
 node* preorder_traversal_next(const node* root, node* current)

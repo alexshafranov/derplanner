@@ -22,6 +22,7 @@
 #include <string>
 #include <string.h>
 #include <unittestpp.h>
+#include <derplanner/compiler/generic_node_ops.h>
 #include <derplanner/compiler/s_expression.h>
 
 using namespace plnnrc::sexpr;
@@ -40,7 +41,7 @@ namespace
             {
                 result += to_string(n);
 
-                if (!is_last(n))
+                if (!plnnrc::is_last(n))
                 {
                     result += " ";
                 }
@@ -203,6 +204,6 @@ namespace
         s_exp.parse(buffer);
         glue_tokens(s_exp.root()->first_child);
         CHECK_EQUAL("hello world", s_exp.root()->first_child->first_child->token);
-        CHECK(is_last(s_exp.root()->first_child->first_child));
+        CHECK(plnnrc::is_last(s_exp.root()->first_child->first_child));
     }
 }

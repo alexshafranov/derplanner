@@ -54,14 +54,7 @@ struct node
 int as_int(const node* n);
 float as_float(const node* n);
 
-void detach_node(node* n);
-
 void glue_tokens(const node* n);
-
-inline bool is_last(const node* child)
-{
-    return child == child->parent->first_child->prev_sibling_cyclic;
-}
 
 enum parse_status
 {

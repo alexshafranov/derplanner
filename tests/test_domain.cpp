@@ -23,6 +23,7 @@
 #include <derplanner/compiler/assert.h>
 #include <derplanner/compiler/s_expression.h>
 #include <derplanner/compiler/ast.h>
+#include <derplanner/compiler/generic_node_ops.h>
 #include <derplanner/compiler/domain.h>
 
 using namespace plnnrc;
@@ -41,7 +42,7 @@ namespace
             {
                 result += to_string(n);
 
-                if (!is_last(n))
+                if (!plnnrc::is_last(n))
                 {
                     result += " ";
                 }

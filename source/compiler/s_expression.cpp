@@ -22,6 +22,7 @@
 #include "pool.h"
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/memory.h"
+#include "derplanner/compiler/generic_node_ops.h"
 #include "derplanner/compiler/s_expression.h"
 
 namespace plnnrc {
@@ -478,40 +479,6 @@ float as_float(const node* n)
 int as_int(const node* n)
 {
     return static_cast<int>(strtol(n->token, 0, 10));
-}
-
-void detach_node(node* n)
-{
-    plnnrc_assert(n != 0);
-
-    node* p = n->parent;
-    node* n_next = n->next_sibling;
-    node* n_prev = n->prev_sibling_cyclic;
-
-    plnnrc_assert(p != 0);
-    plnnrc_assert(n_prev != 0);
-
-    if (n_next)
-    {
-        n_next->prev_sibling_cyclic = n_prev;
-    }
-    else
-    {
-        p->first_child->prev_sibling_cyclic = n_prev;
-    }
-
-    if (n_prev->next_sibling)
-    {
-        n_prev->next_sibling = n_next;
-    }
-    else
-    {
-        p->first_child = n_next;
-    }
-
-    n->parent = 0;
-    n->next_sibling = 0;
-    n->prev_sibling_cyclic = 0;
 }
 
 void glue_tokens(const node* n)

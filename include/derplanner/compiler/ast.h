@@ -101,16 +101,6 @@ inline bool is_term(const node* n)
     return is_term(n->type);
 }
 
-inline bool is_last(const node* child)
-{
-    return child == child->parent->first_child->prev_sibling_cyclic;
-}
-
-void append_child(node* parent, node* child);
-void prepend_child(node* parent, node* child);
-void insert_child(node* after, node* child);
-void detach_node(node* n);
-
 node* preorder_traversal_next(const node* root, node* current);
 
 class tree
