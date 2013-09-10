@@ -56,7 +56,7 @@ float as_float(const node* n);
 
 inline bool is_last(node* child, node* parent)
 {
-    return child == parent->first_child->prev_sibling_cyclic;
+    return child == child->parent->first_child->prev_sibling_cyclic;
 }
 
 enum parse_status

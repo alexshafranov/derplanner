@@ -834,7 +834,7 @@ namespace
                     return false;
                 }
 
-                if (!is_last(child, root))
+                if (!is_last(child))
                 {
                     write(output, "\n");
                 }
@@ -1130,12 +1130,12 @@ namespace
                     write(output, "\t\t\tt->args = a;\n");
                     write(output, "\t\t}\n");
 
-                    if (is_last(task_atom, tasklist))
+                    if (is_last(task_atom))
                     {
                         write(output, "\t\tmethod->expanded = true;\n");
                     }
 
-                    if (ast.methods.find(task_atom->s_expr->token) || is_last(task_atom, tasklist))
+                    if (ast.methods.find(task_atom->s_expr->token) || is_last(task_atom))
                     {
                         write(output, "\t\tPLNNR_COROUTINE_YIELD(*method);\n");
                     }
@@ -1143,7 +1143,7 @@ namespace
 
                 write(output, "\t}\n\n");
 
-                if (!is_last(branch, method))
+                if (!is_last(branch))
                 {
                     write(output, "\treturn next_branch(pstate, ");
                     write(output, method_name);

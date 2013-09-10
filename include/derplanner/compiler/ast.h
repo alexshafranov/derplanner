@@ -101,9 +101,9 @@ inline bool is_term(const node* n)
     return is_term(n->type);
 }
 
-inline bool is_last(const node* child, const node* parent)
+inline bool is_last(const node* child)
 {
-    return child == parent->first_child->prev_sibling_cyclic;
+    return child == child->parent->first_child->prev_sibling_cyclic;
 }
 
 void append_child(node* parent, node* child);

@@ -40,7 +40,7 @@ namespace
             {
                 result += to_string(n);
 
-                if (!is_last(n, root))
+                if (!is_last(n))
                 {
                     result += " ";
                 }
