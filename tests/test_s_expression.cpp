@@ -201,7 +201,7 @@ namespace
         char buffer[] = "(hello world)";
         tree s_exp;
         s_exp.parse(buffer);
-        glue_tokens(s_exp.root());
+        glue_tokens(s_exp.root()->first_child);
         CHECK_EQUAL("hello world", s_exp.root()->first_child->first_child->token);
         CHECK(is_last(s_exp.root()->first_child->first_child));
     }
