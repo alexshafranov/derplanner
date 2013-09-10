@@ -51,8 +51,8 @@ struct node
     node* prev_sibling_cyclic;
 };
 
-int as_int(const node& n);
-float as_float(const node& n);
+int as_int(const node* n);
+float as_float(const node* n);
 
 inline bool is_last(node* child, node* parent)
 {

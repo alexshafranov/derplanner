@@ -470,14 +470,18 @@ parse_status tree::parse(char* buffer)
     return parse_ok;
 }
 
-float as_float(const node& n)
+float as_float(const node* n)
 {
-    return static_cast<float>(strtod(n.token, 0));
+    return static_cast<float>(strtod(n->token, 0));
 }
 
-int as_int(const node& n)
+int as_int(const node* n)
 {
-    return static_cast<int>(strtol(n.token, 0, 10));
+    return static_cast<int>(strtol(n->token, 0, 10));
+}
+
+void glue_tokens(const node& n)
+{
 }
 
 }

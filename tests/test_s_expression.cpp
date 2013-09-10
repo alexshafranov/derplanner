@@ -141,7 +141,7 @@ namespace
         for (size_t i=0; i<strlen(str)+1 && i<128; ++i) { buffer[i] = str[i]; }
         tree s_exp;
         s_exp.parse(buffer);
-        CHECK_EQUAL(expected, as_float(*s_exp.root()->first_child->first_child));
+        CHECK_EQUAL(expected, as_float(s_exp.root()->first_child->first_child));
     }
 
     void check_number(const char* str, int expected)
@@ -150,7 +150,7 @@ namespace
         for (size_t i=0; i<strlen(str)+1 && i<128; ++i) { buffer[i] = str[i]; }
         tree s_exp;
         s_exp.parse(buffer);
-        CHECK_EQUAL(expected, as_int(*s_exp.root()->first_child->first_child));
+        CHECK_EQUAL(expected, as_int(s_exp.root()->first_child->first_child));
     }
 
     TEST(numbers)
