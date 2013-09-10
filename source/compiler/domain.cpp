@@ -302,6 +302,8 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
 
         for (sexpr::node* t_expr = c_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
         {
+            glue_tokens(t_expr);
+
             node* type = ast.make_node(node_worldstate_type, t_expr);
 
             if (!type)
