@@ -632,7 +632,7 @@ bool generate_worldstate(tree& ast, node* worldstate, writer& writer)
             output.write("\t%s _%d;\n", param->s_expr->first_child->token, param_index++);
         }
 
-        output.write("\t%s_tuple* next;\n};\n\n");
+        output.write("\t%s_tuple* next;\n};\n\n", atom->s_expr->token);
     }
 
     output.write("struct worldstate\n{\n");
