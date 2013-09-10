@@ -480,7 +480,7 @@ int as_int(const node* n)
     return static_cast<int>(strtol(n->token, 0, 10));
 }
 
-void glue_tokens(const node& n)
+void glue_tokens(const node* n)
 {
 }
 

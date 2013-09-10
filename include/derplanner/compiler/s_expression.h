@@ -54,7 +54,9 @@ struct node
 int as_int(const node* n);
 float as_float(const node* n);
 
-inline bool is_last(node* child, node* parent)
+void glue_tokens(const node* n);
+
+inline bool is_last(const node* child)
 {
     return child == child->parent->first_child->prev_sibling_cyclic;
 }
