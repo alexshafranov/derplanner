@@ -22,7 +22,7 @@
 #include "pool.h"
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/memory.h"
-#include "derplanner/compiler/generic_node_ops.h"
+#include "derplanner/compiler/generic_tree_ops.h"
 #include "derplanner/compiler/s_expression.h"
 
 namespace plnnrc {
