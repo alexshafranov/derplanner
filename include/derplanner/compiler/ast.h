@@ -118,7 +118,6 @@ public:
     id_table ws_types;
     id_table methods;
     id_table operators;
-
     node_array type_tag_to_node;
 
 private:
