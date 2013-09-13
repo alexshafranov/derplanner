@@ -122,6 +122,9 @@ public:
     node_array type_tag_to_node;
 
 private:
+    tree(const tree&);
+    const tree& operator=(const tree&);
+
     pool::handle* _pool;
     node _root;
 };
