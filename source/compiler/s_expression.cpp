@@ -20,6 +20,7 @@
 
 #include <stdlib.h>
 #include "pool.h"
+#include "derplanner/compiler/config.h"
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/memory.h"
 #include "derplanner/compiler/generic_tree_ops.h"
@@ -30,7 +31,7 @@ namespace sexpr {
 
 namespace
 {
-    const size_t page_size = 32 * 1024;
+    const size_t page_size = DERPLANNER_SEXPR_MEMPAGE_SIZE;
 
     node* alloc_node(pool::handle* pool)
     {

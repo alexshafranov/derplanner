@@ -22,6 +22,7 @@
 #include <string.h> // memset, memcpy
 #include <stdint.h> // unitptr_t
 #include "pool.h"
+#include "derplanner/compiler/config.h"
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/memory.h"
 #include "derplanner/compiler/generic_tree_ops.h"
@@ -32,7 +33,7 @@ namespace ast {
 
 namespace
 {
-    const size_t page_size = 64 * 1024;
+    const size_t page_size = DERPLANNER_AST_MEMPAGE_SIZE;
 
     struct annotation_trait
     {
