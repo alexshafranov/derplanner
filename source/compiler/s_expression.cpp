@@ -360,16 +360,16 @@ namespace
 } // unnamed namespace
 
 tree::tree()
-    : _nodePool(0)
+    : _pool(0)
     , _root(0)
 {
 }
 
 tree::~tree()
 {
-    if (_nodePool)
+    if (_pool)
     {
-        pool::clear(_nodePool);
+        pool::clear(_pool);
     }
 }
 
@@ -377,10 +377,10 @@ parse_status tree::parse(char* buffer)
 {
     plnnrc_assert(buffer != 0);
 
-    if (_nodePool)
+    if (_pool)
     {
-        pool::clear(_nodePool);
-        _nodePool = 0;
+        pool::clear(_pool);
+        _pool = 0;
         _root = 0;
     }
 
@@ -391,10 +391,10 @@ parse_status tree::parse(char* buffer)
         return parse_out_of_memory;
     }
 
-    _nodePool = pool;
+    _pool = pool;
 
     parse_state state;
-    init_state(state, buffer, _nodePool);
+    init_state(state, buffer, _pool);
 
     _root = push_list(state);
 
