@@ -31,7 +31,8 @@ namespace sexpr {
 
 namespace
 {
-    const size_t page_size = DERPLANNER_SEXPR_MEMPAGE_SIZE;
+    const size_t node_page_size = DERPLANNER_SEXPR_NODE_MEMPAGE_SIZE;
+    const size_t token_page_size = DERPLANNER_SEXPR_TOKEN_MEMPAGE_SIZE;
 
     node* alloc_node(pool::handle* pool)
     {
@@ -361,37 +362,66 @@ namespace
 
 tree::tree()
     : _nodePool(0)
+    , _tokenPool(0)
     , _root(0)
 {
 }
 
-tree::~tree()
+bool tree::_initPools()
+{
+    pool::handle* pool;
+
+    pool = pool::init(node_page_size);
+
+    if (!pool)
+    {
+        return false;
+    }
+
+    _nodePool = pool;
+
+    pool = pool::init(token_page_size);
+
+    if (!pool)
+    {
+        return false;
+    }
+
+    _tokenPool = pool;
+
+    return true;
+}
+
+void tree::_clearPools()
 {
     if (_nodePool)
     {
         pool::clear(_nodePool);
+        _nodePool = 0;
     }
+
+    if (_tokenPool)
+    {
+        pool::clear(_tokenPool);
+        _tokenPool = 0;
+    }
+}
+
+tree::~tree()
+{
+    _clearPools();
 }
 
 parse_status tree::parse(char* buffer)
 {
     plnnrc_assert(buffer != 0);
 
-    if (_nodePool)
-    {
-        pool::clear(_nodePool);
-        _nodePool = 0;
-        _root = 0;
-    }
+    _clearPools();
 
-    pool::handle* pool = pool::init(page_size);
-
-    if (!pool)
+    if (!_initPools())
     {
         return parse_out_of_memory;
     }
-
-    _nodePool = pool;
 
     parse_state state;
     init_state(state, buffer, _nodePool);
