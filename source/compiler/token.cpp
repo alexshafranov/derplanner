@@ -18,14 +18,107 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
+#include <stdio.h>
+#include <ctype.h>
+#include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/ast.h"
 #include "token.h"
 
 namespace plnnrc {
 
-char* symbol_to_identifier(ast::tree& ast, const char* symbol)
+int id_len(const char* symbol)
 {
-    return 0;
+    const char* c;
+
+    for (c = symbol; *c != 0; ++c)
+    {
+        if (*c != '?' && *c != '!')
+        {
+            break;
+        }
+    }
+
+    if (*c == 0)
+    {
+        return 0;
+    }
+
+    int length = 0;
+
+    if (isdigit(*c))
+    {
+        ++length;
+    }
+
+    for (; *c != 0; ++c)
+    {
+        if (isalnum(*c) || *c == '_' || *c == '-')
+        {
+            ++length;
+            continue;
+        }
+
+        if (*c == '!' || *c == '?')
+        {
+            continue;
+        }
+
+        return -1;
+    }
+
+    return length;
+}
+
+char* to_id(ast::tree& ast, const char* symbol)
+{
+    int length = id_len(symbol);
+
+    plnnrc_assert(length > 0);
+
+    char* token = ast.make_token(length);
+
+    if (!token)
+    {
+        return 0;
+    }
+
+    char* t = token;
+    const char* c = symbol;
+
+    for (; *c != 0; ++c)
+    {
+        if (*c != '?' && *c != '!')
+        {
+            break;
+        }
+    }
+
+    if (isdigit(*c))
+    {
+        *t++ = '_';
+    }
+
+    for (; *c != 0; ++c)
+    {
+        if (*c == '?' || *c == '!')
+        {
+            continue;
+        }
+
+        if (isalnum(*c) || *c == '_')
+        {
+            *t++ = *c;
+            continue;
+        }
+
+        if (*c == '-')
+        {
+            *t++ = '_';
+            continue;
+        }
+    }
+
+    return token;
 }
 
 }

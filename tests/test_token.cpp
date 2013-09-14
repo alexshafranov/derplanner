@@ -18,25 +18,39 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef DERPLANNER_COMPILER_TOKEN_H_
-#define DERPLANNER_COMPILER_TOKEN_H_
+#include <unittestpp.h>
+#include <derplanner/compiler/ast.h>
+#include "compiler/token.h"
 
-namespace plnnrc {
+using namespace plnnrc;
 
-namespace ast
+namespace
 {
-    class tree;
+    TEST(symbol_to_id_conversion)
+    {
+        {
+            CHECK(!valid_id("!?"));
+            CHECK(valid_id("!?a"));
+            CHECK(id_len("!?1") == 2);
+        }
+
+        {
+            ast::tree ast;
+            char* actual = to_id(ast, "abcd0123");
+            CHECK_EQUAL("abcd0123", actual);
+        }
+
+        {
+            ast::tree ast;
+            CHECK_EQUAL(5, id_len("!ax-by?"));
+            char* actual = to_id(ast, "!ax-by?");
+            CHECK_EQUAL("ax_by", actual);
+        }
+
+        {
+            ast::tree ast;
+            char* actual = to_id(ast, "!23a");
+            CHECK_EQUAL("_23a", actual);
+        }
+    }
 }
-
-int id_len(const char* symbol);
-
-char* to_id(ast::tree& ast, const char* symbol);
-
-inline bool valid_id(const char* symbol)
-{
-    return id_len(symbol) > 0;
-}
-
-}
-
-#endif
