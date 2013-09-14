@@ -26,6 +26,8 @@
 
 namespace plnnrc {
 
+bool is_valid_id(const char* symbol);
+
 class formatter
 {
 public:
@@ -44,6 +46,7 @@ private:
     void _putc(char c);
     void _puts(const char* s);
     void _puti(int n);
+    void _putid(const char* s);
 
     writer& _output;
     char* _buffer;

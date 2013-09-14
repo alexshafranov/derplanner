@@ -18,12 +18,78 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
+#include <ctype.h>
 #include <stdarg.h>
 #include <string.h>
+#include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/memory.h"
 #include "formatter.h"
 
 namespace plnnrc {
+
+namespace
+{
+    bool id_needs_conversion(const char* symbol)
+    {
+        for (const char* c = symbol; *c != 0; ++c)
+        {
+            if (*c == '-' || *c == '?' || *c == '!')
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    int id_converted_length(const char* symbol)
+    {
+        const char* c;
+
+        for (c = symbol; *c != 0; ++c)
+        {
+            if (*c != '?' && *c != '!')
+            {
+                break;
+            }
+        }
+
+        if (*c == 0)
+        {
+            return 0;
+        }
+
+        int length = 0;
+
+        if (isdigit(*c))
+        {
+            ++length;
+        }
+
+        for (; *c != 0; ++c)
+        {
+            if (isalnum(*c) || *c == '_' || *c == '-')
+            {
+                ++length;
+                continue;
+            }
+
+            if (*c == '!' || *c == '?')
+            {
+                continue;
+            }
+
+            return -1;
+        }
+
+        return length;
+    }
+}
+
+bool is_valid_id(const char* symbol)
+{
+    return id_converted_length(symbol) > 0;
+}
 
 formatter::formatter(writer& output)
     : _output(output)
@@ -68,18 +134,34 @@ void formatter::write(const char* format, ...)
         {
             switch (*++format)
             {
+            // decimal number
             case 'd':
                 {
                     int n = va_arg(arglist, int);
                     _puti(n);
                 }
                 break;
+            // string
             case 's':
                 {
                     const char* s = va_arg(arglist, const char*);
                     _puts(s);
                 }
                 break;
+            // identifier
+            case 'i':
+                {
+                    const char* s = va_arg(arglist, const char*);
+
+                    if (id_needs_conversion(s))
+                    {
+                        _putid(s);
+                    }
+                    else
+                    {
+                        _puts(s);
+                    }
+                }
             }
         }
         else
@@ -156,6 +238,46 @@ void formatter::_puti(int n)
         }
 
         _putc(digits[(n / p) % 10]);
+    }
+}
+
+void formatter::_putid(const char* symbol)
+{
+    plnnrc_assert(is_valid_id(symbol));
+
+    const char* c = symbol;
+
+    for (; *c != 0; ++c)
+    {
+        if (*c != '?' && *c != '!')
+        {
+            break;
+        }
+    }
+
+    if (isdigit(*c))
+    {
+        _putc('_');
+    }
+
+    for (; *c != 0; ++c)
+    {
+        if (*c == '?' || *c == '!')
+        {
+            continue;
+        }
+
+        if (isalnum(*c) || *c == '_')
+        {
+            _putc(*c);
+            continue;
+        }
+
+        if (*c == '-')
+        {
+            _putc('_');
+            continue;
+        }
     }
 }
 

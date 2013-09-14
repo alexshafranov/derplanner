@@ -21,6 +21,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "formatter.h"
+#include "derplanner/compiler/config.h"
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/io.h"
 #include "derplanner/compiler/s_expression.h"
@@ -130,6 +131,8 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
                         continue;
                     }
 
+                    plnnrc_assert(is_valid_id(task->s_expr->token));
+
                     if (!ast.operators.insert(task->s_expr->token, operatr))
                     {
                         return 0;
@@ -182,6 +185,8 @@ namespace
         }
 
         append_child(method, task_atom);
+
+        plnnrc_assert(is_valid_id(task_atom->s_expr->token));
 
         ast.methods.insert(task_atom->s_expr->token, method);
 
@@ -297,6 +302,8 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
         {
             return 0;
         }
+
+        plnnrc_assert(is_valid_id(c_expr->first_child->token));
 
         ast.ws_atoms.insert(c_expr->first_child->token, atom);
 
@@ -607,25 +614,20 @@ void infer_types(tree& ast)
     }
 }
 
-void write(formatter& output, const char* s)
-{
-    output.write(s);
-}
-
 bool generate_worldstate(tree& ast, node* worldstate, writer& writer)
 {
     plnnrc_assert(worldstate && worldstate->type == node_worldstate);
 
     formatter output(writer);
 
-    if (!output.init(4096))
+    if (!output.init(DERPLANNER_CODEGEN_OUTPUT_BUFFER_SIZE))
     {
         return false;
     }
 
     for (node* atom = worldstate->first_child; atom != 0; atom = atom->next_sibling)
     {
-        output.write("struct %s_tuple\n{\n", atom->s_expr->token);
+        output.write("struct %i_tuple\n{\n", atom->s_expr->token);
 
         unsigned param_index = 0;
 
@@ -634,14 +636,14 @@ bool generate_worldstate(tree& ast, node* worldstate, writer& writer)
             output.write("\t%s _%d;\n", param->s_expr->first_child->token, param_index++);
         }
 
-        output.write("\t%s_tuple* next;\n};\n\n", atom->s_expr->token);
+        output.write("\t%i_tuple* next;\n};\n\n", atom->s_expr->token);
     }
 
     output.write("struct worldstate\n{\n");
 
     for (node* atom = worldstate->first_child; atom != 0; atom = atom->next_sibling)
     {
-        output.write("\t%s_tuple* %s;\n", atom->s_expr->token, atom->s_expr->token);
+        output.write("\t%i_tuple* %i;\n", atom->s_expr->token, atom->s_expr->token);
     }
 
     output.write("};\n\n");
@@ -709,7 +711,7 @@ namespace
             {
                 const char* id = n->s_expr->token;
 
-                output.write("\t%s_tuple* %s_%d;\n", id, id, atom_index);
+                output.write("\t%i_tuple* %i_%d;\n", id, id, atom_index);
 
                 annotation<atom_ann>(n)->index = atom_index;
 
@@ -746,7 +748,7 @@ namespace
 
         indent(output, indent_level);
 
-        output.write("for (state.%s_%d = world.%s; state.%s_%d != 0; state.%s_%d = state.%s_%d->next)\n",
+        output.write("for (state.%i_%d = world.%i; state.%i_%d != 0; state.%i_%d = state.%i_%d->next)\n",
             atom_id, atom_index,
             atom_id,
             atom_id, atom_index,
@@ -764,7 +766,7 @@ namespace
             {
                 indent(output, indent_level+1);
                 int var_index = annotation<term_ann>(term)->var_index;
-                output.write("if (state.%s_%d->_%d != state._%d)\n", atom_id, atom_index, atom_param_index, var_index);
+                output.write("if (state.%i_%d->_%d != state._%d)\n", atom_id, atom_index, atom_param_index, var_index);
                 indent(output, indent_level+1);
                 output.write("{\n");
                 indent(output, indent_level+2);
@@ -784,7 +786,7 @@ namespace
             {
                 indent(output, indent_level+1);
                 int var_index = annotation<term_ann>(term)->var_index;
-                output.write("state._%d = state.%s_%d->_%d;\n\n", var_index, atom_id, atom_index, atom_param_index);
+                output.write("state._%d = state.%i_%d->_%d;\n\n", var_index, atom_id, atom_index, atom_param_index);
             }
 
             ++atom_param_index;
@@ -839,7 +841,7 @@ namespace
 
                 if (!is_last(child))
                 {
-                    write(output, "\n");
+                    output.write("\n");
                 }
 
                 break;
@@ -911,26 +913,24 @@ namespace
 
     bool generate_operators_enum(tree& ast, formatter& output)
     {
-        write(output, "enum task_type\n{\n");
-        write(output, "\ttask_none=0,\n");
+        output.write("enum task_type\n{\n");
+        output.write("\ttask_none=0,\n");
 
         for (id_table_values operators = ast.operators.values(); !operators.empty(); operators.pop())
         {
             node* operatr = operators.value();
             node* operator_atom = operatr->first_child;
-            write(output, "\ttask_");
-            write(output, operator_atom->s_expr->token);
-            write(output, ",\n");
+
+            output.write("\ttask_%i,\n", operator_atom->s_expr->token);
         }
 
-        write(output, "};\n\n");
+        output.write("};\n\n");
 
         return true;
     }
 
     bool generate_param_struct(tree& ast, node* task, formatter& output)
     {
-        char buffer[10];
         node* atom = task->first_child;
 
         if (!atom->first_child)
@@ -938,27 +938,19 @@ namespace
             return true;
         }
 
-        write(output, "struct ");
-        write(output, atom->s_expr->token);
-        write(output, "_args\n{\n");
+        output.write("struct %i_args\n{\n", atom->s_expr->token);
 
         int param_index = 0;
 
         for (node* param = atom->first_child; param != 0; param = param->next_sibling)
         {
             node* ws_type = ast.type_tag_to_node[type_tag(param)];
-            write(output, "\t");
-            write(output, ws_type->s_expr->first_child->token);
-            write(output, " ");
-            write(output, "_");
+            output.write("\t%s _%d;\n", ws_type->s_expr->first_child->token, param_index);
             annotation<term_ann>(param)->var_index = param_index;
-            sprintf(buffer, "%d", param_index);
-            write(output, buffer);
-            write(output, ";\n");
             ++param_index;
         }
 
-        write(output, "};\n\n");
+        output.write("};\n\n");
         return true;
     }
 
@@ -985,8 +977,6 @@ namespace
 
     bool generate_methods(tree& ast, node* domain, formatter& output)
     {
-        char buffer[10];
-
         unsigned precondition_index = 0;
 
         for (node* method = domain->first_child; method != 0; method = method->next_sibling)
@@ -1007,41 +997,20 @@ namespace
 
                 plnnrc_assert(tasklist->type == node_tasklist);
 
-                write(output, "bool ");
-                write(output, method_name);
-                write(output, "_branch_");
-                sprintf(buffer, "%d", branch_index);
-                write(output, buffer);
-                write(output, "_expand");
-                write(output, "(planner_state& pstate, void* world)");
-                write(output, "\n{\n");
-
-                write(output, "\tmethod_instance* method = pstate.top_method;\n");
-
-                write(output, "\tp");
-                sprintf(buffer, "%d", precondition_index);
-                write(output, buffer);
-                write(output, "_state* precondition = static_cast<p");
-                write(output, buffer);
-                write(output, "_state*>(method->precondition);\n");
-                write(output, "\tworldstate* wstate = static_cast<worldstate*>(world);\n");
+                output.write("bool %i_branch_%d_expand(planner_state& pstate, void* world)\n{\n", method_name, branch_index);
+                output.write("\tmethod_instance* method = pstate.top_method;\n");
+                output.write("\tp%d_state* precondition = static_cast<p%d_state*>(method->precondition);\n", precondition_index, precondition_index);
+                output.write("\tworldstate* wstate = static_cast<worldstate*>(world);\n");
 
                 if (has_parameters(method))
                 {
-                    write(output, "\t");
-                    write(output, method_name);
-                    write(output, "_args* method_args = static_cast<");
-                    write(output, method_name);
-                    write(output, "_args*>(method->args);\n");
+                    output.write("\t%i_args* method_args = static_cast<%i_args*>(method->args);\n", method_name, method_name);
                 }
 
-                write(output, "\n\tPLNNR_COROUTINE_BEGIN(*method);\n\n");
+                output.write("\n\tPLNNR_COROUTINE_BEGIN(*method);\n\n");
 
-                write(output, "\tprecondition = push<p");
-                sprintf(buffer, "%d", precondition_index);
-                write(output, buffer);
-                write(output, "_state>(pstate.mstack);\n");
-                write(output, "\tprecondition->stage = 0;\n");
+                output.write("\tprecondition = push<p%d_state>(pstate.mstack);\n", precondition_index);
+                output.write("\tprecondition->stage = 0;\n");
 
                 for (node* param = atom->first_child; param != 0; param = param->next_sibling)
                 {
@@ -1052,52 +1021,31 @@ namespace
                         int param_index = annotation<term_ann>(param)->var_index;
                         int var_index = annotation<term_ann>(var)->var_index;
 
-                        write(output, "\tprecondition->_");
-                        sprintf(buffer, "%d", var_index);
-                        write(output, buffer);
-                        write(output, " = method_args->_");
-                        sprintf(buffer, "%d", param_index);
-                        write(output, buffer);
-                        write(output, ";\n");
+                        output.write("\tprecondition->_%d = method_args->_%d;\n", var_index, param_index);
                     }
                 }
 
-                write(output, "\n");
+                output.write("\n");
+                output.write("\tmethod->precondition = precondition;\n");
+                output.write("\tmethod->mrewind = pstate.mstack->top();\n");
+                output.write("\tmethod->trewind = pstate.tstack->top();\n\n");
 
-                write(output, "\tmethod->precondition = precondition;\n");
-                write(output, "\tmethod->mrewind = pstate.mstack->top();\n");
-                write(output, "\tmethod->trewind = pstate.tstack->top();\n\n");
-
-                write(output, "\twhile (next(*precondition, *wstate))\n\t{\n");
+                output.write("\twhile (next(*precondition, *wstate))\n\t{\n");
 
                 for (node* task_atom = tasklist->first_child; task_atom != 0; task_atom = task_atom->next_sibling)
                 {
-                    write(output, "\t\t{\n");
+                    output.write("\t\t{\n");
 
                     if (is_operator(ast, task_atom))
                     {
-                        write(output, "\t\t\ttask_instance* t = push_task(pstate, task_");
-                        write(output, task_atom->s_expr->token);
-                        write(output, ");\n");
-
-                        write(output, "\t\t\t");
-                        write(output, task_atom->s_expr->token);
-                        write(output, "_args* a = push<");
-                        write(output, task_atom->s_expr->token);
-                        write(output, "_args>(pstate.tstack);\n");
+                        output.write("\t\t\ttask_instance* t = push_task(pstate, task_%i);\n", task_atom->s_expr->token);
+                        output.write("\t\t\t%i_args* a = push<%i_args>(pstate.tstack);\n", task_atom->s_expr->token, task_atom->s_expr->token);
                     }
                     else
                     {
                         plnnrc_assert(ast.methods.find(task_atom->s_expr->token));
-                        write(output, "\t\t\tmethod_instance* t = push_method(pstate, ");
-                        write(output, task_atom->s_expr->token);
-                        write(output, "_branch_0_expand);\n");
-
-                        write(output, "\t\t\t");
-                        write(output, task_atom->s_expr->token);
-                        write(output, "_args* a = push<");
-                        write(output, task_atom->s_expr->token);
-                        write(output, "_args>(pstate.mstack);\n");
+                        output.write("\t\t\tmethod_instance* t = push_method(pstate, %i_branch_0_expand);\n", task_atom->s_expr->token);
+                        output.write("\t\t\t%i_args* a = push<%i_args>(pstate.mstack);\n", task_atom->s_expr->token, task_atom->s_expr->token);
                     }
 
                     int param_index = 0;
@@ -1108,57 +1056,45 @@ namespace
                         node* def = definition(arg);
                         plnnrc_assert(def);
 
-                        sprintf(buffer, "%d", param_index);
-                        write(output, "\t\t\ta->_");
-                        write(output, buffer);
-                        write(output, " = ");
+                        output.write("\t\t\ta->_%d = ", param_index);
 
                         if (is_parameter(def))
                         {
-                            write(output, "method_args->_");
+                            output.write("method_args->");
                         }
                         else
                         {
-                            write(output, "precondition->_");
+                            output.write("precondition->");
                         }
 
                         int var_index = annotation<term_ann>(def)->var_index;
-                        sprintf(buffer, "%d", var_index);
-                        write(output, buffer);
-                        write(output, ";\n");
+                        output.write("_%d;\n", var_index);
 
                         ++param_index;
                     }
 
-                    write(output, "\t\t\tt->args = a;\n");
-                    write(output, "\t\t}\n");
+                    output.write("\t\t\tt->args = a;\n");
+                    output.write("\t\t}\n");
 
                     if (is_last(task_atom))
                     {
-                        write(output, "\t\tmethod->expanded = true;\n");
+                        output.write("\t\tmethod->expanded = true;\n");
                     }
 
                     if (ast.methods.find(task_atom->s_expr->token) || is_last(task_atom))
                     {
-                        write(output, "\t\tPLNNR_COROUTINE_YIELD(*method);\n");
+                        output.write("\t\tPLNNR_COROUTINE_YIELD(*method);\n");
                     }
                 }
 
-                write(output, "\t}\n\n");
+                output.write("\t}\n\n");
 
                 if (!is_last(branch))
                 {
-                    write(output, "\treturn next_branch(pstate, ");
-                    write(output, method_name);
-                    write(output, "_branch_");
-                    sprintf(buffer, "%d", branch_index+1);
-                    write(output, buffer);
-                    write(output, "_expand, world);\n");
+                    output.write("\treturn next_branch(pstate, %i_branch_%d_expand, world);\n", method_name, branch_index+1);
                 }
 
-                write(output, "\tPLNNR_COROUTINE_END();\n");
-
-                write(output, "}\n\n");
+                output.write("\tPLNNR_COROUTINE_END();\n}\n\n");
 
                 ++branch_index;
                 ++precondition_index;
@@ -1175,7 +1111,7 @@ bool generate_domain(tree& ast, node* domain, writer& writer)
 
     formatter output(writer);
 
-    if (!output.init(4096))
+    if (!output.init(DERPLANNER_CODEGEN_OUTPUT_BUFFER_SIZE))
     {
         return false;
     }

@@ -78,4 +78,39 @@ namespace
         formatter.flush();
         CHECK_EQUAL("hello+128", writer.buffer);
     }
+
+    TEST(symbol_to_id_conversion)
+    {
+        {
+            CHECK(!plnnrc::is_valid_id("!?"));
+            CHECK(plnnrc::is_valid_id("!?a"));
+        }
+
+        {
+            buffer_writer writer(1024);
+            plnnrc::formatter formatter(writer);
+            formatter.init(1);
+            formatter.write("%i", "abcd0123");
+            formatter.flush();
+            CHECK_EQUAL("abcd0123", writer.buffer);
+        }
+
+        {
+            buffer_writer writer(1024);
+            plnnrc::formatter formatter(writer);
+            formatter.init(1);
+            formatter.write("%i", "!ax-by?");
+            formatter.flush();
+            CHECK_EQUAL("ax_by", writer.buffer);
+        }
+
+        {
+            buffer_writer writer(1024);
+            plnnrc::formatter formatter(writer);
+            formatter.init(1);
+            formatter.write("%i", "!?23a!?");
+            formatter.flush();
+            CHECK_EQUAL("_23a", writer.buffer);
+        }
+    }
 }

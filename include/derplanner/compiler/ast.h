@@ -21,8 +21,6 @@
 #ifndef DERPLANNER_COMPILER_AST_H_
 #define DERPLANNER_COMPILER_AST_H_
 
-#include <stddef.h> // for size_t
-
 #include "derplanner/compiler/id_table.h"
 #include "derplanner/compiler/node_array.h"
 
@@ -115,7 +113,6 @@ public:
     node* make_node(node_type type, sexpr::node* token=0);
     node* clone_node(node* original);
     node* clone_subtree(node* original);
-    char* make_token(size_t length);
 
     id_table ws_atoms;
     id_table ws_types;
@@ -128,7 +125,6 @@ private:
     const tree& operator=(const tree&);
 
     pool::handle* _node_pool;
-    pool::handle* _token_pool;
     node _root;
 };
 

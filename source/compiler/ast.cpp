@@ -32,8 +32,7 @@ namespace ast {
 
 namespace
 {
-    const size_t node_page_size = DERPLANNER_AST_NODE_MEMPAGE_SIZE;
-    const size_t token_page_size = DERPLANNER_AST_TOKEN_MEMPAGE_SIZE;
+    const size_t node_page_size = DERPLANNER_AST_MEMPAGE_SIZE;
 
     struct annotation_trait
     {
@@ -72,7 +71,6 @@ namespace
 
 tree::tree()
     : _node_pool(0)
-    , _token_pool(0)
 {
     memset(&_root, 0, sizeof(_root));
     _root.type = node_domain;
@@ -83,11 +81,6 @@ tree::~tree()
     if (_node_pool)
     {
         pool::clear(_node_pool);
-    }
-
-    if (_token_pool)
-    {
-        pool::clear(_token_pool);
     }
 }
 
@@ -133,29 +126,6 @@ node* tree::make_node(node_type type, sexpr::node* token)
     }
 
     return n;
-}
-
-char* tree::make_token(size_t length)
-{
-    plnnrc_assert(length > 0);
-
-    if (!_token_pool)
-    {
-        pool::handle* pool = pool::init(token_page_size);
-
-        if (!pool)
-        {
-            return 0;
-        }
-
-        _token_pool = pool;
-    }
-
-    char* t = static_cast<char*>(pool::allocate(_token_pool, length+1, sizeof(void*)));
-
-    memset(t, 0, length+1);
-
-    return t;
 }
 
 node* tree::clone_node(node* original)
