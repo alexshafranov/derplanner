@@ -26,6 +26,19 @@
 
 namespace plnnrc {
 
+bool needs_conversion(const char* symbol)
+{
+    for (const char* c = symbol; *c != 0; ++c)
+    {
+        if (*c == '-' || *c == '?' || *c == '!')
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 int id_len(const char* symbol)
 {
     const char* c;

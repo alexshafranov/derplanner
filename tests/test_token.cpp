@@ -29,8 +29,8 @@ namespace
     TEST(symbol_to_id_conversion)
     {
         {
-            CHECK(!valid_id("!?"));
-            CHECK(valid_id("!?a"));
+            CHECK(!is_valid_id("!?"));
+            CHECK(is_valid_id("!?a"));
             CHECK(id_len("!?1") == 2);
         }
 

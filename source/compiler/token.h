@@ -28,13 +28,30 @@ namespace ast
     class tree;
 }
 
+bool needs_conversion(const char* symbol);
 int id_len(const char* symbol);
-
 char* to_id(ast::tree& ast, const char* symbol);
 
-inline bool valid_id(const char* symbol)
+inline bool is_valid_id(const char* symbol)
 {
     return id_len(symbol) > 0;
+}
+
+inline bool convert_to_id(ast::tree& ast, char*& token)
+{
+    if (needs_conversion(token))
+    {
+        char* id = to_id(ast, token);
+
+        if (!id)
+        {
+            return false;
+        }
+
+        token = id;
+    }
+
+    return true;
 }
 
 }
