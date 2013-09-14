@@ -78,7 +78,7 @@ private:
     tree(const tree&);
     const tree& operator=(const tree&);
 
-    pool::handle* _pool;
+    pool::handle* _nodePool;
     node* _root;
 };
 
