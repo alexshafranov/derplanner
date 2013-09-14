@@ -78,11 +78,7 @@ private:
     tree(const tree&);
     const tree& operator=(const tree&);
 
-    void _clearPools();
-    bool _initPools();
-
     pool::handle* _nodePool;
-    pool::handle* _tokenPool;
     node* _root;
 };
 
