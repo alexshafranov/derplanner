@@ -33,7 +33,7 @@ namespace ast {
 
 namespace
 {
-    const size_t page_size = DERPLANNER_AST_MEMPAGE_SIZE;
+    const size_t node_page_size = DERPLANNER_AST_NODE_MEMPAGE_SIZE;
 
     struct annotation_trait
     {
@@ -71,7 +71,7 @@ namespace
 }
 
 tree::tree()
-    : _pool(0)
+    : _node_pool(0)
 {
     memset(&_root, 0, sizeof(_root));
     _root.type = node_domain;
@@ -79,27 +79,27 @@ tree::tree()
 
 tree::~tree()
 {
-    if (_pool)
+    if (_node_pool)
     {
-        pool::clear(_pool);
+        pool::clear(_node_pool);
     }
 }
 
 node* tree::make_node(node_type type, sexpr::node* token)
 {
-    if (!_pool)
+    if (!_node_pool)
     {
-        pool::handle* pool = pool::init(page_size);
+        pool::handle* pool = pool::init(node_page_size);
 
         if (!pool)
         {
             return 0;
         }
 
-        _pool = pool;
+        _node_pool = pool;
     }
 
-    node* n = static_cast<node*>(pool::allocate(_pool, sizeof(node), plnnrc_alignof(node)));
+    node* n = static_cast<node*>(pool::allocate(_node_pool, sizeof(node), plnnrc_alignof(node)));
 
     if (n)
     {
@@ -115,7 +115,7 @@ node* tree::make_node(node_type type, sexpr::node* token)
 
         if (t.size > 0)
         {
-            n->annotation = pool::allocate(_pool, t.size, t.alignment);
+            n->annotation = pool::allocate(_node_pool, t.size, t.alignment);
 
             if (!n->annotation)
             {

@@ -124,7 +124,7 @@ private:
     tree(const tree&);
     const tree& operator=(const tree&);
 
-    pool::handle* _pool;
+    pool::handle* _node_pool;
     node _root;
 };
 
