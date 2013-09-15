@@ -831,30 +831,16 @@ namespace
 
         for (node* child = root->first_child; child != 0; child = child->next_sibling)
         {
-            switch (child->type)
+            plnnrc_assert(child->type == node_op_and);
+
+            if (!generate_conjunctive_clause(ast, child, output, indent_level+1))
             {
-            case node_op_and:
-                if (!generate_conjunctive_clause(ast, child, output, indent_level+1))
-                {
-                    return false;
-                }
-
-                if (!is_last(child))
-                {
-                    output.write("\n");
-                }
-
-                break;
-            case node_atom:
-            case node_op_not:
-                if (!generate_literal(ast, child, output, indent_level+1))
-                {
-                    return false;
-                }
-                break;
-            default:
-                plnnrc_assert(false);
                 return false;
+            }
+
+            if (!is_last(child))
+            {
+                output.write("\n");
             }
         }
 
