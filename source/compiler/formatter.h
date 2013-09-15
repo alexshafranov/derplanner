@@ -32,10 +32,11 @@ class formatter;
 
 struct scope
 {
-    scope(formatter& output);
+    scope(formatter& output, bool two_empty_lines=false);
     ~scope();
 
     formatter& output;
+    bool two_empty_lines;
 };
 
 class formatter

@@ -732,7 +732,7 @@ namespace
         }
     }
 
-    bool generate_literal_chain(tree& ast, node* root, formatter& output, int indent_level)
+    bool generate_literal_chain(tree& ast, node* root, formatter& output)
     {
         plnnrc_assert(root->type == node_op_not || root->type == node_atom);
 
@@ -746,8 +746,6 @@ namespace
         const char* atom_id = atom->s_expr->token;
         int atom_index = annotation<atom_ann>(atom)->index;
 
-        indent(output, indent_level);
-
         output.write("for (state.%i_%d = world.%i; state.%i_%d != 0; state.%i_%d = state.%i_%d->next)\n",
             atom_id, atom_index,
             atom_id,
@@ -755,69 +753,62 @@ namespace
             atom_id, atom_index,
             atom_id, atom_index);
 
-        indent(output, indent_level);
-        output.write("{\n");
-
-        int atom_param_index = 0;
-
-        for (node* term = atom->first_child; term != 0; term = term->next_sibling)
+        scope s(output);
         {
-            if (term->type == node_term_variable && definition(term))
+            int atom_param_index = 0;
+
+            for (node* term = atom->first_child; term != 0; term = term->next_sibling)
             {
-                indent(output, indent_level+1);
-                int var_index = annotation<term_ann>(term)->var_index;
-                output.write("if (state.%i_%d->_%d != state._%d)\n", atom_id, atom_index, atom_param_index, var_index);
-                indent(output, indent_level+1);
-                output.write("{\n");
-                indent(output, indent_level+2);
-                output.write("continue;\n");
-                indent(output, indent_level+1);
-                output.write("}\n\n");
+                if (term->type == node_term_variable && definition(term))
+                {
+                    int var_index = annotation<term_ann>(term)->var_index;
+                    output.write("if (state.%i_%d->_%d != state._%d)\n", atom_id, atom_index, atom_param_index, var_index);
+
+                    scope s(output, true);
+                    {
+                        output.write("continue;\n");
+                    }
+                }
+
+                ++atom_param_index;
             }
 
-            ++atom_param_index;
-        }
+            atom_param_index = 0;
 
-        atom_param_index = 0;
-
-        for (node* term = atom->first_child; term != 0; term = term->next_sibling)
-        {
-            if (term->type == node_term_variable && !definition(term))
+            for (node* term = atom->first_child; term != 0; term = term->next_sibling)
             {
-                indent(output, indent_level+1);
-                int var_index = annotation<term_ann>(term)->var_index;
-                output.write("state._%d = state.%i_%d->_%d;\n\n", var_index, atom_id, atom_index, atom_param_index);
+                if (term->type == node_term_variable && !definition(term))
+                {
+                    int var_index = annotation<term_ann>(term)->var_index;
+                    output.write("state._%d = state.%i_%d->_%d;\n\n", var_index, atom_id, atom_index, atom_param_index);
+                }
+
+                ++atom_param_index;
             }
 
-            ++atom_param_index;
-        }
-
-        if (root->next_sibling)
-        {
-            if (!generate_literal_chain(ast, root->next_sibling, output, indent_level+1))
+            if (root->next_sibling)
             {
-                return false;
+                if (!generate_literal_chain(ast, root->next_sibling, output))
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                output.write("PLNNR_COROUTINE_YIELD(state);\n");
             }
         }
-        else
-        {
-            indent(output, indent_level+1);
-            output.write("PLNNR_COROUTINE_YIELD(state);\n");
-        }
-
-        indent(output, indent_level);
-        output.write("}\n");
 
         return true;
     }
 
-    bool generate_conjunctive_clause(tree& ast, node* root, formatter& output, int indent_level)
+    bool generate_conjunctive_clause(tree& ast, node* root, formatter& output)
     {
         plnnrc_assert(root->type == node_op_and);
 
         if (root->first_child)
         {
-            if (!generate_literal_chain(ast, root->first_child, output, indent_level))
+            if (!generate_literal_chain(ast, root->first_child, output))
             {
                 return false;
             }
@@ -830,13 +821,11 @@ namespace
     {
         plnnrc_assert(root->type == node_op_or);
 
-        int indent_level = 0;
-
         for (node* child = root->first_child; child != 0; child = child->next_sibling)
         {
             plnnrc_assert(child->type == node_op_and);
 
-            if (!generate_conjunctive_clause(ast, child, output, indent_level+1))
+            if (!generate_conjunctive_clause(ast, child, output))
             {
                 return false;
             }
@@ -856,15 +845,19 @@ namespace
     {
         plnnrc_assert(is_logical_op(root));
 
-        output.write("bool next(p%d_state& state, worldstate& world)\n{\n", branch_index);
-        output.write("\tPLNNR_COROUTINE_BEGIN(state);\n\n");
+        output.write("bool next(p%d_state& state, worldstate& world)\n", branch_index);
 
-        if (!generate_precondition_satisfier(ast, root, output))
+        scope s(output, true);
         {
-            return false;
-        }
+            output.write("PLNNR_COROUTINE_BEGIN(state);\n\n");
 
-        output.write("\tPLNNR_COROUTINE_END();\n}\n\n");
+            if (!generate_precondition_satisfier(ast, root, output))
+            {
+                return false;
+            }
+
+            output.write("PLNNR_COROUTINE_END();\n");
+        }
 
         return true;
     }

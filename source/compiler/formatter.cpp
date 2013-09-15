@@ -126,6 +126,8 @@ bool formatter::init(size_t buffer_size)
 
 void formatter::write(const char* format, ...)
 {
+    _put_indent();
+
     va_list arglist;
     va_start(arglist, format);
 
@@ -301,19 +303,28 @@ void formatter::_put_indent()
     }
 }
 
-scope::scope(formatter& output)
+scope::scope(formatter& output, bool two_empty_lines)
     : output(output)
+    , two_empty_lines(two_empty_lines)
 {
-    output._indent_level++;
     output._put_indent();
+    output._indent_level++;
     output._puts("{\n");
 }
 
 scope::~scope()
 {
-    output._put_indent();
     output._indent_level--;
-    output._puts("}\n");
+    output._put_indent();
+
+    if (two_empty_lines)
+    {
+        output._puts("}\n\n");
+    }
+    else
+    {
+        output._puts("}\n");
+    }
 }
 
 }
