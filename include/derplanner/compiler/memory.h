@@ -35,11 +35,6 @@ void set_custom(alloc_func a, dealloc_func f);
 void* allocate(size_t);
 void deallocate(void*);
 
-inline void* align(void* ptr, size_t alignment)
-{
-    return reinterpret_cast<void*>((reinterpret_cast<uintptr_t>(ptr) + alignment) & ~(alignment - 1));
-}
-
 }
 }
 
@@ -63,5 +58,22 @@ namespace
 
     #define plnnrc_alignof(T) alignof_helper<T>::value
 #endif
+
+namespace plnnrc {
+namespace memory {
+
+inline void* align(void* ptr, size_t alignment)
+{
+    return reinterpret_cast<void*>((reinterpret_cast<uintptr_t>(ptr) + (alignment - 1)) & ~(alignment - 1));
+}
+
+template <typename T>
+T* align(void* ptr)
+{
+    return static_cast<T*>(align(ptr, plnnrc_alignof(T)));
+}
+
+}
+}
 
 #endif

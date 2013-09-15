@@ -28,9 +28,9 @@ namespace pool {
 struct page
 {
     page* prev;
-    void* memory;
+    char* memory;
     char* top;
-    char* end;
+    char  data[1];
 };
 
 struct handle
@@ -41,27 +41,22 @@ struct handle
 
 handle* init(size_t page_size)
 {
-    size_t handle_worstcase_size = sizeof(handle) + plnnrc_alignof(handle);
-    size_t page_worstcase_size = sizeof(page) + plnnrc_alignof(page);
-    size_t worstcase_size = handle_worstcase_size + page_worstcase_size;
-
+    size_t worstcase_size = sizeof(handle) + plnnrc_alignof(handle) + sizeof(page) + plnnrc_alignof(page);
     plnnrc_assert(page_size > worstcase_size);
 
-    void* memory = memory::allocate(page_size);
+    char* memory = static_cast<char*>(memory::allocate(page_size));
 
     if (!memory)
     {
         return 0;
     }
 
-    handle* pool = static_cast<handle*>(memory::align(memory, plnnrc_alignof(handle)));
-    void* after_pool = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(pool) + sizeof(handle));
-    page* head = static_cast<page*>(memory::align(after_pool, plnnrc_alignof(page)));
+    handle* pool = memory::align<handle>(memory);
+    page* head = memory::align<page>(pool + 1);
 
     head->prev = 0;
     head->memory = memory;
-    head->top = reinterpret_cast<char*>(head) + sizeof(page);
-    head->end = static_cast<char*>(memory) + page_size;
+    head->top = head->data;
 
     pool->head = head;
     pool->page_size = page_size;
@@ -73,27 +68,28 @@ void* allocate(handle* pool, size_t bytes, size_t alignment)
 {
     page* p = pool->head;
 
-    if (static_cast<char*>(memory::align(p->top, alignment)) + bytes > p->end)
+    char* top = static_cast<char*>(memory::align(p->top, alignment));
+
+    if (top + bytes > p->memory + pool->page_size)
     {
-        void* memory = memory::allocate(pool->page_size);
+        char* memory = static_cast<char*>(memory::allocate(pool->page_size));
 
         if (!memory)
         {
             return 0;
         }
 
-        p = static_cast<page*>(memory::align(memory, plnnrc_alignof(page)));
+        p = memory::align<page>(memory);
         p->prev = pool->head;
         p->memory = memory;
-        p->top = reinterpret_cast<char*>(p) + sizeof(page);
-        p->end = reinterpret_cast<char*>(memory) + sizeof(pool->page_size);
+        p->top = p->data;
+
         pool->head = p;
     }
 
-    void* result = memory::align(p->top, alignment);
-    p->top = static_cast<char*>(result) + bytes;
+    p->top = top + bytes;
 
-    return result;
+    return top;
 }
 
 void clear(handle* pool)
