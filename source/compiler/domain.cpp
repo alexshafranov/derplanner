@@ -732,7 +732,7 @@ namespace
         }
     }
 
-    bool generate_literal(tree& ast, node* root, formatter& output, int indent_level)
+    bool generate_literal_chain(tree& ast, node* root, formatter& output, int indent_level)
     {
         plnnrc_assert(root->type == node_op_not || root->type == node_atom);
 
@@ -792,6 +792,22 @@ namespace
             ++atom_param_index;
         }
 
+        if (root->next_sibling)
+        {
+            if (!generate_literal_chain(ast, root->next_sibling, output, indent_level+1))
+            {
+                return false;
+            }
+        }
+        else
+        {
+            indent(output, indent_level+1);
+            output.write("PLNNR_COROUTINE_YIELD(state);\n");
+        }
+
+        indent(output, indent_level);
+        output.write("}\n");
+
         return true;
     }
 
@@ -799,25 +815,12 @@ namespace
     {
         plnnrc_assert(root->type == node_op_and);
 
-        int child_indent_level = indent_level;
-
-        for (node* child = root->first_child; child != 0; child = child->next_sibling)
+        if (root->first_child)
         {
-            if (!generate_literal(ast, child, output, child_indent_level))
+            if (!generate_literal_chain(ast, root->first_child, output, indent_level))
             {
                 return false;
             }
-
-            ++child_indent_level;
-        }
-
-        indent(output, child_indent_level);
-        output.write("PLNNR_COROUTINE_YIELD(state);\n");
-
-        for (int i = child_indent_level-1; i >= indent_level; --i)
-        {
-            indent(output, i);
-            output.write("}\n");
         }
 
         return true;
