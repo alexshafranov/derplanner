@@ -32,7 +32,7 @@ handle* init(size_t page_size);
 
 void* allocate(handle* pool, size_t bytes, size_t alignment);
 
-void clear(handle* pool);
+void clear(const handle* pool);
 
 }
 }

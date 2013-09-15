@@ -92,7 +92,7 @@ void* allocate(handle* pool, size_t bytes, size_t alignment)
     return top;
 }
 
-void clear(handle* pool)
+void clear(const handle* pool)
 {
     for (page* p = pool->head; p != 0;)
     {
