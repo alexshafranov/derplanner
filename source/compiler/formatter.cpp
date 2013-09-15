@@ -96,6 +96,7 @@ formatter::formatter(writer& output)
     , _buffer(0)
     , _buffer_top(0)
     , _buffer_end(0)
+    , _indent_level(0)
 {
 }
 
@@ -290,6 +291,29 @@ void formatter::flush()
         _output.write(_buffer, count);
         _buffer_top = _buffer;
     }
+}
+
+void formatter::_put_indent()
+{
+    for (int i = 0; i < _indent_level; ++i)
+    {
+        _puts("\t");
+    }
+}
+
+scope::scope(formatter& output)
+    : output(output)
+{
+    output._indent_level++;
+    output._put_indent();
+    output._puts("{\n");
+}
+
+scope::~scope()
+{
+    output._put_indent();
+    output._indent_level--;
+    output._puts("}\n");
 }
 
 }

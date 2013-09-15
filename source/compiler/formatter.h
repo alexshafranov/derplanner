@@ -28,6 +28,16 @@ namespace plnnrc {
 
 bool is_valid_id(const char* symbol);
 
+class formatter;
+
+struct scope
+{
+    scope(formatter& output);
+    ~scope();
+
+    formatter& output;
+};
+
 class formatter
 {
 public:
@@ -40,6 +50,8 @@ public:
     void flush();
 
 private:
+    friend scope;
+
     formatter(const formatter&);
     const formatter& operator=(const formatter&);
 
@@ -48,10 +60,14 @@ private:
     void _puti(int n);
     void _putid(const char* s);
 
+    void _put_indent();
+
     writer& _output;
     char* _buffer;
     char* _buffer_top;
     char* _buffer_end;
+
+    int _indent_level;
 };
 
 }
