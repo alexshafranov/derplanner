@@ -180,6 +180,11 @@ void formatter::write(const char* format, ...)
     va_end(arglist);
 }
 
+void formatter::newline()
+{
+    _puts(_newline);
+}
+
 void formatter::_putc(char c)
 {
     if (_buffer_top >= _buffer_end)
@@ -305,28 +310,38 @@ void formatter::_put_indent()
     }
 }
 
-scope::scope(formatter& output, bool two_empty_lines)
+scope::scope(formatter& output)
     : output(output)
-    , two_empty_lines(two_empty_lines)
 {
     output._put_indent();
     output._indent_level++;
-    output._puts("{\n");
+    output._putc('{');
+    output._puts(output._newline);
 }
 
 scope::~scope()
 {
     output._indent_level--;
     output._put_indent();
+    output._putc('}');
+    output._puts(output._newline);
+}
 
-    if (two_empty_lines)
-    {
-        output._puts("}\n\n");
-    }
-    else
-    {
-        output._puts("}\n");
-    }
+class_scope::class_scope(formatter& output)
+    : output(output)
+{
+    output._put_indent();
+    output._indent_level++;
+    output._putc('{');
+    output._puts(output._newline);
+}
+
+class_scope::~class_scope()
+{
+    output._indent_level--;
+    output._put_indent();
+    output._puts("};");
+    output._puts(output._newline);
 }
 
 }

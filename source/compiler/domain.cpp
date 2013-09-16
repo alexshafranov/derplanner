@@ -744,9 +744,9 @@ namespace
             atom_id, atom_index,
             atom_id, atom_index,
             atom_id, atom_index);
-
-        scope s(output);
         {
+            scope s(output);
+
             int atom_param_index = 0;
 
             for (node* term = atom->first_child; term != 0; term = term->next_sibling)
@@ -755,11 +755,13 @@ namespace
                 {
                     int var_index = annotation<term_ann>(term)->var_index;
                     output.write("if (state.%i_%d->_%d != state._%d)\n", atom_id, atom_index, atom_param_index, var_index);
-
-                    scope s(output, true);
                     {
+                        scope s(output);
+
                         output.write("continue;\n");
                     }
+
+                    output.newline();
                 }
 
                 ++atom_param_index;
@@ -838,9 +840,9 @@ namespace
         plnnrc_assert(is_logical_op(root));
 
         output.write("bool next(p%d_state& state, worldstate& world)\n", branch_index);
-
-        scope s(output, true);
         {
+            scope s(output);
+
             output.write("PLNNR_COROUTINE_BEGIN(state);\n\n");
 
             if (!generate_precondition_satisfier(ast, root, output))
@@ -850,6 +852,8 @@ namespace
 
             output.write("PLNNR_COROUTINE_END();\n");
         }
+
+        output.newline();
 
         return true;
     }

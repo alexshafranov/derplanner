@@ -32,11 +32,18 @@ class formatter;
 
 struct scope
 {
-    scope(formatter& output, bool two_empty_lines=false);
+    scope(formatter& output);
     ~scope();
 
     formatter& output;
-    bool two_empty_lines;
+};
+
+struct class_scope
+{
+    class_scope(formatter& output);
+    ~class_scope();
+
+    formatter& output;
 };
 
 class formatter
@@ -48,10 +55,12 @@ public:
     bool init(size_t buffer_size);
 
     void write(const char* format, ...);
+    void newline();
     void flush();
 
 private:
     friend scope;
+    friend class_scope;
 
     formatter(const formatter&);
     const formatter& operator=(const formatter&);
