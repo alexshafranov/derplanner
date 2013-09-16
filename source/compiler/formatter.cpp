@@ -126,7 +126,7 @@ bool formatter::init(size_t buffer_size)
     return true;
 }
 
-void formatter::write(const char* format, ...)
+void formatter::writeln(const char* format, ...)
 {
     _put_indent();
 
@@ -178,6 +178,8 @@ void formatter::write(const char* format, ...)
     }
 
     va_end(arglist);
+
+    newline();
 }
 
 void formatter::newline()

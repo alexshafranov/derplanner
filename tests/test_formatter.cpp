@@ -64,9 +64,9 @@ namespace
         buffer_writer writer(1024);
         plnnrc::formatter formatter(writer);
         formatter.init(1);
-        formatter.write("%d", 16384);
+        formatter.writeln("%d", 16384);
         formatter.flush();
-        CHECK_EQUAL("16384", writer.buffer);
+        CHECK_EQUAL("16384\n", writer.buffer);
     }
 
     TEST(format_string_and_number)
@@ -74,9 +74,9 @@ namespace
         buffer_writer writer(1024);
         plnnrc::formatter formatter(writer);
         formatter.init(1);
-        formatter.write("%s+%d", "hello", 128);
+        formatter.writeln("%s+%d", "hello", 128);
         formatter.flush();
-        CHECK_EQUAL("hello+128", writer.buffer);
+        CHECK_EQUAL("hello+128\n", writer.buffer);
     }
 
     TEST(symbol_to_id_conversion)
@@ -90,27 +90,27 @@ namespace
             buffer_writer writer(1024);
             plnnrc::formatter formatter(writer);
             formatter.init(1);
-            formatter.write("%i", "abcd0123");
+            formatter.writeln("%i", "abcd0123");
             formatter.flush();
-            CHECK_EQUAL("abcd0123", writer.buffer);
+            CHECK_EQUAL("abcd0123\n", writer.buffer);
         }
 
         {
             buffer_writer writer(1024);
             plnnrc::formatter formatter(writer);
             formatter.init(1);
-            formatter.write("%i", "!ax-by?");
+            formatter.writeln("%i", "!ax-by?");
             formatter.flush();
-            CHECK_EQUAL("ax_by", writer.buffer);
+            CHECK_EQUAL("ax_by\n", writer.buffer);
         }
 
         {
             buffer_writer writer(1024);
             plnnrc::formatter formatter(writer);
             formatter.init(1);
-            formatter.write("%i", "!?23a!?");
+            formatter.writeln("%i", "!?23a!?");
             formatter.flush();
-            CHECK_EQUAL("_23a", writer.buffer);
+            CHECK_EQUAL("_23a\n", writer.buffer);
         }
     }
 }

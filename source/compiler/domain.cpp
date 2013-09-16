@@ -627,7 +627,7 @@ bool generate_worldstate(tree& ast, node* worldstate, writer& writer)
 
     for (node* atom = worldstate->first_child; atom != 0; atom = atom->next_sibling)
     {
-        output.write("struct %i_tuple\n", atom->s_expr->token);
+        output.writeln("struct %i_tuple", atom->s_expr->token);
         {
             class_scope s(output);
 
@@ -635,22 +635,22 @@ bool generate_worldstate(tree& ast, node* worldstate, writer& writer)
 
             for (node* param = atom->first_child; param != 0; param = param->next_sibling)
             {
-                output.write("%s _%d;\n", param->s_expr->first_child->token, param_index++);
+                output.writeln("%s _%d;", param->s_expr->first_child->token, param_index++);
             }
 
-            output.write("%i_tuple* next;\n", atom->s_expr->token);
+            output.writeln("%i_tuple* next;", atom->s_expr->token);
         }
 
         output.newline();
     }
 
-    output.write("struct worldstate\n");
+    output.writeln("struct worldstate");
     {
         class_scope s(output);
 
         for (node* atom = worldstate->first_child; atom != 0; atom = atom->next_sibling)
         {
-            output.write("%i_tuple* %i;\n", atom->s_expr->token, atom->s_expr->token);
+            output.writeln("%i_tuple* %i;", atom->s_expr->token, atom->s_expr->token);
         }
     }
 
@@ -663,7 +663,7 @@ namespace
 {
     bool generate_precondition_state(tree& ast, node* root, unsigned branch_index, formatter& output)
     {
-        output.write("struct p%d_state\n", branch_index);
+        output.writeln("struct p%d_state", branch_index);
         {
             class_scope s(output);
 
@@ -702,7 +702,7 @@ namespace
 
                         node* ws_type = ast.type_tag_to_node[type_tag(n)];
 
-                        output.write("%s _%d;\n", ws_type->s_expr->first_child->token, var_index);
+                        output.writeln("%s _%d;", ws_type->s_expr->first_child->token, var_index);
 
                         ++var_index;
                     }
@@ -721,7 +721,7 @@ namespace
                 {
                     const char* id = n->s_expr->token;
 
-                    output.write("%i_tuple* %i_%d;\n", id, id, atom_index);
+                    output.writeln("%i_tuple* %i_%d;", id, id, atom_index);
 
                     annotation<atom_ann>(n)->index = atom_index;
 
@@ -729,7 +729,7 @@ namespace
                 }
             }
 
-            output.write("int stage;\n");
+            output.writeln("int stage;");
         }
 
         output.newline();
@@ -751,7 +751,7 @@ namespace
         const char* atom_id = atom->s_expr->token;
         int atom_index = annotation<atom_ann>(atom)->index;
 
-        output.write("for (state.%i_%d = world.%i; state.%i_%d != 0; state.%i_%d = state.%i_%d->next)\n",
+        output.writeln("for (state.%i_%d = world.%i; state.%i_%d != 0; state.%i_%d = state.%i_%d->next)",
             atom_id, atom_index,
             atom_id,
             atom_id, atom_index,
@@ -767,11 +767,11 @@ namespace
                 if (term->type == node_term_variable && definition(term))
                 {
                     int var_index = annotation<term_ann>(term)->var_index;
-                    output.write("if (state.%i_%d->_%d != state._%d)\n", atom_id, atom_index, atom_param_index, var_index);
+                    output.writeln("if (state.%i_%d->_%d != state._%d)", atom_id, atom_index, atom_param_index, var_index);
                     {
                         scope s(output);
 
-                        output.write("continue;\n");
+                        output.writeln("continue;");
                     }
 
                     output.newline();
@@ -787,7 +787,7 @@ namespace
                 if (term->type == node_term_variable && !definition(term))
                 {
                     int var_index = annotation<term_ann>(term)->var_index;
-                    output.write("state._%d = state.%i_%d->_%d;\n", var_index, atom_id, atom_index, atom_param_index);
+                    output.writeln("state._%d = state.%i_%d->_%d;", var_index, atom_id, atom_index, atom_param_index);
                     output.newline();
                 }
 
@@ -803,7 +803,7 @@ namespace
             }
             else
             {
-                output.write("PLNNR_COROUTINE_YIELD(state);\n");
+                output.writeln("PLNNR_COROUTINE_YIELD(state);");
             }
         }
 
@@ -840,11 +840,11 @@ namespace
 
             if (!is_last(child))
             {
-                output.write("\n");
+                output.newline();
             }
         }
 
-        output.write("\n");
+        output.newline();
 
         return true;
     }
@@ -853,11 +853,11 @@ namespace
     {
         plnnrc_assert(is_logical_op(root));
 
-        output.write("bool next(p%d_state& state, worldstate& world)\n", branch_index);
+        output.writeln("bool next(p%d_state& state, worldstate& world)", branch_index);
         {
             scope s(output);
 
-            output.write("PLNNR_COROUTINE_BEGIN(state);\n");
+            output.writeln("PLNNR_COROUTINE_BEGIN(state);");
             output.newline();
 
             if (!generate_precondition_satisfier(ast, root, output))
@@ -865,7 +865,7 @@ namespace
                 return false;
             }
 
-            output.write("PLNNR_COROUTINE_END();\n");
+            output.writeln("PLNNR_COROUTINE_END();");
         }
 
         output.newline();
@@ -906,18 +906,18 @@ namespace
 
     bool generate_operators_enum(tree& ast, formatter& output)
     {
-        output.write("enum task_type\n");
+        output.writeln("enum task_type");
         {
             class_scope s(output);
 
-            output.write("task_none=0,\n");
+            output.writeln("task_none=0,");
 
             for (id_table_values operators = ast.operators.values(); !operators.empty(); operators.pop())
             {
                 node* operatr = operators.value();
                 node* operator_atom = operatr->first_child;
 
-                output.write("task_%i,\n", operator_atom->s_expr->token);
+                output.writeln("task_%i,", operator_atom->s_expr->token);
             }
         }
 
@@ -935,7 +935,7 @@ namespace
             return true;
         }
 
-        output.write("struct %i_args\n", atom->s_expr->token);
+        output.writeln("struct %i_args", atom->s_expr->token);
         {
             class_scope s(output);
 
@@ -944,7 +944,7 @@ namespace
             for (node* param = atom->first_child; param != 0; param = param->next_sibling)
             {
                 node* ws_type = ast.type_tag_to_node[type_tag(param)];
-                output.write("%s _%d;\n", ws_type->s_expr->first_child->token, param_index);
+                output.writeln("%s _%d;", ws_type->s_expr->first_child->token, param_index);
                 annotation<term_ann>(param)->var_index = param_index;
                 ++param_index;
             }
@@ -998,26 +998,25 @@ namespace
 
                 plnnrc_assert(tasklist->type == node_tasklist);
 
-                output.write("bool %i_branch_%d_expand(planner_state& pstate, void* world)\n", method_name, branch_index);
+                output.writeln("bool %i_branch_%d_expand(planner_state& pstate, void* world)", method_name, branch_index);
                 {
                     scope s(output);
 
-                    output.write("method_instance* method = pstate.top_method;\n");
-                    output.write("p%d_state* precondition = static_cast<p%d_state*>(method->precondition);\n", precondition_index, precondition_index);
-                    output.write("worldstate* wstate = static_cast<worldstate*>(world);\n");
+                    output.writeln("method_instance* method = pstate.top_method;");
+                    output.writeln("p%d_state* precondition = static_cast<p%d_state*>(method->precondition);", precondition_index, precondition_index);
+                    output.writeln("worldstate* wstate = static_cast<worldstate*>(world);");
 
                     if (has_parameters(method))
                     {
-                        output.write("%i_args* method_args = static_cast<%i_args*>(method->args);\n", method_name, method_name);
+                        output.writeln("%i_args* method_args = static_cast<%i_args*>(method->args);", method_name, method_name);
                     }
 
                     output.newline();
-                    output.write("PLNNR_COROUTINE_BEGIN(*method);");
-                    output.newline();
+                    output.writeln("PLNNR_COROUTINE_BEGIN(*method);");
                     output.newline();
 
-                    output.write("precondition = push<p%d_state>(pstate.mstack);\n", precondition_index);
-                    output.write("precondition->stage = 0;\n");
+                    output.writeln("precondition = push<p%d_state>(pstate.mstack);", precondition_index);
+                    output.writeln("precondition->stage = 0;");
 
                     for (node* param = atom->first_child; param != 0; param = param->next_sibling)
                     {
@@ -1028,17 +1027,17 @@ namespace
                             int param_index = annotation<term_ann>(param)->var_index;
                             int var_index = annotation<term_ann>(var)->var_index;
 
-                            output.write("precondition->_%d = method_args->_%d;\n", var_index, param_index);
+                            output.writeln("precondition->_%d = method_args->_%d;", var_index, param_index);
                         }
                     }
 
                     output.newline();
-                    output.write("method->precondition = precondition;\n");
-                    output.write("method->mrewind = pstate.mstack->top();\n");
-                    output.write("method->trewind = pstate.tstack->top();\n");
+                    output.writeln("method->precondition = precondition;");
+                    output.writeln("method->mrewind = pstate.mstack->top();");
+                    output.writeln("method->trewind = pstate.tstack->top();");
                     output.newline();
 
-                    output.write("while (next(*precondition, *wstate))\n");
+                    output.writeln("while (next(*precondition, *wstate))");
                     {
                         scope s(output);
 
@@ -1049,14 +1048,14 @@ namespace
 
                                 if (is_operator(ast, task_atom))
                                 {
-                                    output.write("task_instance* t = push_task(pstate, task_%i);\n", task_atom->s_expr->token);
-                                    output.write("%i_args* a = push<%i_args>(pstate.tstack);\n", task_atom->s_expr->token, task_atom->s_expr->token);
+                                    output.writeln("task_instance* t = push_task(pstate, task_%i);", task_atom->s_expr->token);
+                                    output.writeln("%i_args* a = push<%i_args>(pstate.tstack);", task_atom->s_expr->token, task_atom->s_expr->token);
                                 }
                                 else
                                 {
                                     plnnrc_assert(ast.methods.find(task_atom->s_expr->token));
-                                    output.write("method_instance* t = push_method(pstate, %i_branch_0_expand);\n", task_atom->s_expr->token);
-                                    output.write("%i_args* a = push<%i_args>(pstate.mstack);\n", task_atom->s_expr->token, task_atom->s_expr->token);
+                                    output.writeln("method_instance* t = push_method(pstate, %i_branch_0_expand);", task_atom->s_expr->token);
+                                    output.writeln("%i_args* a = push<%i_args>(pstate.mstack);", task_atom->s_expr->token, task_atom->s_expr->token);
                                 }
 
                                 int param_index = 0;
@@ -1070,27 +1069,27 @@ namespace
 
                                     if (is_parameter(def))
                                     {
-                                        output.write("a->_%d = method_args->_%d;\n", param_index, var_index);
+                                        output.writeln("a->_%d = method_args->_%d;", param_index, var_index);
                                     }
                                     else
                                     {
-                                        output.write("a->_%d = precondition->_%d;\n", param_index, var_index);
+                                        output.writeln("a->_%d = precondition->_%d;", param_index, var_index);
                                     }
 
                                     ++param_index;
                                 }
 
-                                output.write("t->args = a;\n");
+                                output.writeln("t->args = a;");
                             }
 
                             if (is_last(task_atom))
                             {
-                                output.write("method->expanded = true;\n");
+                                output.writeln("method->expanded = true;");
                             }
 
                             if (ast.methods.find(task_atom->s_expr->token) || is_last(task_atom))
                             {
-                                output.write("PLNNR_COROUTINE_YIELD(*method);\n");
+                                output.writeln("PLNNR_COROUTINE_YIELD(*method);");
                             }
                         }
                     }
@@ -1099,10 +1098,10 @@ namespace
 
                     if (!is_last(branch))
                     {
-                        output.write("return next_branch(pstate, %i_branch_%d_expand, world);\n", method_name, branch_index+1);
+                        output.writeln("return next_branch(pstate, %i_branch_%d_expand, world);", method_name, branch_index+1);
                     }
 
-                    output.write("PLNNR_COROUTINE_END();\n");
+                    output.writeln("PLNNR_COROUTINE_END();");
 
                     ++branch_index;
                     ++precondition_index;

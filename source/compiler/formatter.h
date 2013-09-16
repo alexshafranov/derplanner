@@ -54,7 +54,7 @@ public:
 
     bool init(size_t buffer_size);
 
-    void write(const char* format, ...);
+    void writeln(const char* format, ...);
     void newline();
     void flush();
 

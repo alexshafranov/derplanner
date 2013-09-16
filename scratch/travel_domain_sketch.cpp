@@ -233,7 +233,7 @@ bool next(p0_state& state, worldstate& world)
             PLNNR_COROUTINE_YIELD(state);
         }
     }
-    
+
     PLNNR_COROUTINE_END();
 }
 
@@ -263,7 +263,7 @@ bool next(p1_state& state, worldstate& world)
 
         PLNNR_COROUTINE_YIELD(state);
     }
-    
+
     PLNNR_COROUTINE_END();
 }
 
@@ -293,7 +293,7 @@ bool next(p2_state& state, worldstate& world)
 
         PLNNR_COROUTINE_YIELD(state);
     }
-    
+
     PLNNR_COROUTINE_END();
 }
 
@@ -333,7 +333,7 @@ bool next(p3_state& state, worldstate& world)
             PLNNR_COROUTINE_YIELD(state);
         }
     }
-    
+
     PLNNR_COROUTINE_END();
 }
 
