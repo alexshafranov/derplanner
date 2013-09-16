@@ -18,29 +18,23 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef DERPLANNER_COMPILER_DOMAIN_H_
-#define DERPLANNER_COMPILER_DOMAIN_H_
+#ifndef DERPLANNER_COMPILER_CODEGEN_H_
+#define DERPLANNER_COMPILER_CODEGEN_H_
 
 namespace plnnrc {
 
-namespace sexpr
-{
-    struct node;
-}
-
 namespace ast
 {
-    class tree;
+    struct node;
+    class  tree;
 }
 
-namespace ast {
+class writer;
 
-node* build_domain(tree& ast, sexpr::node* s_expr);
-node* build_worldstate(tree& ast, sexpr::node* s_expr);
+bool generate_worldstate(ast::tree& ast, ast::node* worldstate, writer& output);
 
-void infer_types(tree& ast);
+bool generate_domain(ast::tree& ast, ast::node* domain, writer& output);
 
-}
 }
 
 #endif

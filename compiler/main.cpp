@@ -24,6 +24,7 @@
 #include <derplanner/compiler/s_expression.h>
 #include <derplanner/compiler/ast.h>
 #include <derplanner/compiler/domain.h>
+#include <derplanner/compiler/codegen.h>
 
 using namespace plnnrc;
 
@@ -68,8 +69,8 @@ int main(int argc, char** argv)
 
     ast::infer_types(tree);
 
-    ast::generate_worldstate(tree, worldstate, writer);
-    ast::generate_domain(tree, domain, writer);
+    generate_worldstate(tree, worldstate, writer);
+    generate_domain(tree, domain, writer);
 
     delete [] input_data;
     fclose(fd);
