@@ -42,7 +42,7 @@ struct scope
 class formatter
 {
 public:
-    formatter(writer& output);
+    formatter(writer& output, const char* tab="\t", const char* newline="\n");
     ~formatter();
 
     bool init(size_t buffer_size);
@@ -69,6 +69,8 @@ private:
     char* _buffer_end;
 
     int _indent_level;
+    const char* _tab;
+    const char* _newline;
 };
 
 }

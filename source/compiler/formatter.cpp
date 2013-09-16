@@ -91,12 +91,14 @@ bool is_valid_id(const char* symbol)
     return id_converted_length(symbol) > 0;
 }
 
-formatter::formatter(writer& output)
+formatter::formatter(writer& output, const char* tab, const char* newline)
     : _output(output)
     , _buffer(0)
     , _buffer_top(0)
     , _buffer_end(0)
     , _indent_level(0)
+    , _tab(tab)
+    , _newline(newline)
 {
 }
 
