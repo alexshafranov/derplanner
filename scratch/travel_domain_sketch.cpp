@@ -263,7 +263,6 @@ bool next(p1_state& state, worldstate& world)
 
         PLNNR_COROUTINE_YIELD(state);
     }
-
     PLNNR_COROUTINE_END();
 }
 
@@ -293,7 +292,6 @@ bool next(p2_state& state, worldstate& world)
 
         PLNNR_COROUTINE_YIELD(state);
     }
-
     PLNNR_COROUTINE_END();
 }
 
@@ -392,6 +390,7 @@ bool root_branch_0_expand(planner_state& pstate, void* world)
             a->_1 = precondition->_1;
             t->args = a;
         }
+
         method->expanded = true;
         PLNNR_COROUTINE_YIELD(*method);
     }
@@ -426,6 +425,7 @@ bool travel_branch_0_expand(planner_state& pstate, void* world)
             a->_1 = method_args->_1;
             t->args = a;
         }
+
         method->expanded = true;
         PLNNR_COROUTINE_YIELD(*method);
     }
@@ -461,6 +461,7 @@ bool travel_branch_1_expand(planner_state& pstate, void* world)
             a->_1 = method_args->_1;
             t->args = a;
         }
+
         method->expanded = true;
         PLNNR_COROUTINE_YIELD(*method);
     }
@@ -495,7 +496,9 @@ bool travel_by_air_branch_0_expand(planner_state& pstate, void* world)
             a->_1 = precondition->_1;
             t->args = a;
         }
+
         PLNNR_COROUTINE_YIELD(*method);
+
         {
             task_instance* t = push_task(pstate, task_fly);
             fly_args* a = push<fly_args>(pstate.tstack);
@@ -503,6 +506,8 @@ bool travel_by_air_branch_0_expand(planner_state& pstate, void* world)
             a->_1 = precondition->_3;
             t->args = a;
         }
+
+
         {
             method_instance* t = push_method(pstate, travel_branch_0_expand);
             travel_args* a = push<travel_args>(pstate.mstack);
@@ -510,6 +515,7 @@ bool travel_by_air_branch_0_expand(planner_state& pstate, void* world)
             a->_1 = method_args->_1;
             t->args = a;
         }
+
         method->expanded = true;
         PLNNR_COROUTINE_YIELD(*method);
     }

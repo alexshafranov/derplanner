@@ -640,8 +640,6 @@ bool generate_worldstate(tree& ast, node* worldstate, writer& writer)
 
             output.writeln("%i_tuple* next;", atom->s_expr->token);
         }
-
-        output.newline();
     }
 
     output.writeln("struct worldstate");
@@ -653,8 +651,6 @@ bool generate_worldstate(tree& ast, node* worldstate, writer& writer)
             output.writeln("%i_tuple* %i;", atom->s_expr->token, atom->s_expr->token);
         }
     }
-
-    output.newline();
 
     return true;
 }
@@ -732,8 +728,6 @@ namespace
             output.writeln("int stage;");
         }
 
-        output.newline();
-
         return true;
     }
 
@@ -758,7 +752,7 @@ namespace
             atom_id, atom_index,
             atom_id, atom_index);
         {
-            scope s(output);
+            scope s(output, !is_last(root));
 
             int atom_param_index = 0;
 
@@ -773,8 +767,6 @@ namespace
 
                         output.writeln("continue;");
                     }
-
-                    output.newline();
                 }
 
                 ++atom_param_index;
@@ -837,14 +829,7 @@ namespace
             {
                 return false;
             }
-
-            if (!is_last(child))
-            {
-                output.newline();
-            }
         }
-
-        output.newline();
 
         return true;
     }
@@ -867,8 +852,6 @@ namespace
 
             output.writeln("PLNNR_COROUTINE_END();");
         }
-
-        output.newline();
 
         return true;
     }
@@ -921,8 +904,6 @@ namespace
             }
         }
 
-        output.newline();
-
         return true;
     }
 
@@ -949,8 +930,6 @@ namespace
                 ++param_index;
             }
         }
-
-        output.newline();
 
         return true;
     }
@@ -1091,10 +1070,13 @@ namespace
                             {
                                 output.writeln("PLNNR_COROUTINE_YIELD(*method);");
                             }
+
+                            if (!is_last(task_atom))
+                            {
+                                output.newline();
+                            }
                         }
                     }
-
-                    output.newline();
 
                     if (!is_last(branch))
                     {
@@ -1106,8 +1088,6 @@ namespace
                     ++branch_index;
                     ++precondition_index;
                 }
-
-                output.newline();
             }
         }
 

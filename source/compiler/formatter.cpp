@@ -312,8 +312,9 @@ void formatter::_put_indent()
     }
 }
 
-scope::scope(formatter& output)
+scope::scope(formatter& output, bool end_with_empty_line)
     : output(output)
+    , end_with_empty_line(end_with_empty_line)
 {
     output._put_indent();
     output._indent_level++;
@@ -327,6 +328,11 @@ scope::~scope()
     output._put_indent();
     output._putc('}');
     output._puts(output._newline);
+
+    if (end_with_empty_line)
+    {
+        output._puts(output._newline);
+    }
 }
 
 class_scope::class_scope(formatter& output)
@@ -343,6 +349,7 @@ class_scope::~class_scope()
     output._indent_level--;
     output._put_indent();
     output._puts("};");
+    output._puts(output._newline);
     output._puts(output._newline);
 }
 
