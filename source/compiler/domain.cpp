@@ -724,14 +724,6 @@ namespace
         return true;
     }
 
-    void indent(formatter& output, int level)
-    {
-        for (int i = 0; i < level; ++i)
-        {
-            output.write("\t");
-        }
-    }
-
     bool generate_literal_chain(tree& ast, node* root, formatter& output)
     {
         plnnrc_assert(root->type == node_op_not || root->type == node_atom);
