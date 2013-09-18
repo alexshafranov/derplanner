@@ -96,8 +96,7 @@ method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks)
 
         if (rewind_tasks && new_top->trewind < pstate.tstack->top())
         {
-            // todo: align trewind to task_instance here
-            task_instance* task = static_cast<task_instance*>(new_top->trewind);
+            task_instance* task = memory::align<task_instance>(new_top->trewind);
             task_instance* top_task = task->link;
 
             pstate.tstack->rewind(new_top->trewind);
