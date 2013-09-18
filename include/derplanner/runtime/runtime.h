@@ -25,8 +25,7 @@
 
 #include "derplanner/runtime/memory.h"
 
-namespace plnnr
-{
+namespace plnnr {
 
 class stack
 {
