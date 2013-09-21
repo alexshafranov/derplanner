@@ -26,9 +26,16 @@
 namespace plnnr {
 namespace tuple_list {
 
+struct tuple_traits
+{
+    size_t size;
+    size_t alignment;
+    size_t next_offset;
+};
+
 struct handle;
 
-handle* create(size_t tuple_size, size_t tuple_alignment, size_t tuples_per_page);
+handle* create(tuple_traits traits, size_t tuples_per_page);
 
 void destroy(const handle* tuple_list);
 
