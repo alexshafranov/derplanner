@@ -42,7 +42,7 @@ void destroy(const handle* tuple_list);
 
 handle* head_to_handle(void* head);
 
-void* allocate_tuple(handle* tuple_list);
+void* append(handle* tuple_list);
 
 template <typename T>
 handle* create(size_t tuples_per_page)
@@ -56,9 +56,9 @@ handle* create(size_t tuples_per_page)
 }
 
 template <typename T>
-T* allocate_tuple(handle* tuple_list)
+T* append(handle* tuple_list)
 {
-    return static_cast<T*>(allocate_tuple(tuple_list));
+    return static_cast<T*>(append(tuple_list));
 }
 
 }

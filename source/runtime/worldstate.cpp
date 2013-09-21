@@ -88,7 +88,7 @@ handle* head_to_handle(void* head)
     return reinterpret_cast<handle*>(static_cast<char*>(head) - offsetof(handle, head_tuple));
 }
 
-void* allocate_tuple(handle* tuple_list)
+void* append(handle* tuple_list)
 {
     size_t bytes = tuple_list->tuple.size;
     size_t alignment = tuple_list->tuple.alignment;
