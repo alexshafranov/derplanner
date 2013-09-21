@@ -18,3 +18,21 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
+#ifndef DERPLANNER_RUNTIME_WORLDSTATE_H_
+#define DERPLANNER_RUNTIME_WORLDSTATE_H_
+
+#include <stddef.h> // size_t
+
+namespace plnnr {
+namespace tuple_list {
+
+struct handle;
+
+handle* create(size_t tuple_size, size_t tuple_alignment, size_t tuples_per_page);
+
+void destroy(const handle* tuple_list);
+
+}
+}
+
+#endif
