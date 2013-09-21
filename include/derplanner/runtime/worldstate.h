@@ -42,6 +42,8 @@ void destroy(const handle* tuple_list);
 
 handle* head_to_handle(void* head);
 
+void* allocate_tuple(handle* tuple_list);
+
 }
 }
 

@@ -88,5 +88,35 @@ handle* head_to_handle(void* head)
     return reinterpret_cast<handle*>(static_cast<char*>(head) - offsetof(handle, head_tuple));
 }
 
+void* allocate_tuple(handle* tuple_list)
+{
+    size_t bytes = tuple_list->tuple.size;
+    size_t alignment = tuple_list->tuple.alignment;
+    page* p = tuple_list->head_page;
+
+    char* top = static_cast<char*>(memory::align(p->top, alignment));
+
+    if (top + bytes > p->memory + tuple_list->page_size)
+    {
+        char* memory = static_cast<char*>(memory::allocate(tuple_list->page_size));
+
+        if (!memory)
+        {
+            return 0;
+        }
+
+        p = memory::align<page>(memory);
+        p->prev = tuple_list->head_page;
+        p->memory = memory;
+        p->top = p->data;
+
+        tuple_list->head_page = p;
+    }
+
+    p->top = top + bytes;
+
+    return top;
+}
+
 }
 }
