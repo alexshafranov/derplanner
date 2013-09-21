@@ -21,7 +21,7 @@
 #ifndef DERPLANNER_RUNTIME_WORLDSTATE_H_
 #define DERPLANNER_RUNTIME_WORLDSTATE_H_
 
-#include <stddef.h> // size_t
+#include <stddef.h> // size_t, offsetof
 
 namespace plnnr {
 namespace tuple_list {
@@ -43,6 +43,23 @@ void destroy(const handle* tuple_list);
 handle* head_to_handle(void* head);
 
 void* allocate_tuple(handle* tuple_list);
+
+template <typename T>
+handle* create(size_t tuples_per_page)
+{
+    tuple_traits traits;
+    traits.size = sizeof(T);
+    traits.alignment = plnnr_alignof(T);
+    traits.next_offset = offsetof(T, next);
+    traits.prev_offset = offsetof(T, prev);
+    return create(traits, tuples_per_page);
+}
+
+template <typename T>
+T* allocate_tuple(handle* tuple_list)
+{
+    return static_cast<T*>(allocate_tuple(tuple_list));
+}
 
 }
 }
