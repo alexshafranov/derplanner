@@ -26,6 +26,12 @@
 namespace plnnrc {
 
 template <typename node>
+bool is_first(const node* child)
+{
+    return child == child->parent->first_child;
+}
+
+template <typename node>
 bool is_last(const node* child)
 {
     return child == child->parent->first_child->prev_sibling_cyclic;

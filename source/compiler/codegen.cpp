@@ -170,7 +170,7 @@ namespace
             atom_id, atom_index,
             atom_id, atom_index);
         {
-            scope s(output, !is_last(root));
+            scope s(output, is_first(root));
 
             int atom_param_index = 0;
 
