@@ -487,11 +487,11 @@ namespace
                             if (ast.methods.find(task_atom->s_expr->token) || is_last(task_atom))
                             {
                                 output.writeln("PLNNR_COROUTINE_YIELD(*method);");
-                            }
 
-                            if (!is_last(task_atom))
-                            {
-                                output.newline();
+                                if (!is_last(task_atom))
+                                {
+                                    output.newline();
+                                }
                             }
                         }
                     }
