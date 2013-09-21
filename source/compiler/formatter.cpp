@@ -189,7 +189,7 @@ void formatter::newline()
 
 void formatter::_putc(char c)
 {
-    if (_buffer_top >= _buffer_end)
+    if (_buffer_top + 1 > _buffer_end)
     {
         flush();
     }
@@ -201,11 +201,11 @@ void formatter::_puts(const char* s)
 {
     size_t length = strlen(s);
 
-    if (_buffer_top + length >= _buffer_end)
+    if (_buffer_top + length > _buffer_end)
     {
         flush();
 
-        if (_buffer_top + length >= _buffer_end)
+        if (_buffer_top + length > _buffer_end)
         {
             _output.write(s, length);
             return;
