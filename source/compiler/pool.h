@@ -28,11 +28,11 @@ namespace pool {
 
 struct handle;
 
-handle* init(size_t page_size);
+handle* create(size_t page_size);
+
+void destroy(const handle* pool);
 
 void* allocate(handle* pool, size_t bytes, size_t alignment);
-
-void clear(const handle* pool);
 
 }
 }

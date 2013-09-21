@@ -80,7 +80,7 @@ tree::~tree()
 {
     if (_node_pool)
     {
-        pool::clear(_node_pool);
+        pool::destroy(_node_pool);
     }
 }
 
@@ -88,7 +88,7 @@ node* tree::make_node(node_type type, sexpr::node* token)
 {
     if (!_node_pool)
     {
-        pool::handle* pool = pool::init(node_page_size);
+        pool::handle* pool = pool::create(node_page_size);
 
         if (!pool)
         {

@@ -39,7 +39,7 @@ struct handle
     size_t page_size;
 };
 
-handle* init(size_t page_size)
+handle* create(size_t page_size)
 {
     size_t worstcase_size = sizeof(handle) + plnnrc_alignof(handle) + sizeof(page) + plnnrc_alignof(page);
     plnnrc_assert(page_size > worstcase_size);
@@ -92,7 +92,7 @@ void* allocate(handle* pool, size_t bytes, size_t alignment)
     return top;
 }
 
-void clear(const handle* pool)
+void destroy(const handle* pool)
 {
     for (page* p = pool->head; p != 0;)
     {

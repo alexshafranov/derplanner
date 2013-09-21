@@ -369,7 +369,7 @@ tree::~tree()
 {
     if (_pool)
     {
-        pool::clear(_pool);
+        pool::destroy(_pool);
     }
 }
 
@@ -379,12 +379,12 @@ parse_status tree::parse(char* buffer)
 
     if (_pool)
     {
-        pool::clear(_pool);
+        pool::destroy(_pool);
         _pool = 0;
         _root = 0;
     }
 
-    pool::handle* pool = pool::init(page_size);
+    pool::handle* pool = pool::create(page_size);
 
     if (!pool)
     {
