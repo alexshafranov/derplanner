@@ -179,7 +179,15 @@ namespace
                 if (term->type == node_term_variable && definition(term))
                 {
                     int var_index = annotation<term_ann>(term)->var_index;
-                    output.writeln("if (state.%i_%d->_%d != state._%d)", atom_id, atom_index, atom_param_index, var_index);
+
+                    const char* comparison_op = "!=";
+
+                    if (root->type == node_op_not)
+                    {
+                        comparison_op = "==";
+                    }
+
+                    output.writeln("if (state.%i_%d->_%d %s state._%d)", atom_id, atom_index, atom_param_index, comparison_op, var_index);
                     {
                         scope s(output);
 
