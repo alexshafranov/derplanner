@@ -39,6 +39,8 @@ handle* create(tuple_traits traits, size_t tuples_per_page);
 
 void destroy(const handle* tuple_list);
 
+handle* head_to_handle(void* head);
+
 }
 }
 
