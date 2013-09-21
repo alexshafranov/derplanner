@@ -38,21 +38,25 @@ struct handle
     page* head_page;
     void* head_tuple;
     tuple_traits tuple;
+    size_t page_size;
 };
 
 handle* create(tuple_traits traits, size_t tuples_per_page)
 {
-    size_t page_size =
+    size_t head_page_size =
         sizeof(handle) + plnnr_alignof(handle) +
         sizeof(page) + plnnr_alignof(page) +
         traits.alignment + traits.size * tuples_per_page;
 
-    char* memory = static_cast<char*>(memory::allocate(page_size));
+    char* memory = static_cast<char*>(memory::allocate(head_page_size));
 
     if (!memory)
     {
         return 0;
     }
+
+    size_t page_size =
+        sizeof(page) + plnnr_alignof(page) + traits.alignment + traits.size * tuples_per_page;
 
     handle* tuple_list = memory::align<handle>(memory);
     page* head_page = memory::align<page>(tuple_list + 1);
@@ -64,6 +68,7 @@ handle* create(tuple_traits traits, size_t tuples_per_page)
     tuple_list->head_page = head_page;
     tuple_list->head_tuple = 0;
     tuple_list->tuple = traits;
+    tuple_list->page_size = page_size;
 
     return tuple_list;
 }

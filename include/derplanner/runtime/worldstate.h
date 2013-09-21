@@ -31,6 +31,7 @@ struct tuple_traits
     size_t size;
     size_t alignment;
     size_t next_offset;
+    size_t prev_offset;
 };
 
 struct handle;
