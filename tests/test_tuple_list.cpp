@@ -48,6 +48,17 @@ namespace
         }
     };
 
+    TEST(create_append_destroy)
+    {
+        tuple* head = 0;
+        holder h(&head, 1);
+
+        for (int i = 0; i < 10; ++i)
+        {
+            tuple_list::effect_add<tuple>(h.list);
+        }
+    }
+
     TEST(append)
     {
         tuple* head = 0;

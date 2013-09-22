@@ -78,6 +78,8 @@ namespace
             p->top = p->data;
 
             tuple_list->head_page = p;
+
+            top = static_cast<char*>(memory::align(p->top, alignment));
         }
 
         p->top = top + bytes;

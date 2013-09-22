@@ -85,6 +85,8 @@ void* allocate(handle* pool, size_t bytes, size_t alignment)
         p->top = p->data;
 
         pool->head = p;
+
+        top = static_cast<char*>(memory::align(p->top, alignment));
     }
 
     p->top = top + bytes;
