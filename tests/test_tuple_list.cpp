@@ -203,4 +203,80 @@ namespace
             }
         }
     }
+
+    TEST(undo_random_add_random_delete)
+    {
+        void* journal[5];
+
+        int rand_index[] = {1, 4, 6, 0, 2};
+
+        tuple* head = 0;
+        holder h(&head, 1);
+
+        // add items.
+        for (int i = 0; i < 10; ++i)
+        {
+            tuple* new_tuple = tuple_list::append<tuple>(h.list);
+            new_tuple->data = i;
+        }
+
+        // add or delete random indices
+        for (int i = 0; i < int(sizeof(rand_index)/sizeof(rand_index[0])); ++i)
+        {
+            int index = rand_index[i];
+
+            if (i % 2 == 0)
+            {
+                for (tuple* t = head; t != 0; t = t->next)
+                {
+                    if (index == t->data)
+                    {
+                        tuple* new_tuple = tuple_list::append<tuple>(h.list);
+                        new_tuple->data = 10 + i;
+                        journal[i] = new_tuple;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                for (tuple* t = head; t != 0; t = t->next)
+                {
+                    if (index == t->data)
+                    {
+                        tuple_list::detach(h.list, t);
+                        journal[i] = t;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // undo journal
+        for (int i = sizeof(journal)/sizeof(journal[0]) - 1; i >= 0; --i)
+        {
+            tuple_list::undo(h.list, journal[i]);
+        }
+
+        // check undo
+        int count = 0;
+
+        CHECK(head != 0);
+
+        for (tuple* t = head; t != 0; t = t->next, ++count)
+        {
+            CHECK_EQUAL(count, t->data);
+        }
+
+        CHECK_EQUAL(10, count);
+
+        for (tuple* tail = head; ; tail = tail->next)
+        {
+            if (!tail->next)
+            {
+                CHECK_EQUAL(head->prev, tail);
+                break;
+            }
+        }
+    }
 }
