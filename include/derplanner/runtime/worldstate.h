@@ -31,7 +31,6 @@ struct tuple_traits
 {
     size_t size;
     size_t alignment;
-    size_t parent_offset;
     size_t next_offset;
     size_t prev_offset;
 };
@@ -48,28 +47,29 @@ void detach(handle* tuple_list, void* tuple);
 
 void undo(handle* tuple_list, void* tuple);
 
+handle* head_to_handle(void* head_tuple, size_t size);
+
 template <typename T>
 inline handle* create(T** head, size_t page_size)
 {
     tuple_traits traits;
     traits.size = sizeof(T);
     traits.alignment = plnnr_alignof(T);
-    traits.parent_offset = offsetof(T, parent);
     traits.next_offset = offsetof(T, next);
     traits.prev_offset = offsetof(T, prev);
     return create(reinterpret_cast<void**>(head), traits, page_size);
 }
 
 template <typename T>
-inline handle* head_to_handle(T* head)
-{
-    return static_cast<handle*>(head->parent);
-}
-
-template <typename T>
 inline T* append(handle* tuple_list)
 {
     return static_cast<T*>(append(tuple_list));
+}
+
+template <typename T>
+inline handle* head_to_handle(T* head_tuple)
+{
+    return head_to_handle(head_tuple, sizeof(T));
 }
 
 }

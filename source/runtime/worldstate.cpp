@@ -25,8 +25,11 @@
 namespace plnnr {
 namespace tuple_list {
 
+struct handle;
+
 struct page
 {
+    handle* owner;
     page* prev;
     char* memory;
     char* top;
@@ -39,6 +42,11 @@ struct handle
     void** head_tuple;
     tuple_traits tuple;
     size_t page_size;
+};
+
+struct tuple_footer
+{
+    uint32_t page_offset;
 };
 
 namespace
@@ -63,7 +71,7 @@ namespace
 
         char* top = static_cast<char*>(memory::align(p->top, alignment));
 
-        if (top + bytes > p->memory + tuple_list->page_size)
+        if (top + bytes + sizeof(tuple_footer) + plnnr_alignof(tuple_footer) > p->memory + tuple_list->page_size)
         {
             char* memory = static_cast<char*>(memory::allocate(tuple_list->page_size));
 
@@ -73,6 +81,7 @@ namespace
             }
 
             p = memory::align<page>(memory);
+            p->owner = tuple_list;
             p->prev = tuple_list->head_page;
             p->memory = memory;
             p->top = p->data;
@@ -83,6 +92,11 @@ namespace
         }
 
         p->top = top + bytes;
+
+        tuple_footer* footer = memory::align<tuple_footer>(p->top);
+        footer->page_offset = top - p->data + offsetof(page, data);
+
+        p->top = reinterpret_cast<char*>(footer + 1);
 
         return top;
     }
@@ -103,6 +117,7 @@ handle* create(void** head, tuple_traits traits, size_t page_size)
     handle* tuple_list = memory::align<handle>(memory);
     page* head_page = memory::align<page>(tuple_list + 1);
 
+    head_page->owner = tuple_list;
     head_page->prev = 0;
     head_page->memory = memory;
     head_page->top = head_page->data;
@@ -125,6 +140,13 @@ void destroy(const handle* tuple_list)
     }
 }
 
+handle* head_to_handle(void* head_tuple, size_t size)
+{
+    tuple_footer* footer = memory::align<tuple_footer>(static_cast<char*>(head_tuple) + size);
+    page* p = reinterpret_cast<page*>(static_cast<char*>(head_tuple) - footer->page_offset);
+    return p->owner;
+}
+
 void* append(handle* tuple_list)
 {
     void* tuple = allocate(tuple_list);
@@ -136,11 +158,9 @@ void* append(handle* tuple_list)
 
     void* head = *(tuple_list->head_tuple);
 
-    size_t parent_offset = tuple_list->tuple.parent_offset;
     size_t next_offset = tuple_list->tuple.next_offset;
     size_t prev_offset = tuple_list->tuple.prev_offset;
 
-    set_ptr(tuple, parent_offset, tuple_list);
     set_ptr(tuple, next_offset, 0);
     set_ptr(tuple, prev_offset, 0);
 

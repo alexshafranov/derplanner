@@ -68,7 +68,7 @@ inline void* align(void* ptr, size_t alignment)
 }
 
 template <typename T>
-T* align(void* ptr)
+inline T* align(void* ptr)
 {
     return static_cast<T*>(align(ptr, plnnrc_alignof(T)));
 }

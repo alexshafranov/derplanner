@@ -56,7 +56,6 @@ bool generate_worldstate(tree& ast, node* worldstate, writer& writer)
                 output.writeln("%s _%d;", param->s_expr->first_child->token, param_index++);
             }
 
-            output.writeln("void* parent;");
             output.writeln("%i_tuple* next;", atom->s_expr->token);
             output.writeln("%i_tuple* prev;", atom->s_expr->token);
         }

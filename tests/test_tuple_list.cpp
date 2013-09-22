@@ -72,6 +72,22 @@ namespace
         CHECK_EQUAL(10, count);
     }
 
+    TEST(head_to_handle)
+    {
+        tuple* head = 0;
+        holder h(&head);
+
+        for (int i = 0; i < 10; ++i)
+        {
+            tuple* new_tuple = tuple_list::append<tuple>(h.list);
+            CHECK(new_tuple);
+            new_tuple->data = i;
+        }
+
+        tuple_list::handle* handle = tuple_list::head_to_handle<tuple>(head);
+        CHECK_EQUAL(h.list, handle);
+    }
+
     TEST(undo_sequantial_add)
     {
         void* journal[9];
