@@ -22,6 +22,7 @@
 #define DERPLANNER_RUNTIME_WORLDSTATE_H_
 
 #include <stddef.h> // size_t, offsetof
+#include <derplanner/runtime/memory.h> // plnnr_alignof
 
 namespace plnnr {
 namespace tuple_list {
@@ -30,35 +31,44 @@ struct tuple_traits
 {
     size_t size;
     size_t alignment;
+    size_t parent_offset;
     size_t next_offset;
     size_t prev_offset;
 };
 
 struct handle;
 
-handle* create(tuple_traits traits, size_t tuples_per_page);
+handle* create(void** head, tuple_traits traits, size_t tuples_per_page);
 
 void destroy(const handle* tuple_list);
 
-handle* head_to_handle(void* head);
+void* allocate(handle* tuple_list);
 
-void* append(handle* tuple_list);
+void* effect_add(handle* tuple_list);
+
+bool effect_delete(handle* tuple_list, void* tuple);
 
 template <typename T>
-handle* create(size_t tuples_per_page)
+inline handle* create(T** head, size_t tuples_per_page)
 {
     tuple_traits traits;
     traits.size = sizeof(T);
     traits.alignment = plnnr_alignof(T);
     traits.next_offset = offsetof(T, next);
     traits.prev_offset = offsetof(T, prev);
-    return create(traits, tuples_per_page);
+    return create(reinterpret_cast<void**>(head), traits, tuples_per_page);
 }
 
 template <typename T>
-T* append(handle* tuple_list)
+inline T* allocate(handle* tuple_list)
 {
-    return static_cast<T*>(append(tuple_list));
+    return static_cast<T*>(allocate(tuple_list));
+}
+
+template <typename T>
+inline handle* head_to_handle(T* head)
+{
+    return static_cast<handle*>(head->parent);
 }
 
 }

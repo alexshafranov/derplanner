@@ -25,6 +25,21 @@
 namespace plnnr {
 namespace tuple_list {
 
+namespace
+{
+    void set_ptr(void* tuple, size_t offset, void* ptr)
+    {
+        void** p = reinterpret_cast<void**>(static_cast<char*>(tuple) + offset);
+        *p = ptr;
+    }
+
+    void* get_ptr(void* tuple, size_t offset)
+    {
+        void** p = reinterpret_cast<void**>(static_cast<char*>(tuple) + offset);
+        return *p;
+    }
+}
+
 struct page
 {
     page* prev;
@@ -36,12 +51,12 @@ struct page
 struct handle
 {
     page* head_page;
-    void* head_tuple;
+    void** head_tuple;
     tuple_traits tuple;
     size_t page_size;
 };
 
-handle* create(tuple_traits traits, size_t tuples_per_page)
+handle* create(void** head, tuple_traits traits, size_t tuples_per_page)
 {
     size_t head_page_size =
         sizeof(handle) + plnnr_alignof(handle) +
@@ -66,7 +81,7 @@ handle* create(tuple_traits traits, size_t tuples_per_page)
     head_page->top = head_page->data;
 
     tuple_list->head_page = head_page;
-    tuple_list->head_tuple = 0;
+    tuple_list->head_tuple = head;
     tuple_list->tuple = traits;
     tuple_list->page_size = page_size;
 
@@ -83,12 +98,7 @@ void destroy(const handle* tuple_list)
     }
 }
 
-handle* head_to_handle(void* head)
-{
-    return reinterpret_cast<handle*>(static_cast<char*>(head) - offsetof(handle, head_tuple));
-}
-
-void* append(handle* tuple_list)
+void* allocate(handle* tuple_list)
 {
     size_t bytes = tuple_list->tuple.size;
     size_t alignment = tuple_list->tuple.alignment;
@@ -116,6 +126,39 @@ void* append(handle* tuple_list)
     p->top = top + bytes;
 
     return top;
+}
+
+void* effect_add(handle* tuple_list)
+{
+    void* tuple = allocate(tuple_list);
+
+    if (!tuple)
+    {
+        return 0;
+    }
+
+    void* head = tuple_list->head_tuple;
+
+    size_t prev_offset = tuple_list->tuple.prev_offset;
+    size_t next_offset = tuple_list->tuple.next_offset;
+
+    void* tail = get_ptr(head, prev_offset);
+
+    set_ptr(tail, next_offset, tuple);
+    set_ptr(tuple, prev_offset, tail);
+    set_ptr(tuple, next_offset, 0);
+    set_ptr(head, prev_offset, tuple);
+
+    // set_ptr(head, prev_offset, tuple);
+    // set_ptr(tuple, prev_offset, tail);
+    // set_ptr(tuple, next_offset, 0);
+
+    return tuple;
+}
+
+bool effect_delete(handle* tuple_list, void* tuple)
+{
+    return true;
 }
 
 }
