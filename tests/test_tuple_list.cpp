@@ -37,9 +37,9 @@ namespace
     {
         tuple_list::handle* list;
 
-        holder(tuple** head, size_t tuples_per_page)
+        holder(tuple** head, size_t page_size=4096)
         {
-            list = tuple_list::create<tuple>(head, tuples_per_page);
+            list = tuple_list::create<tuple>(head, page_size);
         }
 
         ~holder()
@@ -48,21 +48,10 @@ namespace
         }
     };
 
-    TEST(create_append_destroy)
-    {
-        tuple* head = 0;
-        holder h(&head, 1);
-
-        for (int i = 0; i < 10; ++i)
-        {
-            tuple_list::append<tuple>(h.list);
-        }
-    }
-
     TEST(append)
     {
         tuple* head = 0;
-        holder h(&head, 10);
+        holder h(&head);
 
         for (int i = 0; i < 10; ++i)
         {
@@ -88,7 +77,7 @@ namespace
         void* journal[9];
 
         tuple* head = 0;
-        holder h(&head, 1);
+        holder h(&head);
 
         // add items
         for (int i = 0; i < 10; ++i)
@@ -143,7 +132,7 @@ namespace
         int rand_index[] = {9, 14, 5, 2, 12, 0, 19, 7, 18, 13};
 
         tuple* head = 0;
-        holder h(&head, 1);
+        holder h(&head);
 
         // add items.
         for (int i = 0; i < 10; ++i)
@@ -211,7 +200,7 @@ namespace
         int rand_index[] = {1, 4, 6, 0, 2};
 
         tuple* head = 0;
-        holder h(&head, 1);
+        holder h(&head);
 
         // add items.
         for (int i = 0; i < 10; ++i)

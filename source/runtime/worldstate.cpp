@@ -88,22 +88,17 @@ namespace
     }
 }
 
-handle* create(void** head, tuple_traits traits, size_t tuples_per_page)
+handle* create(void** head, tuple_traits traits, size_t page_size)
 {
-    size_t head_page_size =
-        sizeof(handle) + plnnr_alignof(handle) +
-        sizeof(page) + plnnr_alignof(page) +
-        traits.alignment + traits.size * tuples_per_page;
+    size_t worstcase_size = sizeof(handle) + plnnr_alignof(handle) + sizeof(page) + plnnr_alignof(page);
+    plnnr_assert(page_size > worstcase_size);
 
-    char* memory = static_cast<char*>(memory::allocate(head_page_size));
+    char* memory = static_cast<char*>(memory::allocate(page_size));
 
     if (!memory)
     {
         return 0;
     }
-
-    size_t page_size =
-        sizeof(page) + plnnr_alignof(page) + traits.alignment + traits.size * tuples_per_page;
 
     handle* tuple_list = memory::align<handle>(memory);
     page* head_page = memory::align<page>(tuple_list + 1);
