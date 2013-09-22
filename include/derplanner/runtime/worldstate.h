@@ -54,6 +54,7 @@ inline handle* create(T** head, size_t tuples_per_page)
     tuple_traits traits;
     traits.size = sizeof(T);
     traits.alignment = plnnr_alignof(T);
+    traits.parent_offset = offsetof(T, parent);
     traits.next_offset = offsetof(T, next);
     traits.prev_offset = offsetof(T, prev);
     return create(reinterpret_cast<void**>(head), traits, tuples_per_page);
