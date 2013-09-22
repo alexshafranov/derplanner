@@ -166,9 +166,67 @@ void* effect_add(handle* tuple_list)
     return tuple;
 }
 
-bool effect_delete(handle* tuple_list, void* tuple)
+void effect_delete(handle* tuple_list, void* tuple)
 {
-    return true;
+    size_t next_offset = tuple_list->tuple.next_offset;
+    size_t prev_offset = tuple_list->tuple.prev_offset;
+
+    void* head = *(tuple_list->head_tuple);
+    void* next = get_ptr(tuple, next_offset);
+    void* prev = get_ptr(tuple, prev_offset);
+
+    if (next)
+    {
+        set_ptr(next, prev_offset, prev);
+    }
+    else
+    {
+        set_ptr(head, prev_offset, prev);
+    }
+
+    void* prev_next = get_ptr(prev, prev_offset);
+
+    if (prev_next)
+    {
+        set_ptr(prev_next, next_offset, next);
+    }
+    else
+    {
+        *(tuple_list->head_tuple) = next;
+    }
+}
+
+void effect_rollback(handle* tuple_list, void* tuple)
+{
+    size_t next_offset = tuple_list->tuple.next_offset;
+    size_t prev_offset = tuple_list->tuple.prev_offset;
+
+    void* head = *(tuple_list->head_tuple);
+    void* prev = get_ptr(tuple, prev_offset);
+    void* next = get_ptr(tuple, next_offset);
+
+    if ((head == tuple) ||
+        (next != 0 && get_ptr(next, prev_offset) == tuple) ||
+        (prev != 0 && get_ptr(prev, next_offset) == tuple))
+    {
+        effect_delete(tuple_list, tuple);
+    }
+    else
+    {
+        if (prev == tuple)
+        {
+            *(tuple_list->head_tuple) = tuple;
+        }
+        else
+        {
+            set_ptr(prev, next_offset, tuple);
+        }
+
+        if (next)
+        {
+            set_ptr(next, prev_offset, tuple);
+        }
+    }
 }
 
 }

@@ -44,7 +44,9 @@ void destroy(const handle* tuple_list);
 
 void* effect_add(handle* tuple_list);
 
-bool effect_delete(handle* tuple_list, void* tuple);
+void effect_delete(handle* tuple_list, void* tuple);
+
+void effect_rollback(handle* tuple_list, void* tuple);
 
 template <typename T>
 inline handle* create(T** head, size_t tuples_per_page)
