@@ -25,21 +25,6 @@
 namespace plnnr {
 namespace tuple_list {
 
-namespace
-{
-    void set_ptr(void* tuple, size_t offset, void* ptr)
-    {
-        void** p = reinterpret_cast<void**>(static_cast<char*>(tuple) + offset);
-        *p = ptr;
-    }
-
-    void* get_ptr(void* tuple, size_t offset)
-    {
-        void** p = reinterpret_cast<void**>(static_cast<char*>(tuple) + offset);
-        return *p;
-    }
-}
-
 struct page
 {
     page* prev;
@@ -55,6 +40,51 @@ struct handle
     tuple_traits tuple;
     size_t page_size;
 };
+
+namespace
+{
+    void set_ptr(void* tuple, size_t offset, void* ptr)
+    {
+        void** p = reinterpret_cast<void**>(static_cast<char*>(tuple) + offset);
+        *p = ptr;
+    }
+
+    void* get_ptr(void* tuple, size_t offset)
+    {
+        void** p = reinterpret_cast<void**>(static_cast<char*>(tuple) + offset);
+        return *p;
+    }
+
+    void* allocate(handle* tuple_list)
+    {
+        size_t bytes = tuple_list->tuple.size;
+        size_t alignment = tuple_list->tuple.alignment;
+        page* p = tuple_list->head_page;
+
+        char* top = static_cast<char*>(memory::align(p->top, alignment));
+
+        if (top + bytes > p->memory + tuple_list->page_size)
+        {
+            char* memory = static_cast<char*>(memory::allocate(tuple_list->page_size));
+
+            if (!memory)
+            {
+                return 0;
+            }
+
+            p = memory::align<page>(memory);
+            p->prev = tuple_list->head_page;
+            p->memory = memory;
+            p->top = p->data;
+
+            tuple_list->head_page = p;
+        }
+
+        p->top = top + bytes;
+
+        return top;
+    }
+}
 
 handle* create(void** head, tuple_traits traits, size_t tuples_per_page)
 {
@@ -96,36 +126,6 @@ void destroy(const handle* tuple_list)
         memory::deallocate(p->memory);
         p = n;
     }
-}
-
-void* allocate(handle* tuple_list)
-{
-    size_t bytes = tuple_list->tuple.size;
-    size_t alignment = tuple_list->tuple.alignment;
-    page* p = tuple_list->head_page;
-
-    char* top = static_cast<char*>(memory::align(p->top, alignment));
-
-    if (top + bytes > p->memory + tuple_list->page_size)
-    {
-        char* memory = static_cast<char*>(memory::allocate(tuple_list->page_size));
-
-        if (!memory)
-        {
-            return 0;
-        }
-
-        p = memory::align<page>(memory);
-        p->prev = tuple_list->head_page;
-        p->memory = memory;
-        p->top = p->data;
-
-        tuple_list->head_page = p;
-    }
-
-    p->top = top + bytes;
-
-    return top;
 }
 
 void* effect_add(handle* tuple_list)

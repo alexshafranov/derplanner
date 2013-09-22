@@ -42,8 +42,6 @@ handle* create(void** head, tuple_traits traits, size_t tuples_per_page);
 
 void destroy(const handle* tuple_list);
 
-void* allocate(handle* tuple_list);
-
 void* effect_add(handle* tuple_list);
 
 bool effect_delete(handle* tuple_list, void* tuple);
@@ -58,12 +56,6 @@ inline handle* create(T** head, size_t tuples_per_page)
     traits.next_offset = offsetof(T, next);
     traits.prev_offset = offsetof(T, prev);
     return create(reinterpret_cast<void**>(head), traits, tuples_per_page);
-}
-
-template <typename T>
-inline T* allocate(handle* tuple_list)
-{
-    return static_cast<T*>(allocate(tuple_list));
 }
 
 template <typename T>
