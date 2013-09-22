@@ -130,7 +130,7 @@ void destroy(const handle* tuple_list)
     }
 }
 
-void* effect_add(handle* tuple_list)
+void* append(handle* tuple_list)
 {
     void* tuple = allocate(tuple_list);
 
@@ -166,7 +166,7 @@ void* effect_add(handle* tuple_list)
     return tuple;
 }
 
-void effect_delete(handle* tuple_list, void* tuple)
+void detach(handle* tuple_list, void* tuple)
 {
     size_t next_offset = tuple_list->tuple.next_offset;
     size_t prev_offset = tuple_list->tuple.prev_offset;
@@ -196,7 +196,7 @@ void effect_delete(handle* tuple_list, void* tuple)
     }
 }
 
-void effect_rollback(handle* tuple_list, void* tuple)
+void undo(handle* tuple_list, void* tuple)
 {
     size_t next_offset = tuple_list->tuple.next_offset;
     size_t prev_offset = tuple_list->tuple.prev_offset;
@@ -209,7 +209,7 @@ void effect_rollback(handle* tuple_list, void* tuple)
         (next != 0 && get_ptr(next, prev_offset) == tuple) ||
         (prev != 0 && get_ptr(prev, next_offset) == tuple))
     {
-        effect_delete(tuple_list, tuple);
+        detach(tuple_list, tuple);
     }
     else
     {

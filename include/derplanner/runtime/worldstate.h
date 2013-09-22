@@ -42,11 +42,11 @@ handle* create(void** head, tuple_traits traits, size_t tuples_per_page);
 
 void destroy(const handle* tuple_list);
 
-void* effect_add(handle* tuple_list);
+void* append(handle* tuple_list);
 
-void effect_delete(handle* tuple_list, void* tuple);
+void detach(handle* tuple_list, void* tuple);
 
-void effect_rollback(handle* tuple_list, void* tuple);
+void undo(handle* tuple_list, void* tuple);
 
 template <typename T>
 inline handle* create(T** head, size_t tuples_per_page)
@@ -67,9 +67,9 @@ inline handle* head_to_handle(T* head)
 }
 
 template <typename T>
-inline T* effect_add(handle* tuple_list)
+inline T* append(handle* tuple_list)
 {
-    return static_cast<T*>(effect_add(tuple_list));
+    return static_cast<T*>(append(tuple_list));
 }
 
 }

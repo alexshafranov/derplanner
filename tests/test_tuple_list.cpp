@@ -55,7 +55,7 @@ namespace
 
         for (int i = 0; i < 10; ++i)
         {
-            tuple_list::effect_add<tuple>(h.list);
+            tuple_list::append<tuple>(h.list);
         }
     }
 
@@ -66,7 +66,7 @@ namespace
 
         for (int i = 0; i < 10; ++i)
         {
-            tuple* new_tuple = tuple_list::effect_add<tuple>(h.list);
+            tuple* new_tuple = tuple_list::append<tuple>(h.list);
             CHECK(new_tuple);
             new_tuple->data = i;
         }
