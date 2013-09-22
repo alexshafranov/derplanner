@@ -184,11 +184,11 @@ void detach(handle* tuple_list, void* tuple)
         set_ptr(head, prev_offset, prev);
     }
 
-    void* prev_next = get_ptr(prev, prev_offset);
+    void* prev_next = get_ptr(prev, next_offset);
 
     if (prev_next)
     {
-        set_ptr(prev_next, next_offset, next);
+        set_ptr(prev, next_offset, next);
     }
     else
     {
@@ -213,11 +213,7 @@ void undo(handle* tuple_list, void* tuple)
     }
     else
     {
-        if (prev == tuple)
-        {
-            *(tuple_list->head_tuple) = tuple;
-        }
-        else
+        if (prev)
         {
             set_ptr(prev, next_offset, tuple);
         }
@@ -225,6 +221,17 @@ void undo(handle* tuple_list, void* tuple)
         if (next)
         {
             set_ptr(next, prev_offset, tuple);
+        }
+
+        if (!head || head == next)
+        {
+            *(tuple_list->head_tuple) = tuple;
+            set_ptr(prev, next_offset, 0);
+        }
+
+        if (!next)
+        {
+            set_ptr(head, prev_offset, tuple);
         }
     }
 }

@@ -82,4 +82,125 @@ namespace
 
         CHECK_EQUAL(10, count);
     }
+
+    TEST(undo_sequantial_add)
+    {
+        void* journal[9];
+
+        tuple* head = 0;
+        holder h(&head, 1);
+
+        // add items
+        for (int i = 0; i < 10; ++i)
+        {
+            tuple* new_tuple = tuple_list::append<tuple>(h.list);
+            new_tuple->data = i;
+        }
+
+        int count = 0;
+
+        // detach all except the first one
+        for (tuple* t = head->next; t != 0;)
+        {
+            tuple* next = t->next;
+            tuple_list::detach(h.list, t);
+            journal[count++] = t;
+            t = next;
+        }
+
+        // undo journal
+        for (int i = sizeof(journal)/sizeof(journal[0]) - 1; i >= 0; --i)
+        {
+            tuple_list::undo(h.list, journal[i]);
+        }
+
+        // check undo
+        count = 0;
+
+        CHECK(head != 0);
+
+        for (tuple* t = head; t != 0; t = t->next, ++count)
+        {
+            CHECK_EQUAL(count, t->data);
+        }
+
+        CHECK_EQUAL(10, count);
+
+        for (tuple* tail = head; ; tail = tail->next)
+        {
+            if (!tail->next)
+            {
+                CHECK_EQUAL(head->prev, tail);
+                break;
+            }
+        }
+    }
+
+    TEST(undo_add_and_random_delete)
+    {
+        void* journal[20];
+
+        int rand_index[] = {9, 14, 5, 2, 12, 0, 19, 7, 18, 13};
+
+        tuple* head = 0;
+        holder h(&head, 1);
+
+        // add items.
+        for (int i = 0; i < 10; ++i)
+        {
+            tuple* new_tuple = tuple_list::append<tuple>(h.list);
+            new_tuple->data = i;
+        }
+
+        // add 10 more items.
+        for (int i = 0; i < 10; ++i)
+        {
+            tuple* new_tuple = tuple_list::append<tuple>(h.list);
+            new_tuple->data = 10 + i;
+            journal[i] = new_tuple;
+        }
+
+        // remove 10 random items out of 20.
+        for (int i = 0; i < int(sizeof(rand_index)/sizeof(rand_index[0])); ++i)
+        {
+            int index = rand_index[i];
+
+            for (tuple* t = head; t != 0; t = t->next)
+            {
+                if (index == t->data)
+                {
+                    tuple_list::detach(h.list, t);
+                    journal[10 + i] = t;
+                    break;
+                }
+            }
+        }
+
+        // undo journal
+        for (int i = sizeof(journal)/sizeof(journal[0]) - 1; i >= 0; --i)
+        {
+            tuple_list::undo(h.list, journal[i]);
+        }
+
+        // check undo
+        int count = 0;
+
+        CHECK(head != 0);
+
+        for (tuple* t = head; t != 0; t = t->next, ++count)
+        {
+            CHECK_EQUAL(count, t->data);
+        }
+
+        CHECK_EQUAL(10, count);
+
+        for (tuple* tail = head; ; tail = tail->next)
+        {
+            if (!tail->next)
+            {
+                CHECK_EQUAL(head->prev, tail);
+                break;
+            }
+        }
+    }
 }
