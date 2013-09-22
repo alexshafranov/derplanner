@@ -27,15 +27,48 @@ namespace
 {
     struct tuple
     {
+        int data;
         void* parent;
         tuple* next;
         tuple* prev;
     };
 
-    TEST(create_and_destroy)
+    struct holder
+    {
+        tuple_list::handle* list;
+
+        holder(tuple** head, size_t tuples_per_page)
+        {
+            list = tuple_list::create<tuple>(head, tuples_per_page);
+        }
+
+        ~holder()
+        {
+            tuple_list::destroy(list);
+        }
+    };
+
+    TEST(append)
     {
         tuple* head = 0;
-        tuple_list::handle* list = tuple_list::create<tuple>(&head, 10);
-        tuple_list::destroy(list);
+        holder h(&head, 10);
+
+        for (int i = 0; i < 10; ++i)
+        {
+            tuple* new_tuple = tuple_list::effect_add<tuple>(h.list);
+            CHECK(new_tuple);
+            new_tuple->data = i;
+        }
+
+        int count = 0;
+
+        CHECK(head != 0);
+
+        for (tuple* t = head; t != 0; t = t->next, ++count)
+        {
+            CHECK_EQUAL(count, t->data);
+        }
+
+        CHECK_EQUAL(10, count);
     }
 }

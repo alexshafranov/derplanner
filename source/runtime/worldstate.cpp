@@ -137,21 +137,29 @@ void* effect_add(handle* tuple_list)
         return 0;
     }
 
-    void* head = tuple_list->head_tuple;
+    void* head = *(tuple_list->head_tuple);
 
-    size_t prev_offset = tuple_list->tuple.prev_offset;
+    size_t parent_offset = tuple_list->tuple.parent_offset;
     size_t next_offset = tuple_list->tuple.next_offset;
+    size_t prev_offset = tuple_list->tuple.prev_offset;
 
-    void* tail = get_ptr(head, prev_offset);
-
-    set_ptr(tail, next_offset, tuple);
-    set_ptr(tuple, prev_offset, tail);
+    set_ptr(tuple, parent_offset, tuple_list);
     set_ptr(tuple, next_offset, 0);
-    set_ptr(head, prev_offset, tuple);
+    set_ptr(tuple, prev_offset, 0);
 
-    // set_ptr(head, prev_offset, tuple);
-    // set_ptr(tuple, prev_offset, tail);
-    // set_ptr(tuple, next_offset, 0);
+    if (head)
+    {
+        void* tail = get_ptr(head, prev_offset);
+        plnnr_assert(tail != 0);
+        set_ptr(tail, next_offset, tuple);
+        set_ptr(tuple, prev_offset, tail);
+        set_ptr(head, prev_offset, tuple);
+    }
+    else
+    {
+        *(tuple_list->head_tuple) = tuple;
+        set_ptr(tuple, prev_offset, tuple);
+    }
 
     return tuple;
 }

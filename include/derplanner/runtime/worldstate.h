@@ -72,6 +72,12 @@ inline handle* head_to_handle(T* head)
     return static_cast<handle*>(head->parent);
 }
 
+template <typename T>
+inline T* effect_add(handle* tuple_list)
+{
+    return static_cast<T*>(effect_add(tuple_list));
+}
+
 }
 }
 
