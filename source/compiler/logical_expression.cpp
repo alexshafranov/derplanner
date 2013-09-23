@@ -35,6 +35,11 @@ namespace
     const char token_or[]  = "or";
     const char token_not[] = "not";
 
+    bool is_token(sexpr::node* s_expr, const char* token)
+    {
+        return strncmp(s_expr->first_child->token, token, sizeof(token)) == 0;
+    }
+
     // forward
     node* build_recursive(tree& ast, sexpr::node* s_expr);
 
@@ -71,17 +76,17 @@ namespace
         sexpr::node* c_expr = s_expr->first_child;
         plnnrc_assert(c_expr && c_expr->type == sexpr::node_symbol);
 
-        if (strncmp(c_expr->token, token_and, sizeof(token_and)) == 0)
+        if (is_token(c_expr, token_and))
         {
             return build_logical_op(ast, s_expr, node_op_and);
         }
 
-        if (strncmp(c_expr->token, token_or, sizeof(token_or)) == 0)
+        if (is_token(c_expr, token_or))
         {
             return build_logical_op(ast, s_expr, node_op_or);
         }
 
-        if (strncmp(c_expr->token, token_not, sizeof(token_not)) == 0)
+        if (is_token(c_expr, token_not))
         {
             return build_logical_op(ast, s_expr, node_op_not);
         }

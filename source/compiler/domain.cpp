@@ -38,9 +38,15 @@ namespace
     const char token_worldstate[]   = ":worldstate";
     const char token_domain[]       = ":domain";
     const char token_method[]       = ":method";
+    const char token_operator[]     = ":operator";
 
     node* build_method(tree& ast, sexpr::node* s_expr);
     node* build_branch(tree& ast, sexpr::node* s_expr);
+
+    bool is_token(sexpr::node* s_expr, const char* token)
+    {
+        return strncmp(s_expr->first_child->token, token, sizeof(token)) == 0;
+    }
 }
 
 node* build_domain(tree& ast, sexpr::node* s_expr)
@@ -48,7 +54,7 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
     plnnrc_assert(s_expr->type == sexpr::node_list);
     plnnrc_assert(s_expr->first_child);
     plnnrc_assert(s_expr->first_child->type == sexpr::node_symbol);
-    plnnrc_assert(strncmp(s_expr->first_child->token, token_domain, sizeof(token_domain)) == 0);
+    plnnrc_assert(is_token(s_expr, token_domain));
 
     node* domain = ast.make_node(node_domain, s_expr);
 
@@ -57,14 +63,12 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
         return 0;
     }
 
-    unsigned method_count = 0;
-
-    for (sexpr::node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
+    if (!ast.methods.init(128))
     {
-        method_count++;
+        return 0;
     }
 
-    if (!ast.methods.init(method_count))
+    if (!ast.operators.init(128))
     {
         return 0;
     }
@@ -79,11 +83,16 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
         }
 
         append_child(domain, method);
-    }
 
-    if (!ast.operators.init(32))
-    {
-        return 0;
+        if (is_token(s_expr, token_method))
+        {
+            continue;
+        }
+
+        if (is_token(s_expr, token_operator))
+        {
+            continue;
+        }
     }
 
     for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
@@ -157,7 +166,7 @@ namespace
         plnnrc_assert(s_expr->type == sexpr::node_list);
         plnnrc_assert(s_expr->first_child);
         plnnrc_assert(s_expr->first_child->type == sexpr::node_symbol);
-        plnnrc_assert(strncmp(s_expr->first_child->token, token_method, sizeof(token_method)) == 0);
+        plnnrc_assert(is_token(s_expr, token_method));
 
         node* method = ast.make_node(node_method, s_expr);
 
@@ -259,7 +268,7 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
     plnnrc_assert(s_expr->type == sexpr::node_list);
     plnnrc_assert(s_expr->first_child);
     plnnrc_assert(s_expr->first_child->type == sexpr::node_symbol);
-    plnnrc_assert(strncmp(s_expr->first_child->token, token_worldstate, sizeof(token_worldstate)) == 0);
+    plnnrc_assert(is_token(s_expr, token_worldstate));
 
     node* worldstate = ast.make_node(node_worldstate, s_expr);
 
