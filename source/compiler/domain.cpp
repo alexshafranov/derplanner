@@ -284,7 +284,62 @@ namespace
 
     node* build_operator(tree& ast, sexpr::node* s_expr)
     {
-        return 0;
+        plnnrc_assert(s_expr->type == sexpr::node_list);
+        plnnrc_assert(s_expr->first_child);
+        plnnrc_assert(s_expr->first_child->type == sexpr::node_symbol);
+        plnnrc_assert(is_token(s_expr->first_child, token_operator));
+
+        node* operatr = ast.make_node(node_operator, s_expr);
+
+        if (!operatr)
+        {
+            return 0;
+        }
+
+        sexpr::node* task_atom_expr = s_expr->first_child->next_sibling;
+        plnnrc_assert(task_atom_expr);
+        plnnrc_assert(task_atom_expr->type == sexpr::node_list);
+
+        node* task_atom = build_atom(ast, task_atom_expr);
+
+        if (!task_atom)
+        {
+            return 0;
+        }
+
+        append_child(operatr, task_atom);
+
+        plnnrc_assert(is_valid_id(task_atom->s_expr->token));
+
+        if (!ast.operators.insert(task_atom->s_expr->token, operatr))
+        {
+            return 0;
+        }
+
+        sexpr::node* delete_effects_expr = task_atom_expr->next_sibling;
+        plnnrc_assert(delete_effects_expr != 0 && delete_effects_expr->type == sexpr::node_list);
+        sexpr::node* add_effects_expr = delete_effects_expr->next_sibling;
+        plnnrc_assert(add_effects_expr != 0 && add_effects_expr->type == sexpr::node_list);
+
+        node* delete_effects = build_atom_list(ast, delete_effects_expr);
+
+        if (!delete_effects)
+        {
+            return 0;
+        }
+
+        append_child(operatr, delete_effects);
+
+        node* add_effects = build_atom_list(ast, add_effects_expr);
+
+        if (!add_effects)
+        {
+            return 0;
+        }
+
+        append_child(operatr, add_effects);
+
+        return operatr;
     }
 }
 
