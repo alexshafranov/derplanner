@@ -18,6 +18,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
+#include <stdio.h>
 #include <string>
 #include <unittestpp.h>
 #include <derplanner/compiler/assert.h>
@@ -139,6 +140,109 @@ namespace
 "                    node_term_variable ?f";
 
         CHECK_EQUAL(expected, actual_str.c_str());
+    }
+
+    TEST(declared_operator)
+    {
+        char buffer[] = \
+"(:domain                               "
+"   (:method (root x y z)               "
+"       ()                              "
+"       ((!declared x y) (!stub z))     "
+"   )                                   "
+"                                       "
+"   (:operator (!declared x y)          "
+"       ((removed x))                   "
+"       ((added y))                     "
+"   )                                   "
+")                                      ";
+
+        sexpr::tree expr;
+        expr.parse(buffer);
+        ast::tree tree;
+        ast::node* actual_tree = ast::build_domain(tree, expr.root()->first_child);
+        CHECK(actual_tree);
+        std::string actual_str = to_string(actual_tree);
+
+        const char* expected = \
+"node_domain\n"
+"    node_method\n"
+"        node_atom root\n"
+"            node_term_variable x\n"
+"            node_term_variable y\n"
+"            node_term_variable z\n"
+"        node_branch\n"
+"            node_op_or\n"
+"                node_op_and\n"
+"            node_atomlist\n"
+"                node_atom !declared\n"
+"                    node_term_variable x\n"
+"                    node_term_variable y\n"
+"                node_atom !stub\n"
+"                    node_term_variable z\n"
+"    node_operator\n"
+"        node_atom !declared\n"
+"            node_term_variable x\n"
+"            node_term_variable y\n"
+"        node_atomlist\n"
+"            node_atom removed\n"
+"                node_term_variable x\n"
+"        node_atomlist\n"
+"            node_atom added\n"
+"                node_term_variable y";
+
+        CHECK_EQUAL(expected, actual_str.c_str());
+    }
+
+    TEST(declared_and_stub_operators)
+    {
+        char buffer[] = \
+"(:domain                               "
+"   (:method (root x y z)               "
+"       ()                              "
+"       ((!declared x y) (!stub z))     "
+"   )                                   "
+"                                       "
+"   (:operator (!declared x y)          "
+"       ((removed x))                   "
+"       ((added y))                     "
+"   )                                   "
+")                                      ";
+
+        sexpr::tree expr;
+        expr.parse(buffer);
+        ast::tree tree;
+        ast::node* actual_tree = ast::build_domain(tree, expr.root()->first_child);
+        CHECK(actual_tree);
+
+        ast::node* declared_operator = tree.operators.find("!declared");
+        CHECK(declared_operator);
+
+        const char* expected_declared = \
+"node_operator\n"
+"    node_atom !declared\n"
+"        node_term_variable x\n"
+"        node_term_variable y\n"
+"    node_atomlist\n"
+"        node_atom removed\n"
+"            node_term_variable x\n"
+"    node_atomlist\n"
+"        node_atom added\n"
+"            node_term_variable y";
+
+        CHECK_EQUAL(expected_declared, to_string(declared_operator).c_str());
+
+        ast::node* stub_operator = tree.operators.find("!stub");
+        CHECK(stub_operator);
+
+        const char* expected_stub = \
+"node_operator\n"
+"    node_atom !stub\n"
+"        node_term_variable z\n"
+"    node_atomlist\n"
+"    node_atomlist";
+
+        CHECK_EQUAL(expected_stub, to_string(stub_operator).c_str());
     }
 
     TEST(method_table)
