@@ -171,12 +171,14 @@ struct start_tuple
 {
     int _0;
     start_tuple* next;
+    start_tuple* prev;
 };
 
 struct finish_tuple
 {
     int _0;
     finish_tuple* next;
+    finish_tuple* prev;
 };
 
 struct short_distance_tuple
@@ -184,6 +186,7 @@ struct short_distance_tuple
     int _0;
     int _1;
     short_distance_tuple* next;
+    short_distance_tuple* prev;
 };
 
 struct long_distance_tuple
@@ -191,6 +194,7 @@ struct long_distance_tuple
     int _0;
     int _1;
     long_distance_tuple* next;
+    long_distance_tuple* prev;
 };
 
 struct airport_tuple
@@ -198,6 +202,7 @@ struct airport_tuple
     int _0;
     int _1;
     airport_tuple* next;
+    airport_tuple* prev;
 };
 
 struct worldstate
@@ -263,6 +268,7 @@ bool next(p1_state& state, worldstate& world)
 
         PLNNR_COROUTINE_YIELD(state);
     }
+
     PLNNR_COROUTINE_END();
 }
 
@@ -292,6 +298,7 @@ bool next(p2_state& state, worldstate& world)
 
         PLNNR_COROUTINE_YIELD(state);
     }
+
     PLNNR_COROUTINE_END();
 }
 
@@ -338,17 +345,17 @@ bool next(p3_state& state, worldstate& world)
 enum task_type
 {
     task_none=0,
-    task_fly,
     task_ride_taxi,
+    task_fly,
 };
 
-struct fly_args
+struct ride_taxi_args
 {
     int _0;
     int _1;
 };
 
-struct ride_taxi_args
+struct fly_args
 {
     int _0;
     int _1;
@@ -506,7 +513,6 @@ bool travel_by_air_branch_0_expand(planner_state& pstate, void* world)
             a->_1 = precondition->_3;
             t->args = a;
         }
-
 
         {
             method_instance* t = push_method(pstate, travel_branch_0_expand);
