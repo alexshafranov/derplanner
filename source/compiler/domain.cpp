@@ -45,7 +45,7 @@ namespace
 
     bool is_token(sexpr::node* s_expr, const char* token)
     {
-        return strncmp(s_expr->first_child->token, token, sizeof(token)) == 0;
+        return strncmp(s_expr->token, token, sizeof(token)) == 0;
     }
 }
 
@@ -54,7 +54,7 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
     plnnrc_assert(s_expr->type == sexpr::node_list);
     plnnrc_assert(s_expr->first_child);
     plnnrc_assert(s_expr->first_child->type == sexpr::node_symbol);
-    plnnrc_assert(is_token(s_expr, token_domain));
+    plnnrc_assert(is_token(s_expr->first_child, token_domain));
 
     node* domain = ast.make_node(node_domain, s_expr);
 
@@ -84,12 +84,12 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
 
         append_child(domain, method);
 
-        if (is_token(s_expr, token_method))
+        if (is_token(s_expr->first_child, token_method))
         {
             continue;
         }
 
-        if (is_token(s_expr, token_operator))
+        if (is_token(s_expr->first_child, token_operator))
         {
             continue;
         }
@@ -166,7 +166,7 @@ namespace
         plnnrc_assert(s_expr->type == sexpr::node_list);
         plnnrc_assert(s_expr->first_child);
         plnnrc_assert(s_expr->first_child->type == sexpr::node_symbol);
-        plnnrc_assert(is_token(s_expr, token_method));
+        plnnrc_assert(is_token(s_expr->first_child, token_method));
 
         node* method = ast.make_node(node_method, s_expr);
 
@@ -268,7 +268,7 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
     plnnrc_assert(s_expr->type == sexpr::node_list);
     plnnrc_assert(s_expr->first_child);
     plnnrc_assert(s_expr->first_child->type == sexpr::node_symbol);
-    plnnrc_assert(is_token(s_expr, token_worldstate));
+    plnnrc_assert(is_token(s_expr->first_child, token_worldstate));
 
     node* worldstate = ast.make_node(node_worldstate, s_expr);
 

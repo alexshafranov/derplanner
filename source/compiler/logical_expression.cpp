@@ -37,7 +37,7 @@ namespace
 
     bool is_token(sexpr::node* s_expr, const char* token)
     {
-        return strncmp(s_expr->first_child->token, token, sizeof(token)) == 0;
+        return strncmp(s_expr->token, token, sizeof(token)) == 0;
     }
 
     // forward
