@@ -402,7 +402,7 @@ namespace
                 node* precondition = branch->first_child;
                 node* tasklist = precondition->next_sibling;
 
-                plnnrc_assert(tasklist->type == node_tasklist);
+                plnnrc_assert(tasklist->type == node_atomlist);
 
                 output.writeln("bool %i_branch_%d_expand(planner_state& pstate, void* world)", method_name, branch_index);
                 {

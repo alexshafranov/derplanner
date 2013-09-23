@@ -229,7 +229,7 @@ namespace
 
         sexpr::node* tasklist_expr = s_expr->next_sibling;
 
-        node* task_list = ast.make_node(node_tasklist, tasklist_expr);
+        node* task_list = ast.make_node(node_atomlist, tasklist_expr);
 
         if (!task_list)
         {

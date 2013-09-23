@@ -133,7 +133,7 @@ namespace
 "                        node_term_variable ?s\n"
 "                    node_atom finish\n"
 "                        node_term_variable ?f\n"
-"            node_tasklist\n"
+"            node_atomlist\n"
 "                node_atom travel\n"
 "                    node_term_variable ?s\n"
 "                    node_term_variable ?f";

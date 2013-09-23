@@ -32,7 +32,7 @@ PLNNRC_AST_NODE_INNER(node_domain)
 PLNNRC_AST_NODE_INNER(node_method)
 PLNNRC_AST_NODE_INNER(node_branch)
 PLNNRC_AST_NODE_INNER(node_operator)
-PLNNRC_AST_NODE_INNER(node_tasklist)
+PLNNRC_AST_NODE_INNER(node_atomlist)
 
 PLNNRC_AST_NODE_INNER(node_op_and)
 PLNNRC_AST_NODE_INNER(node_op_or)
