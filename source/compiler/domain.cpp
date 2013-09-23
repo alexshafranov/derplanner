@@ -19,6 +19,7 @@
 //
 
 #include <string.h>
+#include <algorithm>  // std::max
 #include "formatter.h"
 #include "ast_tools.h"
 #include "derplanner/compiler/config.h"
@@ -42,10 +43,26 @@ namespace
 
     node* build_method(tree& ast, sexpr::node* s_expr);
     node* build_branch(tree& ast, sexpr::node* s_expr);
+    node* build_operator(tree& ast, sexpr::node* s_expr);
 
     bool is_token(sexpr::node* s_expr, const char* token)
     {
         return strncmp(s_expr->token, token, sizeof(token)) == 0;
+    }
+
+    int count_direct(node* root, const char* token)
+    {
+        int result = 0;
+
+        for (node* c = root->first_child; c != 0; c = c->next_sibling)
+        {
+            if (is_token(c->s_expr, token))
+            {
+                result++;
+            }
+        }
+
+        return result;
     }
 }
 
@@ -63,36 +80,47 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
         return 0;
     }
 
-    if (!ast.methods.init(128))
+    if (!ast.methods.init(count_direct(domain, token_method)))
     {
         return 0;
     }
 
-    if (!ast.operators.init(128))
+    if (!ast.operators.init(std::max(2 * count_direct(domain, token_operator), 128)))
     {
         return 0;
     }
 
     for (sexpr::node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
     {
-        node* method = build_method(ast, c_expr);
-
-        if (!method)
-        {
-            return 0;
-        }
-
-        append_child(domain, method);
+        node* element = 0;
 
         if (is_token(s_expr->first_child, token_method))
         {
+            node* method = build_method(ast, c_expr);
+
+            if (!method)
+            {
+                return 0;
+            }
+
             continue;
         }
 
         if (is_token(s_expr->first_child, token_operator))
         {
+            node* operatr = build_operator(ast, c_expr);
+
+            if (!operatr)
+            {
+                return 0;
+            }
+
             continue;
         }
+
+        plnnrc_assert(element != 0);
+
+        append_child(domain, element);
     }
 
     for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
@@ -190,7 +218,10 @@ namespace
 
         plnnrc_assert(is_valid_id(task_atom->s_expr->token));
 
-        ast.methods.insert(task_atom->s_expr->token, method);
+        {
+            bool result = ast.methods.insert(task_atom->s_expr->token, method);
+            plnnrc_assert(result);
+        }
 
         sexpr::node* branch_precond_expr = task_atom_expr->next_sibling;
 
@@ -260,6 +291,11 @@ namespace
         append_child(branch, task_list);
 
         return branch;
+    }
+
+    node* build_operator(tree& ast, sexpr::node* s_expr)
+    {
+        return 0;
     }
 }
 
