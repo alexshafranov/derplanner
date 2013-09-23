@@ -43,6 +43,7 @@ namespace
     node* build_method(tree& ast, sexpr::node* s_expr);
     node* build_branch(tree& ast, sexpr::node* s_expr);
     node* build_operator(tree& ast, sexpr::node* s_expr);
+    bool build_operator_stubs(tree& ast);
 
     bool is_token(sexpr::node* s_expr, const char* token)
     {
@@ -124,65 +125,9 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
         append_child(domain, element);
     }
 
-    for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+    if (!build_operator_stubs(ast))
     {
-        node* method = methods.value();
-        node* method_atom = method->first_child;
-        plnnrc_assert(method_atom && method_atom->type == node_atom);
-
-        for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
-        {
-            plnnrc_assert(branch->first_child);
-            node* tasklist = branch->first_child->next_sibling;
-            plnnrc_assert(tasklist);
-
-            for (node* task = tasklist->first_child; task != 0; task = task->next_sibling)
-            {
-                if (is_operator(ast, task))
-                {
-                    node* operatr = ast.make_node(node_operator);
-
-                    if (!operatr)
-                    {
-                        return 0;
-                    }
-
-                    node* operator_atom = ast.make_node(node_atom, task->s_expr);
-
-                    if (!operator_atom)
-                    {
-                        return 0;
-                    }
-
-                    append_child(operatr, operator_atom);
-
-                    if (ast.operators.find(task->s_expr->token))
-                    {
-                        // check number of arguments here.
-                        continue;
-                    }
-
-                    plnnrc_assert(is_valid_id(task->s_expr->token));
-
-                    if (!ast.operators.insert(task->s_expr->token, operatr))
-                    {
-                        return 0;
-                    }
-
-                    for (node* arg = task->first_child; arg != 0; arg = arg->next_sibling)
-                    {
-                        node* param = ast.make_node(node_term_variable);
-
-                        if (!param)
-                        {
-                            return 0;
-                        }
-
-                        append_child(operator_atom, param);
-                    }
-                }
-            }
-        }
+        return 0;
     }
 
     return domain;
@@ -340,6 +285,72 @@ namespace
         append_child(operatr, add_effects);
 
         return operatr;
+    }
+
+    bool build_operator_stubs(tree& ast)
+    {
+        for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+        {
+            node* method = methods.value();
+            node* method_atom = method->first_child;
+            plnnrc_assert(method_atom && method_atom->type == node_atom);
+
+            for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
+            {
+                plnnrc_assert(branch->first_child);
+                node* tasklist = branch->first_child->next_sibling;
+                plnnrc_assert(tasklist);
+
+                for (node* task = tasklist->first_child; task != 0; task = task->next_sibling)
+                {
+                    if (is_operator(ast, task))
+                    {
+                        node* operatr = ast.make_node(node_operator);
+
+                        if (!operatr)
+                        {
+                            return false;
+                        }
+
+                        node* operator_atom = ast.make_node(node_atom, task->s_expr);
+
+                        if (!operator_atom)
+                        {
+                            return false;
+                        }
+
+                        append_child(operatr, operator_atom);
+
+                        if (ast.operators.find(task->s_expr->token))
+                        {
+                            // check number of arguments here.
+                            continue;
+                        }
+
+                        plnnrc_assert(is_valid_id(task->s_expr->token));
+
+                        if (!ast.operators.insert(task->s_expr->token, operatr))
+                        {
+                            return false;
+                        }
+
+                        for (node* arg = task->first_child; arg != 0; arg = arg->next_sibling)
+                        {
+                            node* param = ast.make_node(node_term_variable);
+
+                            if (!param)
+                            {
+                                return false;
+                            }
+
+                            append_child(operator_atom, param);
+                        }
+                    }
+                }
+            }
+        }
+
+        return true;
     }
 }
 
