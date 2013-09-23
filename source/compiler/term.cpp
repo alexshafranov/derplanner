@@ -50,5 +50,29 @@ node* build_atom(tree& ast, sexpr::node* s_expr)
     return atom;
 }
 
+node* build_atom_list(tree& ast, sexpr::node* s_expr)
+{
+    node* atom_list = ast.make_node(node_atomlist, s_expr);
+
+    if (!atom_list)
+    {
+        return 0;
+    }
+
+    for (sexpr::node* t_expr = s_expr->first_child; t_expr != 0; t_expr = t_expr->next_sibling)
+    {
+        node* atom = build_atom(ast, t_expr);
+
+        if (!atom)
+        {
+            return 0;
+        }
+
+        append_child(atom_list, atom);
+    }
+
+    return atom_list;
+}
+
 }
 }

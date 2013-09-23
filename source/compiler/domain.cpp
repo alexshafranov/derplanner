@@ -270,23 +270,11 @@ namespace
 
         sexpr::node* tasklist_expr = s_expr->next_sibling;
 
-        node* task_list = ast.make_node(node_atomlist, tasklist_expr);
+        node* task_list = build_atom_list(ast, tasklist_expr);
 
         if (!task_list)
         {
             return 0;
-        }
-
-        for (sexpr::node* t_expr = tasklist_expr->first_child; t_expr != 0; t_expr = t_expr->next_sibling)
-        {
-            node* task_atom = build_atom(ast, t_expr);
-
-            if (!task_atom)
-            {
-                return 0;
-            }
-
-            append_child(task_list, task_atom);
         }
 
         append_child(branch, task_list);
