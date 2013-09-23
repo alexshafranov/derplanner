@@ -19,7 +19,6 @@
 //
 
 #include <string.h>
-#include <algorithm>  // std::max
 #include "formatter.h"
 #include "ast_tools.h"
 #include "derplanner/compiler/config.h"
@@ -50,15 +49,21 @@ namespace
         return strncmp(s_expr->token, token, sizeof(token)) == 0;
     }
 
-    int count_direct(node* root, const char* token)
+    int count_elements(sexpr::node* root, const char* token)
     {
         int result = 0;
 
-        for (node* c = root->first_child; c != 0; c = c->next_sibling)
+        for (sexpr::node* c = root->first_child; c != 0; c = c->next_sibling)
         {
-            if (is_token(c->s_expr, token))
+            if (c->type == sexpr::node_list)
             {
-                result++;
+                if (c->first_child && c->first_child->type == sexpr::node_symbol)
+                {
+                    if (is_token(c->first_child, token))
+                    {
+                        ++result;
+                    }
+                }
             }
         }
 
@@ -80,12 +85,12 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
         return 0;
     }
 
-    if (!ast.methods.init(count_direct(domain, token_method)))
+    if (!ast.methods.init(count_elements(s_expr, token_method)))
     {
         return 0;
     }
 
-    if (!ast.operators.init(std::max(2 * count_direct(domain, token_operator), 128)))
+    if (!ast.operators.init(count_elements(s_expr, token_operator) + 128))
     {
         return 0;
     }
@@ -94,28 +99,24 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
     {
         node* element = 0;
 
-        if (is_token(s_expr->first_child, token_method))
+        if (is_token(c_expr->first_child, token_method))
         {
-            node* method = build_method(ast, c_expr);
+            element = build_method(ast, c_expr);
 
-            if (!method)
+            if (!element)
             {
                 return 0;
             }
-
-            continue;
         }
 
-        if (is_token(s_expr->first_child, token_operator))
+        if (is_token(c_expr->first_child, token_operator))
         {
-            node* operatr = build_operator(ast, c_expr);
+            element = build_operator(ast, c_expr);
 
-            if (!operatr)
+            if (!element)
             {
                 return 0;
             }
-
-            continue;
         }
 
         plnnrc_assert(element != 0);
