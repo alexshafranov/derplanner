@@ -382,13 +382,46 @@ namespace
         return true;
     }
 
+    bool generate_forward_decls(tree& ast, node* domain, formatter& output)
+    {
+        for (node* method = domain->first_child; method != 0; method = method->next_sibling)
+        {
+            if (method->type != node_method)
+            {
+                continue;
+            }
+
+            node* atom = method->first_child;
+            const char* method_name = atom->s_expr->token;
+
+            unsigned branch_index = 0;
+
+            for (node* branch = method->first_child->next_sibling; branch != 0; branch = branch->next_sibling)
+            {
+                plnnrc_assert(branch->type == node_branch);
+                output.writeln("bool %i_branch_%d_expand(planner_state& pstate, void* world);", method_name, branch_index);
+                ++branch_index;
+            }
+        }
+
+        if (domain->first_child)
+        {
+            output.newline();
+        }
+
+        return true;
+    }
+
     bool generate_methods(tree& ast, node* domain, formatter& output)
     {
         unsigned precondition_index = 0;
 
         for (node* method = domain->first_child; method != 0; method = method->next_sibling)
         {
-            plnnrc_assert(method->type == node_method);
+            if (method->type != node_method)
+            {
+                continue;
+            }
 
             node* atom = method->first_child;
             const char* method_name = atom->s_expr->token;
@@ -544,6 +577,11 @@ bool generate_domain(tree& ast, node* domain, writer& writer)
     }
 
     if (!generate_param_structs(ast, output))
+    {
+        return false;
+    }
+
+    if (!generate_forward_decls(ast, domain, output))
     {
         return false;
     }
