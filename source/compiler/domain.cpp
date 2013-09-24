@@ -580,7 +580,7 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
 
 namespace
 {
-    void seed_precondition_types(tree& ast, node* root)
+    void seed_types(tree& ast, node* root)
     {
         for (node* n = root; n != 0; n = preorder_traversal_next(root, n))
         {
@@ -621,7 +621,19 @@ void infer_types(tree& ast)
 
         for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
         {
-            seed_precondition_types(ast, branch->first_child);
+            seed_types(ast, branch->first_child);
+        }
+    }
+
+    for (id_table_values operators = ast.operators.values(); !operators.empty(); operators.pop())
+    {
+        node* operatr = operators.value();
+        node* operator_atom = operatr->first_child;
+        plnnrc_assert(operator_atom && operator_atom->type == node_atom);
+
+        for (node* effect_list = operator_atom->next_sibling; effect_list != 0; effect_list = effect_list->next_sibling)
+        {
+            seed_types(ast, effect_list);
         }
     }
 
@@ -649,6 +661,7 @@ void infer_types(tree& ast)
                             type_tag(def, type_tag(var));
                         }
 
+                        // check types match
                         plnnrc_assert(type_tag(def) == type_tag(var));
                     }
                 }
@@ -697,6 +710,7 @@ void infer_types(tree& ast)
                         type_tag(param, type_tag(def));
                     }
 
+                    // check types match
                     plnnrc_assert(type_tag(param) == type_tag(def));
 
                     param = param->next_sibling;
