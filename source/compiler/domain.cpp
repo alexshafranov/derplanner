@@ -92,7 +92,9 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
         return 0;
     }
 
-    if (!ast.operators.init(count_elements(s_expr, token_operator) + 128))
+    int num_operator_decls = count_elements(s_expr, token_operator);
+
+    if (!ast.operators.init(num_operator_decls > 0 ? num_operator_decls : 128))
     {
         return 0;
     }
