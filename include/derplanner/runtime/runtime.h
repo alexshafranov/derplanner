@@ -84,6 +84,7 @@ struct planner_state
     task_instance* top_task;
     stack* mstack;
     stack* tstack;
+    stack* journal;
 };
 
 method_instance* push_method(planner_state& pstate, expand_func expand);
