@@ -20,6 +20,7 @@
 
 #include "derplanner/runtime/assert.h"
 #include "derplanner/runtime/memory.h"
+#include "derplanner/runtime/worldstate.h"
 #include "derplanner/runtime/runtime.h"
 
 namespace plnnr
@@ -102,6 +103,21 @@ method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks)
             pstate.tstack->rewind(new_top->trewind);
 
             pstate.top_task = top_task;
+
+            if (new_top->jrewind < pstate.journal->top())
+            {
+                operator_effect* bottom = static_cast<operator_effect*>(new_top->jrewind);
+                operator_effect* top = reinterpret_cast<operator_effect*>(pstate.journal->top()) - 1;
+
+                for (; top != bottom-1; --top)
+                {
+                    // get list from operator effect.
+                    tuple_list::handle* list = 0;
+                    tuple_list::undo(list, top->tuple);
+                }
+
+                pstate.journal->rewind(new_top->jrewind);
+            }
         }
     }
 
