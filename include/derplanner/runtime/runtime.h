@@ -66,6 +66,7 @@ struct method_instance
     void* precondition;
     void* mrewind;
     void* trewind;
+    void* jrewind;
     method_instance* parent;
     bool expanded;
     int stage;
@@ -76,6 +77,11 @@ struct task_instance
     int type;
     void* args;
     task_instance* link;
+};
+
+struct operator_effect
+{
+    void* tuple;
 };
 
 struct planner_state

@@ -45,7 +45,7 @@ inline bool is_parameter(node* var)
 {
     plnnrc_assert(var->type == node_term_variable);
     plnnrc_assert(var->parent && var->parent->parent);
-    return var->parent->parent->type == node_method;
+    return var->parent->parent->type == node_method || var->parent->parent->type == node_operator;
 }
 
 inline bool has_parameters(node* task)

@@ -289,7 +289,10 @@ namespace
 
         for (node* method = domain->first_child; method != 0; method = method->next_sibling)
         {
-            plnnrc_assert(method->type == node_method);
+            if (method->type != node_method)
+            {
+                continue;
+            }
 
             for (node* branch = method->first_child->next_sibling; branch != 0; branch = branch->next_sibling)
             {
@@ -412,7 +415,93 @@ namespace
         return true;
     }
 
-    bool generate_methods(tree& ast, node* domain, formatter& output)
+    bool generate_operator_effects(tree& ast, node* method, node* task_atom, formatter& output)
+    {
+        node* operatr = ast.operators.find(task_atom->s_expr->token);
+        plnnrc_assert(operatr);
+
+        node* effects_remove = operatr->first_child->next_sibling;
+        node* effects_add = effects_remove->next_sibling;
+        plnnrc_assert(effects_remove && effects_add);
+
+        if (effects_remove->first_child)
+        {
+            output.newline();
+
+            for (node* effect = effects_remove->first_child; effect != 0; effect = effect->next_sibling)
+            {
+                const char* atom_id = effect->s_expr->token;
+
+                output.writeln("for (%i_tuple* tuple = world.%i; tuple != 0; tuple = tuple->next)", atom_id, atom_id);
+                {
+                    scope s(output, effects_add->first_child);
+
+                    int param_index = 0;
+
+                    for (node* arg = effect->first_child; arg != 0; arg = arg->next_sibling)
+                    {
+                        node* def = definition(arg);
+                        plnnrc_assert(def);
+                        int var_index = annotation<term_ann>(def)->var_index;
+                        plnnrc_assert(is_parameter(def));
+
+                        output.writeln("if (tuple->_%d != a->_%d)", param_index, var_index);
+                        {
+                            scope s(output);
+                            output.writeln("continue;");
+                        }
+
+                        ++param_index;
+                    }
+
+                    output.writeln("operator_effect* effect = push<operator_effect>(pstate.journal);");
+                    output.writeln("effect->tuple = tuple;");
+                    output.writeln("tuple_list::handle* list = tuple_list::head_to_handle<%i_tuple>(world.%i);", atom_id, atom_id);
+                    output.writeln("tuple_list::detach(list, tuple);");
+                    output.newline();
+                    output.writeln("break;");
+                }
+            }
+        }
+
+        if (effects_add->first_child)
+        {
+            if (!effects_remove->first_child)
+            {
+                output.newline();
+            }
+
+            for (node* effect = effects_add->first_child; effect != 0; effect = effect->next_sibling)
+            {
+                scope s(output, !is_last(effect));
+
+                const char* atom_id = effect->s_expr->token;
+
+                output.writeln("tuple_list::handle* list = tuple_list::head_to_handle<%i_tuple>(world.%i);", atom_id, atom_id);
+                output.writeln("%i_tuple* tuple = tuple_list::append<%i_tuple>(list);", atom_id, atom_id);
+
+                int param_index = 0;
+
+                for (node* arg = effect->first_child; arg != 0; arg = arg->next_sibling)
+                {
+                    node* def = definition(arg);
+                    plnnrc_assert(def);
+                    int var_index = annotation<term_ann>(def)->var_index;
+                    plnnrc_assert(is_parameter(def));
+
+                    output.writeln("tuple->_%d = a->_%d;", param_index, var_index);
+                    ++param_index;
+                }
+
+                output.writeln("operator_effect* effect = push<operator_effect>(pstate.journal);");
+                output.writeln("effect->tuple = tuple;");
+            }
+        }
+
+        return true;
+    }
+
+    bool generate_branch_expands(tree& ast, node* domain, formatter& output)
     {
         unsigned precondition_index = 0;
 
@@ -474,6 +563,7 @@ namespace
                     output.writeln("method->precondition = precondition;");
                     output.writeln("method->mrewind = pstate.mstack->top();");
                     output.writeln("method->trewind = pstate.tstack->top();");
+                    output.writeln("method->jrewind = pstate.journal->top();");
                     output.newline();
 
                     output.writeln("while (next(*precondition, *wstate))");
@@ -519,6 +609,14 @@ namespace
                                 }
 
                                 output.writeln("t->args = a;");
+
+                                if (is_operator(ast, task_atom))
+                                {
+                                    if (!generate_operator_effects(ast, method, task_atom, output))
+                                    {
+                                        return false;
+                                    }
+                                }
                             }
 
                             if (is_last(task_atom))
@@ -586,7 +684,7 @@ bool generate_domain(tree& ast, node* domain, writer& writer)
         return false;
     }
 
-    if (!generate_methods(ast, domain, output))
+    if (!generate_branch_expands(ast, domain, output))
     {
         return false;
     }
