@@ -27,6 +27,11 @@
 
 namespace plnnr {
 
+namespace tuple_list
+{
+    struct tuple_list;
+}
+
 class stack
 {
 public:
@@ -81,6 +86,7 @@ struct task_instance
 
 struct operator_effect
 {
+    tuple_list::handle* list;
     void* tuple;
 };
 

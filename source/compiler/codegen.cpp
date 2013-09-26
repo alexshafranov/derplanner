@@ -454,9 +454,10 @@ namespace
                         ++param_index;
                     }
 
+                    output.writeln("tuple_list::handle* list = tuple_list::head_to_handle<%i_tuple>(world.%i);", atom_id, atom_id);
                     output.writeln("operator_effect* effect = push<operator_effect>(pstate.journal);");
                     output.writeln("effect->tuple = tuple;");
-                    output.writeln("tuple_list::handle* list = tuple_list::head_to_handle<%i_tuple>(world.%i);", atom_id, atom_id);
+                    output.writeln("effect->list = list;");
                     output.writeln("tuple_list::detach(list, tuple);");
                     output.newline();
                     output.writeln("break;");
@@ -495,6 +496,7 @@ namespace
 
                 output.writeln("operator_effect* effect = push<operator_effect>(pstate.journal);");
                 output.writeln("effect->tuple = tuple;");
+                output.writeln("effect->list = list;");
             }
         }
 

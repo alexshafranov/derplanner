@@ -111,8 +111,7 @@ method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks)
 
                 for (; top != bottom-1; --top)
                 {
-                    // get list from operator effect.
-                    tuple_list::handle* list = 0;
+                    tuple_list::handle* list = top->list;
                     tuple_list::undo(list, top->tuple);
                 }
 
