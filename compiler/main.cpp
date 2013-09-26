@@ -69,6 +69,7 @@ int main(int argc, char** argv)
 
     ast::infer_types(tree);
 
+    generate_header(tree, writer);
     generate_worldstate(tree, worldstate, writer);
     generate_domain(tree, domain, writer);
 

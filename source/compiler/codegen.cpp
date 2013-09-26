@@ -32,6 +32,21 @@ namespace plnnrc {
 
 using namespace ast;
 
+bool generate_header(ast::tree& ast, writer& writer)
+{
+    formatter output(writer);
+
+    if (!output.init(DERPLANNER_CODEGEN_OUTPUT_BUFFER_SIZE))
+    {
+        return false;
+    }
+
+    output.writeln("#include <derplanner/runtime/runtime.h>");
+    output.newline();
+
+    return true;
+}
+
 bool generate_worldstate(tree& ast, node* worldstate, writer& writer)
 {
     plnnrc_assert(worldstate && worldstate->type == node_worldstate);

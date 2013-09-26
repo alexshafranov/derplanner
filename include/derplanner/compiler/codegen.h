@@ -31,6 +31,8 @@ namespace ast
 
 class writer;
 
+bool generate_header(ast::tree& ast, writer& output);
+
 bool generate_worldstate(ast::tree& ast, ast::node* worldstate, writer& output);
 
 bool generate_domain(ast::tree& ast, ast::node* domain, writer& output);

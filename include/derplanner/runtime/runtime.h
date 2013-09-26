@@ -23,14 +23,10 @@
 
 #include <stddef.h> // size_t
 
-#include "derplanner/runtime/memory.h"
+#include "derplanner/runtime/worldstate.h"
+#include "derplanner/runtime/memory.h" // alignof
 
 namespace plnnr {
-
-namespace tuple_list
-{
-    struct tuple_list;
-}
 
 class stack
 {
