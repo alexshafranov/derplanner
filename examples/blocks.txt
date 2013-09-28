@@ -1,0 +1,47 @@
+
+(:worldstate
+    (block (int))
+
+    (on-table (int))
+    (on (int) (int))
+    (clear (int))
+
+    (goal-on-table (int))
+    (goal-on (int) (int))
+    (goal-clear (int))
+
+    (holding (int))
+    (dont-move (int))
+    (need-to-move (int))
+)
+
+(:domain
+    (:operator (!pickup a)
+        ((clear a) (on-table a))
+        ((holding a))
+    )
+
+    (:operator (!putdown a)
+        ((hodling a))
+        ((on-table a) (clear a))
+    )
+
+    (:operator (!stack a b)
+        ((hodling a) (clear b))
+        ((on a b) (clear a))
+    )
+
+    (:operator (!unstack a b)
+        ((clear a) (on a b))
+        ((hodling a) (clear b))
+    )
+
+    (:method (solve)
+        ()
+        ((find-nomove) (add-new-goals) (find-movable) (move-block))
+    )
+
+    (:method (find-nomove)
+        ((block x) (not (dont-move x)) (not (need-to-move x)))
+    )
+)
