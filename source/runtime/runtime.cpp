@@ -111,8 +111,7 @@ method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks)
 
                 for (; top != bottom-1; --top)
                 {
-                    tuple_list::handle* list = top->list;
-                    tuple_list::undo(list, top->tuple);
+                    tuple_list::undo(top->list, top->tuple);
                 }
 
                 pstate.journal->rewind(new_top->jrewind);
