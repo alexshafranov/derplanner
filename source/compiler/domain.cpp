@@ -39,6 +39,7 @@ namespace
     const char token_domain[]       = ":domain";
     const char token_method[]       = ":method";
     const char token_operator[]     = ":operator";
+    const char token_foreach[]      = ":foreach";
 
     node* build_method(tree& ast, sexpr::node* s_expr);
     node* build_branch(tree& ast, sexpr::node* s_expr);
@@ -50,7 +51,7 @@ namespace
 
     bool is_token(sexpr::node* s_expr, const char* token)
     {
-        return strncmp(s_expr->token, token, sizeof(token)) == 0;
+        return s_expr && s_expr->token && strncmp(s_expr->token, token, sizeof(token)) == 0;
     }
 
     int count_elements(sexpr::node* root, const char* token)
@@ -292,6 +293,11 @@ namespace
 
     sexpr::node* next_branch_expr(sexpr::node* branch_expr)
     {
+        if (is_token(branch_expr->first_child, token_foreach))
+        {
+            return branch_expr->next_sibling;
+        }
+
         return branch_expr->next_sibling->next_sibling;
     }
 
@@ -304,7 +310,28 @@ namespace
             return 0;
         }
 
-        node* precondition = build_logical_expression(ast, s_expr);
+        sexpr::node* precondition_expr = 0;
+        sexpr::node* tasklist_expr = 0;
+
+        branch_ann* ann = annotation<branch_ann>(branch);
+
+        if (is_token(s_expr->first_child, token_foreach))
+        {
+            precondition_expr = s_expr->first_child->next_sibling;
+            plnnrc_assert(precondition_expr);
+            tasklist_expr = precondition_expr->next_sibling;
+            ann->foreach = true;
+        }
+        else
+        {
+            precondition_expr = s_expr;
+            tasklist_expr = precondition_expr->next_sibling;
+            plnnrc_assert(precondition_expr);
+            plnnrc_assert(tasklist_expr);
+            ann->foreach = false;
+        }
+
+        node* precondition = build_logical_expression(ast, precondition_expr);
 
         if (!precondition)
         {
@@ -319,8 +346,6 @@ namespace
         }
 
         append_child(branch, precondition_dnf);
-
-        sexpr::node* tasklist_expr = s_expr->next_sibling;
 
         node* task_list = build_atom_list(ast, tasklist_expr);
 

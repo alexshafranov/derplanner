@@ -122,7 +122,7 @@ method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks)
 
     pstate.top_method = new_top;
 
-    return new_top;
+    return pstate.top_method;
 }
 
 bool next_branch(planner_state& pstate, expand_func expand, void* worldstate)

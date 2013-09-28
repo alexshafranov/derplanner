@@ -538,6 +538,8 @@ namespace
             {
                 plnnrc_assert(branch->type == node_branch);
 
+                branch_ann* ann = annotation<branch_ann>(branch);
+
                 node* precondition = branch->first_child;
                 node* tasklist = precondition->next_sibling;
 
@@ -636,7 +638,7 @@ namespace
                                 }
                             }
 
-                            if (is_last(task_atom))
+                            if (is_last(task_atom) && !ann->foreach)
                             {
                                 output.writeln("method->expanded = true;");
                             }
@@ -650,6 +652,16 @@ namespace
                                     output.newline();
                                 }
                             }
+                        }
+                    }
+
+                    if (ann->foreach)
+                    {
+                        output.writeln("if (precondition->stage > 0)");
+                        {
+                            scope s(output);
+                            output.writeln("method->expanded = true;");
+                            output.writeln("PLNNR_COROUTINE_YIELD(*method);");
                         }
                     }
 

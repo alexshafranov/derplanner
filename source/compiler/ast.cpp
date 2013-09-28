@@ -65,6 +65,13 @@ namespace
             return result;
         }
 
+        if (type == node_branch)
+        {
+            result.size = sizeof(branch_ann);
+            result.alignment = plnnrc_alignof(branch_ann);
+            return result;
+        }
+
         return result;
     }
 }

@@ -75,6 +75,11 @@ struct atom_ann
     int index;
 };
 
+struct branch_ann
+{
+    bool foreach;
+};
+
 template <typename T>
 T* annotation(node* n)
 {
