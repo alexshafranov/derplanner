@@ -46,6 +46,8 @@ namespace
     node* build_operator_stub(tree& ast, sexpr::node* s_expr);
     bool build_operator_stubs(tree& ast);
 
+    sexpr::node* next_branch_expr(sexpr::node* branch_expr);
+
     bool is_token(sexpr::node* s_expr, const char* token)
     {
         return strncmp(s_expr->token, token, sizeof(token)) == 0;
@@ -273,11 +275,9 @@ namespace
             plnnrc_assert(result);
         }
 
-        sexpr::node* branch_precond_expr = task_atom_expr->next_sibling;
-
-        while (branch_precond_expr)
+        for (sexpr::node* branch_expr = task_atom_expr->next_sibling; branch_expr != 0; branch_expr = next_branch_expr(branch_expr))
         {
-            node* branch = build_branch(ast, branch_precond_expr);
+            node* branch = build_branch(ast, branch_expr);
 
             if (!branch)
             {
@@ -285,11 +285,14 @@ namespace
             }
 
             append_child(method, branch);
-
-            branch_precond_expr = branch_precond_expr->next_sibling->next_sibling;
         }
 
         return method;
+    }
+
+    sexpr::node* next_branch_expr(sexpr::node* branch_expr)
+    {
+        return branch_expr->next_sibling->next_sibling;
     }
 
     node* build_branch(tree& ast, sexpr::node* s_expr)
