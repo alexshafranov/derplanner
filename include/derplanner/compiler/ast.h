@@ -80,6 +80,11 @@ struct branch_ann
     bool foreach;
 };
 
+struct method_ann
+{
+    bool processed;
+};
+
 template <typename T>
 T* annotation(node* n)
 {

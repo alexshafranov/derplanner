@@ -13,6 +13,9 @@
     (holding (int))
     (dont-move (int))
     (need-to-move (int))
+
+    (put-on-table (int))
+    (stack-on-block (int) (int))
 )
 
 (:domain
@@ -22,26 +25,174 @@
     )
 
     (:operator (!putdown a)
-        ((hodling a))
+        ((holding a))
         ((on-table a) (clear a))
     )
 
     (:operator (!stack a b)
-        ((hodling a) (clear b))
+        ((holding a) (clear b))
         ((on a b) (clear a))
     )
 
     (:operator (!unstack a b)
         ((clear a) (on a b))
-        ((hodling a) (clear b))
+        ((holding a) (clear b))
+    )
+
+    (:operator (!mark-no-move a)
+        ()
+        ((dont-move a))
+    )
+
+    (:operator (!mark-need-to-move a)
+        ()
+        ((need-to-move a))
+    )
+
+    (:operator (!add-goal-on-table a)
+        ()
+        ((goal-on-table a))
+    )
+
+    (:operator (!add-put-on-table a)
+        ()
+        ((put-on-table a))
+    )
+
+    (:operator (!remove-put-on-table a)
+        ((put-on-table a))
+        ()
+    )
+
+    (:operator (!add-stack-on-block a b)
+        ()
+        ((stack-on-block a b))
+    )
+
+    (:operator (!remove-stack-on-block a b)
+        ((stack-on-block a b))
+        ()
     )
 
     (:method (solve)
         ()
-        ((find-nomove) (add-new-goals) (find-movable) (move-block))
+        ((mark-all-blocks) (add-new-goals) (find-movable) (move-block))
     )
 
-    (:method (find-nomove)
-        ((block x) (not (dont-move x)) (not (need-to-move x)))
+    (:method (mark-all-blocks)
+        (:foreach
+            ((block x))
+            ((mark-block x))
+        )
+    )
+
+    (:method (mark-block x)
+        ((not (dont-move x)) (not (need-to-move x)))
+        ((mark-block-recursive x))
+
+        ()
+        ()
+    )
+
+    (:method (mark-block-recursive x)
+        ((on x w))
+        ((mark-block-recursive w) (mark-block-term x))
+
+        ()
+        ((mark-block-term x))
+    )
+
+    (:method (mark-block-term x)
+        ((on x y) (goal-on x z) (not (== y z)))
+        ((!mark-need-to-move x))
+
+        ((on-table x) (goal-on x z))
+        ((!mark-need-to-move x))
+
+        ((on x y) (goal-on-table x))
+        ((!mark-need-to-move x))
+
+        ((on x y) (goal-clear y))
+        ((!mark-need-to-move x))
+
+        ((on x z) (goal-on y z) (not (== x y)))
+        ((!mark-need-to-move x))
+
+        ((on x w) (need-to-move w))
+        ((!mark-need-to-move x))
+
+        ()
+        ((!mark-no-move x))
+    )
+
+    (:method (add-new-goals)
+        ((block x) (not (dont-move x)) (not (goal-on-table ?x)) (not (goal-on ?x ?y)))
+        ((!add-goal-on-table x) (add-new-goals))
+
+        ()
+        ()
+    )
+
+    (:method (find-movable)
+        ((clear x) (not (dont-move x)) (goal-on-table x) (not (put-on-table x)))
+        ((!add-put-on-table x) (find-movable))
+
+        ((clear x) (not (dont-move x)) (goal-on x y) (not (stack-on-block x y)) (dont-move y) (clear y))
+        ((!add-stack-on-block x y) (find-movable))
+
+        ()
+        ()
+    )
+
+    (:method (move-block)
+        ((stack-on-block x y))
+        ((move-block1 x y) (move-block))
+
+        ((put-on-table x) (on x y))
+        ((!unstack x y) (!putdown x) (!mark-dont-move x) (!remove-put-on-table x) (check x) (check2 y) (check3 y) (move-block))
+
+        ((clear x) (not (dont-move x)) (on x y))
+        ((!unstack x y) (!putdown x) (check2 y) (check3 y) (move-block))
+
+        ()
+        ()
+    )
+
+    (:method (check x)
+        ((goal-on y x) (clear y))
+        ((!add-stack-on-block y x))
+
+        ()
+        ()
+    )
+
+    (:method (check2 x)
+        ((dont-move x) (goal-on y x) (clear y))
+        ((!add-stack-on-block y x))
+
+        ()
+        ()
+    )
+
+    (:method (check3 x)
+        ((dont-move x))
+        ()
+
+        ((goal-on x y) (clear y) (dont-move y))
+        ((!add-stack-on-block x y))
+
+        ((goal-on-table x))
+        ((!add-put-on-table x))
+
+        ()
+        ()
+    )
+
+    (:method (move-block1 x z)
+        ((on x y))
+        ((!unstack x y) (!stack x z) (!mark-dont-move x) (!remove-stack-on-block x z) (check x) (check2 y) (check3 y))
+
+        ()
+        ((!pickup x) (!stack x z) (!mark-dont-move x) (!remove-stack-on-block x z) (check x))
     )
 )

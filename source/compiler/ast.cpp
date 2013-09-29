@@ -72,6 +72,13 @@ namespace
             return result;
         }
 
+        if (type == node_method)
+        {
+            result.size = sizeof(method_ann);
+            result.alignment = plnnrc_alignof(method_ann);
+            return result;
+        }
+
         return result;
     }
 }

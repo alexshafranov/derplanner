@@ -19,6 +19,7 @@
 //
 
 #include <string.h>
+#include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/s_expression.h"
 #include "derplanner/compiler/ast.h"
 #include "derplanner/compiler/tree_ops.h"
@@ -55,6 +56,8 @@ node* build_atom(tree& ast, sexpr::node* s_expr)
 
     for (sexpr::node* v_expr = s_expr->first_child->next_sibling; v_expr != 0; v_expr = v_expr->next_sibling)
     {
+        plnnrc_assert(v_expr->type = sexpr::node_symbol);
+
         node* argument = ast.make_node(node_term_variable, v_expr);
 
         if (!argument)
