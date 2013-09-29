@@ -25,6 +25,7 @@
 
 #include "derplanner/runtime/worldstate.h"
 #include "derplanner/runtime/memory.h" // alignof
+#include "derplanner/runtime/coroutine_macro.h"
 
 namespace plnnr {
 
