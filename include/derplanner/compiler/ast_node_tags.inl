@@ -41,10 +41,12 @@ PLNNRC_AST_NODE_INNER(node_op_not)
 PLNNRC_AST_NODE_LEAF(node_worldstate_type)
 
 PLNNRC_AST_NODE_LEAF(node_atom)
+PLNNRC_AST_NODE_LEAF(node_atom_eq)
 
 PLNNRC_AST_NODE_LEAF(node_term_variable)
 PLNNRC_AST_NODE_LEAF(node_term_int)
 PLNNRC_AST_NODE_LEAF(node_term_float)
+PLNNRC_AST_NODE_LEAF(node_term_eq)
 PLNNRC_AST_NODE_LEAF(node_term_call)
 
 PLNNRC_AST_NODE_LEAF(node_error)

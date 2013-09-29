@@ -39,14 +39,12 @@ namespace
     const char token_domain[]       = ":domain";
     const char token_method[]       = ":method";
     const char token_operator[]     = ":operator";
-    const char token_axiom[]        = ":axiom";
     const char token_foreach[]      = ":foreach";
 
     node* build_method(tree& ast, sexpr::node* s_expr);
     node* build_branch(tree& ast, sexpr::node* s_expr);
     node* build_operator(tree& ast, sexpr::node* s_expr);
     node* build_operator_stub(tree& ast, sexpr::node* s_expr);
-    node* build_axiom(tree& ast, sexpr::node* s_expr);
 
     bool build_operator_stubs(tree& ast);
 
@@ -205,16 +203,6 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
         if (is_token(c_expr->first_child, token_operator))
         {
             element = build_operator(ast, c_expr);
-
-            if (!element)
-            {
-                return 0;
-            }
-        }
-
-        if (is_token(c_expr->first_child, token_axiom))
-        {
-            element = build_axiom(ast, c_expr);
 
             if (!element)
             {
@@ -516,11 +504,6 @@ namespace
         }
 
         return true;
-    }
-
-    node* build_axiom(tree& ast, sexpr::node* s_expr)
-    {
-        return 0;
     }
 }
 

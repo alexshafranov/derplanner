@@ -242,7 +242,7 @@ namespace
     inline bool is_literal(node* root)
     {
         plnnrc_assert(root != 0);
-        return (root->type == node_atom) || (root->type == node_op_not);
+        return is_atom(root) || (root->type == node_op_not);
     }
 
     bool is_conjunction_of_literals(node* root)

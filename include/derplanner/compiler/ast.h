@@ -106,6 +106,16 @@ inline bool is_term(const node* n)
     return is_term(n->type);
 }
 
+inline bool is_atom(node_type type)
+{
+    return type >= node_atom && type <= node_atom_eq;
+}
+
+inline bool is_atom(const node* n)
+{
+    return is_atom(n->type);
+}
+
 class tree
 {
 public:

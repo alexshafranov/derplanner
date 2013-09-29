@@ -18,6 +18,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
+#include <string.h>
 #include "derplanner/compiler/s_expression.h"
 #include "derplanner/compiler/ast.h"
 #include "derplanner/compiler/tree_ops.h"
@@ -26,9 +27,26 @@
 namespace plnnrc {
 namespace ast {
 
+namespace
+{
+    const char token_eq[] = "==";
+
+    bool is_token(sexpr::node* s_expr, const char* token)
+    {
+        return strncmp(s_expr->token, token, sizeof(token)) == 0;
+    }
+}
+
 node* build_atom(tree& ast, sexpr::node* s_expr)
 {
-    node* atom = ast.make_node(node_atom, s_expr->first_child);
+    node_type atom_type = node_atom;
+
+    if (is_token(s_expr->first_child, token_eq))
+    {
+        atom_type = node_atom_eq;
+    }
+
+    node* atom = ast.make_node(atom_type, s_expr->first_child);
 
     if (!atom)
     {

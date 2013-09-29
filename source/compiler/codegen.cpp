@@ -130,9 +130,11 @@ namespace
                             annotation<term_ann>(n)->var_index = var_index;
                         }
 
-                        node* ws_type = ast.type_tag_to_node[type_tag(n)];
-
-                        output.writeln("%s _%d;", ws_type->s_expr->first_child->token, var_index);
+                        if (n->parent->type == node_atom)
+                        {
+                            node* ws_type = ast.type_tag_to_node[type_tag(n)];
+                            output.writeln("%s _%d;", ws_type->s_expr->first_child->token, var_index);
+                        }
 
                         ++var_index;
                     }
@@ -165,15 +167,89 @@ namespace
         return true;
     }
 
+    bool generate_literal_chain(tree& ast, node* root, formatter& output);
+
+    bool generate_literal_chain_atom_eq(tree& ast, node* root, node* atom, formatter& output)
+    {
+        node* arg_0 = atom->first_child;
+        plnnrc_assert(arg_0 && arg_0->type == node_term_variable);
+        node* arg_1 = arg_0->next_sibling;
+        plnnrc_assert(arg_1 && arg_1->type == node_term_variable && !arg_1->next_sibling);
+
+        node* def_0 = definition(arg_0);
+        node* def_1 = definition(arg_1);
+        plnnrc_assert(def_0 && def_1);
+
+        const char* comparison_op = "==";
+
+        if (root->type == node_op_not)
+        {
+            comparison_op = "!=";
+        }
+
+        int var_index_0 = annotation<term_ann>(def_0)->var_index;
+        int var_index_1 = annotation<term_ann>(def_1)->var_index;
+
+        const char* format;
+
+        if (is_parameter(def_0))
+        {
+            if (is_parameter(def_1))
+            {
+                format = "if (method_args->_%d %s method_args->_%d)";
+            }
+            else
+            {
+                format = "if (method_args->_%d %s state._%d)";
+            }
+        }
+        else
+        {
+            if (is_parameter(def_1))
+            {
+                format = "if (state._%d %s method_args->_%d)";
+            }
+            else
+            {
+                format = "if (state._%d %s state._%d)";
+            }
+        }
+
+        output.writeln(format, var_index_0, comparison_op, var_index_1);
+        {
+            scope s(output);
+
+            if (root->next_sibling)
+            {
+                if (!generate_literal_chain(ast, root->next_sibling, output))
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                output.writeln("PLNNR_COROUTINE_YIELD(state);");
+            }
+        }
+
+        return true;
+    }
+
     bool generate_literal_chain(tree& ast, node* root, formatter& output)
     {
-        plnnrc_assert(root->type == node_op_not || root->type == node_atom);
+        plnnrc_assert(root->type == node_op_not || is_atom(root));
 
         node* atom = root;
 
         if (root->type == node_op_not)
         {
             atom = root->first_child;
+        }
+
+        // special case atoms
+        if (atom->type == node_atom_eq)
+        {
+            return generate_literal_chain_atom_eq(ast, root, atom, output);
         }
 
         const char* atom_id = atom->s_expr->token;
