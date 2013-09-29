@@ -595,6 +595,16 @@ namespace
                     {
                         scope s(output);
 
+                        if (!tasklist->first_child)
+                        {
+                            if (!ann->foreach)
+                            {
+                                output.writeln("method->expanded = true;");
+                            }
+
+                            output.writeln("PLNNR_COROUTINE_YIELD(*method);");
+                        }
+
                         for (node* task_atom = tasklist->first_child; task_atom != 0; task_atom = task_atom->next_sibling)
                         {
                             {
