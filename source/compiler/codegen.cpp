@@ -193,34 +193,9 @@ namespace
         int var_index_0 = annotation<term_ann>(def_0)->var_index;
         int var_index_1 = annotation<term_ann>(def_1)->var_index;
 
-        const char* format;
-
-        if (is_parameter(def_0))
+        output.writeln("if (state._%d %s state._%d)", var_index_0, comparison_op, var_index_1);
         {
-            if (is_parameter(def_1))
-            {
-                format = "if (method_args->_%d %s method_args->_%d)";
-            }
-            else
-            {
-                format = "if (method_args->_%d %s state._%d)";
-            }
-        }
-        else
-        {
-            if (is_parameter(def_1))
-            {
-                format = "if (state._%d %s method_args->_%d)";
-            }
-            else
-            {
-                format = "if (state._%d %s state._%d)";
-            }
-        }
-
-        output.writeln(format, var_index_0, comparison_op, var_index_1);
-        {
-            scope s(output);
+            scope s(output, root->next_sibling);
 
             if (root->next_sibling)
             {
