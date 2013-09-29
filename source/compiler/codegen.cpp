@@ -692,13 +692,21 @@ namespace
                                 if (is_operator(ast, task_atom))
                                 {
                                     output.writeln("task_instance* t = push_task(pstate, task_%i);", task_atom->s_expr->token);
-                                    output.writeln("%i_args* a = push<%i_args>(pstate.tstack);", task_atom->s_expr->token, task_atom->s_expr->token);
+
+                                    if (task_atom->first_child)
+                                    {
+                                        output.writeln("%i_args* a = push<%i_args>(pstate.tstack);", task_atom->s_expr->token, task_atom->s_expr->token);
+                                    }
                                 }
                                 else
                                 {
                                     plnnrc_assert(ast.methods.find(task_atom->s_expr->token));
                                     output.writeln("method_instance* t = push_method(pstate, %i_branch_0_expand);", task_atom->s_expr->token);
-                                    output.writeln("%i_args* a = push<%i_args>(pstate.mstack);", task_atom->s_expr->token, task_atom->s_expr->token);
+
+                                    if (task_atom->first_child)
+                                    {
+                                        output.writeln("%i_args* a = push<%i_args>(pstate.mstack);", task_atom->s_expr->token, task_atom->s_expr->token);
+                                    }
                                 }
 
                                 int param_index = 0;
@@ -722,7 +730,10 @@ namespace
                                     ++param_index;
                                 }
 
-                                output.writeln("t->args = a;");
+                                if (task_atom->first_child)
+                                {
+                                    output.writeln("t->args = a;");
+                                }
 
                                 if (is_operator(ast, task_atom))
                                 {
