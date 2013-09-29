@@ -255,6 +255,12 @@ namespace
                 return false;
             }
         }
+        else
+        {
+            // the formula is trivial: (or (and))
+            output.writeln("PLNNR_COROUTINE_YIELD(state);");
+            output.newline();
+        }
 
         return true;
     }
