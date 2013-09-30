@@ -235,9 +235,37 @@ namespace
 
         if (root->type == node_op_not && all_bound(atom))
         {
-            output.writeln("if (!world.%i)", atom_id);
+            output.writeln("for (state.%i_%d = world.%i; state.%i_%d != 0; state.%i_%d = state.%i_%d->next)",
+                atom_id, atom_index,
+                atom_id,
+                atom_id, atom_index,
+                atom_id, atom_index,
+                atom_id, atom_index);
             {
                 scope s(output);
+
+                int atom_param_index = 0;
+
+                for (node* term = atom->first_child; term != 0; term = term->next_sibling)
+                {
+                    if (term->type == node_term_variable)
+                    {
+                        int var_index = annotation<term_ann>(term)->var_index;
+
+                        output.writeln("if (state.%i_%d->_%d == state._%d)", atom_id, atom_index, atom_param_index, var_index);
+                        {
+                            scope s(output, !is_last(term));
+                            output.writeln("break;");
+                        }
+                    }
+
+                    ++atom_param_index;
+                }
+            }
+
+            output.writeln("if (state.%i_%d == 0)", atom_id, atom_index);
+            {
+                scope s(output, is_first(root));
 
                 if (root->next_sibling)
                 {
@@ -252,66 +280,67 @@ namespace
                 }
             }
         }
-
-        output.writeln("for (state.%i_%d = world.%i; state.%i_%d != 0; state.%i_%d = state.%i_%d->next)",
-            atom_id, atom_index,
-            atom_id,
-            atom_id, atom_index,
-            atom_id, atom_index,
-            atom_id, atom_index);
+        else
         {
-            scope s(output, is_first(root));
-
-            int atom_param_index = 0;
-
-            for (node* term = atom->first_child; term != 0; term = term->next_sibling)
+            output.writeln("for (state.%i_%d = world.%i; state.%i_%d != 0; state.%i_%d = state.%i_%d->next)",
+                atom_id, atom_index,
+                atom_id,
+                atom_id, atom_index,
+                atom_id, atom_index,
+                atom_id, atom_index);
             {
-                if (term->type == node_term_variable && definition(term))
+                scope s(output, is_first(root));
+
+                int atom_param_index = 0;
+
+                for (node* term = atom->first_child; term != 0; term = term->next_sibling)
                 {
-                    int var_index = annotation<term_ann>(term)->var_index;
-
-                    const char* comparison_op = "!=";
-
-                    if (root->type == node_op_not)
+                    if (term->type == node_term_variable && definition(term))
                     {
-                        comparison_op = "==";
+                        int var_index = annotation<term_ann>(term)->var_index;
+
+                        const char* comparison_op = "!=";
+
+                        if (root->type == node_op_not)
+                        {
+                            comparison_op = "==";
+                        }
+
+                        output.writeln("if (state.%i_%d->_%d %s state._%d)", atom_id, atom_index, atom_param_index, comparison_op, var_index);
+                        {
+                            scope s(output);
+                            output.writeln("continue;");
+                        }
                     }
 
-                    output.writeln("if (state.%i_%d->_%d %s state._%d)", atom_id, atom_index, atom_param_index, comparison_op, var_index);
-                    {
-                        scope s(output);
+                    ++atom_param_index;
+                }
 
-                        output.writeln("continue;");
+                atom_param_index = 0;
+
+                for (node* term = atom->first_child; term != 0; term = term->next_sibling)
+                {
+                    if (term->type == node_term_variable && !definition(term))
+                    {
+                        int var_index = annotation<term_ann>(term)->var_index;
+                        output.writeln("state._%d = state.%i_%d->_%d;", var_index, atom_id, atom_index, atom_param_index);
+                        output.newline();
+                    }
+
+                    ++atom_param_index;
+                }
+
+                if (root->next_sibling)
+                {
+                    if (!generate_literal_chain(ast, root->next_sibling, output))
+                    {
+                        return false;
                     }
                 }
-
-                ++atom_param_index;
-            }
-
-            atom_param_index = 0;
-
-            for (node* term = atom->first_child; term != 0; term = term->next_sibling)
-            {
-                if (term->type == node_term_variable && !definition(term))
+                else
                 {
-                    int var_index = annotation<term_ann>(term)->var_index;
-                    output.writeln("state._%d = state.%i_%d->_%d;", var_index, atom_id, atom_index, atom_param_index);
-                    output.newline();
+                    output.writeln("PLNNR_COROUTINE_YIELD(state);");
                 }
-
-                ++atom_param_index;
-            }
-
-            if (root->next_sibling)
-            {
-                if (!generate_literal_chain(ast, root->next_sibling, output))
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                output.writeln("PLNNR_COROUTINE_YIELD(state);");
             }
         }
 
@@ -628,6 +657,8 @@ namespace
                 output.writeln("bool %i_branch_%d_expand(planner_state& pstate, void* world)", method_name, branch_index);
                 {
                     scope s(output);
+
+                    // output.writeln("printf(\"%i_branch_%d_expand\\n\");", method_name, branch_index);
 
                     output.writeln("method_instance* method = pstate.top_method;");
                     output.writeln("p%d_state* precondition = static_cast<p%d_state*>(method->precondition);", precondition_index, precondition_index);
