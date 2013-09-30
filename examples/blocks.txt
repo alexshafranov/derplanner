@@ -126,7 +126,7 @@
     )
 
     (:method (add-new-goals)
-        ((block x) (not (dont-move x)) (not (goal-on-table ?x)) (not (goal-on ?x ?y)))
+        ((block x) (not (dont-move x)) (not (goal-on-table x)) (not (goal-on x y)))
         ((!add-goal-on-table x) (add-new-goals))
 
         ()

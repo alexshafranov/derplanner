@@ -1,5 +1,3 @@
-#include <string.h>
-#include <stdio.h>
 #include <derplanner/runtime/runtime.h>
 
 using namespace plnnr;
@@ -154,11 +152,34 @@ bool next(p2_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
+	if (!world.dont_move)
+	{
+		if (!world.need_to_move)
+		{
+			PLNNR_COROUTINE_YIELD(state);
+		}
+
+		for (state.need_to_move_1 = world.need_to_move; state.need_to_move_1 != 0; state.need_to_move_1 = state.need_to_move_1->next)
+		{
+			if (state.need_to_move_1->_0 == state._0)
+			{
+				continue;
+			}
+
+			PLNNR_COROUTINE_YIELD(state);
+		}
+	}
+
 	for (state.dont_move_0 = world.dont_move; state.dont_move_0 != 0; state.dont_move_0 = state.dont_move_0->next)
 	{
 		if (state.dont_move_0->_0 == state._0)
 		{
 			continue;
+		}
+
+		if (!world.need_to_move)
+		{
+			PLNNR_COROUTINE_YIELD(state);
 		}
 
 		for (state.need_to_move_1 = world.need_to_move; state.need_to_move_1 != 0; state.need_to_move_1 = state.need_to_move_1->next)
@@ -476,7 +497,6 @@ struct p13_state
 {
 	int _0;
 	int _1;
-	int _2;
 	block_tuple* block_0;
 	dont_move_tuple* dont_move_1;
 	goal_on_table_tuple* goal_on_table_2;
@@ -492,6 +512,44 @@ bool next(p13_state& state, worldstate& world)
 	{
 		state._0 = state.block_0->_0;
 
+		if (!world.dont_move)
+		{
+			if (!world.goal_on_table)
+			{
+				for (state.goal_on_3 = world.goal_on; state.goal_on_3 != 0; state.goal_on_3 = state.goal_on_3->next)
+				{
+					if (state.goal_on_3->_0 == state._0)
+					{
+						continue;
+					}
+
+					state._1 = state.goal_on_3->_1;
+
+					PLNNR_COROUTINE_YIELD(state);
+				}
+			}
+
+			for (state.goal_on_table_2 = world.goal_on_table; state.goal_on_table_2 != 0; state.goal_on_table_2 = state.goal_on_table_2->next)
+			{
+				if (state.goal_on_table_2->_0 == state._0)
+				{
+					continue;
+				}
+
+				for (state.goal_on_3 = world.goal_on; state.goal_on_3 != 0; state.goal_on_3 = state.goal_on_3->next)
+				{
+					if (state.goal_on_3->_0 == state._0)
+					{
+						continue;
+					}
+
+					state._1 = state.goal_on_3->_1;
+
+					PLNNR_COROUTINE_YIELD(state);
+				}
+			}
+		}
+
 		for (state.dont_move_1 = world.dont_move; state.dont_move_1 != 0; state.dont_move_1 = state.dont_move_1->next)
 		{
 			if (state.dont_move_1->_0 == state._0)
@@ -499,18 +557,36 @@ bool next(p13_state& state, worldstate& world)
 				continue;
 			}
 
-			for (state.goal_on_table_2 = world.goal_on_table; state.goal_on_table_2 != 0; state.goal_on_table_2 = state.goal_on_table_2->next)
+			if (!world.goal_on_table)
 			{
-				state._1 = state.goal_on_table_2->_0;
-
 				for (state.goal_on_3 = world.goal_on; state.goal_on_3 != 0; state.goal_on_3 = state.goal_on_3->next)
 				{
-					if (state.goal_on_3->_0 == state._1)
+					if (state.goal_on_3->_0 == state._0)
 					{
 						continue;
 					}
 
-					state._2 = state.goal_on_3->_1;
+					state._1 = state.goal_on_3->_1;
+
+					PLNNR_COROUTINE_YIELD(state);
+				}
+			}
+
+			for (state.goal_on_table_2 = world.goal_on_table; state.goal_on_table_2 != 0; state.goal_on_table_2 = state.goal_on_table_2->next)
+			{
+				if (state.goal_on_table_2->_0 == state._0)
+				{
+					continue;
+				}
+
+				for (state.goal_on_3 = world.goal_on; state.goal_on_3 != 0; state.goal_on_3 = state.goal_on_3->next)
+				{
+					if (state.goal_on_3->_0 == state._0)
+					{
+						continue;
+					}
+
+					state._1 = state.goal_on_3->_1;
 
 					PLNNR_COROUTINE_YIELD(state);
 				}
@@ -553,6 +629,32 @@ bool next(p15_state& state, worldstate& world)
 	{
 		state._0 = state.clear_0->_0;
 
+		if (!world.dont_move)
+		{
+			for (state.goal_on_table_2 = world.goal_on_table; state.goal_on_table_2 != 0; state.goal_on_table_2 = state.goal_on_table_2->next)
+			{
+				if (state.goal_on_table_2->_0 != state._0)
+				{
+					continue;
+				}
+
+				if (!world.put_on_table)
+				{
+					PLNNR_COROUTINE_YIELD(state);
+				}
+
+				for (state.put_on_table_3 = world.put_on_table; state.put_on_table_3 != 0; state.put_on_table_3 = state.put_on_table_3->next)
+				{
+					if (state.put_on_table_3->_0 == state._0)
+					{
+						continue;
+					}
+
+					PLNNR_COROUTINE_YIELD(state);
+				}
+			}
+		}
+
 		for (state.dont_move_1 = world.dont_move; state.dont_move_1 != 0; state.dont_move_1 = state.dont_move_1->next)
 		{
 			if (state.dont_move_1->_0 == state._0)
@@ -565,6 +667,11 @@ bool next(p15_state& state, worldstate& world)
 				if (state.goal_on_table_2->_0 != state._0)
 				{
 					continue;
+				}
+
+				if (!world.put_on_table)
+				{
+					PLNNR_COROUTINE_YIELD(state);
 				}
 
 				for (state.put_on_table_3 = world.put_on_table; state.put_on_table_3 != 0; state.put_on_table_3 = state.put_on_table_3->next)
@@ -604,6 +711,71 @@ bool next(p16_state& state, worldstate& world)
 	{
 		state._0 = state.clear_0->_0;
 
+		if (!world.dont_move)
+		{
+			for (state.goal_on_2 = world.goal_on; state.goal_on_2 != 0; state.goal_on_2 = state.goal_on_2->next)
+			{
+				if (state.goal_on_2->_0 != state._0)
+				{
+					continue;
+				}
+
+				state._1 = state.goal_on_2->_1;
+
+				if (!world.stack_on_block)
+				{
+					for (state.dont_move_4 = world.dont_move; state.dont_move_4 != 0; state.dont_move_4 = state.dont_move_4->next)
+					{
+						if (state.dont_move_4->_0 != state._1)
+						{
+							continue;
+						}
+
+						for (state.clear_5 = world.clear; state.clear_5 != 0; state.clear_5 = state.clear_5->next)
+						{
+							if (state.clear_5->_0 != state._1)
+							{
+								continue;
+							}
+
+							PLNNR_COROUTINE_YIELD(state);
+						}
+					}
+				}
+
+				for (state.stack_on_block_3 = world.stack_on_block; state.stack_on_block_3 != 0; state.stack_on_block_3 = state.stack_on_block_3->next)
+				{
+					if (state.stack_on_block_3->_0 == state._0)
+					{
+						continue;
+					}
+
+					if (state.stack_on_block_3->_1 == state._1)
+					{
+						continue;
+					}
+
+					for (state.dont_move_4 = world.dont_move; state.dont_move_4 != 0; state.dont_move_4 = state.dont_move_4->next)
+					{
+						if (state.dont_move_4->_0 != state._1)
+						{
+							continue;
+						}
+
+						for (state.clear_5 = world.clear; state.clear_5 != 0; state.clear_5 = state.clear_5->next)
+						{
+							if (state.clear_5->_0 != state._1)
+							{
+								continue;
+							}
+
+							PLNNR_COROUTINE_YIELD(state);
+						}
+					}
+				}
+			}
+		}
+
 		for (state.dont_move_1 = world.dont_move; state.dont_move_1 != 0; state.dont_move_1 = state.dont_move_1->next)
 		{
 			if (state.dont_move_1->_0 == state._0)
@@ -619,6 +791,27 @@ bool next(p16_state& state, worldstate& world)
 				}
 
 				state._1 = state.goal_on_2->_1;
+
+				if (!world.stack_on_block)
+				{
+					for (state.dont_move_4 = world.dont_move; state.dont_move_4 != 0; state.dont_move_4 = state.dont_move_4->next)
+					{
+						if (state.dont_move_4->_0 != state._1)
+						{
+							continue;
+						}
+
+						for (state.clear_5 = world.clear; state.clear_5 != 0; state.clear_5 = state.clear_5->next)
+						{
+							if (state.clear_5->_0 != state._1)
+							{
+								continue;
+							}
+
+							PLNNR_COROUTINE_YIELD(state);
+						}
+					}
+				}
 
 				for (state.stack_on_block_3 = world.stack_on_block; state.stack_on_block_3 != 0; state.stack_on_block_3 = state.stack_on_block_3->next)
 				{
@@ -745,6 +938,21 @@ bool next(p20_state& state, worldstate& world)
 	for (state.clear_0 = world.clear; state.clear_0 != 0; state.clear_0 = state.clear_0->next)
 	{
 		state._0 = state.clear_0->_0;
+
+		if (!world.dont_move)
+		{
+			for (state.on_2 = world.on; state.on_2 != 0; state.on_2 = state.on_2->next)
+			{
+				if (state.on_2->_0 != state._0)
+				{
+					continue;
+				}
+
+				state._1 = state.on_2->_1;
+
+				PLNNR_COROUTINE_YIELD(state);
+			}
+		}
 
 		for (state.dont_move_1 = world.dont_move; state.dont_move_1 != 0; state.dont_move_1 = state.dont_move_1->next)
 		{
@@ -2991,3 +3199,4 @@ bool move_block1_branch_1_expand(planner_state& pstate, void* world)
 
 	PLNNR_COROUTINE_END();
 }
+

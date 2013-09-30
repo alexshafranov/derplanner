@@ -233,6 +233,26 @@ namespace
         const char* atom_id = atom->s_expr->token;
         int atom_index = annotation<atom_ann>(atom)->index;
 
+        if (root->type == node_op_not && all_bound(atom))
+        {
+            output.writeln("if (!world.%i)", atom_id);
+            {
+                scope s(output);
+
+                if (root->next_sibling)
+                {
+                    if (!generate_literal_chain(ast, root->next_sibling, output))
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    output.writeln("PLNNR_COROUTINE_YIELD(state);");
+                }
+            }
+        }
+
         output.writeln("for (state.%i_%d = world.%i; state.%i_%d != 0; state.%i_%d = state.%i_%d->next)",
             atom_id, atom_index,
             atom_id,
