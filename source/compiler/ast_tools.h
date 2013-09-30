@@ -35,6 +35,21 @@ inline bool is_bound(node* var)
     return annotation<term_ann>(var)->var_def != 0;
 }
 
+inline bool all_bound(node* atom)
+{
+    plnnrc_assert(is_atom(atom));
+
+    for (node* arg = atom->first_child; arg != 0; arg = arg->next_sibling)
+    {
+        if (!is_bound(arg))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 inline node* definition(node* var)
 {
     plnnrc_assert(var->type == node_term_variable);
