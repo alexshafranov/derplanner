@@ -1,5 +1,5 @@
 solution "derplanner"
-    platforms { "x32", "x64" }
+    platforms { "x64", "x32" }
     configurations { "release", "debug" }
     language "C++"
 
