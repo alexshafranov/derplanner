@@ -43,7 +43,7 @@ stack::~stack()
 void* stack::push(size_t size, size_t alignment)
 {
     char* top = static_cast<char*>(memory::align(_top, alignment));
-    _top += size;
+    _top = top + size;
     return top;
 }
 
