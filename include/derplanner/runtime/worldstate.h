@@ -37,7 +37,7 @@ struct tuple_traits
 
 struct handle;
 
-handle* create(void** head, tuple_traits traits, size_t page_size);
+handle* create(tuple_traits traits, size_t page_size);
 
 void destroy(const handle* tuple_list);
 
@@ -47,17 +47,19 @@ void detach(handle* tuple_list, void* tuple);
 
 void undo(handle* tuple_list, void* tuple);
 
+void* head(handle* tuple_list);
+
 handle* head_to_handle(void* head_tuple, size_t size);
 
 template <typename T>
-inline handle* create(T** head, size_t page_size)
+inline handle* create(size_t page_size)
 {
     tuple_traits traits;
     traits.size = sizeof(T);
     traits.alignment = plnnr_alignof(T);
     traits.next_offset = offsetof(T, next);
     traits.prev_offset = offsetof(T, prev);
-    return create(reinterpret_cast<void**>(head), traits, page_size);
+    return create(traits, page_size);
 }
 
 template <typename T>
@@ -70,6 +72,12 @@ template <typename T>
 inline handle* head_to_handle(T* head_tuple)
 {
     return head_to_handle(head_tuple, sizeof(T));
+}
+
+template <typename T>
+inline T* head(handle* tuple_list)
+{
+    return static_cast<T*>(head(tuple_list));
 }
 
 }

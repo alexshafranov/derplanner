@@ -39,7 +39,7 @@ struct page
 struct handle
 {
     page* head_page;
-    void** head_tuple;
+    void* head_tuple;
     tuple_traits tuple;
     size_t page_size;
 };
@@ -102,7 +102,7 @@ namespace
     }
 }
 
-handle* create(void** head, tuple_traits traits, size_t page_size)
+handle* create(tuple_traits traits, size_t page_size)
 {
     size_t worstcase_size = sizeof(handle) + plnnr_alignof(handle) + sizeof(page) + plnnr_alignof(page);
     plnnr_assert(page_size > worstcase_size);
@@ -123,7 +123,7 @@ handle* create(void** head, tuple_traits traits, size_t page_size)
     head_page->top = head_page->data;
 
     tuple_list->head_page = head_page;
-    tuple_list->head_tuple = head;
+    tuple_list->head_tuple = 0;
     tuple_list->tuple = traits;
     tuple_list->page_size = page_size;
 
@@ -156,7 +156,7 @@ void* append(handle* tuple_list)
         return 0;
     }
 
-    void* head = *(tuple_list->head_tuple);
+    void* head = tuple_list->head_tuple;
 
     size_t next_offset = tuple_list->tuple.next_offset;
     size_t prev_offset = tuple_list->tuple.prev_offset;
@@ -174,7 +174,7 @@ void* append(handle* tuple_list)
     }
     else
     {
-        *(tuple_list->head_tuple) = tuple;
+        tuple_list->head_tuple = tuple;
         set_ptr(tuple, prev_offset, tuple);
     }
 
@@ -186,7 +186,7 @@ void detach(handle* tuple_list, void* tuple)
     size_t next_offset = tuple_list->tuple.next_offset;
     size_t prev_offset = tuple_list->tuple.prev_offset;
 
-    void* head = *(tuple_list->head_tuple);
+    void* head = tuple_list->head_tuple;
     void* next = get_ptr(tuple, next_offset);
     void* prev = get_ptr(tuple, prev_offset);
 
@@ -207,7 +207,7 @@ void detach(handle* tuple_list, void* tuple)
     }
     else
     {
-        *(tuple_list->head_tuple) = next;
+        tuple_list->head_tuple = next;
     }
 }
 
@@ -216,7 +216,7 @@ void undo(handle* tuple_list, void* tuple)
     size_t next_offset = tuple_list->tuple.next_offset;
     size_t prev_offset = tuple_list->tuple.prev_offset;
 
-    void* head = *(tuple_list->head_tuple);
+    void* head = tuple_list->head_tuple;
     void* prev = get_ptr(tuple, prev_offset);
     void* next = get_ptr(tuple, next_offset);
 
@@ -240,7 +240,7 @@ void undo(handle* tuple_list, void* tuple)
 
         if (!head || head == next)
         {
-            *(tuple_list->head_tuple) = tuple;
+            tuple_list->head_tuple = tuple;
             set_ptr(prev, next_offset, 0);
         }
 
@@ -249,6 +249,12 @@ void undo(handle* tuple_list, void* tuple)
             set_ptr(head, prev_offset, tuple);
         }
     }
+}
+
+void* head(handle* tuple_list)
+{
+    plnnr_assert(tuple_list);
+    return tuple_list->head_tuple;
 }
 
 }

@@ -37,9 +37,9 @@ namespace
     {
         tuple_list::handle* list;
 
-        holder(tuple** head, size_t page_size=4096)
+        holder(size_t page_size=4096)
         {
-            list = tuple_list::create<tuple>(head, page_size);
+            list = tuple_list::create<tuple>(page_size);
         }
 
         ~holder()
@@ -50,8 +50,7 @@ namespace
 
     TEST(append)
     {
-        tuple* head = 0;
-        holder h(&head);
+        holder h;
 
         for (int i = 0; i < 10; ++i)
         {
@@ -62,7 +61,7 @@ namespace
 
         int count = 0;
 
-        CHECK(head != 0);
+        tuple* head = tuple_list::head<tuple>(h.list);
 
         for (tuple* t = head; t != 0; t = t->next, ++count)
         {
@@ -74,8 +73,7 @@ namespace
 
     TEST(head_to_handle)
     {
-        tuple* head = 0;
-        holder h(&head);
+        holder h;
 
         for (int i = 0; i < 10; ++i)
         {
@@ -84,6 +82,7 @@ namespace
             new_tuple->data = i;
         }
 
+        tuple* head = tuple_list::head<tuple>(h.list);
         tuple_list::handle* handle = tuple_list::head_to_handle<tuple>(head);
         CHECK_EQUAL(h.list, handle);
     }
@@ -92,8 +91,7 @@ namespace
     {
         void* journal[9];
 
-        tuple* head = 0;
-        holder h(&head);
+        holder h;
 
         // add items
         for (int i = 0; i < 10; ++i)
@@ -105,7 +103,7 @@ namespace
         int count = 0;
 
         // detach all except the first one
-        for (tuple* t = head->next; t != 0;)
+        for (tuple* t = tuple_list::head<tuple>(h.list); t != 0;)
         {
             tuple* next = t->next;
             tuple_list::detach(h.list, t);
@@ -122,6 +120,7 @@ namespace
         // check undo
         count = 0;
 
+        tuple* head = tuple_list::head<tuple>(h.list);
         CHECK(head != 0);
 
         for (tuple* t = head; t != 0; t = t->next, ++count)
@@ -147,8 +146,7 @@ namespace
 
         int rand_index[] = {9, 14, 5, 2, 12, 0, 19, 7, 18, 13};
 
-        tuple* head = 0;
-        holder h(&head);
+        holder h;
 
         // add items.
         for (int i = 0; i < 10; ++i)
@@ -170,7 +168,7 @@ namespace
         {
             int index = rand_index[i];
 
-            for (tuple* t = head; t != 0; t = t->next)
+            for (tuple* t = tuple_list::head<tuple>(h.list); t != 0; t = t->next)
             {
                 if (index == t->data)
                 {
@@ -190,6 +188,7 @@ namespace
         // check undo
         int count = 0;
 
+        tuple* head = tuple_list::head<tuple>(h.list);
         CHECK(head != 0);
 
         for (tuple* t = head; t != 0; t = t->next, ++count)
@@ -215,8 +214,7 @@ namespace
 
         int rand_index[] = {1, 4, 6, 0, 2};
 
-        tuple* head = 0;
-        holder h(&head);
+        holder h;
 
         // add items.
         for (int i = 0; i < 10; ++i)
@@ -232,7 +230,7 @@ namespace
 
             if (i % 2 == 0)
             {
-                for (tuple* t = head; t != 0; t = t->next)
+                for (tuple* t = tuple_list::head<tuple>(h.list); t != 0; t = t->next)
                 {
                     if (index == t->data)
                     {
@@ -245,7 +243,7 @@ namespace
             }
             else
             {
-                for (tuple* t = head; t != 0; t = t->next)
+                for (tuple* t = tuple_list::head<tuple>(h.list); t != 0; t = t->next)
                 {
                     if (index == t->data)
                     {
@@ -266,6 +264,7 @@ namespace
         // check undo
         int count = 0;
 
+        tuple* head = tuple_list::head<tuple>(h.list);
         CHECK(head != 0);
 
         for (tuple* t = head; t != 0; t = t->next, ++count)
