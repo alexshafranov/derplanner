@@ -9,54 +9,54 @@ int main()
     worldstate world;
     memset(&world, 0, sizeof(world));
 
-    tuple_list::handle* block_list = tuple_list::create(&world.block, tuple_list_page);
-    tuple_list::handle* on_table_list = tuple_list::create(&world.on_table, tuple_list_page);
-    tuple_list::handle* on_list = tuple_list::create(&world.on, tuple_list_page);
-    tuple_list::handle* clear_list = tuple_list::create(&world.clear, tuple_list_page);
-    tuple_list::handle* goal_on_table_list = tuple_list::create(&world.goal_on_table, tuple_list_page);
-    tuple_list::handle* goal_on_list = tuple_list::create(&world.goal_on, tuple_list_page);
-    tuple_list::handle* goal_clear_list = tuple_list::create(&world.goal_clear, tuple_list_page);
-    tuple_list::create(&world.holding, tuple_list_page);
-    tuple_list::create(&world.dont_move, tuple_list_page);
-    tuple_list::create(&world.need_to_move, tuple_list_page);
-    tuple_list::create(&world.put_on_table, tuple_list_page);
-    tuple_list::create(&world.stack_on_block, tuple_list_page);
+    world.block = tuple_list::create<block_tuple>(tuple_list_page);
+    world.on_table = tuple_list::create<on_table_tuple>(tuple_list_page);
+    world.on = tuple_list::create<on_tuple>(tuple_list_page);
+    world.clear = tuple_list::create<clear_tuple>(tuple_list_page);
+    world.goal_on_table = tuple_list::create<goal_on_table_tuple>(tuple_list_page);
+    world.goal_on = tuple_list::create<goal_on_tuple>(tuple_list_page);
+    world.goal_clear = tuple_list::create<goal_clear_tuple>(tuple_list_page);
+    world.holding = tuple_list::create<holding_tuple>(tuple_list_page);
+    world.dont_move = tuple_list::create<dont_move_tuple>(tuple_list_page);
+    world.need_to_move = tuple_list::create<need_to_move_tuple>(tuple_list_page);
+    world.put_on_table = tuple_list::create<put_on_table_tuple>(tuple_list_page);
+    world.stack_on_block = tuple_list::create<stack_on_block_tuple>(tuple_list_page);
 
     // Initial state:
     {
         block_tuple* tuple;
 
-        tuple = tuple_list::append<block_tuple>(block_list);
+        tuple = tuple_list::append<block_tuple>(world.block);
         tuple->_0 = 1;
 
-        tuple = tuple_list::append<block_tuple>(block_list);
+        tuple = tuple_list::append<block_tuple>(world.block);
         tuple->_0 = 2;
 
-        tuple = tuple_list::append<block_tuple>(block_list);
+        tuple = tuple_list::append<block_tuple>(world.block);
         tuple->_0 = 3;
 
-        tuple = tuple_list::append<block_tuple>(block_list);
+        tuple = tuple_list::append<block_tuple>(world.block);
         tuple->_0 = 4;
     }
 
     {
         on_table_tuple* tuple;
 
-        tuple = tuple_list::append<on_table_tuple>(on_table_list);
+        tuple = tuple_list::append<on_table_tuple>(world.on_table);
         tuple->_0 = 1;
 
-        tuple = tuple_list::append<on_table_tuple>(on_table_list);
+        tuple = tuple_list::append<on_table_tuple>(world.on_table);
         tuple->_0 = 3;
     }
 
     {
         on_tuple* tuple;
 
-        tuple = tuple_list::append<on_tuple>(on_list);
+        tuple = tuple_list::append<on_tuple>(world.on);
         tuple->_0 = 2;
         tuple->_1 = 1;
 
-        tuple = tuple_list::append<on_tuple>(on_list);
+        tuple = tuple_list::append<on_tuple>(world.on);
         tuple->_0 = 4;
         tuple->_1 = 3;
     }
@@ -64,10 +64,10 @@ int main()
     {
         clear_tuple* tuple;
 
-        tuple = tuple_list::append<clear_tuple>(clear_list);
+        tuple = tuple_list::append<clear_tuple>(world.clear);
         tuple->_0 = 2;
 
-        tuple = tuple_list::append<clear_tuple>(clear_list);
+        tuple = tuple_list::append<clear_tuple>(world.clear);
         tuple->_0 = 4;
     }
 
@@ -75,21 +75,21 @@ int main()
     {
         goal_on_table_tuple* tuple;
 
-        tuple = tuple_list::append<goal_on_table_tuple>(goal_on_table_list);
+        tuple = tuple_list::append<goal_on_table_tuple>(world.goal_on_table);
         tuple->_0 = 1;
 
-        tuple = tuple_list::append<goal_on_table_tuple>(goal_on_table_list);
+        tuple = tuple_list::append<goal_on_table_tuple>(world.goal_on_table);
         tuple->_0 = 3;
     }
 
     {
         goal_on_tuple* tuple;
 
-        tuple = tuple_list::append<goal_on_tuple>(goal_on_list);
+        tuple = tuple_list::append<goal_on_tuple>(world.goal_on);
         tuple->_0 = 4;
         tuple->_1 = 1;
 
-        tuple = tuple_list::append<goal_on_tuple>(goal_on_list);
+        tuple = tuple_list::append<goal_on_tuple>(world.goal_on);
         tuple->_0 = 2;
         tuple->_1 = 3;
     }
@@ -97,10 +97,10 @@ int main()
     {
         goal_clear_tuple* tuple;
 
-        tuple = tuple_list::append<goal_clear_tuple>(goal_clear_list);
+        tuple = tuple_list::append<goal_clear_tuple>(world.goal_clear);
         tuple->_0 = 4;
 
-        tuple = tuple_list::append<goal_clear_tuple>(goal_clear_list);
+        tuple = tuple_list::append<goal_clear_tuple>(world.goal_clear);
         tuple->_0 = 2;
     }
 

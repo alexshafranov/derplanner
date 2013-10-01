@@ -91,18 +91,18 @@ struct stack_on_block_tuple
 
 struct worldstate
 {
-	block_tuple* block;
-	on_table_tuple* on_table;
-	on_tuple* on;
-	clear_tuple* clear;
-	goal_on_table_tuple* goal_on_table;
-	goal_on_tuple* goal_on;
-	goal_clear_tuple* goal_clear;
-	holding_tuple* holding;
-	dont_move_tuple* dont_move;
-	need_to_move_tuple* need_to_move;
-	put_on_table_tuple* put_on_table;
-	stack_on_block_tuple* stack_on_block;
+	tuple_list::handle* block;
+	tuple_list::handle* on_table;
+	tuple_list::handle* on;
+	tuple_list::handle* clear;
+	tuple_list::handle* goal_on_table;
+	tuple_list::handle* goal_on;
+	tuple_list::handle* goal_clear;
+	tuple_list::handle* holding;
+	tuple_list::handle* dont_move;
+	tuple_list::handle* need_to_move;
+	tuple_list::handle* put_on_table;
+	tuple_list::handle* stack_on_block;
 };
 
 struct p0_state
@@ -130,7 +130,7 @@ bool next(p1_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	for (state.block_0 = world.block; state.block_0 != 0; state.block_0 = state.block_0->next)
+	for (state.block_0 = tuple_list::head<block_tuple>(world.block); state.block_0 != 0; state.block_0 = state.block_0->next)
 	{
 		state._0 = state.block_0->_0;
 
@@ -152,43 +152,26 @@ bool next(p2_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	if (!world.dont_move)
-	{
-		if (!world.need_to_move)
-		{
-			PLNNR_COROUTINE_YIELD(state);
-		}
-
-		for (state.need_to_move_1 = world.need_to_move; state.need_to_move_1 != 0; state.need_to_move_1 = state.need_to_move_1->next)
-		{
-			if (state.need_to_move_1->_0 == state._0)
-			{
-				continue;
-			}
-
-			PLNNR_COROUTINE_YIELD(state);
-		}
-	}
-
-	for (state.dont_move_0 = world.dont_move; state.dont_move_0 != 0; state.dont_move_0 = state.dont_move_0->next)
+	for (state.dont_move_0 = tuple_list::head<dont_move_tuple>(world.dont_move); state.dont_move_0 != 0; state.dont_move_0 = state.dont_move_0->next)
 	{
 		if (state.dont_move_0->_0 == state._0)
 		{
-			continue;
+			break;
 		}
+	}
 
-		if (!world.need_to_move)
-		{
-			PLNNR_COROUTINE_YIELD(state);
-		}
-
-		for (state.need_to_move_1 = world.need_to_move; state.need_to_move_1 != 0; state.need_to_move_1 = state.need_to_move_1->next)
+	if (state.dont_move_0 == 0)
+	{
+		for (state.need_to_move_1 = tuple_list::head<need_to_move_tuple>(world.need_to_move); state.need_to_move_1 != 0; state.need_to_move_1 = state.need_to_move_1->next)
 		{
 			if (state.need_to_move_1->_0 == state._0)
 			{
-				continue;
+				break;
 			}
+		}
 
+		if (state.need_to_move_1 == 0)
+		{
 			PLNNR_COROUTINE_YIELD(state);
 		}
 	}
@@ -222,7 +205,7 @@ bool next(p4_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	for (state.on_0 = world.on; state.on_0 != 0; state.on_0 = state.on_0->next)
+	for (state.on_0 = tuple_list::head<on_tuple>(world.on); state.on_0 != 0; state.on_0 = state.on_0->next)
 	{
 		if (state.on_0->_0 != state._0)
 		{
@@ -265,7 +248,7 @@ bool next(p6_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	for (state.on_0 = world.on; state.on_0 != 0; state.on_0 = state.on_0->next)
+	for (state.on_0 = tuple_list::head<on_tuple>(world.on); state.on_0 != 0; state.on_0 = state.on_0->next)
 	{
 		if (state.on_0->_0 != state._0)
 		{
@@ -274,7 +257,7 @@ bool next(p6_state& state, worldstate& world)
 
 		state._1 = state.on_0->_1;
 
-		for (state.goal_on_1 = world.goal_on; state.goal_on_1 != 0; state.goal_on_1 = state.goal_on_1->next)
+		for (state.goal_on_1 = tuple_list::head<goal_on_tuple>(world.goal_on); state.goal_on_1 != 0; state.goal_on_1 = state.goal_on_1->next)
 		{
 			if (state.goal_on_1->_0 != state._0)
 			{
@@ -306,14 +289,14 @@ bool next(p7_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	for (state.on_table_0 = world.on_table; state.on_table_0 != 0; state.on_table_0 = state.on_table_0->next)
+	for (state.on_table_0 = tuple_list::head<on_table_tuple>(world.on_table); state.on_table_0 != 0; state.on_table_0 = state.on_table_0->next)
 	{
 		if (state.on_table_0->_0 != state._0)
 		{
 			continue;
 		}
 
-		for (state.goal_on_1 = world.goal_on; state.goal_on_1 != 0; state.goal_on_1 = state.goal_on_1->next)
+		for (state.goal_on_1 = tuple_list::head<goal_on_tuple>(world.goal_on); state.goal_on_1 != 0; state.goal_on_1 = state.goal_on_1->next)
 		{
 			if (state.goal_on_1->_0 != state._0)
 			{
@@ -342,7 +325,7 @@ bool next(p8_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	for (state.on_0 = world.on; state.on_0 != 0; state.on_0 = state.on_0->next)
+	for (state.on_0 = tuple_list::head<on_tuple>(world.on); state.on_0 != 0; state.on_0 = state.on_0->next)
 	{
 		if (state.on_0->_0 != state._0)
 		{
@@ -351,7 +334,7 @@ bool next(p8_state& state, worldstate& world)
 
 		state._1 = state.on_0->_1;
 
-		for (state.goal_on_table_1 = world.goal_on_table; state.goal_on_table_1 != 0; state.goal_on_table_1 = state.goal_on_table_1->next)
+		for (state.goal_on_table_1 = tuple_list::head<goal_on_table_tuple>(world.goal_on_table); state.goal_on_table_1 != 0; state.goal_on_table_1 = state.goal_on_table_1->next)
 		{
 			if (state.goal_on_table_1->_0 != state._0)
 			{
@@ -378,7 +361,7 @@ bool next(p9_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	for (state.on_0 = world.on; state.on_0 != 0; state.on_0 = state.on_0->next)
+	for (state.on_0 = tuple_list::head<on_tuple>(world.on); state.on_0 != 0; state.on_0 = state.on_0->next)
 	{
 		if (state.on_0->_0 != state._0)
 		{
@@ -387,7 +370,7 @@ bool next(p9_state& state, worldstate& world)
 
 		state._1 = state.on_0->_1;
 
-		for (state.goal_clear_1 = world.goal_clear; state.goal_clear_1 != 0; state.goal_clear_1 = state.goal_clear_1->next)
+		for (state.goal_clear_1 = tuple_list::head<goal_clear_tuple>(world.goal_clear); state.goal_clear_1 != 0; state.goal_clear_1 = state.goal_clear_1->next)
 		{
 			if (state.goal_clear_1->_0 != state._1)
 			{
@@ -415,7 +398,7 @@ bool next(p10_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	for (state.on_0 = world.on; state.on_0 != 0; state.on_0 = state.on_0->next)
+	for (state.on_0 = tuple_list::head<on_tuple>(world.on); state.on_0 != 0; state.on_0 = state.on_0->next)
 	{
 		if (state.on_0->_0 != state._0)
 		{
@@ -424,7 +407,7 @@ bool next(p10_state& state, worldstate& world)
 
 		state._1 = state.on_0->_1;
 
-		for (state.goal_on_1 = world.goal_on; state.goal_on_1 != 0; state.goal_on_1 = state.goal_on_1->next)
+		for (state.goal_on_1 = tuple_list::head<goal_on_tuple>(world.goal_on); state.goal_on_1 != 0; state.goal_on_1 = state.goal_on_1->next)
 		{
 			if (state.goal_on_1->_1 != state._1)
 			{
@@ -456,7 +439,7 @@ bool next(p11_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	for (state.on_0 = world.on; state.on_0 != 0; state.on_0 = state.on_0->next)
+	for (state.on_0 = tuple_list::head<on_tuple>(world.on); state.on_0 != 0; state.on_0 = state.on_0->next)
 	{
 		if (state.on_0->_0 != state._0)
 		{
@@ -465,7 +448,7 @@ bool next(p11_state& state, worldstate& world)
 
 		state._1 = state.on_0->_1;
 
-		for (state.need_to_move_1 = world.need_to_move; state.need_to_move_1 != 0; state.need_to_move_1 = state.need_to_move_1->next)
+		for (state.need_to_move_1 = tuple_list::head<need_to_move_tuple>(world.need_to_move); state.need_to_move_1 != 0; state.need_to_move_1 = state.need_to_move_1->next)
 		{
 			if (state.need_to_move_1->_0 != state._1)
 			{
@@ -508,78 +491,31 @@ bool next(p13_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	for (state.block_0 = world.block; state.block_0 != 0; state.block_0 = state.block_0->next)
+	for (state.block_0 = tuple_list::head<block_tuple>(world.block); state.block_0 != 0; state.block_0 = state.block_0->next)
 	{
 		state._0 = state.block_0->_0;
 
-		if (!world.dont_move)
-		{
-			if (!world.goal_on_table)
-			{
-				for (state.goal_on_3 = world.goal_on; state.goal_on_3 != 0; state.goal_on_3 = state.goal_on_3->next)
-				{
-					if (state.goal_on_3->_0 == state._0)
-					{
-						continue;
-					}
-
-					state._1 = state.goal_on_3->_1;
-
-					PLNNR_COROUTINE_YIELD(state);
-				}
-			}
-
-			for (state.goal_on_table_2 = world.goal_on_table; state.goal_on_table_2 != 0; state.goal_on_table_2 = state.goal_on_table_2->next)
-			{
-				if (state.goal_on_table_2->_0 == state._0)
-				{
-					continue;
-				}
-
-				for (state.goal_on_3 = world.goal_on; state.goal_on_3 != 0; state.goal_on_3 = state.goal_on_3->next)
-				{
-					if (state.goal_on_3->_0 == state._0)
-					{
-						continue;
-					}
-
-					state._1 = state.goal_on_3->_1;
-
-					PLNNR_COROUTINE_YIELD(state);
-				}
-			}
-		}
-
-		for (state.dont_move_1 = world.dont_move; state.dont_move_1 != 0; state.dont_move_1 = state.dont_move_1->next)
+		for (state.dont_move_1 = tuple_list::head<dont_move_tuple>(world.dont_move); state.dont_move_1 != 0; state.dont_move_1 = state.dont_move_1->next)
 		{
 			if (state.dont_move_1->_0 == state._0)
 			{
-				continue;
+				break;
 			}
+		}
 
-			if (!world.goal_on_table)
-			{
-				for (state.goal_on_3 = world.goal_on; state.goal_on_3 != 0; state.goal_on_3 = state.goal_on_3->next)
-				{
-					if (state.goal_on_3->_0 == state._0)
-					{
-						continue;
-					}
-
-					state._1 = state.goal_on_3->_1;
-
-					PLNNR_COROUTINE_YIELD(state);
-				}
-			}
-
-			for (state.goal_on_table_2 = world.goal_on_table; state.goal_on_table_2 != 0; state.goal_on_table_2 = state.goal_on_table_2->next)
+		if (state.dont_move_1 == 0)
+		{
+			for (state.goal_on_table_2 = tuple_list::head<goal_on_table_tuple>(world.goal_on_table); state.goal_on_table_2 != 0; state.goal_on_table_2 = state.goal_on_table_2->next)
 			{
 				if (state.goal_on_table_2->_0 == state._0)
 				{
-					continue;
+					break;
 				}
+			}
 
-				for (state.goal_on_3 = world.goal_on; state.goal_on_3 != 0; state.goal_on_3 = state.goal_on_3->next)
+			if (state.goal_on_table_2 == 0)
+			{
+				for (state.goal_on_3 = tuple_list::head<goal_on_tuple>(world.goal_on); state.goal_on_3 != 0; state.goal_on_3 = state.goal_on_3->next)
 				{
 					if (state.goal_on_3->_0 == state._0)
 					{
@@ -625,62 +561,37 @@ bool next(p15_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	for (state.clear_0 = world.clear; state.clear_0 != 0; state.clear_0 = state.clear_0->next)
+	for (state.clear_0 = tuple_list::head<clear_tuple>(world.clear); state.clear_0 != 0; state.clear_0 = state.clear_0->next)
 	{
 		state._0 = state.clear_0->_0;
 
-		if (!world.dont_move)
-		{
-			for (state.goal_on_table_2 = world.goal_on_table; state.goal_on_table_2 != 0; state.goal_on_table_2 = state.goal_on_table_2->next)
-			{
-				if (state.goal_on_table_2->_0 != state._0)
-				{
-					continue;
-				}
-
-				if (!world.put_on_table)
-				{
-					PLNNR_COROUTINE_YIELD(state);
-				}
-
-				for (state.put_on_table_3 = world.put_on_table; state.put_on_table_3 != 0; state.put_on_table_3 = state.put_on_table_3->next)
-				{
-					if (state.put_on_table_3->_0 == state._0)
-					{
-						continue;
-					}
-
-					PLNNR_COROUTINE_YIELD(state);
-				}
-			}
-		}
-
-		for (state.dont_move_1 = world.dont_move; state.dont_move_1 != 0; state.dont_move_1 = state.dont_move_1->next)
+		for (state.dont_move_1 = tuple_list::head<dont_move_tuple>(world.dont_move); state.dont_move_1 != 0; state.dont_move_1 = state.dont_move_1->next)
 		{
 			if (state.dont_move_1->_0 == state._0)
 			{
-				continue;
+				break;
 			}
+		}
 
-			for (state.goal_on_table_2 = world.goal_on_table; state.goal_on_table_2 != 0; state.goal_on_table_2 = state.goal_on_table_2->next)
+		if (state.dont_move_1 == 0)
+		{
+			for (state.goal_on_table_2 = tuple_list::head<goal_on_table_tuple>(world.goal_on_table); state.goal_on_table_2 != 0; state.goal_on_table_2 = state.goal_on_table_2->next)
 			{
 				if (state.goal_on_table_2->_0 != state._0)
 				{
 					continue;
 				}
 
-				if (!world.put_on_table)
-				{
-					PLNNR_COROUTINE_YIELD(state);
-				}
-
-				for (state.put_on_table_3 = world.put_on_table; state.put_on_table_3 != 0; state.put_on_table_3 = state.put_on_table_3->next)
+				for (state.put_on_table_3 = tuple_list::head<put_on_table_tuple>(world.put_on_table); state.put_on_table_3 != 0; state.put_on_table_3 = state.put_on_table_3->next)
 				{
 					if (state.put_on_table_3->_0 == state._0)
 					{
-						continue;
+						break;
 					}
+				}
 
+				if (state.put_on_table_3 == 0)
+				{
 					PLNNR_COROUTINE_YIELD(state);
 				}
 			}
@@ -707,83 +618,21 @@ bool next(p16_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	for (state.clear_0 = world.clear; state.clear_0 != 0; state.clear_0 = state.clear_0->next)
+	for (state.clear_0 = tuple_list::head<clear_tuple>(world.clear); state.clear_0 != 0; state.clear_0 = state.clear_0->next)
 	{
 		state._0 = state.clear_0->_0;
 
-		if (!world.dont_move)
-		{
-			for (state.goal_on_2 = world.goal_on; state.goal_on_2 != 0; state.goal_on_2 = state.goal_on_2->next)
-			{
-				if (state.goal_on_2->_0 != state._0)
-				{
-					continue;
-				}
-
-				state._1 = state.goal_on_2->_1;
-
-				if (!world.stack_on_block)
-				{
-					for (state.dont_move_4 = world.dont_move; state.dont_move_4 != 0; state.dont_move_4 = state.dont_move_4->next)
-					{
-						if (state.dont_move_4->_0 != state._1)
-						{
-							continue;
-						}
-
-						for (state.clear_5 = world.clear; state.clear_5 != 0; state.clear_5 = state.clear_5->next)
-						{
-							if (state.clear_5->_0 != state._1)
-							{
-								continue;
-							}
-
-							PLNNR_COROUTINE_YIELD(state);
-						}
-					}
-				}
-
-				for (state.stack_on_block_3 = world.stack_on_block; state.stack_on_block_3 != 0; state.stack_on_block_3 = state.stack_on_block_3->next)
-				{
-					if (state.stack_on_block_3->_0 == state._0)
-					{
-						continue;
-					}
-
-					if (state.stack_on_block_3->_1 == state._1)
-					{
-						continue;
-					}
-
-					for (state.dont_move_4 = world.dont_move; state.dont_move_4 != 0; state.dont_move_4 = state.dont_move_4->next)
-					{
-						if (state.dont_move_4->_0 != state._1)
-						{
-							continue;
-						}
-
-						for (state.clear_5 = world.clear; state.clear_5 != 0; state.clear_5 = state.clear_5->next)
-						{
-							if (state.clear_5->_0 != state._1)
-							{
-								continue;
-							}
-
-							PLNNR_COROUTINE_YIELD(state);
-						}
-					}
-				}
-			}
-		}
-
-		for (state.dont_move_1 = world.dont_move; state.dont_move_1 != 0; state.dont_move_1 = state.dont_move_1->next)
+		for (state.dont_move_1 = tuple_list::head<dont_move_tuple>(world.dont_move); state.dont_move_1 != 0; state.dont_move_1 = state.dont_move_1->next)
 		{
 			if (state.dont_move_1->_0 == state._0)
 			{
-				continue;
+				break;
 			}
+		}
 
-			for (state.goal_on_2 = world.goal_on; state.goal_on_2 != 0; state.goal_on_2 = state.goal_on_2->next)
+		if (state.dont_move_1 == 0)
+		{
+			for (state.goal_on_2 = tuple_list::head<goal_on_tuple>(world.goal_on); state.goal_on_2 != 0; state.goal_on_2 = state.goal_on_2->next)
 			{
 				if (state.goal_on_2->_0 != state._0)
 				{
@@ -792,47 +641,29 @@ bool next(p16_state& state, worldstate& world)
 
 				state._1 = state.goal_on_2->_1;
 
-				if (!world.stack_on_block)
-				{
-					for (state.dont_move_4 = world.dont_move; state.dont_move_4 != 0; state.dont_move_4 = state.dont_move_4->next)
-					{
-						if (state.dont_move_4->_0 != state._1)
-						{
-							continue;
-						}
-
-						for (state.clear_5 = world.clear; state.clear_5 != 0; state.clear_5 = state.clear_5->next)
-						{
-							if (state.clear_5->_0 != state._1)
-							{
-								continue;
-							}
-
-							PLNNR_COROUTINE_YIELD(state);
-						}
-					}
-				}
-
-				for (state.stack_on_block_3 = world.stack_on_block; state.stack_on_block_3 != 0; state.stack_on_block_3 = state.stack_on_block_3->next)
+				for (state.stack_on_block_3 = tuple_list::head<stack_on_block_tuple>(world.stack_on_block); state.stack_on_block_3 != 0; state.stack_on_block_3 = state.stack_on_block_3->next)
 				{
 					if (state.stack_on_block_3->_0 == state._0)
 					{
-						continue;
+						break;
 					}
 
 					if (state.stack_on_block_3->_1 == state._1)
 					{
-						continue;
+						break;
 					}
+				}
 
-					for (state.dont_move_4 = world.dont_move; state.dont_move_4 != 0; state.dont_move_4 = state.dont_move_4->next)
+				if (state.stack_on_block_3 == 0)
+				{
+					for (state.dont_move_4 = tuple_list::head<dont_move_tuple>(world.dont_move); state.dont_move_4 != 0; state.dont_move_4 = state.dont_move_4->next)
 					{
 						if (state.dont_move_4->_0 != state._1)
 						{
 							continue;
 						}
 
-						for (state.clear_5 = world.clear; state.clear_5 != 0; state.clear_5 = state.clear_5->next)
+						for (state.clear_5 = tuple_list::head<clear_tuple>(world.clear); state.clear_5 != 0; state.clear_5 = state.clear_5->next)
 						{
 							if (state.clear_5->_0 != state._1)
 							{
@@ -876,7 +707,7 @@ bool next(p18_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	for (state.stack_on_block_0 = world.stack_on_block; state.stack_on_block_0 != 0; state.stack_on_block_0 = state.stack_on_block_0->next)
+	for (state.stack_on_block_0 = tuple_list::head<stack_on_block_tuple>(world.stack_on_block); state.stack_on_block_0 != 0; state.stack_on_block_0 = state.stack_on_block_0->next)
 	{
 		state._0 = state.stack_on_block_0->_0;
 
@@ -901,11 +732,11 @@ bool next(p19_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	for (state.put_on_table_0 = world.put_on_table; state.put_on_table_0 != 0; state.put_on_table_0 = state.put_on_table_0->next)
+	for (state.put_on_table_0 = tuple_list::head<put_on_table_tuple>(world.put_on_table); state.put_on_table_0 != 0; state.put_on_table_0 = state.put_on_table_0->next)
 	{
 		state._0 = state.put_on_table_0->_0;
 
-		for (state.on_1 = world.on; state.on_1 != 0; state.on_1 = state.on_1->next)
+		for (state.on_1 = tuple_list::head<on_tuple>(world.on); state.on_1 != 0; state.on_1 = state.on_1->next)
 		{
 			if (state.on_1->_0 != state._0)
 			{
@@ -935,33 +766,21 @@ bool next(p20_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	for (state.clear_0 = world.clear; state.clear_0 != 0; state.clear_0 = state.clear_0->next)
+	for (state.clear_0 = tuple_list::head<clear_tuple>(world.clear); state.clear_0 != 0; state.clear_0 = state.clear_0->next)
 	{
 		state._0 = state.clear_0->_0;
 
-		if (!world.dont_move)
-		{
-			for (state.on_2 = world.on; state.on_2 != 0; state.on_2 = state.on_2->next)
-			{
-				if (state.on_2->_0 != state._0)
-				{
-					continue;
-				}
-
-				state._1 = state.on_2->_1;
-
-				PLNNR_COROUTINE_YIELD(state);
-			}
-		}
-
-		for (state.dont_move_1 = world.dont_move; state.dont_move_1 != 0; state.dont_move_1 = state.dont_move_1->next)
+		for (state.dont_move_1 = tuple_list::head<dont_move_tuple>(world.dont_move); state.dont_move_1 != 0; state.dont_move_1 = state.dont_move_1->next)
 		{
 			if (state.dont_move_1->_0 == state._0)
 			{
-				continue;
+				break;
 			}
+		}
 
-			for (state.on_2 = world.on; state.on_2 != 0; state.on_2 = state.on_2->next)
+		if (state.dont_move_1 == 0)
+		{
+			for (state.on_2 = tuple_list::head<on_tuple>(world.on); state.on_2 != 0; state.on_2 = state.on_2->next)
 			{
 				if (state.on_2->_0 != state._0)
 				{
@@ -1005,7 +824,7 @@ bool next(p22_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	for (state.goal_on_0 = world.goal_on; state.goal_on_0 != 0; state.goal_on_0 = state.goal_on_0->next)
+	for (state.goal_on_0 = tuple_list::head<goal_on_tuple>(world.goal_on); state.goal_on_0 != 0; state.goal_on_0 = state.goal_on_0->next)
 	{
 		if (state.goal_on_0->_1 != state._1)
 		{
@@ -1014,7 +833,7 @@ bool next(p22_state& state, worldstate& world)
 
 		state._0 = state.goal_on_0->_0;
 
-		for (state.clear_1 = world.clear; state.clear_1 != 0; state.clear_1 = state.clear_1->next)
+		for (state.clear_1 = tuple_list::head<clear_tuple>(world.clear); state.clear_1 != 0; state.clear_1 = state.clear_1->next)
 		{
 			if (state.clear_1->_0 != state._0)
 			{
@@ -1056,14 +875,14 @@ bool next(p24_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	for (state.dont_move_0 = world.dont_move; state.dont_move_0 != 0; state.dont_move_0 = state.dont_move_0->next)
+	for (state.dont_move_0 = tuple_list::head<dont_move_tuple>(world.dont_move); state.dont_move_0 != 0; state.dont_move_0 = state.dont_move_0->next)
 	{
 		if (state.dont_move_0->_0 != state._0)
 		{
 			continue;
 		}
 
-		for (state.goal_on_1 = world.goal_on; state.goal_on_1 != 0; state.goal_on_1 = state.goal_on_1->next)
+		for (state.goal_on_1 = tuple_list::head<goal_on_tuple>(world.goal_on); state.goal_on_1 != 0; state.goal_on_1 = state.goal_on_1->next)
 		{
 			if (state.goal_on_1->_1 != state._0)
 			{
@@ -1072,7 +891,7 @@ bool next(p24_state& state, worldstate& world)
 
 			state._1 = state.goal_on_1->_0;
 
-			for (state.clear_2 = world.clear; state.clear_2 != 0; state.clear_2 = state.clear_2->next)
+			for (state.clear_2 = tuple_list::head<clear_tuple>(world.clear); state.clear_2 != 0; state.clear_2 = state.clear_2->next)
 			{
 				if (state.clear_2->_0 != state._1)
 				{
@@ -1112,7 +931,7 @@ bool next(p26_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	for (state.dont_move_0 = world.dont_move; state.dont_move_0 != 0; state.dont_move_0 = state.dont_move_0->next)
+	for (state.dont_move_0 = tuple_list::head<dont_move_tuple>(world.dont_move); state.dont_move_0 != 0; state.dont_move_0 = state.dont_move_0->next)
 	{
 		if (state.dont_move_0->_0 != state._0)
 		{
@@ -1139,7 +958,7 @@ bool next(p27_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	for (state.goal_on_0 = world.goal_on; state.goal_on_0 != 0; state.goal_on_0 = state.goal_on_0->next)
+	for (state.goal_on_0 = tuple_list::head<goal_on_tuple>(world.goal_on); state.goal_on_0 != 0; state.goal_on_0 = state.goal_on_0->next)
 	{
 		if (state.goal_on_0->_0 != state._0)
 		{
@@ -1148,14 +967,14 @@ bool next(p27_state& state, worldstate& world)
 
 		state._1 = state.goal_on_0->_1;
 
-		for (state.clear_1 = world.clear; state.clear_1 != 0; state.clear_1 = state.clear_1->next)
+		for (state.clear_1 = tuple_list::head<clear_tuple>(world.clear); state.clear_1 != 0; state.clear_1 = state.clear_1->next)
 		{
 			if (state.clear_1->_0 != state._1)
 			{
 				continue;
 			}
 
-			for (state.dont_move_2 = world.dont_move; state.dont_move_2 != 0; state.dont_move_2 = state.dont_move_2->next)
+			for (state.dont_move_2 = tuple_list::head<dont_move_tuple>(world.dont_move); state.dont_move_2 != 0; state.dont_move_2 = state.dont_move_2->next)
 			{
 				if (state.dont_move_2->_0 != state._1)
 				{
@@ -1181,7 +1000,7 @@ bool next(p28_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	for (state.goal_on_table_0 = world.goal_on_table; state.goal_on_table_0 != 0; state.goal_on_table_0 = state.goal_on_table_0->next)
+	for (state.goal_on_table_0 = tuple_list::head<goal_on_table_tuple>(world.goal_on_table); state.goal_on_table_0 != 0; state.goal_on_table_0 = state.goal_on_table_0->next)
 	{
 		if (state.goal_on_table_0->_0 != state._0)
 		{
@@ -1220,7 +1039,7 @@ bool next(p30_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	for (state.on_0 = world.on; state.on_0 != 0; state.on_0 = state.on_0->next)
+	for (state.on_0 = tuple_list::head<on_tuple>(world.on); state.on_0 != 0; state.on_0 = state.on_0->next)
 	{
 		if (state.on_0->_0 != state._0)
 		{
@@ -1648,7 +1467,7 @@ bool mark_block_term_branch_0_expand(planner_state& pstate, void* world)
 			t->args = a;
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<need_to_move_tuple>(wstate->need_to_move);
+				tuple_list::handle* list = wstate->need_to_move;
 				need_to_move_tuple* tuple = tuple_list::append<need_to_move_tuple>(list);
 				tuple->_0 = a->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
@@ -1692,7 +1511,7 @@ bool mark_block_term_branch_1_expand(planner_state& pstate, void* world)
 			t->args = a;
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<need_to_move_tuple>(wstate->need_to_move);
+				tuple_list::handle* list = wstate->need_to_move;
 				need_to_move_tuple* tuple = tuple_list::append<need_to_move_tuple>(list);
 				tuple->_0 = a->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
@@ -1736,7 +1555,7 @@ bool mark_block_term_branch_2_expand(planner_state& pstate, void* world)
 			t->args = a;
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<need_to_move_tuple>(wstate->need_to_move);
+				tuple_list::handle* list = wstate->need_to_move;
 				need_to_move_tuple* tuple = tuple_list::append<need_to_move_tuple>(list);
 				tuple->_0 = a->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
@@ -1780,7 +1599,7 @@ bool mark_block_term_branch_3_expand(planner_state& pstate, void* world)
 			t->args = a;
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<need_to_move_tuple>(wstate->need_to_move);
+				tuple_list::handle* list = wstate->need_to_move;
 				need_to_move_tuple* tuple = tuple_list::append<need_to_move_tuple>(list);
 				tuple->_0 = a->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
@@ -1824,7 +1643,7 @@ bool mark_block_term_branch_4_expand(planner_state& pstate, void* world)
 			t->args = a;
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<need_to_move_tuple>(wstate->need_to_move);
+				tuple_list::handle* list = wstate->need_to_move;
 				need_to_move_tuple* tuple = tuple_list::append<need_to_move_tuple>(list);
 				tuple->_0 = a->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
@@ -1868,7 +1687,7 @@ bool mark_block_term_branch_5_expand(planner_state& pstate, void* world)
 			t->args = a;
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<need_to_move_tuple>(wstate->need_to_move);
+				tuple_list::handle* list = wstate->need_to_move;
 				need_to_move_tuple* tuple = tuple_list::append<need_to_move_tuple>(list);
 				tuple->_0 = a->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
@@ -1911,7 +1730,7 @@ bool mark_block_term_branch_6_expand(planner_state& pstate, void* world)
 			t->args = a;
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<dont_move_tuple>(wstate->dont_move);
+				tuple_list::handle* list = wstate->dont_move;
 				dont_move_tuple* tuple = tuple_list::append<dont_move_tuple>(list);
 				tuple->_0 = a->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
@@ -1952,7 +1771,7 @@ bool add_new_goals_branch_0_expand(planner_state& pstate, void* world)
 			t->args = a;
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<goal_on_table_tuple>(wstate->goal_on_table);
+				tuple_list::handle* list = wstate->goal_on_table;
 				goal_on_table_tuple* tuple = tuple_list::append<goal_on_table_tuple>(list);
 				tuple->_0 = a->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
@@ -2023,7 +1842,7 @@ bool find_movable_branch_0_expand(planner_state& pstate, void* world)
 			t->args = a;
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<put_on_table_tuple>(wstate->put_on_table);
+				tuple_list::handle* list = wstate->put_on_table;
 				put_on_table_tuple* tuple = tuple_list::append<put_on_table_tuple>(list);
 				tuple->_0 = a->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
@@ -2070,7 +1889,7 @@ bool find_movable_branch_1_expand(planner_state& pstate, void* world)
 			t->args = a;
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<stack_on_block_tuple>(wstate->stack_on_block);
+				tuple_list::handle* list = wstate->stack_on_block;
 				stack_on_block_tuple* tuple = tuple_list::append<stack_on_block_tuple>(list);
 				tuple->_0 = a->_0;
 				tuple->_1 = a->_1;
@@ -2182,14 +2001,14 @@ bool move_block_branch_1_expand(planner_state& pstate, void* world)
 			a->_1 = precondition->_1;
 			t->args = a;
 
-			for (clear_tuple* tuple = wstate->clear; tuple != 0; tuple = tuple->next)
+			for (clear_tuple* tuple = tuple_list::head<clear_tuple>(wstate->clear); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_0)
 				{
 					continue;
 				}
 
-				tuple_list::handle* list = tuple_list::head_to_handle<clear_tuple>(wstate->clear);
+				tuple_list::handle* list = wstate->clear;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -2198,7 +2017,7 @@ bool move_block_branch_1_expand(planner_state& pstate, void* world)
 				break;
 			}
 
-			for (on_tuple* tuple = wstate->on; tuple != 0; tuple = tuple->next)
+			for (on_tuple* tuple = tuple_list::head<on_tuple>(wstate->on); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_0)
 				{
@@ -2210,7 +2029,7 @@ bool move_block_branch_1_expand(planner_state& pstate, void* world)
 					continue;
 				}
 
-				tuple_list::handle* list = tuple_list::head_to_handle<on_tuple>(wstate->on);
+				tuple_list::handle* list = wstate->on;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -2220,7 +2039,7 @@ bool move_block_branch_1_expand(planner_state& pstate, void* world)
 			}
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<holding_tuple>(wstate->holding);
+				tuple_list::handle* list = wstate->holding;
 				holding_tuple* tuple = tuple_list::append<holding_tuple>(list);
 				tuple->_0 = a->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
@@ -2229,7 +2048,7 @@ bool move_block_branch_1_expand(planner_state& pstate, void* world)
 			}
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<clear_tuple>(wstate->clear);
+				tuple_list::handle* list = wstate->clear;
 				clear_tuple* tuple = tuple_list::append<clear_tuple>(list);
 				tuple->_0 = a->_1;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
@@ -2244,14 +2063,14 @@ bool move_block_branch_1_expand(planner_state& pstate, void* world)
 			a->_0 = precondition->_0;
 			t->args = a;
 
-			for (holding_tuple* tuple = wstate->holding; tuple != 0; tuple = tuple->next)
+			for (holding_tuple* tuple = tuple_list::head<holding_tuple>(wstate->holding); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_0)
 				{
 					continue;
 				}
 
-				tuple_list::handle* list = tuple_list::head_to_handle<holding_tuple>(wstate->holding);
+				tuple_list::handle* list = wstate->holding;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -2261,7 +2080,7 @@ bool move_block_branch_1_expand(planner_state& pstate, void* world)
 			}
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<on_table_tuple>(wstate->on_table);
+				tuple_list::handle* list = wstate->on_table;
 				on_table_tuple* tuple = tuple_list::append<on_table_tuple>(list);
 				tuple->_0 = a->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
@@ -2270,7 +2089,7 @@ bool move_block_branch_1_expand(planner_state& pstate, void* world)
 			}
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<clear_tuple>(wstate->clear);
+				tuple_list::handle* list = wstate->clear;
 				clear_tuple* tuple = tuple_list::append<clear_tuple>(list);
 				tuple->_0 = a->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
@@ -2292,14 +2111,14 @@ bool move_block_branch_1_expand(planner_state& pstate, void* world)
 			a->_0 = precondition->_0;
 			t->args = a;
 
-			for (put_on_table_tuple* tuple = wstate->put_on_table; tuple != 0; tuple = tuple->next)
+			for (put_on_table_tuple* tuple = tuple_list::head<put_on_table_tuple>(wstate->put_on_table); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_0)
 				{
 					continue;
 				}
 
-				tuple_list::handle* list = tuple_list::head_to_handle<put_on_table_tuple>(wstate->put_on_table);
+				tuple_list::handle* list = wstate->put_on_table;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -2373,14 +2192,14 @@ bool move_block_branch_2_expand(planner_state& pstate, void* world)
 			a->_1 = precondition->_1;
 			t->args = a;
 
-			for (clear_tuple* tuple = wstate->clear; tuple != 0; tuple = tuple->next)
+			for (clear_tuple* tuple = tuple_list::head<clear_tuple>(wstate->clear); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_0)
 				{
 					continue;
 				}
 
-				tuple_list::handle* list = tuple_list::head_to_handle<clear_tuple>(wstate->clear);
+				tuple_list::handle* list = wstate->clear;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -2389,7 +2208,7 @@ bool move_block_branch_2_expand(planner_state& pstate, void* world)
 				break;
 			}
 
-			for (on_tuple* tuple = wstate->on; tuple != 0; tuple = tuple->next)
+			for (on_tuple* tuple = tuple_list::head<on_tuple>(wstate->on); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_0)
 				{
@@ -2401,7 +2220,7 @@ bool move_block_branch_2_expand(planner_state& pstate, void* world)
 					continue;
 				}
 
-				tuple_list::handle* list = tuple_list::head_to_handle<on_tuple>(wstate->on);
+				tuple_list::handle* list = wstate->on;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -2411,7 +2230,7 @@ bool move_block_branch_2_expand(planner_state& pstate, void* world)
 			}
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<holding_tuple>(wstate->holding);
+				tuple_list::handle* list = wstate->holding;
 				holding_tuple* tuple = tuple_list::append<holding_tuple>(list);
 				tuple->_0 = a->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
@@ -2420,7 +2239,7 @@ bool move_block_branch_2_expand(planner_state& pstate, void* world)
 			}
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<clear_tuple>(wstate->clear);
+				tuple_list::handle* list = wstate->clear;
 				clear_tuple* tuple = tuple_list::append<clear_tuple>(list);
 				tuple->_0 = a->_1;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
@@ -2435,14 +2254,14 @@ bool move_block_branch_2_expand(planner_state& pstate, void* world)
 			a->_0 = precondition->_0;
 			t->args = a;
 
-			for (holding_tuple* tuple = wstate->holding; tuple != 0; tuple = tuple->next)
+			for (holding_tuple* tuple = tuple_list::head<holding_tuple>(wstate->holding); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_0)
 				{
 					continue;
 				}
 
-				tuple_list::handle* list = tuple_list::head_to_handle<holding_tuple>(wstate->holding);
+				tuple_list::handle* list = wstate->holding;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -2452,7 +2271,7 @@ bool move_block_branch_2_expand(planner_state& pstate, void* world)
 			}
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<on_table_tuple>(wstate->on_table);
+				tuple_list::handle* list = wstate->on_table;
 				on_table_tuple* tuple = tuple_list::append<on_table_tuple>(list);
 				tuple->_0 = a->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
@@ -2461,7 +2280,7 @@ bool move_block_branch_2_expand(planner_state& pstate, void* world)
 			}
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<clear_tuple>(wstate->clear);
+				tuple_list::handle* list = wstate->clear;
 				clear_tuple* tuple = tuple_list::append<clear_tuple>(list);
 				tuple->_0 = a->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
@@ -2553,7 +2372,7 @@ bool check_branch_0_expand(planner_state& pstate, void* world)
 			t->args = a;
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<stack_on_block_tuple>(wstate->stack_on_block);
+				tuple_list::handle* list = wstate->stack_on_block;
 				stack_on_block_tuple* tuple = tuple_list::append<stack_on_block_tuple>(list);
 				tuple->_0 = a->_0;
 				tuple->_1 = a->_1;
@@ -2625,7 +2444,7 @@ bool check2_branch_0_expand(planner_state& pstate, void* world)
 			t->args = a;
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<stack_on_block_tuple>(wstate->stack_on_block);
+				tuple_list::handle* list = wstate->stack_on_block;
 				stack_on_block_tuple* tuple = tuple_list::append<stack_on_block_tuple>(list);
 				tuple->_0 = a->_0;
 				tuple->_1 = a->_1;
@@ -2725,7 +2544,7 @@ bool check3_branch_1_expand(planner_state& pstate, void* world)
 			t->args = a;
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<stack_on_block_tuple>(wstate->stack_on_block);
+				tuple_list::handle* list = wstate->stack_on_block;
 				stack_on_block_tuple* tuple = tuple_list::append<stack_on_block_tuple>(list);
 				tuple->_0 = a->_0;
 				tuple->_1 = a->_1;
@@ -2770,7 +2589,7 @@ bool check3_branch_2_expand(planner_state& pstate, void* world)
 			t->args = a;
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<put_on_table_tuple>(wstate->put_on_table);
+				tuple_list::handle* list = wstate->put_on_table;
 				put_on_table_tuple* tuple = tuple_list::append<put_on_table_tuple>(list);
 				tuple->_0 = a->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
@@ -2840,14 +2659,14 @@ bool move_block1_branch_0_expand(planner_state& pstate, void* world)
 			a->_1 = precondition->_1;
 			t->args = a;
 
-			for (clear_tuple* tuple = wstate->clear; tuple != 0; tuple = tuple->next)
+			for (clear_tuple* tuple = tuple_list::head<clear_tuple>(wstate->clear); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_0)
 				{
 					continue;
 				}
 
-				tuple_list::handle* list = tuple_list::head_to_handle<clear_tuple>(wstate->clear);
+				tuple_list::handle* list = wstate->clear;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -2856,7 +2675,7 @@ bool move_block1_branch_0_expand(planner_state& pstate, void* world)
 				break;
 			}
 
-			for (on_tuple* tuple = wstate->on; tuple != 0; tuple = tuple->next)
+			for (on_tuple* tuple = tuple_list::head<on_tuple>(wstate->on); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_0)
 				{
@@ -2868,7 +2687,7 @@ bool move_block1_branch_0_expand(planner_state& pstate, void* world)
 					continue;
 				}
 
-				tuple_list::handle* list = tuple_list::head_to_handle<on_tuple>(wstate->on);
+				tuple_list::handle* list = wstate->on;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -2878,7 +2697,7 @@ bool move_block1_branch_0_expand(planner_state& pstate, void* world)
 			}
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<holding_tuple>(wstate->holding);
+				tuple_list::handle* list = wstate->holding;
 				holding_tuple* tuple = tuple_list::append<holding_tuple>(list);
 				tuple->_0 = a->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
@@ -2887,7 +2706,7 @@ bool move_block1_branch_0_expand(planner_state& pstate, void* world)
 			}
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<clear_tuple>(wstate->clear);
+				tuple_list::handle* list = wstate->clear;
 				clear_tuple* tuple = tuple_list::append<clear_tuple>(list);
 				tuple->_0 = a->_1;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
@@ -2903,14 +2722,14 @@ bool move_block1_branch_0_expand(planner_state& pstate, void* world)
 			a->_1 = method_args->_1;
 			t->args = a;
 
-			for (holding_tuple* tuple = wstate->holding; tuple != 0; tuple = tuple->next)
+			for (holding_tuple* tuple = tuple_list::head<holding_tuple>(wstate->holding); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_0)
 				{
 					continue;
 				}
 
-				tuple_list::handle* list = tuple_list::head_to_handle<holding_tuple>(wstate->holding);
+				tuple_list::handle* list = wstate->holding;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -2919,14 +2738,14 @@ bool move_block1_branch_0_expand(planner_state& pstate, void* world)
 				break;
 			}
 
-			for (clear_tuple* tuple = wstate->clear; tuple != 0; tuple = tuple->next)
+			for (clear_tuple* tuple = tuple_list::head<clear_tuple>(wstate->clear); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_1)
 				{
 					continue;
 				}
 
-				tuple_list::handle* list = tuple_list::head_to_handle<clear_tuple>(wstate->clear);
+				tuple_list::handle* list = wstate->clear;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -2936,7 +2755,7 @@ bool move_block1_branch_0_expand(planner_state& pstate, void* world)
 			}
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<on_tuple>(wstate->on);
+				tuple_list::handle* list = wstate->on;
 				on_tuple* tuple = tuple_list::append<on_tuple>(list);
 				tuple->_0 = a->_0;
 				tuple->_1 = a->_1;
@@ -2946,7 +2765,7 @@ bool move_block1_branch_0_expand(planner_state& pstate, void* world)
 			}
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<clear_tuple>(wstate->clear);
+				tuple_list::handle* list = wstate->clear;
 				clear_tuple* tuple = tuple_list::append<clear_tuple>(list);
 				tuple->_0 = a->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
@@ -2969,7 +2788,7 @@ bool move_block1_branch_0_expand(planner_state& pstate, void* world)
 			a->_1 = method_args->_1;
 			t->args = a;
 
-			for (stack_on_block_tuple* tuple = wstate->stack_on_block; tuple != 0; tuple = tuple->next)
+			for (stack_on_block_tuple* tuple = tuple_list::head<stack_on_block_tuple>(wstate->stack_on_block); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_0)
 				{
@@ -2981,7 +2800,7 @@ bool move_block1_branch_0_expand(planner_state& pstate, void* world)
 					continue;
 				}
 
-				tuple_list::handle* list = tuple_list::head_to_handle<stack_on_block_tuple>(wstate->stack_on_block);
+				tuple_list::handle* list = wstate->stack_on_block;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -3049,14 +2868,14 @@ bool move_block1_branch_1_expand(planner_state& pstate, void* world)
 			a->_0 = method_args->_0;
 			t->args = a;
 
-			for (clear_tuple* tuple = wstate->clear; tuple != 0; tuple = tuple->next)
+			for (clear_tuple* tuple = tuple_list::head<clear_tuple>(wstate->clear); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_0)
 				{
 					continue;
 				}
 
-				tuple_list::handle* list = tuple_list::head_to_handle<clear_tuple>(wstate->clear);
+				tuple_list::handle* list = wstate->clear;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -3065,14 +2884,14 @@ bool move_block1_branch_1_expand(planner_state& pstate, void* world)
 				break;
 			}
 
-			for (on_table_tuple* tuple = wstate->on_table; tuple != 0; tuple = tuple->next)
+			for (on_table_tuple* tuple = tuple_list::head<on_table_tuple>(wstate->on_table); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_0)
 				{
 					continue;
 				}
 
-				tuple_list::handle* list = tuple_list::head_to_handle<on_table_tuple>(wstate->on_table);
+				tuple_list::handle* list = wstate->on_table;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -3082,7 +2901,7 @@ bool move_block1_branch_1_expand(planner_state& pstate, void* world)
 			}
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<holding_tuple>(wstate->holding);
+				tuple_list::handle* list = wstate->holding;
 				holding_tuple* tuple = tuple_list::append<holding_tuple>(list);
 				tuple->_0 = a->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
@@ -3098,14 +2917,14 @@ bool move_block1_branch_1_expand(planner_state& pstate, void* world)
 			a->_1 = method_args->_1;
 			t->args = a;
 
-			for (holding_tuple* tuple = wstate->holding; tuple != 0; tuple = tuple->next)
+			for (holding_tuple* tuple = tuple_list::head<holding_tuple>(wstate->holding); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_0)
 				{
 					continue;
 				}
 
-				tuple_list::handle* list = tuple_list::head_to_handle<holding_tuple>(wstate->holding);
+				tuple_list::handle* list = wstate->holding;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -3114,14 +2933,14 @@ bool move_block1_branch_1_expand(planner_state& pstate, void* world)
 				break;
 			}
 
-			for (clear_tuple* tuple = wstate->clear; tuple != 0; tuple = tuple->next)
+			for (clear_tuple* tuple = tuple_list::head<clear_tuple>(wstate->clear); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_1)
 				{
 					continue;
 				}
 
-				tuple_list::handle* list = tuple_list::head_to_handle<clear_tuple>(wstate->clear);
+				tuple_list::handle* list = wstate->clear;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -3131,7 +2950,7 @@ bool move_block1_branch_1_expand(planner_state& pstate, void* world)
 			}
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<on_tuple>(wstate->on);
+				tuple_list::handle* list = wstate->on;
 				on_tuple* tuple = tuple_list::append<on_tuple>(list);
 				tuple->_0 = a->_0;
 				tuple->_1 = a->_1;
@@ -3141,7 +2960,7 @@ bool move_block1_branch_1_expand(planner_state& pstate, void* world)
 			}
 
 			{
-				tuple_list::handle* list = tuple_list::head_to_handle<clear_tuple>(wstate->clear);
+				tuple_list::handle* list = wstate->clear;
 				clear_tuple* tuple = tuple_list::append<clear_tuple>(list);
 				tuple->_0 = a->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
@@ -3164,7 +2983,7 @@ bool move_block1_branch_1_expand(planner_state& pstate, void* world)
 			a->_1 = method_args->_1;
 			t->args = a;
 
-			for (stack_on_block_tuple* tuple = wstate->stack_on_block; tuple != 0; tuple = tuple->next)
+			for (stack_on_block_tuple* tuple = tuple_list::head<stack_on_block_tuple>(wstate->stack_on_block); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_0)
 				{
@@ -3176,7 +2995,7 @@ bool move_block1_branch_1_expand(planner_state& pstate, void* world)
 					continue;
 				}
 
-				tuple_list::handle* list = tuple_list::head_to_handle<stack_on_block_tuple>(wstate->stack_on_block);
+				tuple_list::handle* list = wstate->stack_on_block;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;

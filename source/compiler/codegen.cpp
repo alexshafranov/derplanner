@@ -85,7 +85,7 @@ bool generate_worldstate(tree& ast, node* worldstate, writer& writer)
 
         for (node* atom = worldstate->first_child; atom != 0; atom = atom->next_sibling)
         {
-            output.writeln("%i_tuple* %i;", atom->s_expr->token, atom->s_expr->token);
+            output.writeln("tuple_list::handle* %i;", atom->s_expr->token);
         }
     }
 
@@ -235,8 +235,9 @@ namespace
 
         if (root->type == node_op_not && all_bound(atom))
         {
-            output.writeln("for (state.%i_%d = world.%i; state.%i_%d != 0; state.%i_%d = state.%i_%d->next)",
+            output.writeln("for (state.%i_%d = tuple_list::head<%i_tuple>(world.%i); state.%i_%d != 0; state.%i_%d = state.%i_%d->next)",
                 atom_id, atom_index,
+                atom_id,
                 atom_id,
                 atom_id, atom_index,
                 atom_id, atom_index,
@@ -282,8 +283,9 @@ namespace
         }
         else
         {
-            output.writeln("for (state.%i_%d = world.%i; state.%i_%d != 0; state.%i_%d = state.%i_%d->next)",
+            output.writeln("for (state.%i_%d = tuple_list::head<%i_tuple>(world.%i); state.%i_%d != 0; state.%i_%d = state.%i_%d->next)",
                 atom_id, atom_index,
+                atom_id,
                 atom_id,
                 atom_id, atom_index,
                 atom_id, atom_index,
@@ -556,7 +558,7 @@ namespace
             {
                 const char* atom_id = effect->s_expr->token;
 
-                output.writeln("for (%i_tuple* tuple = wstate->%i; tuple != 0; tuple = tuple->next)", atom_id, atom_id);
+                output.writeln("for (%i_tuple* tuple = tuple_list::head<%i_tuple>(wstate->%i); tuple != 0; tuple = tuple->next)", atom_id, atom_id, atom_id);
                 {
                     scope s(output, effects_add->first_child);
 
@@ -578,7 +580,7 @@ namespace
                         ++param_index;
                     }
 
-                    output.writeln("tuple_list::handle* list = tuple_list::head_to_handle<%i_tuple>(wstate->%i);", atom_id, atom_id);
+                    output.writeln("tuple_list::handle* list = wstate->%i;", atom_id, atom_id);
                     output.writeln("operator_effect* effect = push<operator_effect>(pstate.journal);");
                     output.writeln("effect->tuple = tuple;");
                     output.writeln("effect->list = list;");
@@ -602,7 +604,7 @@ namespace
 
                 const char* atom_id = effect->s_expr->token;
 
-                output.writeln("tuple_list::handle* list = tuple_list::head_to_handle<%i_tuple>(wstate->%i);", atom_id, atom_id);
+                output.writeln("tuple_list::handle* list = wstate->%i;", atom_id, atom_id);
                 output.writeln("%i_tuple* tuple = tuple_list::append<%i_tuple>(list);", atom_id, atom_id);
 
                 int param_index = 0;
