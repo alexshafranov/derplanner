@@ -792,6 +792,30 @@ void infer_types(tree& ast)
             // unable to infer some method parameters.
             plnnrc_assert(false);
         }
+
+        // propagate types for non atom vars in preconditions
+        for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+        {
+            node* method = methods.value();
+            node* method_atom = method->first_child;
+            plnnrc_assert(method_atom && method_atom->type == node_atom);
+
+            for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
+            {
+                node* precondition = branch->first_child;
+                plnnrc_assert(precondition);
+
+                for (node* var = precondition; var != 0; var = preorder_traversal_next(precondition, var))
+                {
+                    if (var->type == node_term_variable && is_bound(var) && var->parent->type != node_atom)
+                    {
+                        node* def = definition(var);
+                        plnnrc_assert(type_tag(def));
+                        type_tag(var, type_tag(def));
+                    }
+                }
+            }
+        }
     }
 }
 

@@ -133,11 +133,8 @@ namespace
                             annotation<term_ann>(n)->var_index = var_index;
                         }
 
-                        if (n->parent->type == node_atom)
-                        {
-                            node* ws_type = ast.type_tag_to_node[type_tag(n)];
-                            output.writeln("%s _%d;", ws_type->s_expr->first_child->token, var_index);
-                        }
+                        node* ws_type = ast.type_tag_to_node[type_tag(n)];
+                        output.writeln("%s _%d;", ws_type->s_expr->first_child->token, var_index);
 
                         ++var_index;
                     }
