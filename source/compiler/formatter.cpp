@@ -167,6 +167,12 @@ void formatter::writeln(const char* format, ...)
                         _puts(s);
                     }
                 }
+                break;
+            case '%':
+                {
+                    _putc(*format);
+                }
+                break;
             }
         }
         else
