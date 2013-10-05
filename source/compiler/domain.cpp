@@ -40,6 +40,8 @@ namespace
     const char token_method[]       = ":method";
     const char token_operator[]     = ":operator";
     const char token_foreach[]      = ":foreach";
+    const char token_add[]          = ":add";
+    const char token_delete[]       = ":delete";
 
     node* build_method(tree& ast, sexpr::node* s_expr);
     node* build_branch(tree& ast, sexpr::node* s_expr);
@@ -396,12 +398,32 @@ namespace
             return 0;
         }
 
-        sexpr::node* delete_effects_expr = task_atom_expr->next_sibling;
-        plnnrc_assert(delete_effects_expr != 0 && delete_effects_expr->type == sexpr::node_list);
-        sexpr::node* add_effects_expr = delete_effects_expr->next_sibling;
-        plnnrc_assert(add_effects_expr != 0 && add_effects_expr->type == sexpr::node_list);
+        sexpr::node* delete_effects_expr = 0;
+        sexpr::node* add_effects_expr = 0;
 
-        node* delete_effects = build_atom_list(ast, delete_effects_expr);
+        for (sexpr::node* child = task_atom_expr->next_sibling; child != 0; child = child->next_sibling)
+        {
+            plnnrc_assert(child->type == sexpr::node_list);
+
+            if (is_token(child->first_child, token_delete))
+            {
+                plnnrc_assert(!delete_effects_expr);
+                delete_effects_expr = child;
+                continue;
+            }
+
+            if (is_token(child->first_child, token_add))
+            {
+                plnnrc_assert(!add_effects_expr);
+                add_effects_expr = child;
+                continue;
+            }
+
+            // error: unknown element in operator definition
+            plnnrc_assert(false);
+        }
+
+        node* delete_effects = ast.make_node(node_atomlist, delete_effects_expr);
 
         if (!delete_effects)
         {
@@ -410,7 +432,22 @@ namespace
 
         append_child(operatr, delete_effects);
 
-        node* add_effects = build_atom_list(ast, add_effects_expr);
+        if (delete_effects_expr)
+        {
+            for (sexpr::node* t_expr = delete_effects_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
+            {
+                node* atom = build_atom(ast, t_expr);
+
+                if (!atom)
+                {
+                    return 0;
+                }
+
+                append_child(delete_effects, atom);
+            }
+        }
+
+        node* add_effects = ast.make_node(node_atomlist, add_effects_expr);
 
         if (!add_effects)
         {
@@ -418,6 +455,21 @@ namespace
         }
 
         append_child(operatr, add_effects);
+
+        if (add_effects_expr)
+        {
+            for (sexpr::node* t_expr = add_effects_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
+            {
+                node* atom = build_atom(ast, t_expr);
+
+                if (!atom)
+                {
+                    return 0;
+                }
+
+                append_child(add_effects, atom);
+            }
+        }
 
         return operatr;
     }

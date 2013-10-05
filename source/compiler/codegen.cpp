@@ -543,15 +543,15 @@ namespace
         node* operatr = ast.operators.find(task_atom->s_expr->token);
         plnnrc_assert(operatr);
 
-        node* effects_remove = operatr->first_child->next_sibling;
-        node* effects_add = effects_remove->next_sibling;
-        plnnrc_assert(effects_remove && effects_add);
+        node* effects_delete = operatr->first_child->next_sibling;
+        node* effects_add = effects_delete->next_sibling;
+        plnnrc_assert(effects_delete && effects_add);
 
-        if (effects_remove->first_child)
+        if (effects_delete->first_child)
         {
             output.newline();
 
-            for (node* effect = effects_remove->first_child; effect != 0; effect = effect->next_sibling)
+            for (node* effect = effects_delete->first_child; effect != 0; effect = effect->next_sibling)
             {
                 const char* atom_id = effect->s_expr->token;
 
@@ -590,7 +590,7 @@ namespace
 
         if (effects_add->first_child)
         {
-            if (!effects_remove->first_child)
+            if (!effects_delete->first_child)
             {
                 output.newline();
             }
