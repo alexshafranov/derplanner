@@ -19,6 +19,7 @@
 //
 
 #include <string.h>
+#include "build_tools.h"
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/s_expression.h"
 #include "derplanner/compiler/ast.h"
@@ -31,11 +32,6 @@ namespace ast {
 namespace
 {
     const char token_eq[] = "==";
-
-    bool is_token(sexpr::node* s_expr, const char* token)
-    {
-        return strncmp(s_expr->token, token, sizeof(token)) == 0;
-    }
 }
 
 node* build_atom(tree& ast, sexpr::node* s_expr)
@@ -48,23 +44,14 @@ node* build_atom(tree& ast, sexpr::node* s_expr)
     }
 
     node* atom = ast.make_node(atom_type, s_expr->first_child);
-
-    if (!atom)
-    {
-        return 0;
-    }
+    PLNNRC_CHECK(atom);
 
     for (sexpr::node* v_expr = s_expr->first_child->next_sibling; v_expr != 0; v_expr = v_expr->next_sibling)
     {
         plnnrc_assert(v_expr->type = sexpr::node_symbol);
 
         node* argument = ast.make_node(node_term_variable, v_expr);
-
-        if (!argument)
-        {
-            return 0;
-        }
-
+        PLNNRC_CHECK(argument);
         append_child(atom, argument);
     }
 
@@ -74,21 +61,12 @@ node* build_atom(tree& ast, sexpr::node* s_expr)
 node* build_atom_list(tree& ast, sexpr::node* s_expr)
 {
     node* atom_list = ast.make_node(node_atomlist, s_expr);
-
-    if (!atom_list)
-    {
-        return 0;
-    }
+    PLNNRC_CHECK(atom_list);
 
     for (sexpr::node* t_expr = s_expr->first_child; t_expr != 0; t_expr = t_expr->next_sibling)
     {
         node* atom = build_atom(ast, t_expr);
-
-        if (!atom)
-        {
-            return 0;
-        }
-
+        PLNNRC_CHECK(atom);
         append_child(atom_list, atom);
     }
 

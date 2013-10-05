@@ -19,6 +19,7 @@
 //
 
 #include <string.h>
+#include "build_tools.h"
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/s_expression.h"
 #include "derplanner/compiler/ast.h"
@@ -35,22 +36,13 @@ namespace
     const char token_or[]  = "or";
     const char token_not[] = "not";
 
-    bool is_token(sexpr::node* s_expr, const char* token)
-    {
-        return strncmp(s_expr->token, token, sizeof(token)) == 0;
-    }
-
     // forward
     node* build_recursive(tree& ast, sexpr::node* s_expr);
 
     node* build_logical_op(tree& ast, sexpr::node* s_expr, node_type op_type)
     {
         node* root = ast.make_node(op_type, s_expr);
-
-        if (!root)
-        {
-            return 0;
-        }
+        PLNNRC_CHECK(root);
 
         plnnrc_assert(root != 0);
         plnnrc_assert(s_expr->first_child != 0);
@@ -58,12 +50,7 @@ namespace
         for (sexpr::node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
         {
             node* child = build_recursive(ast, c_expr);
-
-            if (!child)
-            {
-                return 0;
-            }
-
+            PLNNRC_CHECK(child);
             append_child(root, child);
         }
 
@@ -100,21 +87,12 @@ node* build_logical_expression(tree& ast, sexpr::node* s_expr)
     plnnrc_assert(s_expr->type == sexpr::node_list);
 
     node* root = ast.make_node(node_op_and, s_expr);
-
-    if (!root)
-    {
-        return 0;
-    }
+    PLNNRC_CHECK(root);
 
     for (sexpr::node* c_expr = s_expr->first_child; c_expr != 0; c_expr = c_expr->next_sibling)
     {
         node* child = build_recursive(ast, c_expr);
-
-        if (!child)
-        {
-            return 0;
-        }
-
+        PLNNRC_CHECK(child);
         append_child(root, child);
     }
 
@@ -169,12 +147,7 @@ node* convert_to_nnf(tree& ast, node* root)
                         detach_node(x);
 
                         node* new_not = ast.make_node(node_op_not);
-
-                        if (!new_not)
-                        {
-                            return 0;
-                        }
-
+                        PLNNRC_CHECK(new_not);
                         append_child(new_not, x);
                         insert_child(after, new_not);
                         after = new_not;
@@ -351,10 +324,7 @@ namespace
                 {
                     done = false;
 
-                    if (!distribute_and(ast, n))
-                    {
-                        return 0;
-                    }
+                    PLNNRC_CHECK(distribute_and(ast, n));
                 }
 
                 n = next_n;
@@ -377,10 +347,7 @@ node* convert_to_dnf(tree& ast, node* root)
     node* nnf_root = convert_to_nnf(ast, root);
     node* new_root = ast.make_node(node_op_or);
 
-    if (!nnf_root || !new_root)
-    {
-        return 0;
-    }
+    PLNNRC_CHECK(nnf_root || new_root);
 
     append_child(new_root, nnf_root);
     flatten(new_root);

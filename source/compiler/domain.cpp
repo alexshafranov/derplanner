@@ -21,6 +21,7 @@
 #include <string.h>
 #include "formatter.h"
 #include "ast_tools.h"
+#include "build_tools.h"
 #include "derplanner/compiler/config.h"
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/s_expression.h"
@@ -51,11 +52,6 @@ namespace
     bool build_operator_stubs(tree& ast);
 
     sexpr::node* next_branch_expr(sexpr::node* branch_expr);
-
-    bool is_token(sexpr::node* s_expr, const char* token)
-    {
-        return s_expr && s_expr->token && strncmp(s_expr->token, token, sizeof(token)) == 0;
-    }
 
     int count_elements(sexpr::node* root, const char* token)
     {
@@ -170,23 +166,13 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
     plnnrc_assert(is_token(s_expr->first_child, token_domain));
 
     node* domain = ast.make_node(node_domain, s_expr);
+    PLNNRC_CHECK(domain);
 
-    if (!domain)
-    {
-        return 0;
-    }
-
-    if (!ast.methods.init(count_elements(s_expr, token_method)))
-    {
-        return 0;
-    }
+    PLNNRC_CHECK(ast.methods.init(count_elements(s_expr, token_method)));
 
     int num_operator_decls = count_elements(s_expr, token_operator);
 
-    if (!ast.operators.init(num_operator_decls > 0 ? num_operator_decls : 128))
-    {
-        return 0;
-    }
+    PLNNRC_CHECK(ast.operators.init(num_operator_decls > 0 ? num_operator_decls : 128));
 
     for (sexpr::node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
     {
@@ -195,32 +181,20 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
         if (is_token(c_expr->first_child, token_method))
         {
             element = build_method(ast, c_expr);
-
-            if (!element)
-            {
-                return 0;
-            }
+            PLNNRC_CHECK(element);
         }
 
         if (is_token(c_expr->first_child, token_operator))
         {
             element = build_operator(ast, c_expr);
-
-            if (!element)
-            {
-                return 0;
-            }
+            PLNNRC_CHECK(element);
         }
 
         plnnrc_assert(element != 0);
-
         append_child(domain, element);
     }
 
-    if (!build_operator_stubs(ast))
-    {
-        return 0;
-    }
+    PLNNRC_CHECK(build_operator_stubs(ast));
 
     for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
     {
@@ -253,22 +227,14 @@ namespace
         plnnrc_assert(is_token(s_expr->first_child, token_method));
 
         node* method = ast.make_node(node_method, s_expr);
-
-        if (!method)
-        {
-            return 0;
-        }
+        PLNNRC_CHECK(method);
 
         sexpr::node* task_atom_expr = s_expr->first_child->next_sibling;
         plnnrc_assert(task_atom_expr);
         plnnrc_assert(task_atom_expr->type == sexpr::node_list);
 
         node* task_atom = build_atom(ast, task_atom_expr);
-
-        if (!task_atom)
-        {
-            return 0;
-        }
+        PLNNRC_CHECK(task_atom);
 
         append_child(method, task_atom);
 
@@ -282,12 +248,7 @@ namespace
         for (sexpr::node* branch_expr = task_atom_expr->next_sibling; branch_expr != 0; branch_expr = next_branch_expr(branch_expr))
         {
             node* branch = build_branch(ast, branch_expr);
-
-            if (!branch)
-            {
-                return 0;
-            }
-
+            PLNNRC_CHECK(branch);
             append_child(method, branch);
         }
 
@@ -307,11 +268,7 @@ namespace
     node* build_branch(tree& ast, sexpr::node* s_expr)
     {
         node* branch = ast.make_node(node_branch, s_expr);
-
-        if (!branch)
-        {
-            return 0;
-        }
+        PLNNRC_CHECK(branch);
 
         sexpr::node* precondition_expr = 0;
         sexpr::node* tasklist_expr = 0;
@@ -335,28 +292,13 @@ namespace
         }
 
         node* precondition = build_logical_expression(ast, precondition_expr);
-
-        if (!precondition)
-        {
-            return 0;
-        }
-
+        PLNNRC_CHECK(precondition);
         node* precondition_dnf = convert_to_dnf(ast, precondition);
-
-        if (!precondition_dnf)
-        {
-            return 0;
-        }
-
+        PLNNRC_CHECK(precondition_dnf);
         append_child(branch, precondition_dnf);
 
         node* task_list = build_atom_list(ast, tasklist_expr);
-
-        if (!task_list)
-        {
-            return 0;
-        }
-
+        PLNNRC_CHECK(task_list);
         append_child(branch, task_list);
 
         return branch;
@@ -370,11 +312,7 @@ namespace
         plnnrc_assert(is_token(s_expr->first_child, token_operator));
 
         node* operatr = ast.make_node(node_operator, s_expr);
-
-        if (!operatr)
-        {
-            return 0;
-        }
+        PLNNRC_CHECK(operatr);
 
         sexpr::node* task_atom_expr = s_expr->first_child->next_sibling;
         plnnrc_assert(task_atom_expr);
@@ -383,20 +321,12 @@ namespace
         plnnrc_assert(is_valid_id(task_atom_expr->first_child->token));
 
         node* task_atom = build_atom(ast, task_atom_expr);
-
-        if (!task_atom)
-        {
-            return 0;
-        }
-
+        PLNNRC_CHECK(task_atom);
         append_child(operatr, task_atom);
 
         plnnrc_assert(is_valid_id(task_atom->s_expr->token));
 
-        if (!ast.operators.insert(task_atom->s_expr->token, operatr))
-        {
-            return 0;
-        }
+        PLNNRC_CHECK(ast.operators.insert(task_atom->s_expr->token, operatr));
 
         sexpr::node* delete_effects_expr = 0;
         sexpr::node* add_effects_expr = 0;
@@ -424,12 +354,7 @@ namespace
         }
 
         node* delete_effects = ast.make_node(node_atomlist, delete_effects_expr);
-
-        if (!delete_effects)
-        {
-            return 0;
-        }
-
+        PLNNRC_CHECK(delete_effects);
         append_child(operatr, delete_effects);
 
         if (delete_effects_expr)
@@ -437,23 +362,13 @@ namespace
             for (sexpr::node* t_expr = delete_effects_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
             {
                 node* atom = build_atom(ast, t_expr);
-
-                if (!atom)
-                {
-                    return 0;
-                }
-
+                PLNNRC_CHECK(atom);
                 append_child(delete_effects, atom);
             }
         }
 
         node* add_effects = ast.make_node(node_atomlist, add_effects_expr);
-
-        if (!add_effects)
-        {
-            return 0;
-        }
-
+        PLNNRC_CHECK(add_effects);
         append_child(operatr, add_effects);
 
         if (add_effects_expr)
@@ -461,12 +376,7 @@ namespace
             for (sexpr::node* t_expr = add_effects_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
             {
                 node* atom = build_atom(ast, t_expr);
-
-                if (!atom)
-                {
-                    return 0;
-                }
-
+                PLNNRC_CHECK(atom);
                 append_child(add_effects, atom);
             }
         }
@@ -479,42 +389,20 @@ namespace
         plnnrc_assert(is_valid_id(s_expr->token));
 
         node* operatr = ast.make_node(node_operator, s_expr->parent);
+        PLNNRC_CHECK(operatr);
 
-        if (!operatr)
-        {
-            return 0;
-        }
-
-        if (!ast.operators.insert(s_expr->token, operatr))
-        {
-            return 0;
-        }
+        PLNNRC_CHECK(ast.operators.insert(s_expr->token, operatr));
 
         node* operator_atom = build_atom(ast, s_expr->parent);
-
-        if (!operator_atom)
-        {
-            return 0;
-        }
-
+        PLNNRC_CHECK(operator_atom);
         append_child(operatr, operator_atom);
 
         node* delete_effects = ast.make_node(node_atomlist);
-
-        if (!delete_effects)
-        {
-            return 0;
-        }
-
+        PLNNRC_CHECK(delete_effects);
         append_child(operatr, delete_effects);
 
         node* add_effects = ast.make_node(node_atomlist);
-
-        if (!add_effects)
-        {
-            return 0;
-        }
-
+        PLNNRC_CHECK(add_effects);
         append_child(operatr, add_effects);
 
         return operatr;
@@ -545,11 +433,7 @@ namespace
                         }
 
                         node* operatr = build_operator_stub(ast, task->s_expr);
-
-                        if (!operatr)
-                        {
-                            return false;
-                        }
+                        PLNNRC_CHECK(operatr);
                     }
                 }
             }
@@ -567,11 +451,7 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
     plnnrc_assert(is_token(s_expr->first_child, token_worldstate));
 
     node* worldstate = ast.make_node(node_worldstate, s_expr);
-
-    if (!worldstate)
-    {
-        return 0;
-    }
+    PLNNRC_CHECK(worldstate);
 
     unsigned total_atom_count = 0;
 
@@ -580,26 +460,15 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
         total_atom_count++;
     }
 
-    if (!ast.ws_atoms.init(total_atom_count))
-    {
-        return 0;
-    }
-
-    if (!ast.ws_types.init(32))
-    {
-        return 0;
-    }
+    PLNNRC_CHECK(ast.ws_atoms.init(total_atom_count));
+    PLNNRC_CHECK(ast.ws_types.init(32));
 
     int type_tag = 1;
 
     for (sexpr::node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
     {
         node* atom = ast.make_node(node_atom, c_expr->first_child);
-
-        if (!atom)
-        {
-            return 0;
-        }
+        PLNNRC_CHECK(atom);
 
         plnnrc_assert(is_valid_id(c_expr->first_child->token));
 
@@ -610,11 +479,7 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
             glue_tokens(t_expr);
 
             node* type = ast.make_node(node_worldstate_type, t_expr);
-
-            if (!type)
-            {
-                return 0;
-            }
+            PLNNRC_CHECK(type);
 
             node* type_proto = ast.ws_types.find(t_expr->first_child->token);
 
@@ -640,10 +505,7 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
         append_child(worldstate, atom);
     }
 
-    if (!ast.type_tag_to_node.init(ast.ws_types.count() + 1))
-    {
-        return 0;
-    }
+    PLNNRC_CHECK(ast.type_tag_to_node.init(ast.ws_types.count() + 1));
 
     ast.type_tag_to_node[0] = 0;
 
