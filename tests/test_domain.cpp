@@ -152,8 +152,8 @@ namespace
 "   )                                   "
 "                                       "
 "   (:operator (!declared x y)          "
-"       ((removed x))                   "
-"       ((added y))                     "
+"       (:delete (removed x))           "
+"       (:add (added y))                "
 "   )                                   "
 ")                                      ";
 
@@ -204,8 +204,8 @@ namespace
 "   )                                   "
 "                                       "
 "   (:operator (!declared x y)          "
-"       ((removed x))                   "
-"       ((added y))                     "
+"       (:delete (removed x))           "
+"       (:add (added y))                "
 "   )                                   "
 ")                                      ";
 
