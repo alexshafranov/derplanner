@@ -39,34 +39,6 @@
         (:delete (clear a) (on a b))
     )
 
-    (:operator (!mark-no-move a)
-        (:add (dont-move a))
-    )
-
-    (:operator (!mark-need-to-move a)
-        (:add (need-to-move a))
-    )
-
-    (:operator (!add-goal-on-table a)
-        (:add (goal-on-table a))
-    )
-
-    (:operator (!add-put-on-table a)
-        (:add (put-on-table a))
-    )
-
-    (:operator (!remove-put-on-table a)
-        (:delete (put-on-table a))
-    )
-
-    (:operator (!add-stack-on-block a b)
-        (:add (stack-on-block a b))
-    )
-
-    (:operator (!remove-stack-on-block a b)
-        (:delete (stack-on-block a b))
-    )
-
     (:method (solve)
         ()
         ((mark-all-blocks) (add-new-goals) (find-movable) (move-block))
@@ -97,30 +69,30 @@
 
     (:method (mark-block-term x)
         ((on x y) (goal-on x z) (not (== y z)))
-        ((!mark-need-to-move x))
+        ((:add (need-to-move x)))
 
         ((on-table x) (goal-on x z))
-        ((!mark-need-to-move x))
+        ((:add (need-to-move x)))
 
         ((on x y) (goal-on-table x))
-        ((!mark-need-to-move x))
+        ((:add (need-to-move x)))
 
         ((on x y) (goal-clear y))
-        ((!mark-need-to-move x))
+        ((:add (need-to-move x)))
 
         ((on x z) (goal-on y z) (not (== x y)))
-        ((!mark-need-to-move x))
+        ((:add (need-to-move x)))
 
         ((on x w) (need-to-move w))
-        ((!mark-need-to-move x))
+        ((:add (need-to-move x)))
 
         ()
-        ((!mark-no-move x))
+        ((:add (dont-move a)))
     )
 
     (:method (add-new-goals)
         ((block x) (not (dont-move x)) (not (goal-on-table x)) (not (goal-on x y)))
-        ((!add-goal-on-table x) (add-new-goals))
+        ((:add (goal-on-table a)) (add-new-goals))
 
         ()
         ()
@@ -128,10 +100,10 @@
 
     (:method (find-movable)
         ((clear x) (not (dont-move x)) (goal-on-table x) (not (put-on-table x)))
-        ((!add-put-on-table x) (find-movable))
+        ((:add (put-on-table x)) (find-movable))
 
         ((clear x) (not (dont-move x)) (goal-on x y) (not (stack-on-block x y)) (dont-move y) (clear y))
-        ((!add-stack-on-block x y) (find-movable))
+        ((:add (stack-on-block x y)) (find-movable))
 
         ()
         ()
@@ -142,7 +114,7 @@
         ((move-block1 x y) (move-block))
 
         ((put-on-table x) (on x y))
-        ((!unstack x y) (!putdown x) (!mark-dont-move x) (!remove-put-on-table x) (check x) (check2 y) (check3 y) (move-block))
+        ((!unstack x y) (!putdown x) (!mark-dont-move x) (:delete (put-on-table x)) (check x) (check2 y) (check3 y) (move-block))
 
         ((clear x) (not (dont-move x)) (on x y))
         ((!unstack x y) (!putdown x) (check2 y) (check3 y) (move-block))
@@ -153,7 +125,7 @@
 
     (:method (check x)
         ((goal-on y x) (clear y))
-        ((!add-stack-on-block y x))
+        ((:add (stack-on-block y x)))
 
         ()
         ()
@@ -161,7 +133,7 @@
 
     (:method (check2 x)
         ((dont-move x) (goal-on y x) (clear y))
-        ((!add-stack-on-block y x))
+        ((:add (stack-on-block y x)))
 
         ()
         ()
@@ -172,10 +144,10 @@
         ()
 
         ((goal-on x y) (clear y) (dont-move y))
-        ((!add-stack-on-block x y))
+        ((:add (stack-on-block x y)))
 
         ((goal-on-table x))
-        ((!add-put-on-table x))
+        ((:add (put-on-table x)))
 
         ()
         ()
@@ -183,9 +155,9 @@
 
     (:method (move-block1 x z)
         ((on x y))
-        ((!unstack x y) (!stack x z) (!mark-dont-move x) (!remove-stack-on-block x z) (check x) (check2 y) (check3 y))
+        ((!unstack x y) (!stack x z) (!mark-dont-move x) (:delete (stack-on-block x z)) (check x) (check2 y) (check3 y))
 
         ()
-        ((!pickup x) (!stack x z) (!mark-dont-move x) (!remove-stack-on-block x z) (check x))
+        ((!pickup x) (!stack x z) (!mark-dont-move x) (:delete (stack-on-block x z)) (check x))
     )
 )
