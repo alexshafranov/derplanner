@@ -20,58 +20,51 @@
 
 (:domain
     (:operator (!pickup a)
-        ((clear a) (on-table a))
-        ((holding a))
+        (:add (holding a))
+        (:delete (clear a) (on-table a))
     )
 
     (:operator (!putdown a)
-        ((holding a))
-        ((on-table a) (clear a))
+        (:add (on-table a) (clear a))
+        (:delete (holding a))
     )
 
     (:operator (!stack a b)
-        ((holding a) (clear b))
-        ((on a b) (clear a))
+        (:add (on a b) (clear a))
+        (:delete (holding a) (clear b))
     )
 
     (:operator (!unstack a b)
-        ((clear a) (on a b))
-        ((holding a) (clear b))
+        (:add (holding a) (clear b))
+        (:delete (clear a) (on a b))
     )
 
     (:operator (!mark-no-move a)
-        ()
-        ((dont-move a))
+        (:add (dont-move a))
     )
 
     (:operator (!mark-need-to-move a)
-        ()
-        ((need-to-move a))
+        (:add (need-to-move a))
     )
 
     (:operator (!add-goal-on-table a)
-        ()
-        ((goal-on-table a))
+        (:add (goal-on-table a))
     )
 
     (:operator (!add-put-on-table a)
-        ()
-        ((put-on-table a))
+        (:add (put-on-table a))
     )
 
     (:operator (!remove-put-on-table a)
-        ((put-on-table a))
-        ()
+        (:delete (put-on-table a))
     )
 
     (:operator (!add-stack-on-block a b)
-        ()
-        ((stack-on-block a b))
+        (:add (stack-on-block a b))
     )
 
     (:operator (!remove-stack-on-block a b)
-        ((stack-on-block a b))
-        ()
+        (:delete (stack-on-block a b))
     )
 
     (:method (solve)
