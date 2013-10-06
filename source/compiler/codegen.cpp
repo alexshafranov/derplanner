@@ -772,7 +772,7 @@ namespace
                                 output.writeln("method->expanded = true;");
                             }
 
-                            if (ast.methods.find(task_atom->s_expr->token) || is_last(task_atom))
+                            if (is_last(task_atom) || is_method(ast, task_atom))
                             {
                                 output.writeln("PLNNR_COROUTINE_YIELD(*method);");
 
