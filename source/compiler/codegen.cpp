@@ -657,8 +657,6 @@ namespace
                 {
                     scope s(output);
 
-                    // output.writeln("printf(\"%i_branch_%d_expand\\n\");", method_name, branch_index);
-
                     output.writeln("method_instance* method = pstate.top_method;");
                     output.writeln("p%d_state* precondition = static_cast<p%d_state*>(method->precondition);", precondition_index, precondition_index);
                     output.writeln("worldstate* wstate = static_cast<worldstate*>(world);");
