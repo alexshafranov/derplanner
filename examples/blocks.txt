@@ -87,12 +87,12 @@
         ((:add (need-to-move x)))
 
         ()
-        ((:add (dont-move a)))
+        ((:add (dont-move x)))
     )
 
     (:method (add-new-goals)
         ((block x) (not (dont-move x)) (not (goal-on-table x)) (not (goal-on x y)))
-        ((:add (goal-on-table a)) (add-new-goals))
+        ((:add (goal-on-table x)) (add-new-goals))
 
         ()
         ()

@@ -538,6 +538,101 @@ namespace
         return true;
     }
 
+    bool generate_effects_delete(node* effects, formatter& output)
+    {
+        for (node* effect = effects->first_child; effect != 0; effect = effect->next_sibling)
+        {
+            const char* atom_id = effect->s_expr->token;
+
+            output.writeln("for (%i_tuple* tuple = tuple_list::head<%i_tuple>(wstate->%i); tuple != 0; tuple = tuple->next)", atom_id, atom_id, atom_id);
+            {
+                scope s(output, false);
+
+                int param_index = 0;
+
+                for (node* arg = effect->first_child; arg != 0; arg = arg->next_sibling)
+                {
+                    node* def = definition(arg);
+                    plnnrc_assert(def);
+                    int var_index = annotation<term_ann>(def)->var_index;
+
+                    if (is_operator_parameter(def))
+                    {
+                        output.writeln("if (tuple->_%d != a->_%d)", param_index, var_index);
+                    }
+                    else if (is_method_parameter(def))
+                    {
+                        output.writeln("if (tuple->_%d != method_args->_%d)", param_index, var_index);
+                    }
+                    else
+                    {
+                        output.writeln("if (tuple->_%d != precondition->_%d)", param_index, var_index);
+                    }
+
+                    {
+                        scope s(output);
+                        output.writeln("continue;");
+                    }
+
+                    ++param_index;
+                }
+
+                output.writeln("tuple_list::handle* list = wstate->%i;", atom_id, atom_id);
+                output.writeln("operator_effect* effect = push<operator_effect>(pstate.journal);");
+                output.writeln("effect->tuple = tuple;");
+                output.writeln("effect->list = list;");
+                output.writeln("tuple_list::detach(list, tuple);");
+                output.newline();
+                output.writeln("break;");
+            }
+        }
+
+        return true;
+    }
+
+    bool generate_effects_add(node* effects, formatter& output)
+    {
+        for (node* effect = effects->first_child; effect != 0; effect = effect->next_sibling)
+        {
+            scope s(output, !is_last(effect));
+
+            const char* atom_id = effect->s_expr->token;
+
+            output.writeln("tuple_list::handle* list = wstate->%i;", atom_id, atom_id);
+            output.writeln("%i_tuple* tuple = tuple_list::append<%i_tuple>(list);", atom_id, atom_id);
+
+            int param_index = 0;
+
+            for (node* arg = effect->first_child; arg != 0; arg = arg->next_sibling)
+            {
+                node* def = definition(arg);
+                plnnrc_assert(def);
+                int var_index = annotation<term_ann>(def)->var_index;
+
+                if (is_operator_parameter(def))
+                {
+                    output.writeln("tuple->_%d = a->_%d;", param_index, var_index);
+                }
+                else if (is_method_parameter(def))
+                {
+                    output.writeln("tuple->_%d = method_args->_%d;", param_index, var_index);
+                }
+                else
+                {
+                    output.writeln("tuple->_%d = precondition->_%d;", param_index, var_index);
+                }
+
+                ++param_index;
+            }
+
+            output.writeln("operator_effect* effect = push<operator_effect>(pstate.journal);");
+            output.writeln("effect->tuple = tuple;");
+            output.writeln("effect->list = list;");
+        }
+
+        return true;
+    }
+
     bool generate_operator_effects(tree& ast, node* method, node* task_atom, formatter& output)
     {
         node* operatr = ast.operators.find(task_atom->s_expr->token);
@@ -551,40 +646,14 @@ namespace
         {
             output.newline();
 
-            for (node* effect = effects_delete->first_child; effect != 0; effect = effect->next_sibling)
+            if (!generate_effects_delete(effects_delete, output))
             {
-                const char* atom_id = effect->s_expr->token;
+                return false;
+            }
 
-                output.writeln("for (%i_tuple* tuple = tuple_list::head<%i_tuple>(wstate->%i); tuple != 0; tuple = tuple->next)", atom_id, atom_id, atom_id);
-                {
-                    scope s(output, effects_add->first_child);
-
-                    int param_index = 0;
-
-                    for (node* arg = effect->first_child; arg != 0; arg = arg->next_sibling)
-                    {
-                        node* def = definition(arg);
-                        plnnrc_assert(def);
-                        int var_index = annotation<term_ann>(def)->var_index;
-                        plnnrc_assert(is_parameter(def));
-
-                        output.writeln("if (tuple->_%d != a->_%d)", param_index, var_index);
-                        {
-                            scope s(output);
-                            output.writeln("continue;");
-                        }
-
-                        ++param_index;
-                    }
-
-                    output.writeln("tuple_list::handle* list = wstate->%i;", atom_id, atom_id);
-                    output.writeln("operator_effect* effect = push<operator_effect>(pstate.journal);");
-                    output.writeln("effect->tuple = tuple;");
-                    output.writeln("effect->list = list;");
-                    output.writeln("tuple_list::detach(list, tuple);");
-                    output.newline();
-                    output.writeln("break;");
-                }
+            if (effects_add->first_child)
+            {
+                output.newline();
             }
         }
 
@@ -595,32 +664,95 @@ namespace
                 output.newline();
             }
 
-            for (node* effect = effects_add->first_child; effect != 0; effect = effect->next_sibling)
+            if (!generate_effects_add(effects_add, output))
             {
-                scope s(output, !is_last(effect));
-
-                const char* atom_id = effect->s_expr->token;
-
-                output.writeln("tuple_list::handle* list = wstate->%i;", atom_id, atom_id);
-                output.writeln("%i_tuple* tuple = tuple_list::append<%i_tuple>(list);", atom_id, atom_id);
-
-                int param_index = 0;
-
-                for (node* arg = effect->first_child; arg != 0; arg = arg->next_sibling)
-                {
-                    node* def = definition(arg);
-                    plnnrc_assert(def);
-                    int var_index = annotation<term_ann>(def)->var_index;
-                    plnnrc_assert(is_parameter(def));
-
-                    output.writeln("tuple->_%d = a->_%d;", param_index, var_index);
-                    ++param_index;
-                }
-
-                output.writeln("operator_effect* effect = push<operator_effect>(pstate.journal);");
-                output.writeln("effect->tuple = tuple;");
-                output.writeln("effect->list = list;");
+                return false;
             }
+        }
+
+        return true;
+    }
+
+    bool generate_operator_task(tree& ast, node* method, node* task_atom, formatter& output)
+    {
+        plnnrc_assert(is_operator(ast, task_atom));
+
+        output.writeln("task_instance* t = push_task(pstate, task_%i);", task_atom->s_expr->token);
+
+        if (task_atom->first_child)
+        {
+            output.writeln("%i_args* a = push<%i_args>(pstate.tstack);", task_atom->s_expr->token, task_atom->s_expr->token);
+        }
+
+        int param_index = 0;
+
+        for (node* arg = task_atom->first_child; arg != 0; arg = arg->next_sibling)
+        {
+            plnnrc_assert(arg->type == node_term_variable);
+            node* def = definition(arg);
+            plnnrc_assert(def);
+            int var_index = annotation<term_ann>(def)->var_index;
+
+            if (is_parameter(def))
+            {
+                output.writeln("a->_%d = method_args->_%d;", param_index, var_index);
+            }
+            else
+            {
+                output.writeln("a->_%d = precondition->_%d;", param_index, var_index);
+            }
+
+            ++param_index;
+        }
+
+        if (task_atom->first_child)
+        {
+            output.writeln("t->args = a;");
+        }
+
+        if (!generate_operator_effects(ast, method, task_atom, output))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    bool generate_method_task(tree& ast, node* method, node* task_atom, formatter& output)
+    {
+        plnnrc_assert(is_method(ast, task_atom));
+
+        output.writeln("method_instance* t = push_method(pstate, %i_branch_0_expand);", task_atom->s_expr->token);
+
+        if (task_atom->first_child)
+        {
+            output.writeln("%i_args* a = push<%i_args>(pstate.mstack);", task_atom->s_expr->token, task_atom->s_expr->token);
+        }
+
+        int param_index = 0;
+
+        for (node* arg = task_atom->first_child; arg != 0; arg = arg->next_sibling)
+        {
+            plnnrc_assert(arg->type == node_term_variable);
+            node* def = definition(arg);
+            plnnrc_assert(def);
+            int var_index = annotation<term_ann>(def)->var_index;
+
+            if (is_parameter(def))
+            {
+                output.writeln("a->_%d = method_args->_%d;", param_index, var_index);
+            }
+            else
+            {
+                output.writeln("a->_%d = precondition->_%d;", param_index, var_index);
+            }
+
+            ++param_index;
+        }
+
+        if (task_atom->first_child)
+        {
+            output.writeln("t->args = a;");
         }
 
         return true;
@@ -651,7 +783,7 @@ namespace
                 node* precondition = branch->first_child;
                 node* tasklist = precondition->next_sibling;
 
-                plnnrc_assert(tasklist->type == node_atomlist);
+                plnnrc_assert(tasklist->type == node_task_list);
 
                 output.writeln("bool %i_branch_%d_expand(planner_state& pstate, void* world)", method_name, branch_index);
                 {
@@ -712,58 +844,26 @@ namespace
                             {
                                 scope s(output);
 
-                                if (is_operator(ast, task_atom))
+                                if (task_atom->type == node_add_list)
                                 {
-                                    output.writeln("task_instance* t = push_task(pstate, task_%i);", task_atom->s_expr->token);
-
-                                    if (task_atom->first_child)
-                                    {
-                                        output.writeln("%i_args* a = push<%i_args>(pstate.tstack);", task_atom->s_expr->token, task_atom->s_expr->token);
-                                    }
+                                    generate_effects_add(task_atom, output);
+                                }
+                                else if (task_atom->type == node_delete_list)
+                                {
+                                    generate_effects_delete(task_atom, output);
+                                }
+                                else if (is_operator(ast, task_atom))
+                                {
+                                    generate_operator_task(ast, method, task_atom, output);
+                                }
+                                else if (is_method(ast, task_atom))
+                                {
+                                    generate_method_task(ast, method, task_atom, output);
                                 }
                                 else
                                 {
-                                    plnnrc_assert(ast.methods.find(task_atom->s_expr->token));
-                                    output.writeln("method_instance* t = push_method(pstate, %i_branch_0_expand);", task_atom->s_expr->token);
-
-                                    if (task_atom->first_child)
-                                    {
-                                        output.writeln("%i_args* a = push<%i_args>(pstate.mstack);", task_atom->s_expr->token, task_atom->s_expr->token);
-                                    }
-                                }
-
-                                int param_index = 0;
-
-                                for (node* arg = task_atom->first_child; arg != 0; arg = arg->next_sibling)
-                                {
-                                    plnnrc_assert(arg->type == node_term_variable);
-                                    node* def = definition(arg);
-                                    plnnrc_assert(def);
-                                    int var_index = annotation<term_ann>(def)->var_index;
-
-                                    if (is_parameter(def))
-                                    {
-                                        output.writeln("a->_%d = method_args->_%d;", param_index, var_index);
-                                    }
-                                    else
-                                    {
-                                        output.writeln("a->_%d = precondition->_%d;", param_index, var_index);
-                                    }
-
-                                    ++param_index;
-                                }
-
-                                if (task_atom->first_child)
-                                {
-                                    output.writeln("t->args = a;");
-                                }
-
-                                if (is_operator(ast, task_atom))
-                                {
-                                    if (!generate_operator_effects(ast, method, task_atom, output))
-                                    {
-                                        return false;
-                                    }
+                                    // unknown construct in task list
+                                    plnnrc_assert(false);
                                 }
                             }
 
@@ -772,7 +872,7 @@ namespace
                                 output.writeln("method->expanded = true;");
                             }
 
-                            if (is_last(task_atom) || is_method(ast, task_atom))
+                            if (is_last(task_atom) || (!is_effect_list(task_atom) && is_method(ast, task_atom)))
                             {
                                 output.writeln("PLNNR_COROUTINE_YIELD(*method);");
 

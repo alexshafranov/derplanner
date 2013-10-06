@@ -462,6 +462,11 @@ namespace
 
                 for (node* task = tasklist->first_child; task != 0; task = task->next_sibling)
                 {
+                    if (is_effect_list(task))
+                    {
+                        continue;
+                    }
+
                     if (!is_method(ast, task))
                     {
                         if (ast.operators.find(task->s_expr->token))
@@ -698,6 +703,11 @@ void infer_types(tree& ast)
 
                 for (node* task = tasklist->first_child; task != 0; task = task->next_sibling)
                 {
+                    if (is_effect_list(task))
+                    {
+                        continue;
+                    }
+
                     node* callee = ast.methods.find(task->s_expr->token);
 
                     if (!callee)

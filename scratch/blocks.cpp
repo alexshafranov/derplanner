@@ -1071,64 +1071,14 @@ bool next(p31_state& state, worldstate& world)
 enum task_type
 {
 	task_none=0,
-	task_add_stack_on_block,
 	task_putdown,
-	task_mark_dont_move,
-	task_remove_put_on_table,
-	task_remove_stack_on_block,
-	task_stack,
-	task_mark_need_to_move,
-	task_add_goal_on_table,
-	task_mark_no_move,
 	task_unstack,
+	task_mark_dont_move,
 	task_pickup,
-	task_add_put_on_table,
-};
-
-struct add_stack_on_block_args
-{
-	int _0;
-	int _1;
+	task_stack,
 };
 
 struct putdown_args
-{
-	int _0;
-};
-
-struct mark_dont_move_args
-{
-	int _0;
-};
-
-struct remove_put_on_table_args
-{
-	int _0;
-};
-
-struct remove_stack_on_block_args
-{
-	int _0;
-	int _1;
-};
-
-struct stack_args
-{
-	int _0;
-	int _1;
-};
-
-struct mark_need_to_move_args
-{
-	int _0;
-};
-
-struct add_goal_on_table_args
-{
-	int _0;
-};
-
-struct mark_no_move_args
 {
 	int _0;
 };
@@ -1139,14 +1089,20 @@ struct unstack_args
 	int _1;
 };
 
+struct mark_dont_move_args
+{
+	int _0;
+};
+
 struct pickup_args
 {
 	int _0;
 };
 
-struct add_put_on_table_args
+struct stack_args
 {
 	int _0;
+	int _1;
 };
 
 struct check2_args
@@ -1461,15 +1417,10 @@ bool mark_block_term_branch_0_expand(planner_state& pstate, void* world)
 	while (next(*precondition, *wstate))
 	{
 		{
-			task_instance* t = push_task(pstate, task_mark_need_to_move);
-			mark_need_to_move_args* a = push<mark_need_to_move_args>(pstate.tstack);
-			a->_0 = method_args->_0;
-			t->args = a;
-
 			{
 				tuple_list::handle* list = wstate->need_to_move;
 				need_to_move_tuple* tuple = tuple_list::append<need_to_move_tuple>(list);
-				tuple->_0 = a->_0;
+				tuple->_0 = method_args->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -1505,15 +1456,10 @@ bool mark_block_term_branch_1_expand(planner_state& pstate, void* world)
 	while (next(*precondition, *wstate))
 	{
 		{
-			task_instance* t = push_task(pstate, task_mark_need_to_move);
-			mark_need_to_move_args* a = push<mark_need_to_move_args>(pstate.tstack);
-			a->_0 = method_args->_0;
-			t->args = a;
-
 			{
 				tuple_list::handle* list = wstate->need_to_move;
 				need_to_move_tuple* tuple = tuple_list::append<need_to_move_tuple>(list);
-				tuple->_0 = a->_0;
+				tuple->_0 = method_args->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -1549,15 +1495,10 @@ bool mark_block_term_branch_2_expand(planner_state& pstate, void* world)
 	while (next(*precondition, *wstate))
 	{
 		{
-			task_instance* t = push_task(pstate, task_mark_need_to_move);
-			mark_need_to_move_args* a = push<mark_need_to_move_args>(pstate.tstack);
-			a->_0 = method_args->_0;
-			t->args = a;
-
 			{
 				tuple_list::handle* list = wstate->need_to_move;
 				need_to_move_tuple* tuple = tuple_list::append<need_to_move_tuple>(list);
-				tuple->_0 = a->_0;
+				tuple->_0 = method_args->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -1593,15 +1534,10 @@ bool mark_block_term_branch_3_expand(planner_state& pstate, void* world)
 	while (next(*precondition, *wstate))
 	{
 		{
-			task_instance* t = push_task(pstate, task_mark_need_to_move);
-			mark_need_to_move_args* a = push<mark_need_to_move_args>(pstate.tstack);
-			a->_0 = method_args->_0;
-			t->args = a;
-
 			{
 				tuple_list::handle* list = wstate->need_to_move;
 				need_to_move_tuple* tuple = tuple_list::append<need_to_move_tuple>(list);
-				tuple->_0 = a->_0;
+				tuple->_0 = method_args->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -1637,15 +1573,10 @@ bool mark_block_term_branch_4_expand(planner_state& pstate, void* world)
 	while (next(*precondition, *wstate))
 	{
 		{
-			task_instance* t = push_task(pstate, task_mark_need_to_move);
-			mark_need_to_move_args* a = push<mark_need_to_move_args>(pstate.tstack);
-			a->_0 = method_args->_0;
-			t->args = a;
-
 			{
 				tuple_list::handle* list = wstate->need_to_move;
 				need_to_move_tuple* tuple = tuple_list::append<need_to_move_tuple>(list);
-				tuple->_0 = a->_0;
+				tuple->_0 = method_args->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -1681,15 +1612,10 @@ bool mark_block_term_branch_5_expand(planner_state& pstate, void* world)
 	while (next(*precondition, *wstate))
 	{
 		{
-			task_instance* t = push_task(pstate, task_mark_need_to_move);
-			mark_need_to_move_args* a = push<mark_need_to_move_args>(pstate.tstack);
-			a->_0 = method_args->_0;
-			t->args = a;
-
 			{
 				tuple_list::handle* list = wstate->need_to_move;
 				need_to_move_tuple* tuple = tuple_list::append<need_to_move_tuple>(list);
-				tuple->_0 = a->_0;
+				tuple->_0 = method_args->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -1724,15 +1650,10 @@ bool mark_block_term_branch_6_expand(planner_state& pstate, void* world)
 	while (next(*precondition, *wstate))
 	{
 		{
-			task_instance* t = push_task(pstate, task_mark_no_move);
-			mark_no_move_args* a = push<mark_no_move_args>(pstate.tstack);
-			a->_0 = method_args->_0;
-			t->args = a;
-
 			{
 				tuple_list::handle* list = wstate->dont_move;
 				dont_move_tuple* tuple = tuple_list::append<dont_move_tuple>(list);
-				tuple->_0 = a->_0;
+				tuple->_0 = method_args->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -1765,15 +1686,10 @@ bool add_new_goals_branch_0_expand(planner_state& pstate, void* world)
 	while (next(*precondition, *wstate))
 	{
 		{
-			task_instance* t = push_task(pstate, task_add_goal_on_table);
-			add_goal_on_table_args* a = push<add_goal_on_table_args>(pstate.tstack);
-			a->_0 = precondition->_0;
-			t->args = a;
-
 			{
 				tuple_list::handle* list = wstate->goal_on_table;
 				goal_on_table_tuple* tuple = tuple_list::append<goal_on_table_tuple>(list);
-				tuple->_0 = a->_0;
+				tuple->_0 = precondition->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -1836,15 +1752,10 @@ bool find_movable_branch_0_expand(planner_state& pstate, void* world)
 	while (next(*precondition, *wstate))
 	{
 		{
-			task_instance* t = push_task(pstate, task_add_put_on_table);
-			add_put_on_table_args* a = push<add_put_on_table_args>(pstate.tstack);
-			a->_0 = precondition->_0;
-			t->args = a;
-
 			{
 				tuple_list::handle* list = wstate->put_on_table;
 				put_on_table_tuple* tuple = tuple_list::append<put_on_table_tuple>(list);
-				tuple->_0 = a->_0;
+				tuple->_0 = precondition->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -1882,17 +1793,11 @@ bool find_movable_branch_1_expand(planner_state& pstate, void* world)
 	while (next(*precondition, *wstate))
 	{
 		{
-			task_instance* t = push_task(pstate, task_add_stack_on_block);
-			add_stack_on_block_args* a = push<add_stack_on_block_args>(pstate.tstack);
-			a->_0 = precondition->_0;
-			a->_1 = precondition->_1;
-			t->args = a;
-
 			{
 				tuple_list::handle* list = wstate->stack_on_block;
 				stack_on_block_tuple* tuple = tuple_list::append<stack_on_block_tuple>(list);
-				tuple->_0 = a->_0;
-				tuple->_1 = a->_1;
+				tuple->_0 = precondition->_0;
+				tuple->_1 = precondition->_1;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -2016,7 +1921,6 @@ bool move_block_branch_1_expand(planner_state& pstate, void* world)
 
 				break;
 			}
-
 			for (on_tuple* tuple = tuple_list::head<on_tuple>(wstate->on); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_0)
@@ -2106,14 +2010,9 @@ bool move_block_branch_1_expand(planner_state& pstate, void* world)
 		}
 
 		{
-			task_instance* t = push_task(pstate, task_remove_put_on_table);
-			remove_put_on_table_args* a = push<remove_put_on_table_args>(pstate.tstack);
-			a->_0 = precondition->_0;
-			t->args = a;
-
 			for (put_on_table_tuple* tuple = tuple_list::head<put_on_table_tuple>(wstate->put_on_table); tuple != 0; tuple = tuple->next)
 			{
-				if (tuple->_0 != a->_0)
+				if (tuple->_0 != precondition->_0)
 				{
 					continue;
 				}
@@ -2207,7 +2106,6 @@ bool move_block_branch_2_expand(planner_state& pstate, void* world)
 
 				break;
 			}
-
 			for (on_tuple* tuple = tuple_list::head<on_tuple>(wstate->on); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_0)
@@ -2365,17 +2263,11 @@ bool check_branch_0_expand(planner_state& pstate, void* world)
 	while (next(*precondition, *wstate))
 	{
 		{
-			task_instance* t = push_task(pstate, task_add_stack_on_block);
-			add_stack_on_block_args* a = push<add_stack_on_block_args>(pstate.tstack);
-			a->_0 = precondition->_0;
-			a->_1 = method_args->_0;
-			t->args = a;
-
 			{
 				tuple_list::handle* list = wstate->stack_on_block;
 				stack_on_block_tuple* tuple = tuple_list::append<stack_on_block_tuple>(list);
-				tuple->_0 = a->_0;
-				tuple->_1 = a->_1;
+				tuple->_0 = precondition->_0;
+				tuple->_1 = method_args->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -2437,17 +2329,11 @@ bool check2_branch_0_expand(planner_state& pstate, void* world)
 	while (next(*precondition, *wstate))
 	{
 		{
-			task_instance* t = push_task(pstate, task_add_stack_on_block);
-			add_stack_on_block_args* a = push<add_stack_on_block_args>(pstate.tstack);
-			a->_0 = precondition->_1;
-			a->_1 = method_args->_0;
-			t->args = a;
-
 			{
 				tuple_list::handle* list = wstate->stack_on_block;
 				stack_on_block_tuple* tuple = tuple_list::append<stack_on_block_tuple>(list);
-				tuple->_0 = a->_0;
-				tuple->_1 = a->_1;
+				tuple->_0 = precondition->_1;
+				tuple->_1 = method_args->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -2537,17 +2423,11 @@ bool check3_branch_1_expand(planner_state& pstate, void* world)
 	while (next(*precondition, *wstate))
 	{
 		{
-			task_instance* t = push_task(pstate, task_add_stack_on_block);
-			add_stack_on_block_args* a = push<add_stack_on_block_args>(pstate.tstack);
-			a->_0 = method_args->_0;
-			a->_1 = precondition->_1;
-			t->args = a;
-
 			{
 				tuple_list::handle* list = wstate->stack_on_block;
 				stack_on_block_tuple* tuple = tuple_list::append<stack_on_block_tuple>(list);
-				tuple->_0 = a->_0;
-				tuple->_1 = a->_1;
+				tuple->_0 = method_args->_0;
+				tuple->_1 = precondition->_1;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -2583,15 +2463,10 @@ bool check3_branch_2_expand(planner_state& pstate, void* world)
 	while (next(*precondition, *wstate))
 	{
 		{
-			task_instance* t = push_task(pstate, task_add_put_on_table);
-			add_put_on_table_args* a = push<add_put_on_table_args>(pstate.tstack);
-			a->_0 = method_args->_0;
-			t->args = a;
-
 			{
 				tuple_list::handle* list = wstate->put_on_table;
 				put_on_table_tuple* tuple = tuple_list::append<put_on_table_tuple>(list);
-				tuple->_0 = a->_0;
+				tuple->_0 = method_args->_0;
 				operator_effect* effect = push<operator_effect>(pstate.journal);
 				effect->tuple = tuple;
 				effect->list = list;
@@ -2674,7 +2549,6 @@ bool move_block1_branch_0_expand(planner_state& pstate, void* world)
 
 				break;
 			}
-
 			for (on_tuple* tuple = tuple_list::head<on_tuple>(wstate->on); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_0)
@@ -2737,7 +2611,6 @@ bool move_block1_branch_0_expand(planner_state& pstate, void* world)
 
 				break;
 			}
-
 			for (clear_tuple* tuple = tuple_list::head<clear_tuple>(wstate->clear); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_1)
@@ -2782,20 +2655,14 @@ bool move_block1_branch_0_expand(planner_state& pstate, void* world)
 		}
 
 		{
-			task_instance* t = push_task(pstate, task_remove_stack_on_block);
-			remove_stack_on_block_args* a = push<remove_stack_on_block_args>(pstate.tstack);
-			a->_0 = method_args->_0;
-			a->_1 = method_args->_1;
-			t->args = a;
-
 			for (stack_on_block_tuple* tuple = tuple_list::head<stack_on_block_tuple>(wstate->stack_on_block); tuple != 0; tuple = tuple->next)
 			{
-				if (tuple->_0 != a->_0)
+				if (tuple->_0 != method_args->_0)
 				{
 					continue;
 				}
 
-				if (tuple->_1 != a->_1)
+				if (tuple->_1 != method_args->_1)
 				{
 					continue;
 				}
@@ -2883,7 +2750,6 @@ bool move_block1_branch_1_expand(planner_state& pstate, void* world)
 
 				break;
 			}
-
 			for (on_table_tuple* tuple = tuple_list::head<on_table_tuple>(wstate->on_table); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_0)
@@ -2932,7 +2798,6 @@ bool move_block1_branch_1_expand(planner_state& pstate, void* world)
 
 				break;
 			}
-
 			for (clear_tuple* tuple = tuple_list::head<clear_tuple>(wstate->clear); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_1)
@@ -2977,20 +2842,14 @@ bool move_block1_branch_1_expand(planner_state& pstate, void* world)
 		}
 
 		{
-			task_instance* t = push_task(pstate, task_remove_stack_on_block);
-			remove_stack_on_block_args* a = push<remove_stack_on_block_args>(pstate.tstack);
-			a->_0 = method_args->_0;
-			a->_1 = method_args->_1;
-			t->args = a;
-
 			for (stack_on_block_tuple* tuple = tuple_list::head<stack_on_block_tuple>(wstate->stack_on_block); tuple != 0; tuple = tuple->next)
 			{
-				if (tuple->_0 != a->_0)
+				if (tuple->_0 != method_args->_0)
 				{
 					continue;
 				}
 
-				if (tuple->_1 != a->_1)
+				if (tuple->_1 != method_args->_1)
 				{
 					continue;
 				}

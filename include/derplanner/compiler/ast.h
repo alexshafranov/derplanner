@@ -121,6 +121,16 @@ inline bool is_atom(const node* n)
     return is_atom(n->type);
 }
 
+inline bool is_effect_list(node_type type)
+{
+    return type >= node_add_list && type <= node_delete_list;
+}
+
+inline bool is_effect_list(const node* n)
+{
+    return is_effect_list(n->type);
+}
+
 class tree
 {
 public:

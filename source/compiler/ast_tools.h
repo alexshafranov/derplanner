@@ -56,11 +56,23 @@ inline node* definition(node* var)
     return annotation<term_ann>(var)->var_def;
 }
 
-inline bool is_parameter(node* var)
+inline bool is_method_parameter(node* var)
 {
     plnnrc_assert(var->type == node_term_variable);
     plnnrc_assert(var->parent && var->parent->parent);
-    return var->parent->parent->type == node_method || var->parent->parent->type == node_operator;
+    return var->parent->parent->type == node_method;
+}
+
+inline bool is_operator_parameter(node* var)
+{
+    plnnrc_assert(var->type == node_term_variable);
+    plnnrc_assert(var->parent && var->parent->parent);
+    return var->parent->parent->type == node_operator;
+}
+
+inline bool is_parameter(node* var)
+{
+    return is_method_parameter(var) || is_operator_parameter(var);
 }
 
 inline bool has_parameters(node* task)
