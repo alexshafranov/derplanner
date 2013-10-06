@@ -134,7 +134,7 @@ namespace
 "                        node_term_variable ?s\n"
 "                    node_atom finish\n"
 "                        node_term_variable ?f\n"
-"            node_atomlist\n"
+"            node_task_list\n"
 "                node_atom travel\n"
 "                    node_term_variable ?s\n"
 "                    node_term_variable ?f";
@@ -174,7 +174,7 @@ namespace
 "        node_branch\n"
 "            node_op_or\n"
 "                node_op_and\n"
-"            node_atomlist\n"
+"            node_task_list\n"
 "                node_atom !declared\n"
 "                    node_term_variable x\n"
 "                    node_term_variable y\n"
@@ -184,10 +184,10 @@ namespace
 "        node_atom !declared\n"
 "            node_term_variable x\n"
 "            node_term_variable y\n"
-"        node_atomlist\n"
+"        node_delete_list\n"
 "            node_atom removed\n"
 "                node_term_variable x\n"
-"        node_atomlist\n"
+"        node_add_list\n"
 "            node_atom added\n"
 "                node_term_variable y";
 
@@ -223,10 +223,10 @@ namespace
 "    node_atom !declared\n"
 "        node_term_variable x\n"
 "        node_term_variable y\n"
-"    node_atomlist\n"
+"    node_delete_list\n"
 "        node_atom removed\n"
 "            node_term_variable x\n"
-"    node_atomlist\n"
+"    node_add_list\n"
 "        node_atom added\n"
 "            node_term_variable y";
 
