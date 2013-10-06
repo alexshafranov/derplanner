@@ -73,6 +73,11 @@ int main(int argc, char** argv)
     generate_worldstate(tree, worldstate, writer);
     generate_domain(tree, domain, writer);
 
+    if (writer.error())
+    {
+        printf("i/o error occured.");
+    }
+
     delete [] input_data;
     fclose(fd);
 }
