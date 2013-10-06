@@ -55,6 +55,11 @@ namespace
             return size;
         }
 
+        virtual bool error()
+        {
+            return false;
+        }
+
         char* buffer;
         unsigned top;
     };

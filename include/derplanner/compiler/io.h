@@ -30,6 +30,7 @@ class writer
 public:
     virtual ~writer() {}
     virtual size_t write(const void* data, size_t size) = 0;
+    virtual bool error() = 0;
 };
 
 class stdio_file_writer : public writer
@@ -37,8 +38,11 @@ class stdio_file_writer : public writer
 public:
     stdio_file_writer(void* file_object);
     virtual size_t write(const void* data, size_t size);
+    virtual bool error() { return _error; }
+
 private:
-    void* file_object;
+    void* _file_object;
+    bool _error;
 };
 
 }
