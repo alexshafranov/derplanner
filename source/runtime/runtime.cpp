@@ -149,7 +149,7 @@ bool find_plan(planner_state& pstate, expand_func root_method, void* worldstate)
         // if found satisfying preconditions
         if (method->expand(pstate, worldstate))
         {
-            // if expanded to primitive tasks
+            // expanded to primitive tasks => go up popping expanded methods.
             if (method == pstate.top_method)
             {
                 while (method && method->expanded)
@@ -157,6 +157,7 @@ bool find_plan(planner_state& pstate, expand_func root_method, void* worldstate)
                     method = rewind_top_method(pstate, false);
                 }
 
+                // all methods were expanded => plan found.
                 if (!method)
                 {
                     return true;
