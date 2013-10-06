@@ -94,7 +94,7 @@ bool generate_worldstate(tree& ast, node* worldstate, writer& writer)
 
 namespace
 {
-    bool generate_precondition_state(tree& ast, node* root, unsigned branch_index, formatter& output)
+    void generate_precondition_state(tree& ast, node* root, unsigned branch_index, formatter& output)
     {
         output.writeln("struct p%d_state", branch_index);
         {
@@ -163,13 +163,11 @@ namespace
 
             output.writeln("int stage;");
         }
-
-        return true;
     }
 
-    bool generate_literal_chain(tree& ast, node* root, formatter& output);
+    void generate_literal_chain(tree& ast, node* root, formatter& output);
 
-    bool generate_literal_chain_atom_eq(tree& ast, node* root, node* atom, formatter& output)
+    void generate_literal_chain_atom_eq(tree& ast, node* root, node* atom, formatter& output)
     {
         node* arg_0 = atom->first_child;
         plnnrc_assert(arg_0 && arg_0->type == node_term_variable);
@@ -196,21 +194,16 @@ namespace
 
             if (root->next_sibling)
             {
-                if (!generate_literal_chain(ast, root->next_sibling, output))
-                {
-                    return false;
-                }
+                generate_literal_chain(ast, root->next_sibling, output);
             }
             else
             {
                 output.writeln("PLNNR_COROUTINE_YIELD(state);");
             }
         }
-
-        return true;
     }
 
-    bool generate_literal_chain(tree& ast, node* root, formatter& output)
+    void generate_literal_chain(tree& ast, node* root, formatter& output)
     {
         plnnrc_assert(root->type == node_op_not || is_atom(root));
 
@@ -224,7 +217,8 @@ namespace
         // special case atoms
         if (atom->type == node_atom_eq)
         {
-            return generate_literal_chain_atom_eq(ast, root, atom, output);
+            generate_literal_chain_atom_eq(ast, root, atom, output);
+            return;
         }
 
         const char* atom_id = atom->s_expr->token;
@@ -267,10 +261,7 @@ namespace
 
                 if (root->next_sibling)
                 {
-                    if (!generate_literal_chain(ast, root->next_sibling, output))
-                    {
-                        return false;
-                    }
+                    generate_literal_chain(ast, root->next_sibling, output);
                 }
                 else
                 {
@@ -331,10 +322,7 @@ namespace
 
                 if (root->next_sibling)
                 {
-                    if (!generate_literal_chain(ast, root->next_sibling, output))
-                    {
-                        return false;
-                    }
+                    generate_literal_chain(ast, root->next_sibling, output);
                 }
                 else
                 {
@@ -342,20 +330,15 @@ namespace
                 }
             }
         }
-
-        return true;
     }
 
-    bool generate_conjunctive_clause(tree& ast, node* root, formatter& output)
+    void generate_conjunctive_clause(tree& ast, node* root, formatter& output)
     {
         plnnrc_assert(root->type == node_op_and);
 
         if (root->first_child)
         {
-            if (!generate_literal_chain(ast, root->first_child, output))
-            {
-                return false;
-            }
+            generate_literal_chain(ast, root->first_child, output);
         }
         else
         {
@@ -363,11 +346,9 @@ namespace
             output.writeln("PLNNR_COROUTINE_YIELD(state);");
             output.newline();
         }
-
-        return true;
     }
 
-    bool generate_precondition_satisfier(tree& ast, node* root, formatter& output)
+    void generate_precondition_satisfier(tree& ast, node* root, formatter& output)
     {
         plnnrc_assert(root->type == node_op_or);
 
@@ -375,16 +356,11 @@ namespace
         {
             plnnrc_assert(child->type == node_op_and);
 
-            if (!generate_conjunctive_clause(ast, child, output))
-            {
-                return false;
-            }
+            generate_conjunctive_clause(ast, child, output);
         }
-
-        return true;
     }
 
-    bool generate_precondition_next(tree& ast, node* root, unsigned branch_index, formatter& output)
+    void generate_precondition_next(tree& ast, node* root, unsigned branch_index, formatter& output)
     {
         plnnrc_assert(is_logical_op(root));
 
@@ -395,18 +371,13 @@ namespace
             output.writeln("PLNNR_COROUTINE_BEGIN(state);");
             output.newline();
 
-            if (!generate_precondition_satisfier(ast, root, output))
-            {
-                return false;
-            }
+            generate_precondition_satisfier(ast, root, output);
 
             output.writeln("PLNNR_COROUTINE_END();");
         }
-
-        return true;
     }
 
-    bool generate_preconditions(tree& ast, node* domain, formatter& output)
+    void generate_preconditions(tree& ast, node* domain, formatter& output)
     {
         unsigned branch_index = 0;
 
@@ -423,24 +394,15 @@ namespace
 
                 node* precondition = branch->first_child;
 
-                if (!generate_precondition_state(ast, precondition, branch_index, output))
-                {
-                    return false;
-                }
-
-                if (!generate_precondition_next(ast, precondition, branch_index, output))
-                {
-                    return false;
-                }
+                generate_precondition_state(ast, precondition, branch_index, output);
+                generate_precondition_next(ast, precondition, branch_index, output);
 
                 ++branch_index;
             }
         }
-
-        return true;
     }
 
-    bool generate_operators_enum(tree& ast, formatter& output)
+    void generate_operators_enum(tree& ast, formatter& output)
     {
         output.writeln("enum task_type");
         {
@@ -456,17 +418,15 @@ namespace
                 output.writeln("task_%i,", operator_atom->s_expr->token);
             }
         }
-
-        return true;
     }
 
-    bool generate_param_struct(tree& ast, node* task, formatter& output)
+    void generate_param_struct(tree& ast, node* task, formatter& output)
     {
         node* atom = task->first_child;
 
         if (!atom->first_child)
         {
-            return true;
+            return;
         }
 
         output.writeln("struct %i_args", atom->s_expr->token);
@@ -483,32 +443,22 @@ namespace
                 ++param_index;
             }
         }
-
-        return true;
     }
 
-    bool generate_param_structs(tree& ast, formatter& output)
+    void generate_param_structs(tree& ast, formatter& output)
     {
         for (id_table_values operators = ast.operators.values(); !operators.empty(); operators.pop())
         {
-            if (!generate_param_struct(ast, operators.value(), output))
-            {
-                return false;
-            }
+            generate_param_struct(ast, operators.value(), output);
         }
 
         for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
         {
-            if (!generate_param_struct(ast, methods.value(), output))
-            {
-                return false;
-            }
+            generate_param_struct(ast, methods.value(), output);
         }
-
-        return true;
     }
 
-    bool generate_forward_decls(tree& ast, node* domain, formatter& output)
+    void generate_forward_decls(tree& ast, node* domain, formatter& output)
     {
         for (node* method = domain->first_child; method != 0; method = method->next_sibling)
         {
@@ -534,11 +484,9 @@ namespace
         {
             output.newline();
         }
-
-        return true;
     }
 
-    bool generate_effects_delete(node* effects, formatter& output)
+    void generate_effects_delete(node* effects, formatter& output)
     {
         for (node* effect = effects->first_child; effect != 0; effect = effect->next_sibling)
         {
@@ -586,11 +534,9 @@ namespace
                 output.writeln("break;");
             }
         }
-
-        return true;
     }
 
-    bool generate_effects_add(node* effects, formatter& output)
+    void generate_effects_add(node* effects, formatter& output)
     {
         for (node* effect = effects->first_child; effect != 0; effect = effect->next_sibling)
         {
@@ -629,11 +575,9 @@ namespace
             output.writeln("effect->tuple = tuple;");
             output.writeln("effect->list = list;");
         }
-
-        return true;
     }
 
-    bool generate_operator_effects(tree& ast, node* method, node* task_atom, formatter& output)
+    void generate_operator_effects(tree& ast, node* method, node* task_atom, formatter& output)
     {
         node* operatr = ast.operators.find(task_atom->s_expr->token);
         plnnrc_assert(operatr);
@@ -646,10 +590,7 @@ namespace
         {
             output.newline();
 
-            if (!generate_effects_delete(effects_delete, output))
-            {
-                return false;
-            }
+            generate_effects_delete(effects_delete, output);
 
             if (effects_add->first_child)
             {
@@ -664,16 +605,11 @@ namespace
                 output.newline();
             }
 
-            if (!generate_effects_add(effects_add, output))
-            {
-                return false;
-            }
+            generate_effects_add(effects_add, output);
         }
-
-        return true;
     }
 
-    bool generate_operator_task(tree& ast, node* method, node* task_atom, formatter& output)
+    void generate_operator_task(tree& ast, node* method, node* task_atom, formatter& output)
     {
         plnnrc_assert(is_operator(ast, task_atom));
 
@@ -710,15 +646,10 @@ namespace
             output.writeln("t->args = a;");
         }
 
-        if (!generate_operator_effects(ast, method, task_atom, output))
-        {
-            return false;
-        }
-
-        return true;
+        generate_operator_effects(ast, method, task_atom, output);
     }
 
-    bool generate_method_task(tree& ast, node* method, node* task_atom, formatter& output)
+    void generate_method_task(tree& ast, node* method, node* task_atom, formatter& output)
     {
         plnnrc_assert(is_method(ast, task_atom));
 
@@ -754,11 +685,9 @@ namespace
         {
             output.writeln("t->args = a;");
         }
-
-        return true;
     }
 
-    bool generate_branch_expands(tree& ast, node* domain, formatter& output)
+    void generate_branch_expands(tree& ast, node* domain, formatter& output)
     {
         unsigned precondition_index = 0;
 
@@ -906,8 +835,6 @@ namespace
                 }
             }
         }
-
-        return true;
     }
 }
 
@@ -922,30 +849,11 @@ bool generate_domain(tree& ast, node* domain, writer& writer)
         return false;
     }
 
-    if (!generate_preconditions(ast, domain, output))
-    {
-        return false;
-    }
-
-    if (!generate_operators_enum(ast, output))
-    {
-        return false;
-    }
-
-    if (!generate_param_structs(ast, output))
-    {
-        return false;
-    }
-
-    if (!generate_forward_decls(ast, domain, output))
-    {
-        return false;
-    }
-
-    if (!generate_branch_expands(ast, domain, output))
-    {
-        return false;
-    }
+    generate_preconditions(ast, domain, output);
+    generate_operators_enum(ast, output);
+    generate_param_structs(ast, output);
+    generate_forward_decls(ast, domain, output);
+    generate_branch_expands(ast, domain, output);
 
     return true;
 }
