@@ -86,7 +86,7 @@ task_instance* push_task(planner_state& pstate, int task_type)
     return new_task;
 }
 
-method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks)
+method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks_and_effects)
 {
     method_instance* old_top = pstate.top_method;
     method_instance* new_top = old_top->parent;
@@ -95,15 +95,20 @@ method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks)
     {
         pstate.mstack->rewind(new_top->mrewind);
 
-        if (rewind_tasks && new_top->trewind < pstate.tstack->top())
+        if (rewind_tasks_and_effects)
         {
-            task_instance* task = memory::align<task_instance>(new_top->trewind);
-            task_instance* top_task = task->link;
+            // rewind tasks
+            if (new_top->trewind < pstate.tstack->top())
+            {
+                task_instance* task = memory::align<task_instance>(new_top->trewind);
+                task_instance* top_task = task->link;
 
-            pstate.tstack->rewind(new_top->trewind);
+                pstate.tstack->rewind(new_top->trewind);
 
-            pstate.top_task = top_task;
+                pstate.top_task = top_task;
+            }
 
+            // rewind effects
             if (new_top->jrewind < pstate.journal->top())
             {
                 operator_effect* bottom = static_cast<operator_effect*>(new_top->jrewind);
