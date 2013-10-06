@@ -96,13 +96,24 @@ struct planner_state
     stack* journal;
 };
 
+enum find_plan_status
+{
+    plan_found = 0,
+    plan_not_found,
+    plan_in_progress,
+};
+
 method_instance* push_method(planner_state& pstate, expand_func expand);
 task_instance* push_task(planner_state& pstate, int task_type);
 method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks);
 bool next_branch(planner_state& pstate, expand_func expand, void* worldstate);
 
-bool find_plan(planner_state& pstate, expand_func root_method, void* worldstate);
 task_instance* reverse_task_list(task_instance* head);
+
+bool find_plan(planner_state& pstate, expand_func root_method, void* worldstate);
+
+void find_plan_init(planner_state& pstate, expand_func root_method);
+find_plan_status find_plan_step(planner_state& pstate, void* worldstate);
 
 }
 

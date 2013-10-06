@@ -140,9 +140,41 @@ bool next_branch(planner_state& pstate, expand_func expand, void* worldstate)
 
 bool find_plan(planner_state& pstate, expand_func root_method, void* worldstate)
 {
-    push_method(pstate, root_method);
+    find_plan_init(pstate, root_method);
 
-    while (pstate.top_method)
+    find_plan_status status = find_plan_step(pstate, worldstate);
+
+    while (status == plan_in_progress)
+    {
+        status = find_plan_step(pstate, worldstate);
+    }
+
+    return status == plan_found;
+}
+
+task_instance* reverse_task_list(task_instance* head)
+{
+    task_instance* new_head = 0;
+
+    while (head)
+    {
+        task_instance* link = head->link;
+        head->link = new_head;
+        new_head = head;
+        head = link;
+    }
+
+    return new_head;
+}
+
+void find_plan_init(planner_state& pstate, expand_func root_method)
+{
+    push_method(pstate, root_method);
+}
+
+find_plan_status find_plan_step(planner_state& pstate, void* worldstate)
+{
+    if (pstate.top_method)
     {
         method_instance* method = pstate.top_method;
 
@@ -160,7 +192,7 @@ bool find_plan(planner_state& pstate, expand_func root_method, void* worldstate)
                 // all methods were expanded => plan found.
                 if (!method)
                 {
-                    return true;
+                    return plan_found;
                 }
             }
         }
@@ -169,24 +201,11 @@ bool find_plan(planner_state& pstate, expand_func root_method, void* worldstate)
         {
             rewind_top_method(pstate, true);
         }
+
+        return plan_in_progress;
     }
 
-    return false;
-}
-
-task_instance* reverse_task_list(task_instance* head)
-{
-    task_instance* new_head = 0;
-
-    while (head)
-    {
-        task_instance* link = head->link;
-        head->link = new_head;
-        new_head = head;
-        head = link;
-    }
-
-    return new_head;
+    return plan_not_found;
 }
 
 }
