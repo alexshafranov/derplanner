@@ -462,7 +462,7 @@ namespace
 
                 for (node* task = tasklist->first_child; task != 0; task = task->next_sibling)
                 {
-                    if (is_operator(ast, task))
+                    if (!is_method(ast, task))
                     {
                         if (ast.operators.find(task->s_expr->token))
                         {
