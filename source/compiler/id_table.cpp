@@ -210,6 +210,7 @@ bool id_table::insert(const char* key, ast::node* value)
 
 ast::node* id_table::find(const char* key) const
 {
+    plnnrc_assert(key != 0);
     plnnrc_assert(_buffer != 0);
 
     uint32_t hash_code = hash(key);
