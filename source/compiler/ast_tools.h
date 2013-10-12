@@ -120,6 +120,19 @@ inline bool is_method(tree& ast, node* atom)
     return ast.methods.find(atom->s_expr->token);
 }
 
+inline node* find_child(node* parent, node_type type)
+{
+    for (node* child = parent->first_child; child != 0; child = child->next_sibling)
+    {
+        if (child->type == type)
+        {
+            return child;
+        }
+    }
+
+    return 0;
+}
+
 }
 }
 

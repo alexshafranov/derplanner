@@ -18,6 +18,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
+#include <string>
 #include <stdio.h>
 
 #include <derplanner/compiler/io.h>
@@ -64,14 +65,13 @@ int main(int argc, char** argv)
     expr.parse(input_data);
 
     ast::tree tree;
-    ast::node* worldstate = ast::build_worldstate(tree, expr.root()->first_child);
-    ast::node* domain = ast::build_domain(tree, expr.root()->first_child->next_sibling);
+    ast::build_worldstate(tree, expr.root()->first_child);
+    ast::build_domain(tree, expr.root()->first_child->next_sibling);
 
     ast::infer_types(tree);
 
     generate_header(tree, writer);
-    generate_worldstate(tree, worldstate, writer);
-    generate_domain(tree, domain, writer);
+    generate_source(tree, writer);
 
     if (writer.error())
     {

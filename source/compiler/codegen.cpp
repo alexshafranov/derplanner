@@ -32,68 +32,50 @@ namespace plnnrc {
 
 using namespace ast;
 
-bool generate_header(ast::tree& ast, writer& writer)
+namespace
 {
-    formatter output(writer);
-
-    if (!output.init(DERPLANNER_CODEGEN_OUTPUT_BUFFER_SIZE))
+    void generate_includes(ast::tree& ast, formatter& output)
     {
-        return false;
+        output.writeln("#include <derplanner/runtime/runtime.h>");
+        output.newline();
+
+        output.writeln("using namespace plnnr;");
+        output.newline();
     }
 
-    output.writeln("#include <derplanner/runtime/runtime.h>");
-    output.newline();
-
-    output.writeln("using namespace plnnr;");
-    output.newline();
-
-    return true;
-}
-
-bool generate_worldstate(tree& ast, node* worldstate, writer& writer)
-{
-    plnnrc_assert(worldstate && worldstate->type == node_worldstate);
-
-    formatter output(writer);
-
-    if (!output.init(DERPLANNER_CODEGEN_OUTPUT_BUFFER_SIZE))
+    void generate_worldstate(tree& ast, node* worldstate, formatter& output)
     {
-        return false;
-    }
-
-    for (node* atom = worldstate->first_child; atom != 0; atom = atom->next_sibling)
-    {
-        output.writeln("struct %i_tuple", atom->s_expr->token);
-        {
-            class_scope s(output);
-
-            unsigned param_index = 0;
-
-            for (node* param = atom->first_child; param != 0; param = param->next_sibling)
-            {
-                output.writeln("%s _%d;", param->s_expr->first_child->token, param_index++);
-            }
-
-            output.writeln("%i_tuple* next;", atom->s_expr->token);
-            output.writeln("%i_tuple* prev;", atom->s_expr->token);
-        }
-    }
-
-    output.writeln("struct worldstate");
-    {
-        class_scope s(output);
+        plnnrc_assert(worldstate && worldstate->type == node_worldstate);
 
         for (node* atom = worldstate->first_child; atom != 0; atom = atom->next_sibling)
         {
-            output.writeln("tuple_list::handle* %i;", atom->s_expr->token);
+            output.writeln("struct %i_tuple", atom->s_expr->token);
+            {
+                class_scope s(output);
+
+                unsigned param_index = 0;
+
+                for (node* param = atom->first_child; param != 0; param = param->next_sibling)
+                {
+                    output.writeln("%s _%d;", param->s_expr->first_child->token, param_index++);
+                }
+
+                output.writeln("%i_tuple* next;", atom->s_expr->token);
+                output.writeln("%i_tuple* prev;", atom->s_expr->token);
+            }
+        }
+
+        output.writeln("struct worldstate");
+        {
+            class_scope s(output);
+
+            for (node* atom = worldstate->first_child; atom != 0; atom = atom->next_sibling)
+            {
+                output.writeln("tuple_list::handle* %i;", atom->s_expr->token);
+            }
         }
     }
 
-    return true;
-}
-
-namespace
-{
     void generate_precondition_state(tree& ast, node* root, unsigned branch_index, formatter& output)
     {
         output.writeln("struct p%d_state", branch_index);
@@ -458,14 +440,11 @@ namespace
         }
     }
 
-    void generate_forward_decls(tree& ast, node* domain, formatter& output)
+    void generate_forward_decls(tree& ast, formatter& output)
     {
-        for (node* method = domain->first_child; method != 0; method = method->next_sibling)
+        for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
         {
-            if (method->type != node_method)
-            {
-                continue;
-            }
+            node* method = methods.value();
 
             node* atom = method->first_child;
             const char* method_name = atom->s_expr->token;
@@ -480,7 +459,7 @@ namespace
             }
         }
 
-        if (domain->first_child)
+        if (!ast.methods.count() > 0)
         {
             output.newline();
         }
@@ -836,12 +815,21 @@ namespace
             }
         }
     }
+
+    void generate_domain(tree& ast, node* domain, writer& writer)
+    {
+        // plnnrc_assert(domain && domain->type == node_domain);
+
+        // generate_preconditions(ast, domain, output);
+        // generate_operators_enum(ast, output);
+        // generate_param_structs(ast, output);
+        // generate_forward_decls(ast, domain, output);
+        // generate_branch_expands(ast, domain, output);
+    }
 }
 
-bool generate_domain(tree& ast, node* domain, writer& writer)
+bool generate_header(ast::tree& ast, writer& writer)
 {
-    plnnrc_assert(domain && domain->type == node_domain);
-
     formatter output(writer);
 
     if (!output.init(DERPLANNER_CODEGEN_OUTPUT_BUFFER_SIZE))
@@ -849,11 +837,25 @@ bool generate_domain(tree& ast, node* domain, writer& writer)
         return false;
     }
 
-    generate_preconditions(ast, domain, output);
+    node* worldstate = find_child(ast.root(), node_worldstate);
+    plnnrc_assert(worldstate);
+
+    generate_worldstate(ast, worldstate, output);
     generate_operators_enum(ast, output);
     generate_param_structs(ast, output);
-    generate_forward_decls(ast, domain, output);
-    generate_branch_expands(ast, domain, output);
+    generate_forward_decls(ast, output);
+
+    return true;
+}
+
+bool generate_source(ast::tree& ast, writer& writer)
+{
+    formatter output(writer);
+
+    if (!output.init(DERPLANNER_CODEGEN_OUTPUT_BUFFER_SIZE))
+    {
+        return false;
+    }
 
     return true;
 }
