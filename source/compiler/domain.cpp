@@ -215,6 +215,8 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
         link_operator_variables(operatr);
     }
 
+    append_child(ast.root(), domain);
+
     return domain;
 }
 
@@ -560,6 +562,8 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
     }
 
     plnnrc_assert(!ast.type_tag_to_node[0]);
+
+    append_child(ast.root(), worldstate);
 
     return worldstate;
 }

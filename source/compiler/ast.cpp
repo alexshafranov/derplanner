@@ -87,7 +87,7 @@ tree::tree()
     : _node_pool(0)
 {
     memset(&_root, 0, sizeof(_root));
-    _root.type = node_domain;
+    _root.type = node_root;
 }
 
 tree::~tree()
