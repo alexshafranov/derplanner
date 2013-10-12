@@ -69,6 +69,7 @@ int main(int argc, char** argv)
     ast::build_domain(tree, expr.root()->first_child->next_sibling);
 
     ast::infer_types(tree);
+    ast::annotate(tree);
 
     generate_header(tree, writer);
     generate_source(tree, writer);

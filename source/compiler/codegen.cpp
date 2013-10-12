@@ -65,13 +65,23 @@ namespace
             }
         }
 
+        output.writeln("namespace plnnr");
+        {
+            scope s(output);
+            output.writeln("namespace tuple_list");
+            {
+                scope s(output, false);
+                output.writeln("struct handle;");
+            }
+        }
+
         output.writeln("struct worldstate");
         {
             class_scope s(output);
 
             for (node* atom = worldstate->first_child; atom != 0; atom = atom->next_sibling)
             {
-                output.writeln("tuple_list::handle* %i;", atom->s_expr->token);
+                output.writeln("plnnr::tuple_list::handle* %i;", atom->s_expr->token);
             }
         }
     }
@@ -82,64 +92,29 @@ namespace
         {
             class_scope s(output);
 
-            for (node* n = root; n != 0; n = preorder_traversal_next(root, n))
-            {
-                if (n->type == node_term_variable)
-                {
-                    node* def = definition(n);
-
-                    if (def)
-                    {
-                        annotation<term_ann>(def)->var_index = -1;
-                    }
-                }
-            }
-
-            int var_index = 0;
+            int last_var_index = -1;
 
             for (node* n = root; n != 0; n = preorder_traversal_next(root, n))
             {
                 if (n->type == node_term_variable)
                 {
-                    node* def = definition(n);
+                    int var_index = annotation<term_ann>(n)->var_index;
 
-                    if (!def || annotation<term_ann>(def)->var_index == -1)
+                    if (var_index > last_var_index)
                     {
-                        if (def)
-                        {
-                            annotation<term_ann>(def)->var_index = var_index;
-                            annotation<term_ann>(n)->var_index = var_index;
-                        }
-                        else
-                        {
-                            annotation<term_ann>(n)->var_index = var_index;
-                        }
-
                         node* ws_type = ast.type_tag_to_node[type_tag(n)];
                         output.writeln("%s _%d;", ws_type->s_expr->first_child->token, var_index);
-
-                        ++var_index;
-                    }
-                    else
-                    {
-                        annotation<term_ann>(n)->var_index = annotation<term_ann>(def)->var_index;
+                        last_var_index = var_index;
                     }
                 }
             }
-
-            int atom_index = 0;
 
             for (node* n = root; n != 0; n = preorder_traversal_next(root, n))
             {
                 if (n->type == node_atom)
                 {
                     const char* id = n->s_expr->token;
-
-                    output.writeln("%i_tuple* %i_%d;", id, id, atom_index);
-
-                    annotation<atom_ann>(n)->index = atom_index;
-
-                    ++atom_index;
+                    output.writeln("%i_tuple* %i_%d;", id, id, annotation<atom_ann>(n)->index);
                 }
             }
 
@@ -167,8 +142,8 @@ namespace
             comparison_op = "!=";
         }
 
-        int var_index_0 = annotation<term_ann>(def_0)->var_index;
-        int var_index_1 = annotation<term_ann>(def_1)->var_index;
+        int var_index_0 = annotation<term_ann>(arg_0)->var_index;
+        int var_index_1 = annotation<term_ann>(arg_1)->var_index;
 
         output.writeln("if (state._%d %s state._%d)", var_index_0, comparison_op, var_index_1);
         {
@@ -359,16 +334,13 @@ namespace
         }
     }
 
-    void generate_preconditions(tree& ast, node* domain, formatter& output)
+    void generate_preconditions(tree& ast, formatter& output)
     {
         unsigned branch_index = 0;
 
-        for (node* method = domain->first_child; method != 0; method = method->next_sibling)
+        for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
         {
-            if (method->type != node_method)
-            {
-                continue;
-            }
+            node* method = methods.value();
 
             for (node* branch = method->first_child->next_sibling; branch != 0; branch = branch->next_sibling)
             {
@@ -415,14 +387,10 @@ namespace
         {
             class_scope s(output);
 
-            int param_index = 0;
-
             for (node* param = atom->first_child; param != 0; param = param->next_sibling)
             {
                 node* ws_type = ast.type_tag_to_node[type_tag(param)];
-                output.writeln("%s _%d;", ws_type->s_expr->first_child->token, param_index);
-                annotation<term_ann>(param)->var_index = param_index;
-                ++param_index;
+                output.writeln("%s _%d;", ws_type->s_expr->first_child->token, annotation<term_ann>(param)->var_index);
             }
         }
     }
@@ -442,6 +410,12 @@ namespace
 
     void generate_forward_decls(tree& ast, formatter& output)
     {
+        output.writeln("namespace plnnr");
+        {
+            scope s(output);
+            output.writeln("struct planner_state;");
+        }
+
         for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
         {
             node* method = methods.value();
@@ -454,12 +428,12 @@ namespace
             for (node* branch = method->first_child->next_sibling; branch != 0; branch = branch->next_sibling)
             {
                 plnnrc_assert(branch->type == node_branch);
-                output.writeln("bool %i_branch_%d_expand(planner_state& pstate, void* world);", method_name, branch_index);
+                output.writeln("bool %i_branch_%d_expand(plnnr::planner_state& pstate, void* world);", method_name, branch_index);
                 ++branch_index;
             }
         }
 
-        if (!ast.methods.count() > 0)
+        if (ast.methods.count() > 0)
         {
             output.newline();
         }
@@ -666,17 +640,13 @@ namespace
         }
     }
 
-    void generate_branch_expands(tree& ast, node* domain, formatter& output)
+    void generate_branch_expands(tree& ast, formatter& output)
     {
         unsigned precondition_index = 0;
 
-        for (node* method = domain->first_child; method != 0; method = method->next_sibling)
+        for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
         {
-            if (method->type != node_method)
-            {
-                continue;
-            }
-
+            node* method = methods.value();
             node* atom = method->first_child;
             const char* method_name = atom->s_expr->token;
 
@@ -815,17 +785,6 @@ namespace
             }
         }
     }
-
-    void generate_domain(tree& ast, node* domain, writer& writer)
-    {
-        // plnnrc_assert(domain && domain->type == node_domain);
-
-        // generate_preconditions(ast, domain, output);
-        // generate_operators_enum(ast, output);
-        // generate_param_structs(ast, output);
-        // generate_forward_decls(ast, domain, output);
-        // generate_branch_expands(ast, domain, output);
-    }
 }
 
 bool generate_header(ast::tree& ast, writer& writer)
@@ -856,6 +815,10 @@ bool generate_source(ast::tree& ast, writer& writer)
     {
         return false;
     }
+
+    generate_includes(ast, output);
+    generate_preconditions(ast, output);
+    generate_branch_expands(ast, output);
 
     return true;
 }
