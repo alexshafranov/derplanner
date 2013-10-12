@@ -298,6 +298,7 @@ namespace
         PLNNRC_CHECK(precondition);
         node* precondition_dnf = convert_to_dnf(ast, precondition);
         PLNNRC_CHECK(precondition_dnf);
+        precondition_dnf->s_expr = precondition_expr;
         append_child(branch, precondition_dnf);
 
         node* task_list = build_task_list(ast, tasklist_expr);

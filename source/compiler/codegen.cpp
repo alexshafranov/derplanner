@@ -89,6 +89,8 @@ namespace
 
     void generate_precondition_state(tree& ast, node* root, unsigned branch_index, formatter& output)
     {
+        output.writeln("// method %s [%d:%d]", root->parent->parent->first_child->s_expr->token, root->s_expr->line, root->s_expr->column);
+
         output.writeln("struct p%d_state", branch_index);
         {
             class_scope s(output);
@@ -104,6 +106,7 @@ namespace
                     if (var_index > last_var_index)
                     {
                         node* ws_type = ast.type_tag_to_node[type_tag(n)];
+                        output.writeln("// %s [%d:%d]", n->s_expr->token, n->s_expr->line, n->s_expr->column);
                         output.writeln("%s _%d;", ws_type->s_expr->first_child->token, var_index);
                         last_var_index = var_index;
                     }
@@ -335,13 +338,16 @@ namespace
         }
     }
 
-    void generate_preconditions(tree& ast, formatter& output)
+    void generate_preconditions(tree& ast, node* domain, formatter& output)
     {
         unsigned branch_index = 0;
 
-        for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+        for (node* method = domain->first_child; method != 0; method = method->next_sibling)
         {
-            node* method = methods.value();
+            if (method->type != node_method)
+            {
+                continue;
+            }
 
             for (node* branch = method->first_child->next_sibling; branch != 0; branch = branch->next_sibling)
             {
@@ -396,20 +402,25 @@ namespace
         }
     }
 
-    void generate_param_structs(tree& ast, formatter& output)
+    void generate_param_structs(tree& ast, node* domain, formatter& output)
     {
         for (id_table_values operators = ast.operators.values(); !operators.empty(); operators.pop())
         {
             generate_param_struct(ast, operators.value(), output);
         }
 
-        for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+        for (node* method = domain->first_child; method != 0; method = method->next_sibling)
         {
-            generate_param_struct(ast, methods.value(), output);
+            if (method->type != node_method)
+            {
+                continue;
+            }
+
+            generate_param_struct(ast, method, output);
         }
     }
 
-    void generate_forward_decls(tree& ast, formatter& output)
+    void generate_forward_decls(tree& ast, node* domain, formatter& output)
     {
         output.writeln("namespace plnnr");
         {
@@ -417,9 +428,12 @@ namespace
             output.writeln("struct planner_state;");
         }
 
-        for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+        for (node* method = domain->first_child; method != 0; method = method->next_sibling)
         {
-            node* method = methods.value();
+            if (method->type != node_method)
+            {
+                continue;
+            }
 
             node* atom = method->first_child;
             const char* method_name = atom->s_expr->token;
@@ -641,13 +655,17 @@ namespace
         }
     }
 
-    void generate_branch_expands(tree& ast, formatter& output)
+    void generate_branch_expands(tree& ast, node* domain, formatter& output)
     {
         unsigned precondition_index = 0;
 
-        for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+        for (node* method = domain->first_child; method != 0; method = method->next_sibling)
         {
-            node* method = methods.value();
+            if (method->type != node_method)
+            {
+                continue;
+            }
+
             node* atom = method->first_child;
             const char* method_name = atom->s_expr->token;
 
@@ -800,14 +818,17 @@ bool generate_header(ast::tree& ast, writer& writer, codegen_options options)
     node* worldstate = find_child(ast.root(), node_worldstate);
     plnnrc_assert(worldstate);
 
+    node* domain = find_child(ast.root(), node_domain);
+    plnnrc_assert(domain);
+
     output.writeln("#ifndef %s", options.include_guard);
     output.writeln("#define %s", options.include_guard);
     output.newline();
 
     generate_worldstate(ast, worldstate, output);
     generate_operators_enum(ast, output);
-    generate_param_structs(ast, output);
-    generate_forward_decls(ast, output);
+    generate_param_structs(ast, domain, output);
+    generate_forward_decls(ast, domain, output);
 
     output.writeln("#endif");
 
@@ -823,9 +844,12 @@ bool generate_source(ast::tree& ast, writer& writer, codegen_options options)
         return false;
     }
 
+    node* domain = find_child(ast.root(), node_domain);
+    plnnrc_assert(domain);
+
     generate_includes(ast, options.header_file_name, output);
-    generate_preconditions(ast, output);
-    generate_branch_expands(ast, output);
+    generate_preconditions(ast, domain, output);
+    generate_branch_expands(ast, domain, output);
 
     return true;
 }

@@ -149,22 +149,6 @@ struct stack_args
 	int _1;
 };
 
-struct check2_args
-{
-	int _0;
-};
-
-struct move_block1_args
-{
-	int _0;
-	int _1;
-};
-
-struct check3_args
-{
-	int _0;
-};
-
 struct mark_block_args
 {
 	int _0;
@@ -185,26 +169,31 @@ struct check_args
 	int _0;
 };
 
+struct check2_args
+{
+	int _0;
+};
+
+struct check3_args
+{
+	int _0;
+};
+
+struct move_block1_args
+{
+	int _0;
+	int _1;
+};
+
 namespace plnnr
 {
 	struct planner_state;
 }
 
-bool check2_branch_0_expand(plnnr::planner_state& pstate, void* world);
-bool check2_branch_1_expand(plnnr::planner_state& pstate, void* world);
-bool move_block1_branch_0_expand(plnnr::planner_state& pstate, void* world);
-bool move_block1_branch_1_expand(plnnr::planner_state& pstate, void* world);
-bool check3_branch_0_expand(plnnr::planner_state& pstate, void* world);
-bool check3_branch_1_expand(plnnr::planner_state& pstate, void* world);
-bool check3_branch_2_expand(plnnr::planner_state& pstate, void* world);
-bool check3_branch_3_expand(plnnr::planner_state& pstate, void* world);
+bool solve_branch_0_expand(plnnr::planner_state& pstate, void* world);
+bool mark_all_blocks_branch_0_expand(plnnr::planner_state& pstate, void* world);
 bool mark_block_branch_0_expand(plnnr::planner_state& pstate, void* world);
 bool mark_block_branch_1_expand(plnnr::planner_state& pstate, void* world);
-bool add_new_goals_branch_0_expand(plnnr::planner_state& pstate, void* world);
-bool add_new_goals_branch_1_expand(plnnr::planner_state& pstate, void* world);
-bool find_movable_branch_0_expand(plnnr::planner_state& pstate, void* world);
-bool find_movable_branch_1_expand(plnnr::planner_state& pstate, void* world);
-bool find_movable_branch_2_expand(plnnr::planner_state& pstate, void* world);
 bool mark_block_recursive_branch_0_expand(plnnr::planner_state& pstate, void* world);
 bool mark_block_recursive_branch_1_expand(plnnr::planner_state& pstate, void* world);
 bool mark_block_term_branch_0_expand(plnnr::planner_state& pstate, void* world);
@@ -214,13 +203,24 @@ bool mark_block_term_branch_3_expand(plnnr::planner_state& pstate, void* world);
 bool mark_block_term_branch_4_expand(plnnr::planner_state& pstate, void* world);
 bool mark_block_term_branch_5_expand(plnnr::planner_state& pstate, void* world);
 bool mark_block_term_branch_6_expand(plnnr::planner_state& pstate, void* world);
-bool solve_branch_0_expand(plnnr::planner_state& pstate, void* world);
-bool mark_all_blocks_branch_0_expand(plnnr::planner_state& pstate, void* world);
-bool check_branch_0_expand(plnnr::planner_state& pstate, void* world);
-bool check_branch_1_expand(plnnr::planner_state& pstate, void* world);
+bool add_new_goals_branch_0_expand(plnnr::planner_state& pstate, void* world);
+bool add_new_goals_branch_1_expand(plnnr::planner_state& pstate, void* world);
+bool find_movable_branch_0_expand(plnnr::planner_state& pstate, void* world);
+bool find_movable_branch_1_expand(plnnr::planner_state& pstate, void* world);
+bool find_movable_branch_2_expand(plnnr::planner_state& pstate, void* world);
 bool move_block_branch_0_expand(plnnr::planner_state& pstate, void* world);
 bool move_block_branch_1_expand(plnnr::planner_state& pstate, void* world);
 bool move_block_branch_2_expand(plnnr::planner_state& pstate, void* world);
 bool move_block_branch_3_expand(plnnr::planner_state& pstate, void* world);
+bool check_branch_0_expand(plnnr::planner_state& pstate, void* world);
+bool check_branch_1_expand(plnnr::planner_state& pstate, void* world);
+bool check2_branch_0_expand(plnnr::planner_state& pstate, void* world);
+bool check2_branch_1_expand(plnnr::planner_state& pstate, void* world);
+bool check3_branch_0_expand(plnnr::planner_state& pstate, void* world);
+bool check3_branch_1_expand(plnnr::planner_state& pstate, void* world);
+bool check3_branch_2_expand(plnnr::planner_state& pstate, void* world);
+bool check3_branch_3_expand(plnnr::planner_state& pstate, void* world);
+bool move_block1_branch_0_expand(plnnr::planner_state& pstate, void* world);
+bool move_block1_branch_1_expand(plnnr::planner_state& pstate, void* world);
 
 #endif
