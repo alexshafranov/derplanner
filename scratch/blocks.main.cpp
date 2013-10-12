@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <string.h>
-#include "blocks.cpp"
+#include <derplanner/runtime/runtime.h>
+#include "blocks.h"
+
+using namespace plnnr;
 
 int main()
 {

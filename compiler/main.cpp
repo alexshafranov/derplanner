@@ -22,6 +22,7 @@
 #include <stdio.h>
 
 #include <derplanner/compiler/io.h>
+#include <derplanner/compiler/memory.h>
 #include <derplanner/compiler/s_expression.h>
 #include <derplanner/compiler/ast.h>
 #include <derplanner/compiler/domain.h>
@@ -29,40 +30,61 @@
 
 using namespace plnnrc;
 
+struct buffer_context
+{
+    buffer_context(size_t bytes)
+    {
+        data = static_cast<char*>(memory::allocate(bytes));
+    }
+
+    ~buffer_context()
+    {
+        memory::deallocate(data);
+    }
+
+    char* data;
+};
+
+struct file_context
+{
+    file_context(const char* path, const char* mode)
+    {
+        fd = fopen(path, mode);
+    }
+
+    ~file_context()
+    {
+        fclose(fd);
+    }
+
+    FILE* fd;
+};
+
 size_t file_size(const char* path)
 {
-    FILE* fd = fopen(path, "rb");
-    fseek(fd, 0, SEEK_END);
-    size_t input_size = ftell(fd);
-    fseek(fd, 0, SEEK_SET);
-    fclose(fd);
+    file_context ctx(path, "rb");
+    fseek(ctx.fd, 0, SEEK_END);
+    size_t input_size = ftell(ctx.fd);
+    fseek(ctx.fd, 0, SEEK_SET);
     return input_size;
 }
 
 int main(int argc, char** argv)
 {
     const char* input_path = argv[1];
-    const char* output_path = argv[2];
-
-    FILE* fd = fopen(input_path, "rt");
+    const char* output_dir = argv[2];
+    const char* output_name = argv[3];
 
     size_t input_size = file_size(input_path);
-
-    char* input_data = new char[input_size];
-
+    buffer_context input_buffer(input_size);
     {
-        size_t rb = fread(input_data, sizeof(char), input_size, fd);
+        file_context ctx(input_path, "rt");
+        size_t rb = fread(input_buffer.data, sizeof(char), input_size, ctx.fd);
         (void)rb;
     }
 
-    fclose(fd);
-
-    fd = fopen(output_path, "wt");
-
-    stdio_file_writer writer(fd);
-
     sexpr::tree expr;
-    expr.parse(input_data);
+    expr.parse(input_buffer.data);
 
     ast::tree tree;
     ast::build_worldstate(tree, expr.root()->first_child);
@@ -71,19 +93,31 @@ int main(int argc, char** argv)
     ast::infer_types(tree);
     ast::annotate(tree);
 
+    std::string header_file_name = std::string(output_name) + ".h";
+    std::string source_file_name = std::string(output_name) + ".cpp";
+    std::string header_file_path = std::string(output_dir) + "/" + header_file_name;
+    std::string source_file_path = std::string(output_dir) + "/" + source_file_name;
+
+    file_context header_file(header_file_path.c_str(), "wt");
+    file_context source_file(source_file_path.c_str(), "wt");
+
+    stdio_file_writer header_writer(header_file.fd);
+    stdio_file_writer source_writer(source_file.fd);
+
+    std::string include_guard(output_name);
+    include_guard += "_H_";
+
     codegen_options options;
     options.tab = "\t";
     options.newline = "\n";
-    options.include_guard = "XXX_H_";
+    options.include_guard = include_guard.c_str();
+    options.header_file_name = header_file_name.c_str();
 
-    generate_header(tree, writer, options);
-    generate_source(tree, writer, options);
+    generate_header(tree, header_writer, options);
+    generate_source(tree, source_writer, options);
 
-    if (writer.error())
+    if (header_writer.error() || source_writer.error())
     {
         printf("i/o error occured.");
     }
-
-    delete [] input_data;
-    fclose(fd);
 }

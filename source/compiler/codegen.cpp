@@ -34,9 +34,10 @@ using namespace ast;
 
 namespace
 {
-    void generate_includes(ast::tree& ast, formatter& output)
+    void generate_includes(ast::tree& ast, const char* header_file_name, formatter& output)
     {
         output.writeln("#include <derplanner/runtime/runtime.h>");
+        output.writeln("#include \"%s\"", header_file_name);
         output.newline();
 
         output.writeln("using namespace plnnr;");
@@ -822,7 +823,7 @@ bool generate_source(ast::tree& ast, writer& writer, codegen_options options)
         return false;
     }
 
-    generate_includes(ast, output);
+    generate_includes(ast, options.header_file_name, output);
     generate_preconditions(ast, output);
     generate_branch_expands(ast, output);
 

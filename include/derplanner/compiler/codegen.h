@@ -35,6 +35,7 @@ struct codegen_options
     const char* tab;
     const char* newline;
     const char* include_guard;
+    const char* header_file_name;
 };
 
 bool generate_header(ast::tree& ast, writer& output, codegen_options options);
