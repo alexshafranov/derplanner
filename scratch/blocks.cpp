@@ -1,3 +1,6 @@
+#ifndef XXX_H_
+#define XXX_H_
+
 struct block_tuple
 {
 	int _0;
@@ -220,6 +223,7 @@ bool move_block_branch_1_expand(plnnr::planner_state& pstate, void* world);
 bool move_block_branch_2_expand(plnnr::planner_state& pstate, void* world);
 bool move_block_branch_3_expand(plnnr::planner_state& pstate, void* world);
 
+#endif
 #include <derplanner/runtime/runtime.h>
 
 using namespace plnnr;

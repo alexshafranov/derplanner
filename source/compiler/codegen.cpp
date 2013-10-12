@@ -787,9 +787,9 @@ namespace
     }
 }
 
-bool generate_header(ast::tree& ast, writer& writer)
+bool generate_header(ast::tree& ast, writer& writer, codegen_options options)
 {
-    formatter output(writer);
+    formatter output(writer, options.tab, options.newline);
 
     if (!output.init(DERPLANNER_CODEGEN_OUTPUT_BUFFER_SIZE))
     {
@@ -799,17 +799,23 @@ bool generate_header(ast::tree& ast, writer& writer)
     node* worldstate = find_child(ast.root(), node_worldstate);
     plnnrc_assert(worldstate);
 
+    output.writeln("#ifndef %s", options.include_guard);
+    output.writeln("#define %s", options.include_guard);
+    output.newline();
+
     generate_worldstate(ast, worldstate, output);
     generate_operators_enum(ast, output);
     generate_param_structs(ast, output);
     generate_forward_decls(ast, output);
 
+    output.writeln("#endif");
+
     return true;
 }
 
-bool generate_source(ast::tree& ast, writer& writer)
+bool generate_source(ast::tree& ast, writer& writer, codegen_options options)
 {
-    formatter output(writer);
+    formatter output(writer, options.tab, options.newline);
 
     if (!output.init(DERPLANNER_CODEGEN_OUTPUT_BUFFER_SIZE))
     {

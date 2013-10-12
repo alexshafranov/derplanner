@@ -30,8 +30,15 @@ namespace ast
 
 class writer;
 
-bool generate_header(ast::tree& ast, writer& output);
-bool generate_source(ast::tree& ast, writer& output);
+struct codegen_options
+{
+    const char* tab;
+    const char* newline;
+    const char* include_guard;
+};
+
+bool generate_header(ast::tree& ast, writer& output, codegen_options options);
+bool generate_source(ast::tree& ast, writer& output, codegen_options options);
 
 }
 

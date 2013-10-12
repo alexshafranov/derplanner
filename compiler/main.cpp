@@ -71,8 +71,13 @@ int main(int argc, char** argv)
     ast::infer_types(tree);
     ast::annotate(tree);
 
-    generate_header(tree, writer);
-    generate_source(tree, writer);
+    codegen_options options;
+    options.tab = "\t";
+    options.newline = "\n";
+    options.include_guard = "XXX_H_";
+
+    generate_header(tree, writer, options);
+    generate_source(tree, writer, options);
 
     if (writer.error())
     {
