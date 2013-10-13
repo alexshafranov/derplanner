@@ -122,6 +122,8 @@ enum task_type
 	task_stack,
 };
 
+const char* task_name(task_type type);
+
 struct putdown_args
 {
 	int _0;

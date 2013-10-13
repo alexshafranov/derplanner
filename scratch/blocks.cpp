@@ -3,6 +3,18 @@
 
 using namespace plnnr;
 
+static const char* task_type_to_name[] =
+{
+	"<none>",
+	"!putdown",
+	"!unstack",
+	"!mark-dont-move",
+	"!pickup",
+	"!stack",
+};
+
+const char* task_name(task_type type) { return task_type_to_name[type]; }
+
 // method solve [43:10]
 struct p0_state
 {

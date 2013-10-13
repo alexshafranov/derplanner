@@ -379,6 +379,9 @@ namespace
                 output.writeln("task_%i,", operator_atom->s_expr->token);
             }
         }
+
+        output.writeln("const char* task_name(task_type type);");
+        output.newline();
     }
 
     void generate_param_struct(tree& ast, node* task, formatter& output)
@@ -804,6 +807,34 @@ namespace
             }
         }
     }
+
+    void generate_task_name_function(ast::tree& ast, bool enabled, formatter& output)
+    {
+        if (!enabled)
+        {
+            output.writeln("const char* task_name(task_type type) { return \"<none>\"; }");
+            output.newline();
+        }
+        else
+        {
+            output.writeln("static const char* task_type_to_name[] =");
+            {
+                class_scope s(output);
+
+                output.writeln("\"<none>\",");
+
+                for (id_table_values operators = ast.operators.values(); !operators.empty(); operators.pop())
+                {
+                    node* operatr = operators.value();
+                    node* operator_atom = operatr->first_child;
+                    output.writeln("\"%s\",", operator_atom->s_expr->token);
+                }
+            }
+
+            output.writeln("const char* task_name(task_type type) { return task_type_to_name[type]; }");
+            output.newline();
+        }
+    }
 }
 
 bool generate_header(ast::tree& ast, writer& writer, codegen_options options)
@@ -848,6 +879,7 @@ bool generate_source(ast::tree& ast, writer& writer, codegen_options options)
     plnnrc_assert(domain);
 
     generate_includes(ast, options.header_file_name, output);
+    generate_task_name_function(ast, options.runtime_task_names, output);
     generate_preconditions(ast, domain, output);
     generate_branch_expands(ast, domain, output);
 

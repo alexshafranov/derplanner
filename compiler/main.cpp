@@ -112,6 +112,7 @@ int main(int argc, char** argv)
     options.newline = "\n";
     options.include_guard = include_guard.c_str();
     options.header_file_name = header_file_name.c_str();
+    options.runtime_task_names = true;
 
     generate_header(tree, header_writer, options);
     generate_source(tree, source_writer, options);
