@@ -160,6 +160,11 @@ struct mark_block_term_args
 	int _0;
 };
 
+struct mark_move_type_args
+{
+	int _0;
+};
+
 struct check_args
 {
 	int _0;
@@ -199,11 +204,10 @@ bool mark_block_term_branch_3_expand(plnnr::planner_state& pstate, void* world);
 bool mark_block_term_branch_4_expand(plnnr::planner_state& pstate, void* world);
 bool mark_block_term_branch_5_expand(plnnr::planner_state& pstate, void* world);
 bool mark_block_term_branch_6_expand(plnnr::planner_state& pstate, void* world);
-bool add_new_goals_branch_0_expand(plnnr::planner_state& pstate, void* world);
-bool add_new_goals_branch_1_expand(plnnr::planner_state& pstate, void* world);
-bool find_movable_branch_0_expand(plnnr::planner_state& pstate, void* world);
-bool find_movable_branch_1_expand(plnnr::planner_state& pstate, void* world);
-bool find_movable_branch_2_expand(plnnr::planner_state& pstate, void* world);
+bool find_all_movable_branch_0_expand(plnnr::planner_state& pstate, void* world);
+bool mark_move_type_branch_0_expand(plnnr::planner_state& pstate, void* world);
+bool mark_move_type_branch_1_expand(plnnr::planner_state& pstate, void* world);
+bool mark_move_type_branch_2_expand(plnnr::planner_state& pstate, void* world);
 bool move_block_branch_0_expand(plnnr::planner_state& pstate, void* world);
 bool move_block_branch_1_expand(plnnr::planner_state& pstate, void* world);
 bool move_block_branch_2_expand(plnnr::planner_state& pstate, void* world);
