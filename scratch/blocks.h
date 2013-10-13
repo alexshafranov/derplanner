@@ -117,7 +117,6 @@ enum task_type
 	task_none=0,
 	task_putdown,
 	task_unstack,
-	task_mark_dont_move,
 	task_pickup,
 	task_stack,
 };
@@ -133,11 +132,6 @@ struct unstack_args
 {
 	int _0;
 	int _1;
-};
-
-struct mark_dont_move_args
-{
-	int _0;
 };
 
 struct pickup_args

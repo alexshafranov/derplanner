@@ -129,7 +129,7 @@ int main()
         // print plan
         for (task_instance* t = task; t != 0; t = t->link)
         {
-            printf("task_type=%d\n", t->type);
+            printf("task_type=%s\n", task_name((task_type)t->type));
         }
     }
     else

@@ -114,7 +114,7 @@
         ((move-block1 x y) (move-block))
 
         ((put-on-table x) (on x y))
-        ((!unstack x y) (!putdown x) (!mark-dont-move x) (:delete (put-on-table x)) (check x) (check2 y) (check3 y) (move-block))
+        ((!unstack x y) (!putdown x) (:add (dont-move x)) (:delete (put-on-table x)) (check x) (check2 y) (check3 y) (move-block))
 
         ((clear x) (not (dont-move x)) (on x y))
         ((!unstack x y) (!putdown x) (check2 y) (check3 y) (move-block))
@@ -155,9 +155,9 @@
 
     (:method (move-block1 x z)
         ((on x y))
-        ((!unstack x y) (!stack x z) (!mark-dont-move x) (:delete (stack-on-block x z)) (check x) (check2 y) (check3 y))
+        ((!unstack x y) (!stack x z) (:add (dont-move x)) (:delete (stack-on-block x z)) (check x) (check2 y) (check3 y))
 
         ()
-        ((!pickup x) (!stack x z) (!mark-dont-move x) (:delete (stack-on-block x z)) (check x))
+        ((!pickup x) (!stack x z) (:add (dont-move x)) (:delete (stack-on-block x z)) (check x))
     )
 )

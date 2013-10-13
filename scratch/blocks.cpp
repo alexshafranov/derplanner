@@ -8,7 +8,6 @@ static const char* task_type_to_name[] =
 	"<none>",
 	"!putdown",
 	"!unstack",
-	"!mark-dont-move",
 	"!pickup",
 	"!stack",
 };
@@ -1878,10 +1877,14 @@ bool move_block_branch_1_expand(planner_state& pstate, void* world)
 		}
 
 		{
-			task_instance* t = push_task(pstate, task_mark_dont_move);
-			mark_dont_move_args* a = push<mark_dont_move_args>(pstate.tstack);
-			a->_0 = precondition->_0;
-			t->args = a;
+			{
+				tuple_list::handle* list = wstate->dont_move;
+				dont_move_tuple* tuple = tuple_list::append<dont_move_tuple>(list);
+				tuple->_0 = precondition->_0;
+				operator_effect* effect = push<operator_effect>(pstate.journal);
+				effect->tuple = tuple;
+				effect->list = list;
+			}
 		}
 
 		{
@@ -2523,10 +2526,14 @@ bool move_block1_branch_0_expand(planner_state& pstate, void* world)
 		}
 
 		{
-			task_instance* t = push_task(pstate, task_mark_dont_move);
-			mark_dont_move_args* a = push<mark_dont_move_args>(pstate.tstack);
-			a->_0 = method_args->_0;
-			t->args = a;
+			{
+				tuple_list::handle* list = wstate->dont_move;
+				dont_move_tuple* tuple = tuple_list::append<dont_move_tuple>(list);
+				tuple->_0 = method_args->_0;
+				operator_effect* effect = push<operator_effect>(pstate.journal);
+				effect->tuple = tuple;
+				effect->list = list;
+			}
 		}
 
 		{
@@ -2710,10 +2717,14 @@ bool move_block1_branch_1_expand(planner_state& pstate, void* world)
 		}
 
 		{
-			task_instance* t = push_task(pstate, task_mark_dont_move);
-			mark_dont_move_args* a = push<mark_dont_move_args>(pstate.tstack);
-			a->_0 = method_args->_0;
-			t->args = a;
+			{
+				tuple_list::handle* list = wstate->dont_move;
+				dont_move_tuple* tuple = tuple_list::append<dont_move_tuple>(list);
+				tuple->_0 = method_args->_0;
+				operator_effect* effect = push<operator_effect>(pstate.journal);
+				effect->tuple = tuple;
+				effect->list = list;
+			}
 		}
 
 		{
