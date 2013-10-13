@@ -1675,6 +1675,7 @@ bool move_block_branch_1_expand(planner_state& pstate, void* world)
 
 				break;
 			}
+
 			for (on_tuple* tuple = tuple_list::head<on_tuple>(wstate->on); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_0)
@@ -1783,6 +1784,7 @@ bool move_block_branch_1_expand(planner_state& pstate, void* world)
 
 				break;
 			}
+
 			for (put_on_table_tuple* tuple = tuple_list::head<put_on_table_tuple>(wstate->put_on_table); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != precondition->_0)
@@ -1879,6 +1881,7 @@ bool move_block_branch_2_expand(planner_state& pstate, void* world)
 
 				break;
 			}
+
 			for (on_tuple* tuple = tuple_list::head<on_tuple>(wstate->on); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_0)
@@ -2322,6 +2325,7 @@ bool move_block1_branch_0_expand(planner_state& pstate, void* world)
 
 				break;
 			}
+
 			for (on_tuple* tuple = tuple_list::head<on_tuple>(wstate->on); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_0)
@@ -2384,6 +2388,7 @@ bool move_block1_branch_0_expand(planner_state& pstate, void* world)
 
 				break;
 			}
+
 			for (clear_tuple* tuple = tuple_list::head<clear_tuple>(wstate->clear); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_1)
@@ -2447,6 +2452,7 @@ bool move_block1_branch_0_expand(planner_state& pstate, void* world)
 
 				break;
 			}
+
 			for (stack_on_block_tuple* tuple = tuple_list::head<stack_on_block_tuple>(wstate->stack_on_block); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != method_args->_0)
@@ -2542,6 +2548,7 @@ bool move_block1_branch_1_expand(planner_state& pstate, void* world)
 
 				break;
 			}
+
 			for (on_table_tuple* tuple = tuple_list::head<on_table_tuple>(wstate->on_table); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_0)
@@ -2590,6 +2597,7 @@ bool move_block1_branch_1_expand(planner_state& pstate, void* world)
 
 				break;
 			}
+
 			for (clear_tuple* tuple = tuple_list::head<clear_tuple>(wstate->clear); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != a->_1)
@@ -2653,6 +2661,7 @@ bool move_block1_branch_1_expand(planner_state& pstate, void* world)
 
 				break;
 			}
+
 			for (stack_on_block_tuple* tuple = tuple_list::head<stack_on_block_tuple>(wstate->stack_on_block); tuple != 0; tuple = tuple->next)
 			{
 				if (tuple->_0 != method_args->_0)

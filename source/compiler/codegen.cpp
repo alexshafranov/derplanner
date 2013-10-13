@@ -465,7 +465,7 @@ namespace
 
             output.writeln("for (%i_tuple* tuple = tuple_list::head<%i_tuple>(wstate->%i); tuple != 0; tuple = tuple->next)", atom_id, atom_id, atom_id);
             {
-                scope s(output, false);
+                scope s(output, !is_last(effect));
 
                 int param_index = 0;
 
