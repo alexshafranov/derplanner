@@ -1,5 +1,5 @@
 
-(:worldstate
+(:worldstate (blocks)
     (block (int))
 
     (on-table (int))
@@ -18,7 +18,7 @@
     (stack-on-block (int) (int))
 )
 
-(:domain
+(:domain (blocks)
     (:operator (!pickup a)
         (:add (holding a))
         (:delete (clear a) (on-table a))

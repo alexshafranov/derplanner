@@ -11,11 +11,19 @@ namespace plnnr
 
 struct worldstate
 {
+	plnnr::tuple_list::handle* travel;
 	plnnr::tuple_list::handle* start;
 	plnnr::tuple_list::handle* finish;
 	plnnr::tuple_list::handle* short_distance;
 	plnnr::tuple_list::handle* long_distance;
 	plnnr::tuple_list::handle* airport;
+};
+
+struct travel_tuple
+{
+	travel_tuple* next;
+	travel_tuple* prev;
+	enum { worldstate_offset = offsetof(worldstate, travel) };
 };
 
 struct start_tuple

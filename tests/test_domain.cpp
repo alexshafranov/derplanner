@@ -97,19 +97,19 @@ namespace
 
     TEST(empty_domain)
     {
-        char buffer[] = "(:domain)";
+        char buffer[] = "(:domain (test))";
         sexpr::tree expr;
         expr.parse(buffer);
         ast::tree tree;
         ast::node* actual = ast::build_domain(tree, expr.root()->first_child);
         CHECK(actual);
-        CHECK(!actual->first_child);
+        CHECK(!actual->first_child->next_sibling);
     }
 
     TEST(domain_ast_structure)
     {
         char buffer[] = \
-"(:domain                         "
+"(:domain (test)                  "
 "    (:method (root)              "
 "        ((start ?s) (finish ?f)) "
 "        ((travel ?s ?f))         "
@@ -125,6 +125,7 @@ namespace
 
         const char* expected = \
 "node_domain\n"
+"    node_namespace (test)\n"
 "    node_method\n"
 "        node_atom root\n"
 "        node_branch\n"
@@ -145,7 +146,7 @@ namespace
     TEST(declared_operator)
     {
         char buffer[] = \
-"(:domain                               "
+"(:domain (test)                        "
 "   (:method (root x y z)               "
 "       ()                              "
 "       ((!declared x y) (!stub z))     "
@@ -166,6 +167,7 @@ namespace
 
         const char* expected = \
 "node_domain\n"
+"    node_namespace (test)\n"
 "    node_method\n"
 "        node_atom root\n"
 "            node_term_variable x\n"
@@ -197,7 +199,7 @@ namespace
     TEST(declared_and_stub_operators)
     {
         char buffer[] = \
-"(:domain                               "
+"(:domain (test)                        "
 "   (:method (root x y z)               "
 "       ()                              "
 "       ((!declared x y) (!stub z))     "
@@ -248,7 +250,7 @@ namespace
     TEST(method_table)
     {
         char buffer[] = \
-"(:domain                         "
+"(:domain (test)                  "
 "    (:method (m1 ?x ?y))         "
 "    (:method (m2 ?z ?w))         "
 ")                                ";
@@ -260,8 +262,8 @@ namespace
         ast::node* root = ast::build_domain(tree, expr.root()->first_child);
         CHECK(root);
 
-        ast::node* m1 = root->first_child;
-        ast::node* m2 = root->first_child->next_sibling;
+        ast::node* m1 = root->first_child->next_sibling;
+        ast::node* m2 = m1->next_sibling;
 
         CHECK_EQUAL(2u, tree.methods.count());
         CHECK_EQUAL(m1, tree.methods.find("m1"));
@@ -360,7 +362,7 @@ namespace
 "    (az (type2))               "
 ")                              "
 "                               "
-"(:domain                       "
+"(:domain (test)                "
 "   (:method (m1 ?u ?v)         "
 "       ((ax ?t ?u) (ay ?k ?v)) "
 "       ((m2 ?t ?k))            "

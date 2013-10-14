@@ -42,6 +42,8 @@ PLNNRC_AST_NODE_INNER(node_op_and)
 PLNNRC_AST_NODE_INNER(node_op_or)
 PLNNRC_AST_NODE_INNER(node_op_not)
 
+PLNNRC_AST_NODE_LEAF(node_namespace)
+
 PLNNRC_AST_NODE_LEAF(node_worldstate_type)
 
 PLNNRC_AST_NODE_LEAF(node_atom)

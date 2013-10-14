@@ -44,6 +44,7 @@ namespace
     const char token_add[]          = ":add";
     const char token_delete[]       = ":delete";
 
+    node* build_namespace(tree& ast, sexpr::node* s_expr);
     node* build_method(tree& ast, sexpr::node* s_expr);
     node* build_branch(tree& ast, sexpr::node* s_expr);
     node* build_task_list(tree& ast, sexpr::node* s_expr);
@@ -169,13 +170,20 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
     node* domain = ast.make_node(node_domain, s_expr);
     PLNNRC_CHECK(domain);
 
+    sexpr::node* name_list_expr = s_expr->first_child->next_sibling;
+    plnnrc_assert(name_list_expr);
+
+    node* domain_namespace = build_namespace(ast, name_list_expr);
+    PLNNRC_CHECK(domain_namespace);
+    append_child(domain, domain_namespace);
+
     PLNNRC_CHECK(ast.methods.init(count_elements(s_expr, token_method)));
 
     int num_operator_decls = count_elements(s_expr, token_operator);
 
     PLNNRC_CHECK(ast.operators.init(num_operator_decls > 0 ? num_operator_decls : 128));
 
-    for (sexpr::node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
+    for (sexpr::node* c_expr = name_list_expr->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
     {
         node* element = 0;
 
@@ -222,6 +230,22 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
 
 namespace
 {
+    node* build_namespace(tree& ast, sexpr::node* s_expr)
+    {
+        plnnrc_assert(s_expr->type == sexpr::node_list);
+        plnnrc_assert(s_expr->first_child);
+
+        for (sexpr::node* n = s_expr->first_child; n != 0; n = n->next_sibling)
+        {
+            plnnrc_assert(n->type == sexpr::node_symbol);
+        }
+
+        node* result = ast.make_node(node_namespace, s_expr);
+        PLNNRC_CHECK(result);
+
+        return result;
+    }
+
     node* build_method(tree& ast, sexpr::node* s_expr)
     {
         plnnrc_assert(s_expr->type == sexpr::node_list);

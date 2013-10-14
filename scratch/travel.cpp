@@ -15,12 +15,12 @@ static const char* task_type_to_name[] =
 
 const char* task_name(task_type type) { return task_type_to_name[type]; }
 
-// method root [11:10]
+// method root [12:10]
 struct p0_state
 {
-	// s [11:12]
+	// s [12:12]
 	int _0;
-	// f [11:16]
+	// f [12:16]
 	int _1;
 	start_tuple* start_0;
 	finish_tuple* finish_1;
@@ -46,12 +46,12 @@ bool next(p0_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method travel [16:10]
+// method travel [17:10]
 struct p1_state
 {
-	// x [16:12]
+	// x [17:12]
 	int _0;
-	// y [16:13]
+	// y [17:13]
 	int _1;
 	short_distance_tuple* short_distance_0;
 	int stage;
@@ -79,12 +79,12 @@ bool next(p1_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method travel [19:10]
+// method travel [20:10]
 struct p2_state
 {
-	// x [19:12]
+	// x [20:12]
 	int _0;
-	// y [19:13]
+	// y [20:13]
 	int _1;
 	long_distance_tuple* long_distance_0;
 	int stage;
@@ -112,16 +112,16 @@ bool next(p2_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method travel_by_air [24:10]
+// method travel_by_air [25:10]
 struct p3_state
 {
-	// x [24:12]
+	// x [25:12]
 	int _0;
-	// ax [24:13]
+	// ax [25:13]
 	int _1;
-	// y [24:17]
+	// y [25:17]
 	int _2;
-	// ay [24:18]
+	// ay [25:18]
 	int _3;
 	airport_tuple* airport_0;
 	airport_tuple* airport_1;
