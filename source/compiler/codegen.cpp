@@ -48,24 +48,6 @@ namespace
     {
         plnnrc_assert(worldstate && worldstate->type == node_worldstate);
 
-        for (node* atom = worldstate->first_child; atom != 0; atom = atom->next_sibling)
-        {
-            output.writeln("struct %i_tuple", atom->s_expr->token);
-            {
-                class_scope s(output);
-
-                unsigned param_index = 0;
-
-                for (node* param = atom->first_child; param != 0; param = param->next_sibling)
-                {
-                    output.writeln("%s _%d;", param->s_expr->first_child->token, param_index++);
-                }
-
-                output.writeln("%i_tuple* next;", atom->s_expr->token);
-                output.writeln("%i_tuple* prev;", atom->s_expr->token);
-            }
-        }
-
         output.writeln("namespace plnnr");
         {
             scope s(output);
@@ -83,6 +65,25 @@ namespace
             for (node* atom = worldstate->first_child; atom != 0; atom = atom->next_sibling)
             {
                 output.writeln("plnnr::tuple_list::handle* %i;", atom->s_expr->token);
+            }
+        }
+
+        for (node* atom = worldstate->first_child; atom != 0; atom = atom->next_sibling)
+        {
+            output.writeln("struct %i_tuple", atom->s_expr->token);
+            {
+                class_scope s(output);
+
+                unsigned param_index = 0;
+
+                for (node* param = atom->first_child; param != 0; param = param->next_sibling)
+                {
+                    output.writeln("%s _%d;", param->s_expr->first_child->token, param_index++);
+                }
+
+                output.writeln("%i_tuple* next;", atom->s_expr->token);
+                output.writeln("%i_tuple* prev;", atom->s_expr->token);
+                output.writeln("enum { worldstate_offset = offsetof(worldstate, %i) };", atom->s_expr->token);
             }
         }
     }

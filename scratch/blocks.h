@@ -1,93 +1,6 @@
 #ifndef blocks_H_
 #define blocks_H_
 
-struct block_tuple
-{
-	int _0;
-	block_tuple* next;
-	block_tuple* prev;
-};
-
-struct on_table_tuple
-{
-	int _0;
-	on_table_tuple* next;
-	on_table_tuple* prev;
-};
-
-struct on_tuple
-{
-	int _0;
-	int _1;
-	on_tuple* next;
-	on_tuple* prev;
-};
-
-struct clear_tuple
-{
-	int _0;
-	clear_tuple* next;
-	clear_tuple* prev;
-};
-
-struct goal_on_table_tuple
-{
-	int _0;
-	goal_on_table_tuple* next;
-	goal_on_table_tuple* prev;
-};
-
-struct goal_on_tuple
-{
-	int _0;
-	int _1;
-	goal_on_tuple* next;
-	goal_on_tuple* prev;
-};
-
-struct goal_clear_tuple
-{
-	int _0;
-	goal_clear_tuple* next;
-	goal_clear_tuple* prev;
-};
-
-struct holding_tuple
-{
-	int _0;
-	holding_tuple* next;
-	holding_tuple* prev;
-};
-
-struct dont_move_tuple
-{
-	int _0;
-	dont_move_tuple* next;
-	dont_move_tuple* prev;
-};
-
-struct need_to_move_tuple
-{
-	int _0;
-	need_to_move_tuple* next;
-	need_to_move_tuple* prev;
-};
-
-struct put_on_table_tuple
-{
-	int _0;
-	put_on_table_tuple* next;
-	put_on_table_tuple* prev;
-};
-
-struct stack_on_block_tuple
-{
-	int _0;
-	int _1;
-	stack_on_block_tuple* next;
-	stack_on_block_tuple* prev;
-};
-
 namespace plnnr
 {
 	namespace tuple_list
@@ -110,6 +23,105 @@ struct worldstate
 	plnnr::tuple_list::handle* need_to_move;
 	plnnr::tuple_list::handle* put_on_table;
 	plnnr::tuple_list::handle* stack_on_block;
+};
+
+struct block_tuple
+{
+	int _0;
+	block_tuple* next;
+	block_tuple* prev;
+	enum { worldstate_offset = offsetof(worldstate, block) };
+};
+
+struct on_table_tuple
+{
+	int _0;
+	on_table_tuple* next;
+	on_table_tuple* prev;
+	enum { worldstate_offset = offsetof(worldstate, on_table) };
+};
+
+struct on_tuple
+{
+	int _0;
+	int _1;
+	on_tuple* next;
+	on_tuple* prev;
+	enum { worldstate_offset = offsetof(worldstate, on) };
+};
+
+struct clear_tuple
+{
+	int _0;
+	clear_tuple* next;
+	clear_tuple* prev;
+	enum { worldstate_offset = offsetof(worldstate, clear) };
+};
+
+struct goal_on_table_tuple
+{
+	int _0;
+	goal_on_table_tuple* next;
+	goal_on_table_tuple* prev;
+	enum { worldstate_offset = offsetof(worldstate, goal_on_table) };
+};
+
+struct goal_on_tuple
+{
+	int _0;
+	int _1;
+	goal_on_tuple* next;
+	goal_on_tuple* prev;
+	enum { worldstate_offset = offsetof(worldstate, goal_on) };
+};
+
+struct goal_clear_tuple
+{
+	int _0;
+	goal_clear_tuple* next;
+	goal_clear_tuple* prev;
+	enum { worldstate_offset = offsetof(worldstate, goal_clear) };
+};
+
+struct holding_tuple
+{
+	int _0;
+	holding_tuple* next;
+	holding_tuple* prev;
+	enum { worldstate_offset = offsetof(worldstate, holding) };
+};
+
+struct dont_move_tuple
+{
+	int _0;
+	dont_move_tuple* next;
+	dont_move_tuple* prev;
+	enum { worldstate_offset = offsetof(worldstate, dont_move) };
+};
+
+struct need_to_move_tuple
+{
+	int _0;
+	need_to_move_tuple* next;
+	need_to_move_tuple* prev;
+	enum { worldstate_offset = offsetof(worldstate, need_to_move) };
+};
+
+struct put_on_table_tuple
+{
+	int _0;
+	put_on_table_tuple* next;
+	put_on_table_tuple* prev;
+	enum { worldstate_offset = offsetof(worldstate, put_on_table) };
+};
+
+struct stack_on_block_tuple
+{
+	int _0;
+	int _1;
+	stack_on_block_tuple* next;
+	stack_on_block_tuple* prev;
+	enum { worldstate_offset = offsetof(worldstate, stack_on_block) };
 };
 
 enum task_type
