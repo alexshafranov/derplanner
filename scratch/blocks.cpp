@@ -6,6 +6,18 @@ using namespace plnnr;
 static const char* task_type_to_name[] =
 {
 	"<none>",
+	"solve",
+	"mark-all-blocks",
+	"mark-block",
+	"mark-block-recursive",
+	"mark-block-term",
+	"find-all-movable",
+	"mark-move-type",
+	"move-block",
+	"check",
+	"check2",
+	"check3",
+	"move-block1",
 	"!putdown",
 	"!unstack",
 	"!pickup",

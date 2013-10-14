@@ -115,6 +115,18 @@ struct worldstate
 enum task_type
 {
 	task_none=0,
+	task_solve,
+	task_mark_all_blocks,
+	task_mark_block,
+	task_mark_block_recursive,
+	task_mark_block_term,
+	task_find_all_movable,
+	task_mark_move_type,
+	task_move_block,
+	task_check,
+	task_check2,
+	task_check3,
+	task_move_block1,
 	task_putdown,
 	task_unstack,
 	task_pickup,

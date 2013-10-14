@@ -363,13 +363,26 @@ namespace
         }
     }
 
-    void generate_operators_enum(tree& ast, formatter& output)
+    void generate_task_type_enum(tree& ast, node* domain, formatter& output)
     {
         output.writeln("enum task_type");
         {
             class_scope s(output);
 
             output.writeln("task_none=0,");
+
+            for (node* method = domain->first_child; method != 0; method = method->next_sibling)
+            {
+                if (method->type != node_method)
+                {
+                    continue;
+                }
+
+                node* method_atom = method->first_child;
+                plnnrc_assert(method_atom);
+
+                output.writeln("task_%i,", method_atom->s_expr->token);
+            }
 
             for (id_table_values operators = ast.operators.values(); !operators.empty(); operators.pop())
             {
@@ -808,7 +821,7 @@ namespace
         }
     }
 
-    void generate_task_name_function(ast::tree& ast, bool enabled, formatter& output)
+    void generate_task_name_function(ast::tree& ast, node* domain, bool enabled, formatter& output)
     {
         if (!enabled)
         {
@@ -822,6 +835,19 @@ namespace
                 class_scope s(output);
 
                 output.writeln("\"<none>\",");
+
+                for (node* method = domain->first_child; method != 0; method = method->next_sibling)
+                {
+                    if (method->type != node_method)
+                    {
+                        continue;
+                    }
+
+                    node* method_atom = method->first_child;
+                    plnnrc_assert(method_atom);
+
+                    output.writeln("\"%s\",", method_atom->s_expr->token);
+                }
 
                 for (id_table_values operators = ast.operators.values(); !operators.empty(); operators.pop())
                 {
@@ -857,7 +883,7 @@ bool generate_header(ast::tree& ast, writer& writer, codegen_options options)
     output.newline();
 
     generate_worldstate(ast, worldstate, output);
-    generate_operators_enum(ast, output);
+    generate_task_type_enum(ast, domain, output);
     generate_param_structs(ast, domain, output);
     generate_forward_decls(ast, domain, output);
 
@@ -879,7 +905,7 @@ bool generate_source(ast::tree& ast, writer& writer, codegen_options options)
     plnnrc_assert(domain);
 
     generate_includes(ast, options.header_file_name, output);
-    generate_task_name_function(ast, options.runtime_task_names, output);
+    generate_task_name_function(ast, domain, options.runtime_task_names, output);
     generate_preconditions(ast, domain, output);
     generate_branch_expands(ast, domain, output);
 
