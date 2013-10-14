@@ -1,3 +1,0 @@
-
-env = Environment(CXXFLAGS='-Wall -Werror -O3 -std=c++11')
-env.Program(source='travel_domain_sketch.cpp')
