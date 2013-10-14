@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <derplanner/runtime/runtime.h>
+#include <derplanner/runtime/interface.h>
 #include "blocks.h"
 
 using namespace plnnr;
@@ -9,103 +10,47 @@ int main()
 {
     const size_t tuple_list_page = 1024;
 
-    worldstate world;
-    memset(&world, 0, sizeof(world));
+    ::worldstate world_struct;
+    memset(&world_struct, 0, sizeof(world_struct));
 
-    world.block = tuple_list::create<block_tuple>(tuple_list_page);
-    world.on_table = tuple_list::create<on_table_tuple>(tuple_list_page);
-    world.on = tuple_list::create<on_tuple>(tuple_list_page);
-    world.clear = tuple_list::create<clear_tuple>(tuple_list_page);
-    world.goal_on_table = tuple_list::create<goal_on_table_tuple>(tuple_list_page);
-    world.goal_on = tuple_list::create<goal_on_tuple>(tuple_list_page);
-    world.goal_clear = tuple_list::create<goal_clear_tuple>(tuple_list_page);
-    world.holding = tuple_list::create<holding_tuple>(tuple_list_page);
-    world.dont_move = tuple_list::create<dont_move_tuple>(tuple_list_page);
-    world.need_to_move = tuple_list::create<need_to_move_tuple>(tuple_list_page);
-    world.put_on_table = tuple_list::create<put_on_table_tuple>(tuple_list_page);
-    world.stack_on_block = tuple_list::create<stack_on_block_tuple>(tuple_list_page);
+    world_struct.block = tuple_list::create<block_tuple>(tuple_list_page);
+    world_struct.on_table = tuple_list::create<on_table_tuple>(tuple_list_page);
+    world_struct.on = tuple_list::create<on_tuple>(tuple_list_page);
+    world_struct.clear = tuple_list::create<clear_tuple>(tuple_list_page);
+    world_struct.goal_on_table = tuple_list::create<goal_on_table_tuple>(tuple_list_page);
+    world_struct.goal_on = tuple_list::create<goal_on_tuple>(tuple_list_page);
+    world_struct.goal_clear = tuple_list::create<goal_clear_tuple>(tuple_list_page);
+    world_struct.holding = tuple_list::create<holding_tuple>(tuple_list_page);
+    world_struct.dont_move = tuple_list::create<dont_move_tuple>(tuple_list_page);
+    world_struct.need_to_move = tuple_list::create<need_to_move_tuple>(tuple_list_page);
+    world_struct.put_on_table = tuple_list::create<put_on_table_tuple>(tuple_list_page);
+    world_struct.stack_on_block = tuple_list::create<stack_on_block_tuple>(tuple_list_page);
 
-    // Initial state:
-    {
-        block_tuple* tuple;
+    plnnr::worldstate world(&world_struct);
 
-        tuple = tuple_list::append<block_tuple>(world.block);
-        tuple->_0 = 1;
+    world.append(atom<block_tuple>(1));
+    world.append(atom<block_tuple>(2));
+    world.append(atom<block_tuple>(3));
+    world.append(atom<block_tuple>(4));
 
-        tuple = tuple_list::append<block_tuple>(world.block);
-        tuple->_0 = 2;
+    world.append(atom<on_table_tuple>(1));
+    world.append(atom<on_table_tuple>(3));
 
-        tuple = tuple_list::append<block_tuple>(world.block);
-        tuple->_0 = 3;
+    world.append(atom<on_tuple>(2, 1));
+    world.append(atom<on_tuple>(4, 3));
 
-        tuple = tuple_list::append<block_tuple>(world.block);
-        tuple->_0 = 4;
-    }
+    world.append(atom<clear_tuple>(2));
+    world.append(atom<clear_tuple>(4));
 
-    {
-        on_table_tuple* tuple;
+    // goal state:
+    world.append(atom<goal_on_table_tuple>(1));
+    world.append(atom<goal_on_table_tuple>(3));
 
-        tuple = tuple_list::append<on_table_tuple>(world.on_table);
-        tuple->_0 = 1;
+    world.append(atom<goal_on_tuple>(4, 1));
+    world.append(atom<goal_on_tuple>(2, 3));
 
-        tuple = tuple_list::append<on_table_tuple>(world.on_table);
-        tuple->_0 = 3;
-    }
-
-    {
-        on_tuple* tuple;
-
-        tuple = tuple_list::append<on_tuple>(world.on);
-        tuple->_0 = 2;
-        tuple->_1 = 1;
-
-        tuple = tuple_list::append<on_tuple>(world.on);
-        tuple->_0 = 4;
-        tuple->_1 = 3;
-    }
-
-    {
-        clear_tuple* tuple;
-
-        tuple = tuple_list::append<clear_tuple>(world.clear);
-        tuple->_0 = 2;
-
-        tuple = tuple_list::append<clear_tuple>(world.clear);
-        tuple->_0 = 4;
-    }
-
-    // Goals:
-    {
-        goal_on_table_tuple* tuple;
-
-        tuple = tuple_list::append<goal_on_table_tuple>(world.goal_on_table);
-        tuple->_0 = 1;
-
-        tuple = tuple_list::append<goal_on_table_tuple>(world.goal_on_table);
-        tuple->_0 = 3;
-    }
-
-    {
-        goal_on_tuple* tuple;
-
-        tuple = tuple_list::append<goal_on_tuple>(world.goal_on);
-        tuple->_0 = 4;
-        tuple->_1 = 1;
-
-        tuple = tuple_list::append<goal_on_tuple>(world.goal_on);
-        tuple->_0 = 2;
-        tuple->_1 = 3;
-    }
-
-    {
-        goal_clear_tuple* tuple;
-
-        tuple = tuple_list::append<goal_clear_tuple>(world.goal_clear);
-        tuple->_0 = 4;
-
-        tuple = tuple_list::append<goal_clear_tuple>(world.goal_clear);
-        tuple->_0 = 2;
-    }
+    world.append(atom<goal_clear_tuple>(4));
+    world.append(atom<goal_clear_tuple>(2));
 
     plnnr::stack mstack(32768);
     plnnr::stack tstack(32768);
@@ -118,7 +63,7 @@ int main()
     pstate.tstack = &tstack;
     pstate.journal = &jstack;
 
-    bool result = find_plan(pstate, solve_branch_0_expand, &world);
+    bool result = find_plan(pstate, solve_branch_0_expand, world.data());
 
     if (result)
     {
