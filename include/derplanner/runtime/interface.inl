@@ -22,6 +22,18 @@
 
 namespace plnnr {
 
+template <typename T>
+void worldstate::append(const T& tuple)
+{
+    tuple_list::handle* list = offset_to_handle(T::worldstate_offset);
+    T* new_tuple_ptr = tuple_list::append<T>(list);
+    T* next = new_tuple_ptr->next;
+    T* prev = new_tuple_ptr->prev;
+    *new_tuple_ptr = tuple;
+    new_tuple_ptr->next = next;
+    new_tuple_ptr->prev = prev;
+}
+
 template <typename T,
           typename A0>
 T atom(const A0& a0)

@@ -31,16 +31,7 @@ public:
     worldstate(void* data);
 
     template <typename T>
-    void append(const T& tuple)
-    {
-        tuple_list::handle* list = offset_to_handle(T::worldstate_offset);
-        T* new_tuple_ptr = tuple_list::append<T>(list);
-        T* next = new_tuple_ptr->next;
-        T* prev = new_tuple_ptr->prev;
-        *new_tuple_ptr = tuple;
-        new_tuple_ptr->next = next;
-        new_tuple_ptr->prev = prev;
-    }
+    void append(const T& tuple);
 
     void* data() const { return _data; }
 
