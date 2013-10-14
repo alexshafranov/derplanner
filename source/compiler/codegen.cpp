@@ -34,7 +34,26 @@ using namespace ast;
 
 namespace
 {
-    void generate_includes(ast::tree& ast, const char* header_file_name, formatter& output)
+    void generate_header_top(ast::tree& ast, formatter& output)
+    {
+        output.writeln("namespace plnnr");
+        {
+            scope s(output);
+            output.writeln("namespace tuple_list");
+            {
+                scope s(output, false);
+                output.writeln("struct handle;");
+            }
+        }
+
+        output.writeln("namespace plnnr");
+        {
+            scope s(output);
+            output.writeln("struct planner_state;");
+        }
+    }
+
+    void generate_source_top(ast::tree& ast, const char* header_file_name, formatter& output)
     {
         output.writeln("#include <derplanner/runtime/runtime.h>");
         output.writeln("#include \"%s\"", header_file_name);
@@ -47,16 +66,6 @@ namespace
     void generate_worldstate(tree& ast, node* worldstate, formatter& output)
     {
         plnnrc_assert(worldstate && worldstate->type == node_worldstate);
-
-        output.writeln("namespace plnnr");
-        {
-            scope s(output);
-            output.writeln("namespace tuple_list");
-            {
-                scope s(output, false);
-                output.writeln("struct handle;");
-            }
-        }
 
         output.writeln("struct worldstate");
         {
@@ -439,12 +448,6 @@ namespace
 
     void generate_forward_decls(tree& ast, node* domain, formatter& output)
     {
-        output.writeln("namespace plnnr");
-        {
-            scope s(output);
-            output.writeln("struct planner_state;");
-        }
-
         for (node* method = domain->first_child; method != 0; method = method->next_sibling)
         {
             if (method->type != node_method)
@@ -883,6 +886,7 @@ bool generate_header(ast::tree& ast, writer& writer, codegen_options options)
     output.writeln("#define %s", options.include_guard);
     output.newline();
 
+    generate_header_top(ast, output);
     generate_worldstate(ast, worldstate, output);
     generate_task_type_enum(ast, domain, output);
     generate_param_structs(ast, domain, output);
@@ -905,7 +909,7 @@ bool generate_source(ast::tree& ast, writer& writer, codegen_options options)
     node* domain = find_child(ast.root(), node_domain);
     plnnrc_assert(domain);
 
-    generate_includes(ast, options.header_file_name, output);
+    generate_source_top(ast, options.header_file_name, output);
     generate_task_name_function(ast, domain, options.runtime_task_names, output);
     generate_preconditions(ast, domain, output);
     generate_branch_expands(ast, domain, output);
