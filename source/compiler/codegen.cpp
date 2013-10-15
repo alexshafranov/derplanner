@@ -36,9 +36,10 @@ namespace
 {
     struct namespace_wrap
     {
-        namespace_wrap(node* namespace_node, formatter& output)
+        namespace_wrap(node* namespace_node, formatter& output, bool end_with_empty_line=true)
             : namespace_node(namespace_node)
             , output(output)
+            , end_with_empty_line(end_with_empty_line)
         {
             for (sexpr::node* name_expr = namespace_node->s_expr->first_child; name_expr != 0; name_expr = name_expr->next_sibling)
             {
@@ -58,11 +59,15 @@ namespace
                 output.writeln("}");
             }
 
-            output.newline();
+            if (end_with_empty_line)
+            {
+                output.newline();
+            }
         }
 
         node* namespace_node;
         formatter& output;
+        bool end_with_empty_line;
     };
 
     void generate_header_top(ast::tree& ast, formatter& output)
@@ -97,11 +102,6 @@ namespace
     void generate_worldstate(tree& ast, node* worldstate, formatter& output)
     {
         plnnrc_assert(worldstate && worldstate->type == node_worldstate);
-
-        node* worldstate_namespace = worldstate->first_child;
-        plnnrc_assert(worldstate_namespace->type == node_namespace);
-
-        namespace_wrap wrap(worldstate_namespace, output);
 
         output.writeln("struct worldstate");
         {
@@ -926,11 +926,23 @@ bool generate_header(ast::tree& ast, writer& writer, codegen_options options)
     plnnrc_assert(worldstate_namespace);
     plnnrc_assert(worldstate_namespace->type == node_namespace);
 
+    node* domain_namespace = domain->first_child;
+    plnnrc_assert(domain_namespace);
+    plnnrc_assert(domain_namespace->type == node_namespace);
+
     generate_header_top(ast, output);
-    generate_worldstate(ast, worldstate, output);
-    generate_task_type_enum(ast, domain, output);
-    generate_param_structs(ast, domain, output);
-    generate_forward_decls(ast, domain, output);
+
+    {
+        namespace_wrap wrap(worldstate_namespace, output);
+        generate_worldstate(ast, worldstate, output);
+    }
+
+    {
+        namespace_wrap wrap(domain_namespace, output);
+        generate_task_type_enum(ast, domain, output);
+        generate_param_structs(ast, domain, output);
+        generate_forward_decls(ast, domain, output);
+    }
 
     output.writeln("#endif");
 
@@ -949,10 +961,18 @@ bool generate_source(ast::tree& ast, writer& writer, codegen_options options)
     node* domain = find_child(ast.root(), node_domain);
     plnnrc_assert(domain);
 
+    node* domain_namespace = domain->first_child;
+    plnnrc_assert(domain_namespace);
+    plnnrc_assert(domain_namespace->type == node_namespace);
+
     generate_source_top(ast, options.header_file_name, output);
-    generate_task_name_function(ast, domain, options.runtime_task_names, output);
-    generate_preconditions(ast, domain, output);
-    generate_branch_expands(ast, domain, output);
+
+    {
+        namespace_wrap wrap(domain_namespace, output, false);
+        generate_task_name_function(ast, domain, options.runtime_task_names, output);
+        generate_preconditions(ast, domain, output);
+        generate_branch_expands(ast, domain, output);
+    }
 
     return true;
 }
