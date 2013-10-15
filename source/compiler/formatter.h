@@ -47,6 +47,14 @@ struct class_scope
     formatter& output;
 };
 
+struct namespace_scope
+{
+    namespace_scope(formatter& output);
+    ~namespace_scope();
+
+    formatter& output;
+};
+
 class formatter
 {
 public:
@@ -62,6 +70,7 @@ public:
 private:
     friend scope;
     friend class_scope;
+    friend namespace_scope;
 
     formatter(const formatter&);
     const formatter& operator=(const formatter&);

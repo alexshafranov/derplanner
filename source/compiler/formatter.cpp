@@ -359,4 +359,18 @@ class_scope::~class_scope()
     output._puts(output._newline);
 }
 
+namespace_scope::namespace_scope(formatter& output)
+    : output(output)
+{
+    output._putc('{');
+    output._puts(output._newline);
+}
+
+namespace_scope::~namespace_scope()
+{
+    output._putc('}');
+    output._puts(output._newline);
+    output._puts(output._newline);
+}
+
 }

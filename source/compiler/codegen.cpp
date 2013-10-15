@@ -71,13 +71,13 @@ namespace
         {
             class_scope s(output);
 
-            for (node* atom = worldstate->first_child; atom != 0; atom = atom->next_sibling)
+            for (node* atom = worldstate->first_child->next_sibling; atom != 0; atom = atom->next_sibling)
             {
                 output.writeln("plnnr::tuple_list::handle* %i;", atom->s_expr->token);
             }
         }
 
-        for (node* atom = worldstate->first_child; atom != 0; atom = atom->next_sibling)
+        for (node* atom = worldstate->first_child->next_sibling; atom != 0; atom = atom->next_sibling)
         {
             output.writeln("struct %i_tuple", atom->s_expr->token);
             {
@@ -885,6 +885,10 @@ bool generate_header(ast::tree& ast, writer& writer, codegen_options options)
     output.writeln("#ifndef %s", options.include_guard);
     output.writeln("#define %s", options.include_guard);
     output.newline();
+
+    node* worldstate_namespace = worldstate->first_child;
+    plnnrc_assert(worldstate_namespace);
+    plnnrc_assert(worldstate_namespace->type == node_namespace);
 
     generate_header_top(ast, output);
     generate_worldstate(ast, worldstate, output);

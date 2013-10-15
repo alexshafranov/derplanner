@@ -523,9 +523,16 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
     node* worldstate = ast.make_node(node_worldstate, s_expr);
     PLNNRC_CHECK(worldstate);
 
+    sexpr::node* name_list_expr = s_expr->first_child->next_sibling;
+    plnnrc_assert(name_list_expr);
+
+    node* worldstate_namespace = build_namespace(ast, name_list_expr);
+    PLNNRC_CHECK(worldstate_namespace);
+    append_child(worldstate, worldstate_namespace);
+
     unsigned total_atom_count = 0;
 
-    for (sexpr::node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
+    for (sexpr::node* c_expr = name_list_expr->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
     {
         total_atom_count++;
     }
@@ -535,7 +542,7 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
 
     int type_tag = 1;
 
-    for (sexpr::node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
+    for (sexpr::node* c_expr = name_list_expr->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
     {
         node* atom = ast.make_node(node_atom, c_expr->first_child);
         PLNNRC_CHECK(atom);
