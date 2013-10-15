@@ -89,13 +89,33 @@ namespace
         }
     }
 
-    void generate_source_top(ast::tree& ast, const char* header_file_name, formatter& output)
+    void generate_source_top(ast::tree& ast, node* worldstate_namespace, const char* header_file_name, formatter& output)
     {
         output.writeln("#include <derplanner/runtime/runtime.h>");
         output.writeln("#include \"%s\"", header_file_name);
         output.newline();
 
         output.writeln("using namespace plnnr;");
+
+        for (sexpr::node* name_expr = worldstate_namespace->s_expr->first_child; name_expr != 0; name_expr = name_expr->next_sibling)
+        {
+            if (is_first(name_expr))
+            {
+                output.write("using namespace ");
+            }
+
+            output.write("%i", name_expr->token);
+
+            if (!is_last(name_expr))
+            {
+                output.write("::");
+            }
+            else
+            {
+                output.writeln(";");
+            }
+        }
+
         output.newline();
     }
 
@@ -958,14 +978,21 @@ bool generate_source(ast::tree& ast, writer& writer, codegen_options options)
         return false;
     }
 
+    node* worldstate = find_child(ast.root(), node_worldstate);
+    plnnrc_assert(worldstate);
+
     node* domain = find_child(ast.root(), node_domain);
     plnnrc_assert(domain);
+
+    node* worldstate_namespace = worldstate->first_child;
+    plnnrc_assert(worldstate_namespace);
+    plnnrc_assert(worldstate_namespace->type == node_namespace);
 
     node* domain_namespace = domain->first_child;
     plnnrc_assert(domain_namespace);
     plnnrc_assert(domain_namespace->type == node_namespace);
 
-    generate_source_top(ast, options.header_file_name, output);
+    generate_source_top(ast, worldstate_namespace, options.header_file_name, output);
 
     {
         namespace_wrap wrap(domain_namespace, output, false);
