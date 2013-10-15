@@ -27,9 +27,4 @@ worldstate::worldstate(void* data)
 {
 }
 
-tuple_list::handle* worldstate::offset_to_handle(size_t offset)
-{
-    return *(reinterpret_cast<tuple_list::handle**>(static_cast<char*>(_data) + offset));
-}
-
 }

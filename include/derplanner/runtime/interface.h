@@ -35,8 +35,6 @@ public:
 
     void* data() const { return _data; }
 
-    tuple_list::handle* offset_to_handle(size_t offset);
-
 private:
     void* _data;
 };
