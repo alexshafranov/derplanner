@@ -3,6 +3,8 @@
 
 using namespace plnnr;
 
+namespace travel {
+
 static const char* task_type_to_name[] =
 {
 	"<none>",
@@ -317,3 +319,4 @@ bool travel_by_air_branch_0_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
+}

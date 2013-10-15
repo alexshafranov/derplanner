@@ -14,6 +14,8 @@ namespace plnnr
 	struct planner_state;
 }
 
+namespace travel {
+
 struct worldstate
 {
 	plnnr::tuple_list::handle* start;
@@ -66,6 +68,10 @@ struct airport_tuple
 	enum { worldstate_offset = offsetof(worldstate, airport) };
 };
 
+}
+
+namespace travel {
+
 enum task_type
 {
 	task_none=0,
@@ -106,5 +112,7 @@ bool root_branch_0_expand(plnnr::planner_state& pstate, void* world);
 bool travel_branch_0_expand(plnnr::planner_state& pstate, void* world);
 bool travel_branch_1_expand(plnnr::planner_state& pstate, void* world);
 bool travel_by_air_branch_0_expand(plnnr::planner_state& pstate, void* world);
+
+}
 
 #endif

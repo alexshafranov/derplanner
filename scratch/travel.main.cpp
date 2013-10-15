@@ -5,12 +5,13 @@
 #include "travel.h"
 
 using namespace plnnr;
+using namespace travel;
 
 int main()
 {
     const size_t tuple_list_page = 1024;
 
-    ::worldstate world_struct;
+    travel::worldstate world_struct;
     memset(&world_struct, 0, sizeof(world_struct));
 
     world_struct.start = tuple_list::create<start_tuple>(tuple_list_page);
