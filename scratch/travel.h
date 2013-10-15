@@ -9,21 +9,18 @@ namespace plnnr
 	}
 }
 
+namespace plnnr
+{
+	struct planner_state;
+}
+
 struct worldstate
 {
-	plnnr::tuple_list::handle* travel;
 	plnnr::tuple_list::handle* start;
 	plnnr::tuple_list::handle* finish;
 	plnnr::tuple_list::handle* short_distance;
 	plnnr::tuple_list::handle* long_distance;
 	plnnr::tuple_list::handle* airport;
-};
-
-struct travel_tuple
-{
-	travel_tuple* next;
-	travel_tuple* prev;
-	enum { worldstate_offset = offsetof(worldstate, travel) };
 };
 
 struct start_tuple
@@ -104,11 +101,6 @@ struct travel_by_air_args
 	int _0;
 	int _1;
 };
-
-namespace plnnr
-{
-	struct planner_state;
-}
 
 bool root_branch_0_expand(plnnr::planner_state& pstate, void* world);
 bool travel_branch_0_expand(plnnr::planner_state& pstate, void* world);
