@@ -19,7 +19,6 @@
 //
 
 #include <ctype.h>
-#include <stdarg.h>
 #include <string.h>
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/memory.h"
@@ -126,12 +125,9 @@ bool formatter::init(size_t buffer_size)
     return true;
 }
 
-void formatter::writeln(const char* format, ...)
+void formatter::_write(const char* format, va_list arglist)
 {
     _put_indent();
-
-    va_list arglist;
-    va_start(arglist, format);
 
     while (*format)
     {
@@ -182,10 +178,23 @@ void formatter::writeln(const char* format, ...)
 
         ++format;
     }
+}
 
+void formatter::writeln(const char* format, ...)
+{
+    va_list arglist;
+    va_start(arglist, format);
+    _write(format, arglist);
     va_end(arglist);
-
     newline();
+}
+
+void formatter::write(const char* format, ...)
+{
+    va_list arglist;
+    va_start(arglist, format);
+    _write(format, arglist);
+    va_end(arglist);
 }
 
 void formatter::newline()
@@ -355,20 +364,6 @@ class_scope::~class_scope()
     output._indent_level--;
     output._put_indent();
     output._puts("};");
-    output._puts(output._newline);
-    output._puts(output._newline);
-}
-
-namespace_scope::namespace_scope(formatter& output)
-    : output(output)
-{
-    output._putc('{');
-    output._puts(output._newline);
-}
-
-namespace_scope::~namespace_scope()
-{
-    output._putc('}');
     output._puts(output._newline);
     output._puts(output._newline);
 }

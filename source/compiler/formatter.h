@@ -22,6 +22,7 @@
 #define DERPLANNER_COMPILER_FORMATTER_H_
 
 #include <stddef.h> // size_t
+#include <stdarg.h> // va_list
 #include "derplanner/compiler/io.h"
 
 namespace plnnrc {
@@ -47,14 +48,6 @@ struct class_scope
     formatter& output;
 };
 
-struct namespace_scope
-{
-    namespace_scope(formatter& output);
-    ~namespace_scope();
-
-    formatter& output;
-};
-
 class formatter
 {
 public:
@@ -63,6 +56,7 @@ public:
 
     bool init(size_t buffer_size);
 
+    void write(const char* format, ...);
     void writeln(const char* format, ...);
     void newline();
     void flush();
@@ -70,10 +64,11 @@ public:
 private:
     friend scope;
     friend class_scope;
-    friend namespace_scope;
 
     formatter(const formatter&);
     const formatter& operator=(const formatter&);
+
+    void _write(const char* format, va_list args);
 
     void _putc(char c);
     void _puts(const char* s);
