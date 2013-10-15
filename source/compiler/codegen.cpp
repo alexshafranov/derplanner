@@ -34,6 +34,37 @@ using namespace ast;
 
 namespace
 {
+    struct namespace_wrap
+    {
+        namespace_wrap(node* namespace_node, formatter& output)
+            : namespace_node(namespace_node)
+            , output(output)
+        {
+            for (sexpr::node* name_expr = namespace_node->s_expr->first_child; name_expr != 0; name_expr = name_expr->next_sibling)
+            {
+                output.writeln("namespace %i {", name_expr->token);
+
+                if (is_last(name_expr))
+                {
+                    output.newline();
+                }
+            }
+        }
+
+        ~namespace_wrap()
+        {
+            for (sexpr::node* name_expr = namespace_node->s_expr->first_child; name_expr != 0; name_expr = name_expr->next_sibling)
+            {
+                output.writeln("}");
+            }
+
+            output.newline();
+        }
+
+        node* namespace_node;
+        formatter& output;
+    };
+
     void generate_header_top(ast::tree& ast, formatter& output)
     {
         output.writeln("namespace plnnr");
@@ -70,15 +101,7 @@ namespace
         node* worldstate_namespace = worldstate->first_child;
         plnnrc_assert(worldstate_namespace->type == node_namespace);
 
-        for (sexpr::node* name_expr = worldstate_namespace->s_expr->first_child; name_expr != 0; name_expr = name_expr->next_sibling)
-        {
-            output.writeln("namespace %i {", name_expr->token);
-
-            if (is_last(name_expr))
-            {
-                output.newline();
-            }
-        }
+        namespace_wrap wrap(worldstate_namespace, output);
 
         output.writeln("struct worldstate");
         {
@@ -108,13 +131,6 @@ namespace
                 output.writeln("enum { worldstate_offset = offsetof(worldstate, %i) };", atom->s_expr->token);
             }
         }
-
-        for (sexpr::node* name_expr = worldstate_namespace->s_expr->first_child; name_expr != 0; name_expr = name_expr->next_sibling)
-        {
-            output.writeln("}");
-        }
-
-        output.newline();
     }
 
     void generate_precondition_state(tree& ast, node* root, unsigned branch_index, formatter& output)
