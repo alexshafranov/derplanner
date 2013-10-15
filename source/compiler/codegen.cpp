@@ -67,6 +67,19 @@ namespace
     {
         plnnrc_assert(worldstate && worldstate->type == node_worldstate);
 
+        node* worldstate_namespace = worldstate->first_child;
+        plnnrc_assert(worldstate_namespace->type == node_namespace);
+
+        for (sexpr::node* name_expr = worldstate_namespace->s_expr->first_child; name_expr != 0; name_expr = name_expr->next_sibling)
+        {
+            output.writeln("namespace %i {", name_expr->token);
+
+            if (is_last(name_expr))
+            {
+                output.newline();
+            }
+        }
+
         output.writeln("struct worldstate");
         {
             class_scope s(output);
@@ -95,6 +108,13 @@ namespace
                 output.writeln("enum { worldstate_offset = offsetof(worldstate, %i) };", atom->s_expr->token);
             }
         }
+
+        for (sexpr::node* name_expr = worldstate_namespace->s_expr->first_child; name_expr != 0; name_expr = name_expr->next_sibling)
+        {
+            output.writeln("}");
+        }
+
+        output.newline();
     }
 
     void generate_precondition_state(tree& ast, node* root, unsigned branch_index, formatter& output)
