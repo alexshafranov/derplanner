@@ -16,13 +16,19 @@ namespace plnnr
 
 namespace travel {
 
+enum atom_type
+{
+	atom_start,
+	atom_finish,
+	atom_short_distance,
+	atom_long_distance,
+	atom_airport,
+	atom_count,
+};
+
 struct worldstate
 {
-	plnnr::tuple_list::handle* start;
-	plnnr::tuple_list::handle* finish;
-	plnnr::tuple_list::handle* short_distance;
-	plnnr::tuple_list::handle* long_distance;
-	plnnr::tuple_list::handle* airport;
+	plnnr::tuple_list::handle* atoms[atom_count];
 };
 
 struct start_tuple
@@ -30,7 +36,7 @@ struct start_tuple
 	int _0;
 	start_tuple* next;
 	start_tuple* prev;
-	enum { worldstate_offset = offsetof(worldstate, start) };
+	enum { id = atom_start };
 };
 
 struct finish_tuple
@@ -38,7 +44,7 @@ struct finish_tuple
 	int _0;
 	finish_tuple* next;
 	finish_tuple* prev;
-	enum { worldstate_offset = offsetof(worldstate, finish) };
+	enum { id = atom_finish };
 };
 
 struct short_distance_tuple
@@ -47,7 +53,7 @@ struct short_distance_tuple
 	int _1;
 	short_distance_tuple* next;
 	short_distance_tuple* prev;
-	enum { worldstate_offset = offsetof(worldstate, short_distance) };
+	enum { id = atom_short_distance };
 };
 
 struct long_distance_tuple
@@ -56,7 +62,7 @@ struct long_distance_tuple
 	int _1;
 	long_distance_tuple* next;
 	long_distance_tuple* prev;
-	enum { worldstate_offset = offsetof(worldstate, long_distance) };
+	enum { id = atom_long_distance };
 };
 
 struct airport_tuple
@@ -65,7 +71,7 @@ struct airport_tuple
 	int _1;
 	airport_tuple* next;
 	airport_tuple* prev;
-	enum { worldstate_offset = offsetof(worldstate, airport) };
+	enum { id = atom_airport };
 };
 
 }

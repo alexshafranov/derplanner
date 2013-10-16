@@ -123,14 +123,22 @@ namespace
     {
         plnnrc_assert(worldstate && worldstate->type == node_worldstate);
 
-        output.writeln("struct worldstate");
+        output.writeln("enum atom_type");
         {
             class_scope s(output);
 
             for (node* atom = worldstate->first_child->next_sibling; atom != 0; atom = atom->next_sibling)
             {
-                output.writeln("plnnr::tuple_list::handle* %i;", atom->s_expr->token);
+                output.writeln("atom_%i,", atom->s_expr->token);
             }
+
+            output.writeln("atom_count,");
+        }
+
+        output.writeln("struct worldstate");
+        {
+            class_scope s(output);
+            output.writeln("plnnr::tuple_list::handle* atoms[atom_count];");
         }
 
         for (node* atom = worldstate->first_child->next_sibling; atom != 0; atom = atom->next_sibling)
@@ -148,7 +156,7 @@ namespace
 
                 output.writeln("%i_tuple* next;", atom->s_expr->token);
                 output.writeln("%i_tuple* prev;", atom->s_expr->token);
-                output.writeln("enum { worldstate_offset = offsetof(worldstate, %i) };", atom->s_expr->token);
+                output.writeln("enum { id = atom_%i };", atom->s_expr->token);
             }
         }
     }
@@ -253,7 +261,7 @@ namespace
 
         if (root->type == node_op_not && all_bound(atom))
         {
-            output.writeln("for (state.%i_%d = tuple_list::head<%i_tuple>(world.%i); state.%i_%d != 0; state.%i_%d = state.%i_%d->next)",
+            output.writeln("for (state.%i_%d = tuple_list::head<%i_tuple>(world.atoms[atom_%i]); state.%i_%d != 0; state.%i_%d = state.%i_%d->next)",
                 atom_id, atom_index,
                 atom_id,
                 atom_id,
@@ -298,7 +306,7 @@ namespace
         }
         else
         {
-            output.writeln("for (state.%i_%d = tuple_list::head<%i_tuple>(world.%i); state.%i_%d != 0; state.%i_%d = state.%i_%d->next)",
+            output.writeln("for (state.%i_%d = tuple_list::head<%i_tuple>(world.atoms[atom_%i]); state.%i_%d != 0; state.%i_%d = state.%i_%d->next)",
                 atom_id, atom_index,
                 atom_id,
                 atom_id,
@@ -536,7 +544,7 @@ namespace
         {
             const char* atom_id = effect->s_expr->token;
 
-            output.writeln("for (%i_tuple* tuple = tuple_list::head<%i_tuple>(wstate->%i); tuple != 0; tuple = tuple->next)", atom_id, atom_id, atom_id);
+            output.writeln("for (%i_tuple* tuple = tuple_list::head<%i_tuple>(wstate->atoms[atom_%i]); tuple != 0; tuple = tuple->next)", atom_id, atom_id, atom_id);
             {
                 scope s(output, !is_last(effect));
 
@@ -569,7 +577,7 @@ namespace
                     ++param_index;
                 }
 
-                output.writeln("tuple_list::handle* list = wstate->%i;", atom_id, atom_id);
+                output.writeln("tuple_list::handle* list = wstate->atoms[atom_%i];", atom_id, atom_id);
                 output.writeln("operator_effect* effect = push<operator_effect>(pstate.journal);");
                 output.writeln("effect->tuple = tuple;");
                 output.writeln("effect->list = list;");
@@ -588,7 +596,7 @@ namespace
 
             const char* atom_id = effect->s_expr->token;
 
-            output.writeln("tuple_list::handle* list = wstate->%i;", atom_id, atom_id);
+            output.writeln("tuple_list::handle* list = wstate->atoms[atom_%i];", atom_id, atom_id);
             output.writeln("%i_tuple* tuple = tuple_list::append<%i_tuple>(list);", atom_id, atom_id);
 
             int param_index = 0;

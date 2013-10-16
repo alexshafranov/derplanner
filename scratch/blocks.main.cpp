@@ -5,26 +5,27 @@
 #include "blocks.h"
 
 using namespace plnnr;
+using namespace blocks;
 
 int main()
 {
     const size_t tuple_list_page = 1024;
 
-    ::worldstate world_struct;
+    blocks::worldstate world_struct;
     memset(&world_struct, 0, sizeof(world_struct));
 
-    world_struct.block = tuple_list::create<block_tuple>(tuple_list_page);
-    world_struct.on_table = tuple_list::create<on_table_tuple>(tuple_list_page);
-    world_struct.on = tuple_list::create<on_tuple>(tuple_list_page);
-    world_struct.clear = tuple_list::create<clear_tuple>(tuple_list_page);
-    world_struct.goal_on_table = tuple_list::create<goal_on_table_tuple>(tuple_list_page);
-    world_struct.goal_on = tuple_list::create<goal_on_tuple>(tuple_list_page);
-    world_struct.goal_clear = tuple_list::create<goal_clear_tuple>(tuple_list_page);
-    world_struct.holding = tuple_list::create<holding_tuple>(tuple_list_page);
-    world_struct.dont_move = tuple_list::create<dont_move_tuple>(tuple_list_page);
-    world_struct.need_to_move = tuple_list::create<need_to_move_tuple>(tuple_list_page);
-    world_struct.put_on_table = tuple_list::create<put_on_table_tuple>(tuple_list_page);
-    world_struct.stack_on_block = tuple_list::create<stack_on_block_tuple>(tuple_list_page);
+    world_struct.atoms[atom_block] = tuple_list::create<block_tuple>(tuple_list_page);
+    world_struct.atoms[atom_on_table] = tuple_list::create<on_table_tuple>(tuple_list_page);
+    world_struct.atoms[atom_on] = tuple_list::create<on_tuple>(tuple_list_page);
+    world_struct.atoms[atom_clear] = tuple_list::create<clear_tuple>(tuple_list_page);
+    world_struct.atoms[atom_goal_on_table] = tuple_list::create<goal_on_table_tuple>(tuple_list_page);
+    world_struct.atoms[atom_goal_on] = tuple_list::create<goal_on_tuple>(tuple_list_page);
+    world_struct.atoms[atom_goal_clear] = tuple_list::create<goal_clear_tuple>(tuple_list_page);
+    world_struct.atoms[atom_holding] = tuple_list::create<holding_tuple>(tuple_list_page);
+    world_struct.atoms[atom_dont_move] = tuple_list::create<dont_move_tuple>(tuple_list_page);
+    world_struct.atoms[atom_need_to_move] = tuple_list::create<need_to_move_tuple>(tuple_list_page);
+    world_struct.atoms[atom_put_on_table] = tuple_list::create<put_on_table_tuple>(tuple_list_page);
+    world_struct.atoms[atom_stack_on_block] = tuple_list::create<stack_on_block_tuple>(tuple_list_page);
 
     plnnr::worldstate world(&world_struct);
 

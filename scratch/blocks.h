@@ -9,20 +9,33 @@ namespace plnnr
 	}
 }
 
+namespace plnnr
+{
+	struct planner_state;
+}
+
+namespace blocks {
+
+enum atom_type
+{
+	atom_block,
+	atom_on_table,
+	atom_on,
+	atom_clear,
+	atom_goal_on_table,
+	atom_goal_on,
+	atom_goal_clear,
+	atom_holding,
+	atom_dont_move,
+	atom_need_to_move,
+	atom_put_on_table,
+	atom_stack_on_block,
+	atom_count,
+};
+
 struct worldstate
 {
-	plnnr::tuple_list::handle* block;
-	plnnr::tuple_list::handle* on_table;
-	plnnr::tuple_list::handle* on;
-	plnnr::tuple_list::handle* clear;
-	plnnr::tuple_list::handle* goal_on_table;
-	plnnr::tuple_list::handle* goal_on;
-	plnnr::tuple_list::handle* goal_clear;
-	plnnr::tuple_list::handle* holding;
-	plnnr::tuple_list::handle* dont_move;
-	plnnr::tuple_list::handle* need_to_move;
-	plnnr::tuple_list::handle* put_on_table;
-	plnnr::tuple_list::handle* stack_on_block;
+	plnnr::tuple_list::handle* atoms[atom_count];
 };
 
 struct block_tuple
@@ -30,7 +43,7 @@ struct block_tuple
 	int _0;
 	block_tuple* next;
 	block_tuple* prev;
-	enum { worldstate_offset = offsetof(worldstate, block) };
+	enum { id = atom_block };
 };
 
 struct on_table_tuple
@@ -38,7 +51,7 @@ struct on_table_tuple
 	int _0;
 	on_table_tuple* next;
 	on_table_tuple* prev;
-	enum { worldstate_offset = offsetof(worldstate, on_table) };
+	enum { id = atom_on_table };
 };
 
 struct on_tuple
@@ -47,7 +60,7 @@ struct on_tuple
 	int _1;
 	on_tuple* next;
 	on_tuple* prev;
-	enum { worldstate_offset = offsetof(worldstate, on) };
+	enum { id = atom_on };
 };
 
 struct clear_tuple
@@ -55,7 +68,7 @@ struct clear_tuple
 	int _0;
 	clear_tuple* next;
 	clear_tuple* prev;
-	enum { worldstate_offset = offsetof(worldstate, clear) };
+	enum { id = atom_clear };
 };
 
 struct goal_on_table_tuple
@@ -63,7 +76,7 @@ struct goal_on_table_tuple
 	int _0;
 	goal_on_table_tuple* next;
 	goal_on_table_tuple* prev;
-	enum { worldstate_offset = offsetof(worldstate, goal_on_table) };
+	enum { id = atom_goal_on_table };
 };
 
 struct goal_on_tuple
@@ -72,7 +85,7 @@ struct goal_on_tuple
 	int _1;
 	goal_on_tuple* next;
 	goal_on_tuple* prev;
-	enum { worldstate_offset = offsetof(worldstate, goal_on) };
+	enum { id = atom_goal_on };
 };
 
 struct goal_clear_tuple
@@ -80,7 +93,7 @@ struct goal_clear_tuple
 	int _0;
 	goal_clear_tuple* next;
 	goal_clear_tuple* prev;
-	enum { worldstate_offset = offsetof(worldstate, goal_clear) };
+	enum { id = atom_goal_clear };
 };
 
 struct holding_tuple
@@ -88,7 +101,7 @@ struct holding_tuple
 	int _0;
 	holding_tuple* next;
 	holding_tuple* prev;
-	enum { worldstate_offset = offsetof(worldstate, holding) };
+	enum { id = atom_holding };
 };
 
 struct dont_move_tuple
@@ -96,7 +109,7 @@ struct dont_move_tuple
 	int _0;
 	dont_move_tuple* next;
 	dont_move_tuple* prev;
-	enum { worldstate_offset = offsetof(worldstate, dont_move) };
+	enum { id = atom_dont_move };
 };
 
 struct need_to_move_tuple
@@ -104,7 +117,7 @@ struct need_to_move_tuple
 	int _0;
 	need_to_move_tuple* next;
 	need_to_move_tuple* prev;
-	enum { worldstate_offset = offsetof(worldstate, need_to_move) };
+	enum { id = atom_need_to_move };
 };
 
 struct put_on_table_tuple
@@ -112,7 +125,7 @@ struct put_on_table_tuple
 	int _0;
 	put_on_table_tuple* next;
 	put_on_table_tuple* prev;
-	enum { worldstate_offset = offsetof(worldstate, put_on_table) };
+	enum { id = atom_put_on_table };
 };
 
 struct stack_on_block_tuple
@@ -121,8 +134,12 @@ struct stack_on_block_tuple
 	int _1;
 	stack_on_block_tuple* next;
 	stack_on_block_tuple* prev;
-	enum { worldstate_offset = offsetof(worldstate, stack_on_block) };
+	enum { id = atom_stack_on_block };
 };
+
+}
+
+namespace blocks {
 
 enum task_type
 {
@@ -210,11 +227,6 @@ struct move_block1_args
 	int _1;
 };
 
-namespace plnnr
-{
-	struct planner_state;
-}
-
 bool solve_branch_0_expand(plnnr::planner_state& pstate, void* world);
 bool mark_all_blocks_branch_0_expand(plnnr::planner_state& pstate, void* world);
 bool mark_block_branch_0_expand(plnnr::planner_state& pstate, void* world);
@@ -246,5 +258,7 @@ bool check3_branch_2_expand(plnnr::planner_state& pstate, void* world);
 bool check3_branch_3_expand(plnnr::planner_state& pstate, void* world);
 bool move_block1_branch_0_expand(plnnr::planner_state& pstate, void* world);
 bool move_block1_branch_1_expand(plnnr::planner_state& pstate, void* world);
+
+}
 
 #endif

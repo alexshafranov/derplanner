@@ -14,11 +14,11 @@ int main()
     travel::worldstate world_struct;
     memset(&world_struct, 0, sizeof(world_struct));
 
-    world_struct.start = tuple_list::create<start_tuple>(tuple_list_page);
-    world_struct.finish = tuple_list::create<finish_tuple>(tuple_list_page);
-    world_struct.short_distance = tuple_list::create<short_distance_tuple>(tuple_list_page);
-    world_struct.long_distance = tuple_list::create<long_distance_tuple>(tuple_list_page);
-    world_struct.airport = tuple_list::create<airport_tuple>(tuple_list_page);
+    world_struct.atoms[atom_start] = tuple_list::create<start_tuple>(tuple_list_page);
+    world_struct.atoms[atom_finish] = tuple_list::create<finish_tuple>(tuple_list_page);
+    world_struct.atoms[atom_short_distance] = tuple_list::create<short_distance_tuple>(tuple_list_page);
+    world_struct.atoms[atom_long_distance] = tuple_list::create<long_distance_tuple>(tuple_list_page);
+    world_struct.atoms[atom_airport] = tuple_list::create<airport_tuple>(tuple_list_page);
 
     plnnr::worldstate world(&world_struct);
 

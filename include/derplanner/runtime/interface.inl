@@ -24,16 +24,16 @@ namespace plnnr {
 
 namespace
 {
-    tuple_list::handle* offset_to_handle(void* data, size_t offset)
+    tuple_list::handle* get_handle(void* data, size_t id)
     {
-        return *(reinterpret_cast<tuple_list::handle**>(static_cast<char*>(data) + offset));
+        return reinterpret_cast<tuple_list::handle**>(data)[id];
     }
 }
 
 template <typename T>
 void worldstate::append(const T& tuple)
 {
-    tuple_list::handle* list = offset_to_handle(_data, T::worldstate_offset);
+    tuple_list::handle* list = get_handle(_data, T::id);
     T* new_tuple_ptr = tuple_list::append<T>(list);
     T* next = new_tuple_ptr->next;
     T* prev = new_tuple_ptr->prev;

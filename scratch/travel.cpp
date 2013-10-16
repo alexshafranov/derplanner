@@ -34,11 +34,11 @@ bool next(p0_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	for (state.start_0 = tuple_list::head<start_tuple>(world.start); state.start_0 != 0; state.start_0 = state.start_0->next)
+	for (state.start_0 = tuple_list::head<start_tuple>(world.atoms[atom_start]); state.start_0 != 0; state.start_0 = state.start_0->next)
 	{
 		state._0 = state.start_0->_0;
 
-		for (state.finish_1 = tuple_list::head<finish_tuple>(world.finish); state.finish_1 != 0; state.finish_1 = state.finish_1->next)
+		for (state.finish_1 = tuple_list::head<finish_tuple>(world.atoms[atom_finish]); state.finish_1 != 0; state.finish_1 = state.finish_1->next)
 		{
 			state._1 = state.finish_1->_0;
 
@@ -64,7 +64,7 @@ bool next(p1_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	for (state.short_distance_0 = tuple_list::head<short_distance_tuple>(world.short_distance); state.short_distance_0 != 0; state.short_distance_0 = state.short_distance_0->next)
+	for (state.short_distance_0 = tuple_list::head<short_distance_tuple>(world.atoms[atom_short_distance]); state.short_distance_0 != 0; state.short_distance_0 = state.short_distance_0->next)
 	{
 		if (state.short_distance_0->_0 != state._0)
 		{
@@ -97,7 +97,7 @@ bool next(p2_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	for (state.long_distance_0 = tuple_list::head<long_distance_tuple>(world.long_distance); state.long_distance_0 != 0; state.long_distance_0 = state.long_distance_0->next)
+	for (state.long_distance_0 = tuple_list::head<long_distance_tuple>(world.atoms[atom_long_distance]); state.long_distance_0 != 0; state.long_distance_0 = state.long_distance_0->next)
 	{
 		if (state.long_distance_0->_0 != state._0)
 		{
@@ -135,7 +135,7 @@ bool next(p3_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	for (state.airport_0 = tuple_list::head<airport_tuple>(world.airport); state.airport_0 != 0; state.airport_0 = state.airport_0->next)
+	for (state.airport_0 = tuple_list::head<airport_tuple>(world.atoms[atom_airport]); state.airport_0 != 0; state.airport_0 = state.airport_0->next)
 	{
 		if (state.airport_0->_0 != state._0)
 		{
@@ -144,7 +144,7 @@ bool next(p3_state& state, worldstate& world)
 
 		state._1 = state.airport_0->_1;
 
-		for (state.airport_1 = tuple_list::head<airport_tuple>(world.airport); state.airport_1 != 0; state.airport_1 = state.airport_1->next)
+		for (state.airport_1 = tuple_list::head<airport_tuple>(world.atoms[atom_airport]); state.airport_1 != 0; state.airport_1 = state.airport_1->next)
 		{
 			if (state.airport_1->_0 != state._2)
 			{
