@@ -273,7 +273,7 @@ namespace
     TEST(worldstate_ast_structure)
     {
         char buffer[] = \
-"(:worldstate               "
+"(:worldstate (test)        "
 "    (atomx (int) (double)) "
 "    (atomy (const char *)) "
 ")                          ";
@@ -287,6 +287,7 @@ namespace
 
         const char* expected = \
 "node_worldstate\n"
+"    node_namespace (test)\n"
 "    node_atom atomx\n"
 "        node_worldstate_type (int)\n"
 "        node_worldstate_type (double)\n"
@@ -299,7 +300,7 @@ namespace
     TEST(worldstate_atom_table)
     {
         char buffer[] = \
-"(:worldstate               "
+"(:worldstate (test)        "
 "    (atomx (int) (int))    "
 "    (atomy (double))       "
 ")                          ";
@@ -309,8 +310,8 @@ namespace
         ast::tree tree;
         ast::node* root = ast::build_worldstate(tree, expr.root()->first_child);
 
-        ast::node* atomx = root->first_child;
-        ast::node* atomy = root->first_child->next_sibling;
+        ast::node* atomx = root->first_child->next_sibling;
+        ast::node* atomy = atomx->next_sibling;
 
         CHECK_EQUAL(atomx, tree.ws_atoms.find("atomx"));
         CHECK_EQUAL(atomy, tree.ws_atoms.find("atomy"));
@@ -319,7 +320,7 @@ namespace
     TEST(worldstate_type_table)
     {
         char buffer[] = \
-"(:worldstate               "
+"(:worldstate (test)        "
 "    (atomx (int) (int))    "
 "    (atomy (double))       "
 ")                          ";
@@ -329,8 +330,8 @@ namespace
         ast::tree tree;
         ast::node* root = ast::build_worldstate(tree, expr.root()->first_child);
 
-        ast::node* atomx = root->first_child;
-        ast::node* atomy = root->first_child->next_sibling;
+        ast::node* atomx = root->first_child->next_sibling;
+        ast::node* atomy = atomx->next_sibling;
 
         ast::node* atomx_arg1 = atomx->first_child;
         ast::node* atomx_arg2 = atomx->first_child->next_sibling;
@@ -356,7 +357,7 @@ namespace
     TEST(type_inference)
     {
         char buffer[] = \
-"(:worldstate                   "
+"(:worldstate (test)            "
 "    (ax (type1) (type1))       "
 "    (ay (type2) (type3))       "
 "    (az (type2))               "
