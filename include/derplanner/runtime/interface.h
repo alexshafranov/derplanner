@@ -39,6 +39,19 @@ private:
     void* _data;
 };
 
+template <typename W, typename V>
+struct world_reflector
+{
+    void operator()(const W& world, V& visitor) {}
+};
+
+template <typename W, typename V>
+void reflect_world(const W& world, V& visitor)
+{
+    world_reflector<W, V> reflector;
+    reflector(world, visitor);
+}
+
 }
 
 #include <derplanner/runtime/interface.inl>
