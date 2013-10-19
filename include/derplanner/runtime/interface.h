@@ -63,8 +63,20 @@ void reflect(const T& generated_type, V& visitor)
         DOMAIN_NAMESPACE::atom_name(DOMAIN_NAMESPACE::ATOM_TYPE),                                           \
         plnnr::tuple_list::head<DOMAIN_NAMESPACE::ATOM_TUPLE>(world.atoms[DOMAIN_NAMESPACE::ATOM_TYPE]))    \
 
-#define PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(VISITOR_INSTANCE, TUPLE_INSTANCE, INDEX) \
-    VISITOR_INSTANCE.tuple_element(TUPLE_INSTANCE._ ## INDEX)                      \
+#define PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(VISITOR_INSTANCE, TUPLE_INSTANCE, INDEX)  \
+    VISITOR_INSTANCE.atom_element(TUPLE_INSTANCE._ ## INDEX)                        \
+
+#define PLNNR_GENCODE_VISIT_TUPLE_BEGIN(VISITOR_INSTANCE, DOMAIN_NAMESPACE, ATOM_TYPE, ELEMENT_COUNT)   \
+    VISITOR_INSTANCE.atom_begin(                                                                        \
+        DOMAIN_NAMESPACE::ATOM_TYPE,                                                                    \
+        DOMAIN_NAMESPACE::atom_name(DOMAIN_NAMESPACE::ATOM_TYPE),                                       \
+        ELEMENT_COUNT)                                                                                  \
+
+#define PLNNR_GENCODE_VISIT_TUPLE_END(VISITOR_INSTANCE, DOMAIN_NAMESPACE, ATOM_TYPE, ELEMENT_COUNT)     \
+    VISITOR_INSTANCE.atom_end(                                                                          \
+        DOMAIN_NAMESPACE::ATOM_TYPE,                                                                    \
+        DOMAIN_NAMESPACE::atom_name(DOMAIN_NAMESPACE::ATOM_TYPE),                                       \
+        ELEMENT_COUNT)                                                                                  \
 
 #include <derplanner/runtime/interface.inl>
 

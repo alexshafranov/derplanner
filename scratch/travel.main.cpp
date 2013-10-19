@@ -7,26 +7,60 @@
 using namespace plnnr;
 using namespace travel;
 
-struct world_printer
+struct atom_printf
+{
+    atom_printf()
+        : current_element(0)
+        , total_elements(0)
+    {
+    }
+
+    void atom_begin(int atom_type, const char* name, int element_count)
+    {
+        total_elements = element_count;
+        printf("(");
+    }
+
+    void atom_element(const int& element)
+    {
+        if (++current_element < total_elements)
+        {
+            printf("%d, ", element);
+        }
+        else
+        {
+            printf("%d", element);
+        }
+    }
+
+    void atom_end(int atom_type, const char* name, int element_count)
+    {
+        printf(")");
+    }
+
+    int current_element;
+    int total_elements;
+};
+
+struct world_printf
 {
     template <typename T>
     void atom_list(int atom_type, const char* name, T* head)
     {
-        printf("(%s\n", name);
+        printf("(%s ", name);
 
         for (T* tuple = head; tuple != 0; tuple = tuple->next)
         {
-            printf("\t(");
-            plnnr::reflect(*tuple, *this);
-            printf(")\n");
+            atom_printf atom_visitor;
+            plnnr::reflect(*tuple, atom_visitor);
+
+            if (tuple->next)
+            {
+                printf(" ");
+            }
         }
 
         printf(")\n");
-    }
-
-    void tuple_element(const int& element)
-    {
-        printf("%d, ", element);
     }
 };
 
@@ -70,7 +104,7 @@ int main()
     world.append(atom<airport_tuple>(spb, led));
     world.append(atom<airport_tuple>(msc, svo));
 
-    world_printer printer;
+    world_printf printer;
     plnnr::reflect(world_struct, printer);
 
     plnnr::stack mstack(32768);
