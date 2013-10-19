@@ -42,7 +42,10 @@ private:
 template <typename W, typename V>
 struct world_reflector
 {
-    void operator()(const W& world, V& visitor) {}
+    void operator()(const W& world, V& visitor)
+    {
+        // specialized in domain generated code.
+    }
 };
 
 template <typename W, typename V>
@@ -50,6 +53,29 @@ void reflect_world(const W& world, V& visitor)
 {
     world_reflector<W, V> reflector;
     reflector(world, visitor);
+}
+
+template <typename T, typename V>
+void reflect_atom_list(int type, const char* name, tuple_list::handle* handle, V& visitor)
+{
+    T* head = tuple_list::head<T>(handle);
+    visitor.atom_list(type, name, head);
+}
+
+template <typename T, typename V>
+struct tuple_reflector
+{
+    void operator()(const T& tuple, V& visitor)
+    {
+        // specialized in domain generated code.
+    }
+};
+
+template <typename T, typename V>
+void reflect_tuple(const T& tuple, V& visitor)
+{
+    tuple_reflector<T, V> reflector;
+    reflector(tuple, visitor);
 }
 
 }

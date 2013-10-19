@@ -8,12 +8,12 @@ namespace travel {
 
 static const char* task_type_to_name[] =
 {
-	"<none>",
 	"root",
 	"travel",
 	"travel_by_air",
 	"!ride_taxi",
 	"!fly",
+	"<none>",
 };
 
 const char* task_name(task_type type) { return task_type_to_name[type]; }
@@ -28,7 +28,7 @@ static const char* atom_type_to_name[] =
 	"<none>",
 };
 
-const char* atom_name(task_type type) { return atom_type_to_name[type]; }
+const char* atom_name(atom_type type) { return atom_type_to_name[type]; }
 
 // method root [12:10]
 struct p0_state

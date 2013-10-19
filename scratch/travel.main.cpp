@@ -7,6 +7,29 @@
 using namespace plnnr;
 using namespace travel;
 
+struct world_printer
+{
+    template <typename T>
+    void atom_list(int atom_type, const char* name, T* head)
+    {
+        printf("(%s\n", name);
+
+        for (T* tuple = head; tuple != 0; tuple = tuple->next)
+        {
+            printf("\t(");
+            reflect_tuple(*tuple, *this);
+            printf(")\n");
+        }
+
+        printf(")\n");
+    }
+
+    void tuple_element(const int& element)
+    {
+        printf("%d, ", element);
+    }
+};
+
 int main()
 {
     const size_t tuple_list_page = 1024;
@@ -46,6 +69,9 @@ int main()
 
     world.append(atom<airport_tuple>(spb, led));
     world.append(atom<airport_tuple>(msc, svo));
+
+    world_printer printer;
+    plnnr::reflect_world(world_struct, printer);
 
     plnnr::stack mstack(32768);
     plnnr::stack tstack(32768);
