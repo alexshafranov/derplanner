@@ -52,9 +52,25 @@ namespace
             }
         }
 
+        namespace_wrap(const char* namespace_id, formatter& output, bool end_with_empty_line=true)
+            : namespace_node(0)
+            , output(output)
+            , end_with_empty_line(end_with_empty_line)
+        {
+            output.writeln("namespace %s {", namespace_id);
+            output.newline();
+        }
+
         ~namespace_wrap()
         {
-            for (sexpr::node* name_expr = namespace_node->s_expr->first_child; name_expr != 0; name_expr = name_expr->next_sibling)
+            if (namespace_node)
+            {
+                for (sexpr::node* name_expr = namespace_node->s_expr->first_child; name_expr != 0; name_expr = name_expr->next_sibling)
+                {
+                    output.writeln("}");
+                }
+            }
+            else
             {
                 output.writeln("}");
             }
@@ -115,6 +131,7 @@ namespace
 
         if (worldstate_namespace->s_expr->first_child)
         {
+            output.indent();
             output.write("using namespace ");
             write_namespace(worldstate_namespace, output);
             output.writeln(";");
@@ -962,6 +979,39 @@ namespace
             output.newline();
         }
     }
+
+    void generate_reflectors(ast::tree& ast, node* worldstate, formatter& output)
+    {
+        node* worldstate_namespace = worldstate->first_child;
+        plnnrc_assert(worldstate_namespace);
+        plnnrc_assert(worldstate_namespace->type == node_namespace);
+
+        output.writeln("template <typename V>");
+        output.indent();
+        output.write("struct generated_type_reflector<");
+        write_namespace(worldstate_namespace, output);
+        output.writeln("::worldstate, V>");
+        {
+            class_scope s(output);
+            output.indent();
+            output.write("void operator()(const ");
+            write_namespace(worldstate_namespace, output);
+            output.write("::worldstate& world, V& visitor)");
+            output.newline();
+            {
+                scope s(output, false);
+
+                for (node* atom = worldstate_namespace->next_sibling; atom != 0; atom = atom->next_sibling)
+                {
+                    output.indent();
+                    output.write("PLNNR_GENCODE_VISIT_ATOM_LIST(");
+                    write_namespace(worldstate_namespace, output);
+                    output.write(", atom_%i, %i_tuple, visitor);", atom->s_expr->token, atom->s_expr->token);
+                    output.newline();
+                }
+            }
+        }
+    }
 }
 
 bool generate_header(ast::tree& ast, writer& writer, codegen_options options)
@@ -1003,6 +1053,11 @@ bool generate_header(ast::tree& ast, writer& writer, codegen_options options)
         generate_task_type_enum(ast, domain, output);
         generate_param_structs(ast, domain, output);
         generate_forward_decls(ast, domain, output);
+    }
+
+    {
+        namespace_wrap wrap("plnnr", output);
+        generate_reflectors(ast, worldstate, output);
     }
 
     output.writeln("#endif");
