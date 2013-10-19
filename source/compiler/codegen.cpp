@@ -446,8 +446,6 @@ namespace
         {
             class_scope s(output);
 
-            output.writeln("task_none=0,");
-
             for (node* method = domain->first_child; method != 0; method = method->next_sibling)
             {
                 if (method->type != node_method)
@@ -468,6 +466,8 @@ namespace
 
                 output.writeln("task_%i,", operator_atom->s_expr->token);
             }
+
+            output.writeln("task_count,");
         }
 
         output.writeln("const char* task_name(task_type type);");
@@ -905,8 +905,6 @@ namespace
             {
                 class_scope s(output);
 
-                output.writeln("\"<none>\",");
-
                 for (node* method = domain->first_child; method != 0; method = method->next_sibling)
                 {
                     if (method->type != node_method)
@@ -926,6 +924,8 @@ namespace
                     node* operator_atom = operatr->first_child;
                     output.writeln("\"%s\",", operator_atom->s_expr->token);
                 }
+
+                output.writeln("\"<none>\",");
             }
 
             output.writeln("const char* task_name(task_type type) { return task_type_to_name[type]; }");
