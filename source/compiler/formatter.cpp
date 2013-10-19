@@ -127,8 +127,6 @@ bool formatter::init(size_t buffer_size)
 
 void formatter::_write(const char* format, va_list arglist)
 {
-    _put_indent();
-
     while (*format)
     {
         if (*format == '%')
@@ -182,6 +180,7 @@ void formatter::_write(const char* format, va_list arglist)
 
 void formatter::writeln(const char* format, ...)
 {
+    _put_indent();
     va_list arglist;
     va_start(arglist, format);
     _write(format, arglist);
@@ -195,6 +194,11 @@ void formatter::write(const char* format, ...)
     va_start(arglist, format);
     _write(format, arglist);
     va_end(arglist);
+}
+
+void formatter::indent()
+{
+    _put_indent();
 }
 
 void formatter::newline()
@@ -323,7 +327,7 @@ void formatter::_put_indent()
 {
     for (int i = 0; i < _indent_level; ++i)
     {
-        _puts("\t");
+        _puts(_tab);
     }
 }
 
