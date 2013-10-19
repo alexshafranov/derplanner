@@ -33,6 +33,8 @@ enum atom_type
 	atom_count,
 };
 
+const char* atom_name(atom_type type);
+
 struct worldstate
 {
 	plnnr::tuple_list::handle* atoms[atom_count];

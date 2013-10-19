@@ -18,6 +18,18 @@ static const char* task_type_to_name[] =
 
 const char* task_name(task_type type) { return task_type_to_name[type]; }
 
+static const char* atom_type_to_name[] =
+{
+	"start",
+	"finish",
+	"short_distance",
+	"long_distance",
+	"airport",
+	"<none>",
+};
+
+const char* atom_name(task_type type) { return atom_type_to_name[type]; }
+
 // method root [12:10]
 struct p0_state
 {

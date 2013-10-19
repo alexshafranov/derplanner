@@ -29,6 +29,25 @@ static const char* task_type_to_name[] =
 
 const char* task_name(task_type type) { return task_type_to_name[type]; }
 
+static const char* atom_type_to_name[] =
+{
+	"block",
+	"on-table",
+	"on",
+	"clear",
+	"goal-on-table",
+	"goal-on",
+	"goal-clear",
+	"holding",
+	"dont-move",
+	"need-to-move",
+	"put-on-table",
+	"stack-on-block",
+	"<none>",
+};
+
+const char* atom_name(task_type type) { return atom_type_to_name[type]; }
+
 // method solve [43:10]
 struct p0_state
 {
