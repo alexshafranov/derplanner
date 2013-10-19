@@ -84,12 +84,12 @@ namespace travel {
 
 enum task_type
 {
-	task_none=0,
 	task_root,
 	task_travel,
 	task_travel_by_air,
 	task_ride_taxi,
 	task_fly,
+	task_count,
 };
 
 const char* task_name(task_type type);
@@ -143,61 +143,59 @@ struct generated_type_reflector<travel::worldstate, V>
 template <typename V>
 struct generated_type_reflector<travel::start_tuple, V>
 {
-    void operator()(const travel::start_tuple& tuple, V& visitor)
-    {
+	void operator()(const travel::start_tuple& tuple, V& visitor)
+	{
 		PLNNR_GENCODE_VISIT_TUPLE_BEGIN(visitor, travel, atom_start, 1);
 		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 0);
 		PLNNR_GENCODE_VISIT_TUPLE_END(visitor, travel, atom_start, 1);
-    }
+	}
 };
 
 template <typename V>
 struct generated_type_reflector<travel::finish_tuple, V>
 {
-    void operator()(const travel::finish_tuple& tuple, V& visitor)
-    {
+	void operator()(const travel::finish_tuple& tuple, V& visitor)
+	{
 		PLNNR_GENCODE_VISIT_TUPLE_BEGIN(visitor, travel, atom_finish, 1);
 		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 0);
 		PLNNR_GENCODE_VISIT_TUPLE_END(visitor, travel, atom_finish, 1);
-    }
+	}
 };
-
 
 template <typename V>
 struct generated_type_reflector<travel::short_distance_tuple, V>
 {
-    void operator()(const travel::short_distance_tuple& tuple, V& visitor)
-    {
+	void operator()(const travel::short_distance_tuple& tuple, V& visitor)
+	{
 		PLNNR_GENCODE_VISIT_TUPLE_BEGIN(visitor, travel, atom_short_distance, 2);
 		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 0);
 		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 1);
 		PLNNR_GENCODE_VISIT_TUPLE_END(visitor, travel, atom_short_distance, 2);
-    }
+	}
 };
 
 template <typename V>
 struct generated_type_reflector<travel::long_distance_tuple, V>
 {
-    void operator()(const travel::long_distance_tuple& tuple, V& visitor)
-    {
+	void operator()(const travel::long_distance_tuple& tuple, V& visitor)
+	{
 		PLNNR_GENCODE_VISIT_TUPLE_BEGIN(visitor, travel, atom_long_distance, 2);
 		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 0);
 		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 1);
 		PLNNR_GENCODE_VISIT_TUPLE_END(visitor, travel, atom_long_distance, 2);
-    }
+	}
 };
-
 
 template <typename V>
 struct generated_type_reflector<travel::airport_tuple, V>
 {
-    void operator()(const travel::airport_tuple& tuple, V& visitor)
-    {
+	void operator()(const travel::airport_tuple& tuple, V& visitor)
+	{
 		PLNNR_GENCODE_VISIT_TUPLE_BEGIN(visitor, travel, atom_airport, 2);
 		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 0);
 		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 1);
 		PLNNR_GENCODE_VISIT_TUPLE_END(visitor, travel, atom_airport, 2);
-    }
+	}
 };
 
 }
