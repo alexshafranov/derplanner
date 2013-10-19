@@ -39,19 +39,19 @@ private:
     void* _data;
 };
 
-template <typename W, typename V>
-struct world_reflector
+template <typename R, typename V>
+struct generated_type_reflector
 {
-    void operator()(const W& world, V& visitor)
+    void operator()(const R& reflected, V& visitor)
     {
-        // specialized in domain generated code.
+        // specialized in the generated code.
     }
 };
 
 template <typename W, typename V>
 void reflect_world(const W& world, V& visitor)
 {
-    world_reflector<W, V> reflector;
+    generated_type_reflector<W, V> reflector;
     reflector(world, visitor);
 }
 
@@ -63,18 +63,9 @@ void reflect_atom_list(int type, const char* name, tuple_list::handle* handle, V
 }
 
 template <typename T, typename V>
-struct tuple_reflector
-{
-    void operator()(const T& tuple, V& visitor)
-    {
-        // specialized in domain generated code.
-    }
-};
-
-template <typename T, typename V>
 void reflect_tuple(const T& tuple, V& visitor)
 {
-    tuple_reflector<T, V> reflector;
+    generated_type_reflector<T, V> reflector;
     reflector(tuple, visitor);
 }
 

@@ -128,7 +128,7 @@ bool travel_by_air_branch_0_expand(plnnr::planner_state& pstate, void* world);
 namespace plnnr {
 
 template <typename V>
-struct world_reflector<travel::worldstate, V>
+struct generated_type_reflector<travel::worldstate, V>
 {
 	void operator()(const travel::worldstate& world, V& visitor)
 	{
@@ -142,7 +142,7 @@ struct world_reflector<travel::worldstate, V>
 
 
 template <typename V>
-struct tuple_reflector<travel::start_tuple, V>
+struct generated_type_reflector<travel::start_tuple, V>
 {
     void operator()(const travel::start_tuple& tuple, V& visitor)
     {
@@ -151,7 +151,7 @@ struct tuple_reflector<travel::start_tuple, V>
 };
 
 template <typename V>
-struct tuple_reflector<travel::finish_tuple, V>
+struct generated_type_reflector<travel::finish_tuple, V>
 {
     void operator()(const travel::finish_tuple& tuple, V& visitor)
     {
@@ -161,7 +161,7 @@ struct tuple_reflector<travel::finish_tuple, V>
 
 
 template <typename V>
-struct tuple_reflector<travel::short_distance_tuple, V>
+struct generated_type_reflector<travel::short_distance_tuple, V>
 {
     void operator()(const travel::short_distance_tuple& tuple, V& visitor)
     {
@@ -171,7 +171,7 @@ struct tuple_reflector<travel::short_distance_tuple, V>
 };
 
 template <typename V>
-struct tuple_reflector<travel::long_distance_tuple, V>
+struct generated_type_reflector<travel::long_distance_tuple, V>
 {
     void operator()(const travel::long_distance_tuple& tuple, V& visitor)
     {
@@ -182,7 +182,7 @@ struct tuple_reflector<travel::long_distance_tuple, V>
 
 
 template <typename V>
-struct tuple_reflector<travel::airport_tuple, V>
+struct generated_type_reflector<travel::airport_tuple, V>
 {
     void operator()(const travel::airport_tuple& tuple, V& visitor)
     {
