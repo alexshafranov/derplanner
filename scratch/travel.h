@@ -132,21 +132,20 @@ struct generated_type_reflector<travel::worldstate, V>
 {
 	void operator()(const travel::worldstate& world, V& visitor)
 	{
-		reflect_atom_list<travel::start_tuple, V>(travel::atom_start, travel::atom_name(travel::atom_start), world.atoms[travel::atom_start], visitor);
-		reflect_atom_list<travel::finish_tuple, V>(travel::atom_finish, travel::atom_name(travel::atom_finish), world.atoms[travel::atom_finish], visitor);
-		reflect_atom_list<travel::short_distance_tuple, V>(travel::atom_short_distance, travel::atom_name(travel::atom_short_distance), world.atoms[travel::atom_short_distance], visitor);
-		reflect_atom_list<travel::long_distance_tuple, V>(travel::atom_long_distance, travel::atom_name(travel::atom_long_distance), world.atoms[travel::atom_long_distance], visitor);
-		reflect_atom_list<travel::airport_tuple, V>(travel::atom_airport, travel::atom_name(travel::atom_airport), world.atoms[travel::atom_airport], visitor);
+		PLNNR_GENCODE_VISIT_ATOM_LIST(travel, atom_start, start_tuple, visitor);
+		PLNNR_GENCODE_VISIT_ATOM_LIST(travel, atom_finish, finish_tuple, visitor);
+		PLNNR_GENCODE_VISIT_ATOM_LIST(travel, atom_short_distance, short_distance_tuple, visitor);
+		PLNNR_GENCODE_VISIT_ATOM_LIST(travel, atom_long_distance, long_distance_tuple, visitor);
+		PLNNR_GENCODE_VISIT_ATOM_LIST(travel, atom_airport, airport_tuple, visitor);
 	}
 };
-
 
 template <typename V>
 struct generated_type_reflector<travel::start_tuple, V>
 {
     void operator()(const travel::start_tuple& tuple, V& visitor)
     {
-		visitor.tuple_element(tuple._0);
+		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 0);
     }
 };
 
@@ -155,7 +154,7 @@ struct generated_type_reflector<travel::finish_tuple, V>
 {
     void operator()(const travel::finish_tuple& tuple, V& visitor)
     {
-		visitor.tuple_element(tuple._0);
+		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 0);
     }
 };
 
@@ -165,8 +164,8 @@ struct generated_type_reflector<travel::short_distance_tuple, V>
 {
     void operator()(const travel::short_distance_tuple& tuple, V& visitor)
     {
-		visitor.tuple_element(tuple._0);
-		visitor.tuple_element(tuple._1);
+		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 0);
+		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 1);
     }
 };
 
@@ -175,8 +174,8 @@ struct generated_type_reflector<travel::long_distance_tuple, V>
 {
     void operator()(const travel::long_distance_tuple& tuple, V& visitor)
     {
-		visitor.tuple_element(tuple._0);
-		visitor.tuple_element(tuple._1);
+		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 0);
+		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 1);
     }
 };
 
@@ -186,8 +185,8 @@ struct generated_type_reflector<travel::airport_tuple, V>
 {
     void operator()(const travel::airport_tuple& tuple, V& visitor)
     {
-		visitor.tuple_element(tuple._0);
-		visitor.tuple_element(tuple._1);
+		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 0);
+		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 1);
     }
 };
 

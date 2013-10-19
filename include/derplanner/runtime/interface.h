@@ -48,28 +48,23 @@ struct generated_type_reflector
     }
 };
 
-template <typename W, typename V>
-void reflect_world(const W& world, V& visitor)
-{
-    generated_type_reflector<W, V> reflector;
-    reflector(world, visitor);
-}
-
 template <typename T, typename V>
-void reflect_atom_list(int type, const char* name, tuple_list::handle* handle, V& visitor)
-{
-    T* head = tuple_list::head<T>(handle);
-    visitor.atom_list(type, name, head);
-}
-
-template <typename T, typename V>
-void reflect_tuple(const T& tuple, V& visitor)
+void reflect(const T& generated_type, V& visitor)
 {
     generated_type_reflector<T, V> reflector;
-    reflector(tuple, visitor);
+    reflector(generated_type, visitor);
 }
 
 }
+
+#define PLNNR_GENCODE_VISIT_ATOM_LIST(DOMAIN_NAMESPACE, ATOM_TYPE, ATOM_TUPLE, VISITOR_INSTANCE)            \
+    VISITOR_INSTANCE.atom_list(                                                                             \
+        DOMAIN_NAMESPACE::ATOM_TYPE,                                                                        \
+        DOMAIN_NAMESPACE::atom_name(DOMAIN_NAMESPACE::ATOM_TYPE),                                           \
+        plnnr::tuple_list::head<DOMAIN_NAMESPACE::ATOM_TUPLE>(world.atoms[DOMAIN_NAMESPACE::ATOM_TYPE]))    \
+
+#define PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(VISITOR_INSTANCE, TUPLE_INSTANCE, INDEX) \
+    VISITOR_INSTANCE.tuple_element(TUPLE_INSTANCE._ ## INDEX)                      \
 
 #include <derplanner/runtime/interface.inl>
 

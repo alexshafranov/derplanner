@@ -17,7 +17,7 @@ struct world_printer
         for (T* tuple = head; tuple != 0; tuple = tuple->next)
         {
             printf("\t(");
-            reflect_tuple(*tuple, *this);
+            plnnr::reflect(*tuple, *this);
             printf(")\n");
         }
 
@@ -71,7 +71,7 @@ int main()
     world.append(atom<airport_tuple>(msc, svo));
 
     world_printer printer;
-    plnnr::reflect_world(world_struct, printer);
+    plnnr::reflect(world_struct, printer);
 
     plnnr::stack mstack(32768);
     plnnr::stack tstack(32768);
