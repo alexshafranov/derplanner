@@ -1011,6 +1011,50 @@ namespace
                 }
             }
         }
+
+        for (node* atom = worldstate_namespace->next_sibling; atom != 0; atom = atom->next_sibling)
+        {
+            output.writeln("template <typename V>");
+            output.indent();
+            output.write("struct generated_type_reflector<");
+            write_namespace(worldstate_namespace, output);
+            output.writeln("::%i_tuple, V>", atom->s_expr->token);
+            {
+                class_scope s(output);
+                output.indent();
+                output.write("void operator()(const ");
+                write_namespace(worldstate_namespace, output);
+                output.write("::%i_tuple& tuple, V& visitor)", atom->s_expr->token);
+                output.newline();
+                {
+                    scope s(output, false);
+
+                    int param_count = 0;
+
+                    for (node* child = atom->first_child; child != 0; child = child->next_sibling)
+                    {
+                        param_count++;
+                    }
+
+                    output.indent();
+                    output.write("PLNNR_GENCODE_VISIT_TUPLE_BEGIN(visitor, ");
+                    write_namespace(worldstate_namespace, output);
+                    output.write(", atom_%i, %d);", atom->s_expr->token, param_count);
+                    output.newline();
+
+                    for (int i = 0; i < param_count; ++i)
+                    {
+                        output.writeln("PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, %d);", i);
+                    }
+
+                    output.indent();
+                    output.write("PLNNR_GENCODE_VISIT_TUPLE_END(visitor, ");
+                    write_namespace(worldstate_namespace, output);
+                    output.write(", atom_%i, %d);", atom->s_expr->token, param_count);
+                    output.newline();
+                }
+            }
+        }
     }
 }
 
