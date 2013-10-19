@@ -954,7 +954,7 @@ namespace
                 output.writeln("\"<none>\",");
             }
 
-            output.writeln("const char* atom_name(task_type type) { return atom_type_to_name[type]; }");
+            output.writeln("const char* atom_name(atom_type type) { return atom_type_to_name[type]; }");
             output.newline();
         }
     }
