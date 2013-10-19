@@ -70,6 +70,19 @@ namespace
         bool end_with_empty_line;
     };
 
+    void write_namespace(node* namespace_node, formatter& output)
+    {
+        for (sexpr::node* name_expr = namespace_node->s_expr->first_child; name_expr != 0; name_expr = name_expr->next_sibling)
+        {
+            output.write("%i", name_expr->token);
+
+            if (!is_last(name_expr))
+            {
+                output.write("::");
+            }
+        }
+    }
+
     void generate_header_top(ast::tree& ast, formatter& output)
     {
         output.writeln("#include <derplanner/runtime/interface.h>");
@@ -100,23 +113,11 @@ namespace
 
         output.writeln("using namespace plnnr;");
 
-        for (sexpr::node* name_expr = worldstate_namespace->s_expr->first_child; name_expr != 0; name_expr = name_expr->next_sibling)
+        if (worldstate_namespace->s_expr->first_child)
         {
-            if (is_first(name_expr))
-            {
-                output.write("using namespace ");
-            }
-
-            output.write("%i", name_expr->token);
-
-            if (!is_last(name_expr))
-            {
-                output.write("::");
-            }
-            else
-            {
-                output.writeln(";");
-            }
+            output.write("using namespace ");
+            write_namespace(worldstate_namespace, output);
+            output.writeln(";");
         }
 
         output.newline();
