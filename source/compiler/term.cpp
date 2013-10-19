@@ -31,7 +31,7 @@ namespace ast {
 
 namespace
 {
-    const char token_eq[] = "==";
+    PLNNRC_DEFINE_TOKEN(token_eq, "==");
 }
 
 node* build_atom(tree& ast, sexpr::node* s_expr)
