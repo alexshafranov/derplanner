@@ -72,6 +72,9 @@ namespace
 
     void generate_header_top(ast::tree& ast, formatter& output)
     {
+        output.writeln("#include <derplanner/runtime/interface.h>");
+        output.newline();
+
         output.writeln("namespace plnnr");
         {
             scope s(output);
