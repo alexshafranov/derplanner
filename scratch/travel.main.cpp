@@ -2,67 +2,11 @@
 #include <string.h>
 #include <derplanner/runtime/runtime.h>
 #include <derplanner/runtime/interface.h>
+#include <derplanner/runtime/world_printf.h>
 #include "travel.h"
 
 using namespace plnnr;
 using namespace travel;
-
-struct atom_printf
-{
-    atom_printf()
-        : current_element(0)
-        , total_elements(0)
-    {
-    }
-
-    void atom_begin(int atom_type, const char* name, int element_count)
-    {
-        total_elements = element_count;
-        printf("(");
-    }
-
-    void atom_element(const int& element)
-    {
-        if (++current_element < total_elements)
-        {
-            printf("%d, ", element);
-        }
-        else
-        {
-            printf("%d", element);
-        }
-    }
-
-    void atom_end(int atom_type, const char* name, int element_count)
-    {
-        printf(")");
-    }
-
-    int current_element;
-    int total_elements;
-};
-
-struct world_printf
-{
-    template <typename T>
-    void atom_list(int atom_type, const char* name, T* head)
-    {
-        printf("(%s ", name);
-
-        for (T* tuple = head; tuple != 0; tuple = tuple->next)
-        {
-            atom_printf atom_visitor;
-            plnnr::reflect(*tuple, atom_visitor);
-
-            if (tuple->next)
-            {
-                printf(" ");
-            }
-        }
-
-        printf(")\n");
-    }
-};
 
 int main()
 {

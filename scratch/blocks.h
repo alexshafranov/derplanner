@@ -1,6 +1,8 @@
 #ifndef blocks_H_
 #define blocks_H_
 
+#include <derplanner/runtime/interface.h>
+
 namespace plnnr
 {
 	namespace tuple_list
@@ -145,7 +147,6 @@ namespace blocks {
 
 enum task_type
 {
-	task_none=0,
 	task_solve,
 	task_mark_all_blocks,
 	task_mark_block,
@@ -162,6 +163,7 @@ enum task_type
 	task_unstack,
 	task_pickup,
 	task_stack,
+	task_count,
 };
 
 const char* task_name(task_type type);
@@ -260,6 +262,165 @@ bool check3_branch_2_expand(plnnr::planner_state& pstate, void* world);
 bool check3_branch_3_expand(plnnr::planner_state& pstate, void* world);
 bool move_block1_branch_0_expand(plnnr::planner_state& pstate, void* world);
 bool move_block1_branch_1_expand(plnnr::planner_state& pstate, void* world);
+
+}
+
+namespace plnnr {
+
+template <typename V>
+struct generated_type_reflector<blocks::worldstate, V>
+{
+	void operator()(const blocks::worldstate& world, V& visitor)
+	{
+		PLNNR_GENCODE_VISIT_ATOM_LIST(blocks, atom_block, block_tuple, visitor);
+		PLNNR_GENCODE_VISIT_ATOM_LIST(blocks, atom_on_table, on_table_tuple, visitor);
+		PLNNR_GENCODE_VISIT_ATOM_LIST(blocks, atom_on, on_tuple, visitor);
+		PLNNR_GENCODE_VISIT_ATOM_LIST(blocks, atom_clear, clear_tuple, visitor);
+		PLNNR_GENCODE_VISIT_ATOM_LIST(blocks, atom_goal_on_table, goal_on_table_tuple, visitor);
+		PLNNR_GENCODE_VISIT_ATOM_LIST(blocks, atom_goal_on, goal_on_tuple, visitor);
+		PLNNR_GENCODE_VISIT_ATOM_LIST(blocks, atom_goal_clear, goal_clear_tuple, visitor);
+		PLNNR_GENCODE_VISIT_ATOM_LIST(blocks, atom_holding, holding_tuple, visitor);
+		PLNNR_GENCODE_VISIT_ATOM_LIST(blocks, atom_dont_move, dont_move_tuple, visitor);
+		PLNNR_GENCODE_VISIT_ATOM_LIST(blocks, atom_need_to_move, need_to_move_tuple, visitor);
+		PLNNR_GENCODE_VISIT_ATOM_LIST(blocks, atom_put_on_table, put_on_table_tuple, visitor);
+		PLNNR_GENCODE_VISIT_ATOM_LIST(blocks, atom_stack_on_block, stack_on_block_tuple, visitor);
+	}
+};
+
+template <typename V>
+struct generated_type_reflector<blocks::block_tuple, V>
+{
+	void operator()(const blocks::block_tuple& tuple, V& visitor)
+	{
+		PLNNR_GENCODE_VISIT_TUPLE_BEGIN(visitor, blocks, atom_block, 1);
+		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 0);
+		PLNNR_GENCODE_VISIT_TUPLE_END(visitor, blocks, atom_block, 1);
+	}
+};
+
+template <typename V>
+struct generated_type_reflector<blocks::on_table_tuple, V>
+{
+	void operator()(const blocks::on_table_tuple& tuple, V& visitor)
+	{
+		PLNNR_GENCODE_VISIT_TUPLE_BEGIN(visitor, blocks, atom_on_table, 1);
+		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 0);
+		PLNNR_GENCODE_VISIT_TUPLE_END(visitor, blocks, atom_on_table, 1);
+	}
+};
+
+template <typename V>
+struct generated_type_reflector<blocks::on_tuple, V>
+{
+	void operator()(const blocks::on_tuple& tuple, V& visitor)
+	{
+		PLNNR_GENCODE_VISIT_TUPLE_BEGIN(visitor, blocks, atom_on, 2);
+		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 0);
+		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 1);
+		PLNNR_GENCODE_VISIT_TUPLE_END(visitor, blocks, atom_on, 2);
+	}
+};
+
+template <typename V>
+struct generated_type_reflector<blocks::clear_tuple, V>
+{
+	void operator()(const blocks::clear_tuple& tuple, V& visitor)
+	{
+		PLNNR_GENCODE_VISIT_TUPLE_BEGIN(visitor, blocks, atom_clear, 1);
+		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 0);
+		PLNNR_GENCODE_VISIT_TUPLE_END(visitor, blocks, atom_clear, 1);
+	}
+};
+
+template <typename V>
+struct generated_type_reflector<blocks::goal_on_table_tuple, V>
+{
+	void operator()(const blocks::goal_on_table_tuple& tuple, V& visitor)
+	{
+		PLNNR_GENCODE_VISIT_TUPLE_BEGIN(visitor, blocks, atom_goal_on_table, 1);
+		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 0);
+		PLNNR_GENCODE_VISIT_TUPLE_END(visitor, blocks, atom_goal_on_table, 1);
+	}
+};
+
+template <typename V>
+struct generated_type_reflector<blocks::goal_on_tuple, V>
+{
+	void operator()(const blocks::goal_on_tuple& tuple, V& visitor)
+	{
+		PLNNR_GENCODE_VISIT_TUPLE_BEGIN(visitor, blocks, atom_goal_on, 2);
+		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 0);
+		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 1);
+		PLNNR_GENCODE_VISIT_TUPLE_END(visitor, blocks, atom_goal_on, 2);
+	}
+};
+
+template <typename V>
+struct generated_type_reflector<blocks::goal_clear_tuple, V>
+{
+	void operator()(const blocks::goal_clear_tuple& tuple, V& visitor)
+	{
+		PLNNR_GENCODE_VISIT_TUPLE_BEGIN(visitor, blocks, atom_goal_clear, 1);
+		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 0);
+		PLNNR_GENCODE_VISIT_TUPLE_END(visitor, blocks, atom_goal_clear, 1);
+	}
+};
+
+template <typename V>
+struct generated_type_reflector<blocks::holding_tuple, V>
+{
+	void operator()(const blocks::holding_tuple& tuple, V& visitor)
+	{
+		PLNNR_GENCODE_VISIT_TUPLE_BEGIN(visitor, blocks, atom_holding, 1);
+		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 0);
+		PLNNR_GENCODE_VISIT_TUPLE_END(visitor, blocks, atom_holding, 1);
+	}
+};
+
+template <typename V>
+struct generated_type_reflector<blocks::dont_move_tuple, V>
+{
+	void operator()(const blocks::dont_move_tuple& tuple, V& visitor)
+	{
+		PLNNR_GENCODE_VISIT_TUPLE_BEGIN(visitor, blocks, atom_dont_move, 1);
+		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 0);
+		PLNNR_GENCODE_VISIT_TUPLE_END(visitor, blocks, atom_dont_move, 1);
+	}
+};
+
+template <typename V>
+struct generated_type_reflector<blocks::need_to_move_tuple, V>
+{
+	void operator()(const blocks::need_to_move_tuple& tuple, V& visitor)
+	{
+		PLNNR_GENCODE_VISIT_TUPLE_BEGIN(visitor, blocks, atom_need_to_move, 1);
+		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 0);
+		PLNNR_GENCODE_VISIT_TUPLE_END(visitor, blocks, atom_need_to_move, 1);
+	}
+};
+
+template <typename V>
+struct generated_type_reflector<blocks::put_on_table_tuple, V>
+{
+	void operator()(const blocks::put_on_table_tuple& tuple, V& visitor)
+	{
+		PLNNR_GENCODE_VISIT_TUPLE_BEGIN(visitor, blocks, atom_put_on_table, 1);
+		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 0);
+		PLNNR_GENCODE_VISIT_TUPLE_END(visitor, blocks, atom_put_on_table, 1);
+	}
+};
+
+template <typename V>
+struct generated_type_reflector<blocks::stack_on_block_tuple, V>
+{
+	void operator()(const blocks::stack_on_block_tuple& tuple, V& visitor)
+	{
+		PLNNR_GENCODE_VISIT_TUPLE_BEGIN(visitor, blocks, atom_stack_on_block, 2);
+		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 0);
+		PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, 1);
+		PLNNR_GENCODE_VISIT_TUPLE_END(visitor, blocks, atom_stack_on_block, 2);
+	}
+};
 
 }
 

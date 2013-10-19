@@ -8,7 +8,6 @@ namespace blocks {
 
 static const char* task_type_to_name[] =
 {
-	"<none>",
 	"solve",
 	"mark-all-blocks",
 	"mark-block",
@@ -25,6 +24,7 @@ static const char* task_type_to_name[] =
 	"!unstack",
 	"!pickup",
 	"!stack",
+	"<none>",
 };
 
 const char* task_name(task_type type) { return task_type_to_name[type]; }
@@ -46,7 +46,7 @@ static const char* atom_type_to_name[] =
 	"<none>",
 };
 
-const char* atom_name(task_type type) { return atom_type_to_name[type]; }
+const char* atom_name(atom_type type) { return atom_type_to_name[type]; }
 
 // method solve [43:10]
 struct p0_state

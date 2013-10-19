@@ -2,6 +2,7 @@
 #include <string.h>
 #include <derplanner/runtime/runtime.h>
 #include <derplanner/runtime/interface.h>
+#include <derplanner/runtime/world_printf.h>
 #include "blocks.h"
 
 using namespace plnnr;
@@ -52,6 +53,9 @@ int main()
 
     world.append(atom<goal_clear_tuple>(4));
     world.append(atom<goal_clear_tuple>(2));
+
+    world_printf printer;
+    plnnr::reflect(world_struct, printer);
 
     plnnr::stack mstack(32768);
     plnnr::stack tstack(32768);
