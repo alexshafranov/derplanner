@@ -57,25 +57,25 @@ void reflect(const T& generated_type, V& visitor)
 
 }
 
-#define PLNNR_GENCODE_VISIT_ATOM_LIST(GENCODE_NAMESPACE, ATOM_TYPE, ATOM_TUPLE, VISITOR_INSTANCE)            \
-    VISITOR_INSTANCE.atom_list(                                                                             \
-        GENCODE_NAMESPACE::ATOM_TYPE,                                                                        \
-        GENCODE_NAMESPACE::atom_name(GENCODE_NAMESPACE::ATOM_TYPE),                                           \
-        plnnr::tuple_list::head<GENCODE_NAMESPACE::ATOM_TUPLE>(world.atoms[GENCODE_NAMESPACE::ATOM_TYPE]))    \
+#define PLNNR_GENCODE_VISIT_ATOM_LIST(GENCODE_NAMESPACE, ATOM_TYPE, ATOM_TUPLE, VISITOR_INSTANCE)               \
+    VISITOR_INSTANCE.atom_list(                                                                                 \
+        GENCODE_NAMESPACE::ATOM_TYPE,                                                                           \
+        GENCODE_NAMESPACE::atom_name(GENCODE_NAMESPACE::ATOM_TYPE),                                             \
+        plnnr::tuple_list::head<GENCODE_NAMESPACE::ATOM_TUPLE>(world.atoms[GENCODE_NAMESPACE::ATOM_TYPE]))      \
 
-#define PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(VISITOR_INSTANCE, TUPLE_INSTANCE, INDEX)  \
-    VISITOR_INSTANCE.atom_element(TUPLE_INSTANCE._ ## INDEX)                        \
+#define PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(VISITOR_INSTANCE, TUPLE_INSTANCE, INDEX)      \
+    VISITOR_INSTANCE.atom_element(TUPLE_INSTANCE._ ## INDEX)                            \
 
-#define PLNNR_GENCODE_VISIT_TUPLE_BEGIN(VISITOR_INSTANCE, GENCODE_NAMESPACE, ATOM_TYPE, ELEMENT_COUNT)   \
-    VISITOR_INSTANCE.atom_begin(                                                                        \
-        GENCODE_NAMESPACE::ATOM_TYPE,                                                                    \
-        GENCODE_NAMESPACE::atom_name(GENCODE_NAMESPACE::ATOM_TYPE),                                       \
-        ELEMENT_COUNT)                                                                                  \
+#define PLNNR_GENCODE_VISIT_TUPLE_BEGIN(VISITOR_INSTANCE, GENCODE_NAMESPACE, ATOM_TYPE, ELEMENT_COUNT)      \
+    VISITOR_INSTANCE.atom_begin(                                                                            \
+        GENCODE_NAMESPACE::ATOM_TYPE,                                                                       \
+        GENCODE_NAMESPACE::atom_name(GENCODE_NAMESPACE::ATOM_TYPE),                                         \
+        ELEMENT_COUNT)                                                                                      \
 
-#define PLNNR_GENCODE_VISIT_TUPLE_END(VISITOR_INSTANCE, GENCODE_NAMESPACE, ATOM_TYPE, ELEMENT_COUNT)     \
+#define PLNNR_GENCODE_VISIT_TUPLE_END(VISITOR_INSTANCE, GENCODE_NAMESPACE, ATOM_TYPE, ELEMENT_COUNT)    \
     VISITOR_INSTANCE.atom_end(                                                                          \
-        GENCODE_NAMESPACE::ATOM_TYPE,                                                                    \
-        GENCODE_NAMESPACE::atom_name(GENCODE_NAMESPACE::ATOM_TYPE),                                       \
+        GENCODE_NAMESPACE::ATOM_TYPE,                                                                   \
+        GENCODE_NAMESPACE::atom_name(GENCODE_NAMESPACE::ATOM_TYPE),                                     \
         ELEMENT_COUNT)                                                                                  \
 
 #include <derplanner/runtime/interface.inl>
