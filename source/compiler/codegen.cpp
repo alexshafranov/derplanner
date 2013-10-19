@@ -135,6 +135,9 @@ namespace
             output.writeln("atom_count,");
         }
 
+        output.writeln("const char* atom_name(atom_type type);");
+        output.newline();
+
         output.writeln("struct worldstate");
         {
             class_scope s(output);
@@ -929,6 +932,32 @@ namespace
             output.newline();
         }
     }
+
+    void generate_atom_name_function(ast::tree& ast, node* worldstate, bool enabled, formatter& output)
+    {
+        if (!enabled)
+        {
+            output.writeln("const char* atom_name(atom_type type) { return \"<none>\"; }");
+            output.newline();
+        }
+        else
+        {
+            output.writeln("static const char* atom_type_to_name[] =");
+            {
+                class_scope s(output);
+
+                for (node* atom = worldstate->first_child->next_sibling; atom != 0; atom = atom->next_sibling)
+                {
+                    output.writeln("\"%s\",", atom->s_expr->token);
+                }
+
+                output.writeln("\"<none>\",");
+            }
+
+            output.writeln("const char* atom_name(task_type type) { return atom_type_to_name[type]; }");
+            output.newline();
+        }
+    }
 }
 
 bool generate_header(ast::tree& ast, writer& writer, codegen_options options)
@@ -1005,6 +1034,7 @@ bool generate_source(ast::tree& ast, writer& writer, codegen_options options)
     {
         namespace_wrap wrap(domain_namespace, output, false);
         generate_task_name_function(ast, domain, options.runtime_task_names, output);
+        generate_atom_name_function(ast, worldstate, options.runtime_atom_names, output);
         generate_preconditions(ast, domain, output);
         generate_branch_expands(ast, domain, output);
     }

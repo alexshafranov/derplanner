@@ -36,6 +36,7 @@ struct codegen_options
     const char* newline;
     const char* include_guard;
     const char* header_file_name;
+    bool runtime_atom_names;
     bool runtime_task_names;
 };
 
