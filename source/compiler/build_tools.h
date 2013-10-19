@@ -26,11 +26,22 @@
 
 #define PLNNRC_CHECK(EXPR) do { if (!(EXPR)) return 0; } while (0)
 
+namespace plnnrc
+{
+    struct str_ref
+    {
+        const char* str;
+        size_t len;
+    };
+}
+
+#define PLNNRC_DEFINE_TOKEN(NAME, STR) const str_ref NAME = { STR, sizeof(STR) }
+
 namespace
 {
-    bool is_token(::plnnrc::sexpr::node* s_expr, const char* token)
+    bool is_token(::plnnrc::sexpr::node* s_expr, ::plnnrc::str_ref token)
     {
-        return s_expr && s_expr->token && strncmp(s_expr->token, token, sizeof(token)) == 0;
+        return s_expr && s_expr->token && strncmp(s_expr->token, token.str, token.len) == 0;
     }
 }
 

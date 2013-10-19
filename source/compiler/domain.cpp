@@ -36,13 +36,13 @@ namespace ast {
 
 namespace
 {
-    const char token_worldstate[]   = ":worldstate";
-    const char token_domain[]       = ":domain";
-    const char token_method[]       = ":method";
-    const char token_operator[]     = ":operator";
-    const char token_foreach[]      = ":foreach";
-    const char token_add[]          = ":add";
-    const char token_delete[]       = ":delete";
+    PLNNRC_DEFINE_TOKEN(token_worldstate,   ":worldstate");
+    PLNNRC_DEFINE_TOKEN(token_domain,       ":domain");
+    PLNNRC_DEFINE_TOKEN(token_method,       ":method");
+    PLNNRC_DEFINE_TOKEN(token_operator,     ":operator");
+    PLNNRC_DEFINE_TOKEN(token_foreach,      ":foreach");
+    PLNNRC_DEFINE_TOKEN(token_add,          ":add");
+    PLNNRC_DEFINE_TOKEN(token_delete,       ":delete");
 
     node* build_namespace(tree& ast, sexpr::node* s_expr);
     node* build_method(tree& ast, sexpr::node* s_expr);
@@ -55,7 +55,7 @@ namespace
 
     sexpr::node* next_branch_expr(sexpr::node* branch_expr);
 
-    int count_elements(sexpr::node* root, const char* token)
+    int count_elements(sexpr::node* root, str_ref token)
     {
         int result = 0;
 

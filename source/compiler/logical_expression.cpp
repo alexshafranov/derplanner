@@ -32,9 +32,9 @@ namespace ast {
 
 namespace
 {
-    const char token_and[] = "and";
-    const char token_or[]  = "or";
-    const char token_not[] = "not";
+    PLNNRC_DEFINE_TOKEN(token_and,  "and");
+    PLNNRC_DEFINE_TOKEN(token_or,   "or");
+    PLNNRC_DEFINE_TOKEN(token_not,  "not");
 
     // forward
     node* build_recursive(tree& ast, sexpr::node* s_expr);
