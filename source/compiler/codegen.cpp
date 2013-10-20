@@ -86,12 +86,12 @@ namespace
         bool end_with_empty_line;
     };
 
-    class paste_qualified_namespace : public paste_func
+    class paste_fully_qualified_namespace : public paste_func
     {
     public:
         node* namespace_node;
 
-        paste_qualified_namespace(node* namespace_node)
+        paste_fully_qualified_namespace(node* namespace_node)
             : namespace_node(namespace_node)
         {
         }
@@ -142,7 +142,7 @@ namespace
 
         if (worldstate_namespace->s_expr->first_child)
         {
-            paste_qualified_namespace paste(worldstate_namespace);
+            paste_fully_qualified_namespace paste(worldstate_namespace);
             output.writeln("using namespace %p;", &paste);
         }
 
@@ -995,7 +995,7 @@ namespace
         plnnrc_assert(worldstate_namespace);
         plnnrc_assert(worldstate_namespace->type == node_namespace);
 
-        paste_qualified_namespace paste(worldstate_namespace);
+        paste_fully_qualified_namespace paste(worldstate_namespace);
 
         output.writeln("template <typename V>");
         output.writeln("struct generated_type_reflector<%p::worldstate, V>", &paste);
