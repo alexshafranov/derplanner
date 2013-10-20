@@ -79,7 +79,7 @@ struct task_instance
 {
     int type;
     void* args;
-    task_instance* link;
+    task_instance* parent;
 };
 
 struct operator_effect

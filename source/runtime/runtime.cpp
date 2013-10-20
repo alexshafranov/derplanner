@@ -80,7 +80,7 @@ task_instance* push_task(planner_state& pstate, int task_type)
     task_instance* new_task = push<task_instance>(pstate.tstack);
     new_task->type = task_type;
     new_task->args = 0;
-    new_task->link = pstate.top_task;
+    new_task->parent = pstate.top_task;
 
     pstate.top_task = new_task;
 
@@ -102,7 +102,7 @@ method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks_and_
             if (new_top->trewind < pstate.tstack->top())
             {
                 task_instance* task = memory::align<task_instance>(new_top->trewind);
-                task_instance* top_task = task->link;
+                task_instance* top_task = task->parent;
 
                 pstate.tstack->rewind(new_top->trewind);
 
@@ -159,8 +159,8 @@ task_instance* reverse_task_list(task_instance* head)
 
     while (head)
     {
-        task_instance* link = head->link;
-        head->link = new_head;
+        task_instance* link = head->parent;
+        head->parent = new_head;
         new_head = head;
         head = link;
     }

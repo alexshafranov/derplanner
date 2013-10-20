@@ -70,7 +70,7 @@ int main()
 
         task_instance* task = reverse_task_list(pstate.top_task);
 
-        for (task_instance* t = task; t != 0; t = t->link)
+        for (task_instance* t = task; t != 0; t = t->parent)
         {
             printf("task_type=%s", task_name((task_type)t->type));
 
