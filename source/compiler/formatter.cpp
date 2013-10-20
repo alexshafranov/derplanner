@@ -377,4 +377,15 @@ class_scope::~class_scope()
     output.newline();
 }
 
+indented::indented(formatter& output)
+    : output(output)
+{
+    output.indent();
+}
+
+indented::~indented()
+{
+    output.dedent();
+}
+
 }

@@ -48,6 +48,14 @@ struct class_scope
     formatter& output;
 };
 
+struct indented
+{
+    indented(formatter& output);
+    ~indented();
+
+    formatter& output;
+};
+
 class paste_func
 {
 public:

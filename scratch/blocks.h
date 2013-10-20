@@ -557,6 +557,65 @@ struct generated_type_reflector<blocks::move_block1_args, V>
 	}
 };
 
+template <typename V>
+struct task_type_dispatcher<blocks::task_type, V>
+{
+	void operator()(const blocks::task_type& task_type, void* args, V& visitor)
+	{
+		switch (task_type)
+		{
+			case blocks::task_solve:
+				PLNNR_GENCODE_VISIT_TASK_NO_ARGS(visitor, blocks, task_solve);
+				break;
+			case blocks::task_mark_all_blocks:
+				PLNNR_GENCODE_VISIT_TASK_NO_ARGS(visitor, blocks, task_mark_all_blocks);
+				break;
+			case blocks::task_mark_block:
+				PLNNR_GENCODE_VISIT_TASK_WITH_ARGS(visitor, blocks, task_mark_block, mark_block_args);
+				break;
+			case blocks::task_mark_block_recursive:
+				PLNNR_GENCODE_VISIT_TASK_WITH_ARGS(visitor, blocks, task_mark_block_recursive, mark_block_recursive_args);
+				break;
+			case blocks::task_mark_block_term:
+				PLNNR_GENCODE_VISIT_TASK_WITH_ARGS(visitor, blocks, task_mark_block_term, mark_block_term_args);
+				break;
+			case blocks::task_find_all_movable:
+				PLNNR_GENCODE_VISIT_TASK_NO_ARGS(visitor, blocks, task_find_all_movable);
+				break;
+			case blocks::task_mark_move_type:
+				PLNNR_GENCODE_VISIT_TASK_WITH_ARGS(visitor, blocks, task_mark_move_type, mark_move_type_args);
+				break;
+			case blocks::task_move_block:
+				PLNNR_GENCODE_VISIT_TASK_NO_ARGS(visitor, blocks, task_move_block);
+				break;
+			case blocks::task_check:
+				PLNNR_GENCODE_VISIT_TASK_WITH_ARGS(visitor, blocks, task_check, check_args);
+				break;
+			case blocks::task_check2:
+				PLNNR_GENCODE_VISIT_TASK_WITH_ARGS(visitor, blocks, task_check2, check2_args);
+				break;
+			case blocks::task_check3:
+				PLNNR_GENCODE_VISIT_TASK_WITH_ARGS(visitor, blocks, task_check3, check3_args);
+				break;
+			case blocks::task_move_block1:
+				PLNNR_GENCODE_VISIT_TASK_WITH_ARGS(visitor, blocks, task_move_block1, move_block1_args);
+				break;
+			case blocks::task_putdown:
+				PLNNR_GENCODE_VISIT_TASK_WITH_ARGS(visitor, blocks, task_putdown, putdown_args);
+				break;
+			case blocks::task_unstack:
+				PLNNR_GENCODE_VISIT_TASK_WITH_ARGS(visitor, blocks, task_unstack, unstack_args);
+				break;
+			case blocks::task_pickup:
+				PLNNR_GENCODE_VISIT_TASK_WITH_ARGS(visitor, blocks, task_pickup, pickup_args);
+				break;
+			case blocks::task_stack:
+				PLNNR_GENCODE_VISIT_TASK_WITH_ARGS(visitor, blocks, task_stack, stack_args);
+				break;
+		}
+	}
+};
+
 }
 
 #endif

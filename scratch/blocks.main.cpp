@@ -72,41 +72,15 @@ int main()
 
     if (result)
     {
-        printf("plan found:\n");
+        printf("\nplan found:\n\n");
 
         task_instance* task = reverse_task_list(pstate.top_task);
 
+        task_printf task_printer;
+
         for (task_instance* t = task; t != 0; t = t->parent)
         {
-            printf("task_type=%s", task_name((task_type)t->type));
-
-            switch (t->type)
-            {
-            case task_putdown:
-                {
-                    putdown_args* args = static_cast<putdown_args*>(t->args);
-                    printf("\t(%d)\n", args->_0);
-                }
-                break;
-            case task_unstack:
-                {
-                    unstack_args* args = static_cast<unstack_args*>(t->args);
-                    printf("\t(%d, %d)\n", args->_0, args->_1);
-                }
-                break;
-            case task_pickup:
-                {
-                    pickup_args* args = static_cast<pickup_args*>(t->args);
-                    printf("\t(%d)\n", args->_0);
-                }
-                break;
-            case task_stack:
-                {
-                    stack_args* args = static_cast<stack_args*>(t->args);
-                    printf("\t(%d, %d)\n", args->_0, args->_1);
-                }
-                break;
-            }
+            plnnr::dispatch<blocks::task_type>(*t, task_printer);
         }
     }
     else

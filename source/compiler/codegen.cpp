@@ -1082,6 +1082,82 @@ namespace
             generate_atom_reflector(ast, atom, &paste_domain_namespace, "task_name", "args", "task", output);
         }
     }
+
+    void generate_task_type_dispatcher(ast::tree& ast, node* domain, formatter& output)
+    {
+        node* domain_namespace = domain->first_child;
+        plnnrc_assert(domain_namespace);
+        plnnrc_assert(domain_namespace->type == node_namespace);
+
+        paste_fully_qualified_namespace paste_namespace(domain_namespace);
+
+        output.writeln("template <typename V>");
+        output.writeln("struct task_type_dispatcher<%p::task_type, V>", &paste_namespace);
+        {
+            class_scope s(output);
+            output.writeln("void operator()(const %p::task_type& task_type, void* args, V& visitor)", &paste_namespace);
+            {
+                scope s(output, false);
+                output.writeln("switch (task_type)");
+                {
+                    scope s(output, false);
+
+                    for (node* method = domain->first_child; method != 0; method = method->next_sibling)
+                    {
+                        if (method->type != node_method)
+                        {
+                            continue;
+                        }
+
+                        node* method_atom = method->first_child;
+                        plnnrc_assert(method_atom);
+
+                        output.writeln("case %p::task_%i:", &paste_namespace, method_atom->s_expr->token);
+                        {
+                            indented s(output);
+
+                            const char* atom_id = method_atom->s_expr->token;
+
+                            if (method_atom->first_child)
+                            {
+                                output.writeln("PLNNR_GENCODE_VISIT_TASK_WITH_ARGS(visitor, %p, task_%i, %i_args);", &paste_namespace, atom_id, atom_id);
+                            }
+                            else
+                            {
+                                output.writeln("PLNNR_GENCODE_VISIT_TASK_NO_ARGS(visitor, %p, task_%i);", &paste_namespace, atom_id);
+                            }
+
+                            output.writeln("break;");
+                        }
+                    }
+
+                    for (id_table_values operators = ast.operators.values(); !operators.empty(); operators.pop())
+                    {
+                        node* operatr = operators.value();
+                        node* operator_atom = operatr->first_child;
+
+                        output.writeln("case %p::task_%i:", &paste_namespace, operator_atom->s_expr->token);
+                        {
+                            indented s(output);
+
+                            const char* atom_id = operator_atom->s_expr->token;
+
+                            if (operator_atom->first_child)
+                            {
+                                output.writeln("PLNNR_GENCODE_VISIT_TASK_WITH_ARGS(visitor, %p, task_%i, %i_args);", &paste_namespace, atom_id, atom_id);
+                            }
+                            else
+                            {
+                                output.writeln("PLNNR_GENCODE_VISIT_TASK_NO_ARGS(visitor, %p, task_%i);", &paste_namespace, atom_id);
+                            }
+
+                            output.writeln("break;");
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 bool generate_header(ast::tree& ast, writer& writer, codegen_options options)
@@ -1128,6 +1204,7 @@ bool generate_header(ast::tree& ast, writer& writer, codegen_options options)
     {
         namespace_wrap wrap("plnnr", output);
         generate_reflectors(ast, worldstate, domain, output);
+        generate_task_type_dispatcher(ast, domain, output);
     }
 
     output.writeln("#endif");

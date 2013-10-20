@@ -66,7 +66,7 @@ int main()
 
     if (result)
     {
-        printf("plan found:\n");
+        printf("\nplan found:\n\n");
 
         task_instance* task = reverse_task_list(pstate.top_task);
 
