@@ -62,7 +62,7 @@ int main()
     pstate.tstack = &tstack;
     pstate.journal = &jstack;
 
-    bool result = find_plan(pstate, root_branch_0_expand, world.data());
+    bool result = find_plan(pstate, travel::task_root, travel::root_branch_0_expand, world.data());
 
     if (result)
     {

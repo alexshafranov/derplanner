@@ -1019,19 +1019,19 @@ bool solve_branch_0_expand(planner_state& pstate, void* world)
 	while (next(*precondition, *wstate))
 	{
 		{
-			method_instance* t = push_method(pstate, mark_all_blocks_branch_0_expand);
+			method_instance* t = push_method(pstate, task_mark_all_blocks, mark_all_blocks_branch_0_expand);
 		}
 
 		PLNNR_COROUTINE_YIELD(*method);
 
 		{
-			method_instance* t = push_method(pstate, find_all_movable_branch_0_expand);
+			method_instance* t = push_method(pstate, task_find_all_movable, find_all_movable_branch_0_expand);
 		}
 
 		PLNNR_COROUTINE_YIELD(*method);
 
 		{
-			method_instance* t = push_method(pstate, move_block_branch_0_expand);
+			method_instance* t = push_method(pstate, task_move_block, move_block_branch_0_expand);
 		}
 
 		method->expanded = true;
@@ -1060,7 +1060,7 @@ bool mark_all_blocks_branch_0_expand(planner_state& pstate, void* world)
 	while (next(*precondition, *wstate))
 	{
 		{
-			method_instance* t = push_method(pstate, mark_block_branch_0_expand);
+			method_instance* t = push_method(pstate, task_mark_block, mark_block_branch_0_expand);
 			mark_block_args* a = push<mark_block_args>(pstate.mstack);
 			a->_0 = precondition->_0;
 			t->args = a;
@@ -1099,7 +1099,7 @@ bool mark_block_branch_0_expand(planner_state& pstate, void* world)
 	while (next(*precondition, *wstate))
 	{
 		{
-			method_instance* t = push_method(pstate, mark_block_recursive_branch_0_expand);
+			method_instance* t = push_method(pstate, task_mark_block_recursive, mark_block_recursive_branch_0_expand);
 			mark_block_recursive_args* a = push<mark_block_recursive_args>(pstate.mstack);
 			a->_0 = method_args->_0;
 			t->args = a;
@@ -1160,7 +1160,7 @@ bool mark_block_recursive_branch_0_expand(planner_state& pstate, void* world)
 	while (next(*precondition, *wstate))
 	{
 		{
-			method_instance* t = push_method(pstate, mark_block_recursive_branch_0_expand);
+			method_instance* t = push_method(pstate, task_mark_block_recursive, mark_block_recursive_branch_0_expand);
 			mark_block_recursive_args* a = push<mark_block_recursive_args>(pstate.mstack);
 			a->_0 = precondition->_1;
 			t->args = a;
@@ -1169,7 +1169,7 @@ bool mark_block_recursive_branch_0_expand(planner_state& pstate, void* world)
 		PLNNR_COROUTINE_YIELD(*method);
 
 		{
-			method_instance* t = push_method(pstate, mark_block_term_branch_0_expand);
+			method_instance* t = push_method(pstate, task_mark_block_term, mark_block_term_branch_0_expand);
 			mark_block_term_args* a = push<mark_block_term_args>(pstate.mstack);
 			a->_0 = method_args->_0;
 			t->args = a;
@@ -1203,7 +1203,7 @@ bool mark_block_recursive_branch_1_expand(planner_state& pstate, void* world)
 	while (next(*precondition, *wstate))
 	{
 		{
-			method_instance* t = push_method(pstate, mark_block_term_branch_0_expand);
+			method_instance* t = push_method(pstate, task_mark_block_term, mark_block_term_branch_0_expand);
 			mark_block_term_args* a = push<mark_block_term_args>(pstate.mstack);
 			a->_0 = method_args->_0;
 			t->args = a;
@@ -1506,7 +1506,7 @@ bool find_all_movable_branch_0_expand(planner_state& pstate, void* world)
 	while (next(*precondition, *wstate))
 	{
 		{
-			method_instance* t = push_method(pstate, mark_move_type_branch_0_expand);
+			method_instance* t = push_method(pstate, task_mark_move_type, mark_move_type_branch_0_expand);
 			mark_move_type_args* a = push<mark_move_type_args>(pstate.mstack);
 			a->_0 = precondition->_0;
 			t->args = a;
@@ -1648,7 +1648,7 @@ bool move_block_branch_0_expand(planner_state& pstate, void* world)
 	while (next(*precondition, *wstate))
 	{
 		{
-			method_instance* t = push_method(pstate, move_block1_branch_0_expand);
+			method_instance* t = push_method(pstate, task_move_block1, move_block1_branch_0_expand);
 			move_block1_args* a = push<move_block1_args>(pstate.mstack);
 			a->_0 = precondition->_0;
 			a->_1 = precondition->_1;
@@ -1658,7 +1658,7 @@ bool move_block_branch_0_expand(planner_state& pstate, void* world)
 		PLNNR_COROUTINE_YIELD(*method);
 
 		{
-			method_instance* t = push_method(pstate, move_block_branch_0_expand);
+			method_instance* t = push_method(pstate, task_move_block, move_block_branch_0_expand);
 		}
 
 		method->expanded = true;
@@ -1837,7 +1837,7 @@ bool move_block_branch_1_expand(planner_state& pstate, void* world)
 		}
 
 		{
-			method_instance* t = push_method(pstate, check_branch_0_expand);
+			method_instance* t = push_method(pstate, task_check, check_branch_0_expand);
 			check_args* a = push<check_args>(pstate.mstack);
 			a->_0 = precondition->_0;
 			t->args = a;
@@ -1846,7 +1846,7 @@ bool move_block_branch_1_expand(planner_state& pstate, void* world)
 		PLNNR_COROUTINE_YIELD(*method);
 
 		{
-			method_instance* t = push_method(pstate, check2_branch_0_expand);
+			method_instance* t = push_method(pstate, task_check2, check2_branch_0_expand);
 			check2_args* a = push<check2_args>(pstate.mstack);
 			a->_0 = precondition->_1;
 			t->args = a;
@@ -1855,7 +1855,7 @@ bool move_block_branch_1_expand(planner_state& pstate, void* world)
 		PLNNR_COROUTINE_YIELD(*method);
 
 		{
-			method_instance* t = push_method(pstate, check3_branch_0_expand);
+			method_instance* t = push_method(pstate, task_check3, check3_branch_0_expand);
 			check3_args* a = push<check3_args>(pstate.mstack);
 			a->_0 = precondition->_1;
 			t->args = a;
@@ -1864,7 +1864,7 @@ bool move_block_branch_1_expand(planner_state& pstate, void* world)
 		PLNNR_COROUTINE_YIELD(*method);
 
 		{
-			method_instance* t = push_method(pstate, move_block_branch_0_expand);
+			method_instance* t = push_method(pstate, task_move_block, move_block_branch_0_expand);
 		}
 
 		method->expanded = true;
@@ -1998,7 +1998,7 @@ bool move_block_branch_2_expand(planner_state& pstate, void* world)
 		}
 
 		{
-			method_instance* t = push_method(pstate, check2_branch_0_expand);
+			method_instance* t = push_method(pstate, task_check2, check2_branch_0_expand);
 			check2_args* a = push<check2_args>(pstate.mstack);
 			a->_0 = precondition->_1;
 			t->args = a;
@@ -2007,7 +2007,7 @@ bool move_block_branch_2_expand(planner_state& pstate, void* world)
 		PLNNR_COROUTINE_YIELD(*method);
 
 		{
-			method_instance* t = push_method(pstate, check3_branch_0_expand);
+			method_instance* t = push_method(pstate, task_check3, check3_branch_0_expand);
 			check3_args* a = push<check3_args>(pstate.mstack);
 			a->_0 = precondition->_1;
 			t->args = a;
@@ -2016,7 +2016,7 @@ bool move_block_branch_2_expand(planner_state& pstate, void* world)
 		PLNNR_COROUTINE_YIELD(*method);
 
 		{
-			method_instance* t = push_method(pstate, move_block_branch_0_expand);
+			method_instance* t = push_method(pstate, task_move_block, move_block_branch_0_expand);
 		}
 
 		method->expanded = true;
@@ -2510,7 +2510,7 @@ bool move_block1_branch_0_expand(planner_state& pstate, void* world)
 		}
 
 		{
-			method_instance* t = push_method(pstate, check_branch_0_expand);
+			method_instance* t = push_method(pstate, task_check, check_branch_0_expand);
 			check_args* a = push<check_args>(pstate.mstack);
 			a->_0 = method_args->_0;
 			t->args = a;
@@ -2519,7 +2519,7 @@ bool move_block1_branch_0_expand(planner_state& pstate, void* world)
 		PLNNR_COROUTINE_YIELD(*method);
 
 		{
-			method_instance* t = push_method(pstate, check2_branch_0_expand);
+			method_instance* t = push_method(pstate, task_check2, check2_branch_0_expand);
 			check2_args* a = push<check2_args>(pstate.mstack);
 			a->_0 = precondition->_1;
 			t->args = a;
@@ -2528,7 +2528,7 @@ bool move_block1_branch_0_expand(planner_state& pstate, void* world)
 		PLNNR_COROUTINE_YIELD(*method);
 
 		{
-			method_instance* t = push_method(pstate, check3_branch_0_expand);
+			method_instance* t = push_method(pstate, task_check3, check3_branch_0_expand);
 			check3_args* a = push<check3_args>(pstate.mstack);
 			a->_0 = precondition->_1;
 			t->args = a;
@@ -2719,7 +2719,7 @@ bool move_block1_branch_1_expand(planner_state& pstate, void* world)
 		}
 
 		{
-			method_instance* t = push_method(pstate, check_branch_0_expand);
+			method_instance* t = push_method(pstate, task_check, check_branch_0_expand);
 			check_args* a = push<check_args>(pstate.mstack);
 			a->_0 = method_args->_0;
 			t->args = a;

@@ -191,7 +191,7 @@ bool root_branch_0_expand(planner_state& pstate, void* world)
 	while (next(*precondition, *wstate))
 	{
 		{
-			method_instance* t = push_method(pstate, travel_branch_0_expand);
+			method_instance* t = push_method(pstate, task_travel, travel_branch_0_expand);
 			travel_args* a = push<travel_args>(pstate.mstack);
 			a->_0 = precondition->_0;
 			a->_1 = precondition->_1;
@@ -264,7 +264,7 @@ bool travel_branch_1_expand(planner_state& pstate, void* world)
 	while (next(*precondition, *wstate))
 	{
 		{
-			method_instance* t = push_method(pstate, travel_by_air_branch_0_expand);
+			method_instance* t = push_method(pstate, task_travel_by_air, travel_by_air_branch_0_expand);
 			travel_by_air_args* a = push<travel_by_air_args>(pstate.mstack);
 			a->_0 = method_args->_0;
 			a->_1 = method_args->_1;
@@ -300,7 +300,7 @@ bool travel_by_air_branch_0_expand(planner_state& pstate, void* world)
 	while (next(*precondition, *wstate))
 	{
 		{
-			method_instance* t = push_method(pstate, travel_branch_0_expand);
+			method_instance* t = push_method(pstate, task_travel, travel_branch_0_expand);
 			travel_args* a = push<travel_args>(pstate.mstack);
 			a->_0 = method_args->_0;
 			a->_1 = precondition->_1;
@@ -318,7 +318,7 @@ bool travel_by_air_branch_0_expand(planner_state& pstate, void* world)
 		}
 
 		{
-			method_instance* t = push_method(pstate, travel_branch_0_expand);
+			method_instance* t = push_method(pstate, task_travel, travel_branch_0_expand);
 			travel_args* a = push<travel_args>(pstate.mstack);
 			a->_0 = precondition->_3;
 			a->_1 = method_args->_1;
