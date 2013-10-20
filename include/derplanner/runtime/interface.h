@@ -66,17 +66,17 @@ void reflect(const T& generated_type, V& visitor)
 #define PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(VISITOR_INSTANCE, TUPLE_INSTANCE, INDEX)      \
     VISITOR_INSTANCE.atom_element(TUPLE_INSTANCE._ ## INDEX)                            \
 
-#define PLNNR_GENCODE_VISIT_TUPLE_BEGIN(VISITOR_INSTANCE, GENCODE_NAMESPACE, ATOM_TYPE, ELEMENT_COUNT)      \
-    VISITOR_INSTANCE.atom_begin(                                                                            \
-        GENCODE_NAMESPACE::ATOM_TYPE,                                                                       \
-        GENCODE_NAMESPACE::atom_name(GENCODE_NAMESPACE::ATOM_TYPE),                                         \
-        ELEMENT_COUNT)                                                                                      \
+#define PLNNR_GENCODE_VISIT_TUPLE_BEGIN(VISITOR_INSTANCE, GENCODE_NAMESPACE, ATOM_NAME_FUNC, ATOM_TYPE, ELEMENT_COUNT)      \
+    VISITOR_INSTANCE.atom_begin(                                                                                            \
+        GENCODE_NAMESPACE::ATOM_TYPE,                                                                                       \
+        GENCODE_NAMESPACE::ATOM_NAME_FUNC(GENCODE_NAMESPACE::ATOM_TYPE),                                                    \
+        ELEMENT_COUNT)                                                                                                      \
 
-#define PLNNR_GENCODE_VISIT_TUPLE_END(VISITOR_INSTANCE, GENCODE_NAMESPACE, ATOM_TYPE, ELEMENT_COUNT)    \
-    VISITOR_INSTANCE.atom_end(                                                                          \
-        GENCODE_NAMESPACE::ATOM_TYPE,                                                                   \
-        GENCODE_NAMESPACE::atom_name(GENCODE_NAMESPACE::ATOM_TYPE),                                     \
-        ELEMENT_COUNT)                                                                                  \
+#define PLNNR_GENCODE_VISIT_TUPLE_END(VISITOR_INSTANCE, GENCODE_NAMESPACE, ATOM_NAME_FUNC, ATOM_TYPE, ELEMENT_COUNT)        \
+    VISITOR_INSTANCE.atom_end(                                                                                              \
+        GENCODE_NAMESPACE::ATOM_TYPE,                                                                                       \
+        GENCODE_NAMESPACE::ATOM_NAME_FUNC(GENCODE_NAMESPACE::ATOM_TYPE),                                                    \
+        ELEMENT_COUNT)                                                                                                      \
 
 #include <derplanner/runtime/interface.inl>
 

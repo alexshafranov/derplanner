@@ -989,58 +989,97 @@ namespace
         }
     }
 
-    void generate_reflectors(ast::tree& ast, node* worldstate, formatter& output)
+    void generate_atom_reflector(ast::tree& ast, node* atom, paste_func* paste_namespace, const char* name_function, const char* tuple_struct_postfix, const char* tuple_id_prefix, formatter& output)
+    {
+        output.writeln("template <typename V>");
+        output.writeln("struct generated_type_reflector<%p::%i_%s, V>", paste_namespace, atom->s_expr->token, tuple_struct_postfix);
+        {
+            class_scope s(output);
+
+            output.writeln("void operator()(const %p::%i_%s& tuple, V& visitor)", paste_namespace, atom->s_expr->token, tuple_struct_postfix);
+            {
+                scope s(output, false);
+
+                int param_count = 0;
+
+                for (node* child = atom->first_child; child != 0; child = child->next_sibling)
+                {
+                    param_count++;
+                }
+
+                output.writeln("PLNNR_GENCODE_VISIT_TUPLE_BEGIN(visitor, %p, %s, %s_%i, %d);", paste_namespace, name_function, tuple_id_prefix, atom->s_expr->token, param_count);
+
+                for (int i = 0; i < param_count; ++i)
+                {
+                    output.writeln("PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, %d);", i);
+                }
+
+                output.writeln("PLNNR_GENCODE_VISIT_TUPLE_END(visitor, %p, %s, %s_%i, %d);", paste_namespace, name_function, tuple_id_prefix, atom->s_expr->token, param_count);
+            }
+        }
+    }
+
+    void generate_reflectors(ast::tree& ast, node* worldstate, node* domain, formatter& output)
     {
         node* worldstate_namespace = worldstate->first_child;
         plnnrc_assert(worldstate_namespace);
         plnnrc_assert(worldstate_namespace->type == node_namespace);
 
-        paste_fully_qualified_namespace paste(worldstate_namespace);
+        node* domain_namespace = domain->first_child;
+        plnnrc_assert(domain_namespace);
+        plnnrc_assert(domain_namespace->type == node_namespace);
+
+        paste_fully_qualified_namespace paste_world_namespace(worldstate_namespace);
+        paste_fully_qualified_namespace paste_domain_namespace(domain_namespace);
 
         output.writeln("template <typename V>");
-        output.writeln("struct generated_type_reflector<%p::worldstate, V>", &paste);
+        output.writeln("struct generated_type_reflector<%p::worldstate, V>", &paste_world_namespace);
         {
             class_scope s(output);
 
-            output.writeln("void operator()(const %p::worldstate& world, V& visitor)", &paste);
+            output.writeln("void operator()(const %p::worldstate& world, V& visitor)", &paste_world_namespace);
             {
                 scope s(output, false);
 
                 for (node* atom = worldstate_namespace->next_sibling; atom != 0; atom = atom->next_sibling)
                 {
-                    output.writeln("PLNNR_GENCODE_VISIT_ATOM_LIST(%p, atom_%i, %i_tuple, visitor);", &paste, atom->s_expr->token, atom->s_expr->token);
+                    output.writeln("PLNNR_GENCODE_VISIT_ATOM_LIST(%p, atom_%i, %i_tuple, visitor);", &paste_world_namespace, atom->s_expr->token, atom->s_expr->token);
                 }
             }
         }
 
         for (node* atom = worldstate_namespace->next_sibling; atom != 0; atom = atom->next_sibling)
         {
-            output.writeln("template <typename V>");
-            output.writeln("struct generated_type_reflector<%p::%i_tuple, V>", &paste, atom->s_expr->token);
+            generate_atom_reflector(ast, atom, &paste_world_namespace, "atom_name", "tuple", "atom", output);
+        }
+
+        for (id_table_values operators = ast.operators.values(); !operators.empty(); operators.pop())
+        {
+            node* atom = operators.value()->first_child;
+
+            if (!atom->first_child)
             {
-                class_scope s(output);
-
-                output.writeln("void operator()(const %p::%i_tuple& tuple, V& visitor)", &paste, atom->s_expr->token);
-                {
-                    scope s(output, false);
-
-                    int param_count = 0;
-
-                    for (node* child = atom->first_child; child != 0; child = child->next_sibling)
-                    {
-                        param_count++;
-                    }
-
-                    output.writeln("PLNNR_GENCODE_VISIT_TUPLE_BEGIN(visitor, %p, atom_%i, %d);", &paste, atom->s_expr->token, param_count);
-
-                    for (int i = 0; i < param_count; ++i)
-                    {
-                        output.writeln("PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, %d);", i);
-                    }
-
-                    output.writeln("PLNNR_GENCODE_VISIT_TUPLE_END(visitor, %p, atom_%i, %d);", &paste, atom->s_expr->token, param_count);
-                }
+                continue;
             }
+
+            generate_atom_reflector(ast, atom, &paste_domain_namespace, "task_name", "args", "task", output);
+        }
+
+        for (node* method = domain->first_child; method != 0; method = method->next_sibling)
+        {
+            if (method->type != node_method)
+            {
+                continue;
+            }
+
+            node* atom = method->first_child;
+
+            if (!atom->first_child)
+            {
+                continue;
+            }
+
+            generate_atom_reflector(ast, atom, &paste_domain_namespace, "task_name", "args", "task", output);
         }
     }
 }
@@ -1088,7 +1127,7 @@ bool generate_header(ast::tree& ast, writer& writer, codegen_options options)
 
     {
         namespace_wrap wrap("plnnr", output);
-        generate_reflectors(ast, worldstate, output);
+        generate_reflectors(ast, worldstate, domain, output);
     }
 
     output.writeln("#endif");
