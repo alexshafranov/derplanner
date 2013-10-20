@@ -48,6 +48,13 @@ struct class_scope
     formatter& output;
 };
 
+class paste_func
+{
+public:
+    virtual ~paste_func();
+    virtual void operator()(formatter& output) = 0;
+};
+
 class formatter
 {
 public:

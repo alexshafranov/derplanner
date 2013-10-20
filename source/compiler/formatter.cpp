@@ -162,6 +162,14 @@ void formatter::_write(const char* format, va_list arglist)
                     }
                 }
                 break;
+            // paste functor
+            case 'p':
+                {
+                    paste_func* paste = va_arg(arglist, paste_func*);
+                    (*paste)(*this);
+                }
+                break;
+            // %% -> %
             case '%':
                 {
                     _putc(*format);
