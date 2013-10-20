@@ -1201,6 +1201,7 @@ bool generate_header(ast::tree& ast, writer& writer, codegen_options options)
         generate_forward_decls(ast, domain, output);
     }
 
+    if (options.enable_reflection)
     {
         namespace_wrap wrap("plnnr", output);
         generate_reflectors(ast, worldstate, domain, output);
