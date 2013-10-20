@@ -118,4 +118,24 @@ namespace
             CHECK_EQUAL("_23a\n", writer.buffer);
         }
     }
+
+    TEST(paste_functor)
+    {
+        class paste_hello : public plnnrc::paste_func
+        {
+        public:
+            virtual void operator()(plnnrc::formatter& output)
+            {
+                output.put_str("hello");
+            }
+        };
+
+        buffer_writer writer(1024);
+        plnnrc::formatter formatter(writer);
+        formatter.init(1);
+        paste_hello paste;
+        formatter.writeln("%p", &paste);
+        formatter.flush();
+        CHECK_EQUAL("hello\n", writer.buffer);
+    }
 }

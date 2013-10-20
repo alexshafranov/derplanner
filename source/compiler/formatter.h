@@ -51,7 +51,7 @@ struct class_scope
 class paste_func
 {
 public:
-    virtual ~paste_func();
+    virtual ~paste_func() {}
     virtual void operator()(formatter& output) = 0;
 };
 
@@ -63,29 +63,26 @@ public:
 
     bool init(size_t buffer_size);
 
+    // high-level interface
     void writeln(const char* format, ...);
-
-    void indent();
-    void write(const char* format, ...);
     void newline();
+
+    // low-level interface
+    void put_char(char c);
+    void put_str(const char* s);
+    void put_int(int n);
+    void put_id(const char* s);
+    void indent();
+    void put_indent();
+    void dedent();
 
     void flush();
 
 private:
-    friend scope;
-    friend class_scope;
-
     formatter(const formatter&);
     const formatter& operator=(const formatter&);
 
     void _write(const char* format, va_list args);
-
-    void _putc(char c);
-    void _puts(const char* s);
-    void _puti(int n);
-    void _putid(const char* s);
-
-    void _put_indent();
 
     writer& _output;
     char* _buffer;

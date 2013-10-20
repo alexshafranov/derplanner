@@ -137,14 +137,14 @@ void formatter::_write(const char* format, va_list arglist)
             case 'd':
                 {
                     int n = va_arg(arglist, int);
-                    _puti(n);
+                    put_int(n);
                 }
                 break;
             // string
             case 's':
                 {
                     const char* s = va_arg(arglist, const char*);
-                    _puts(s);
+                    put_str(s);
                 }
                 break;
             // identifier
@@ -154,11 +154,11 @@ void formatter::_write(const char* format, va_list arglist)
 
                     if (id_needs_conversion(s))
                     {
-                        _putid(s);
+                        put_id(s);
                     }
                     else
                     {
-                        _puts(s);
+                        put_str(s);
                     }
                 }
                 break;
@@ -172,14 +172,14 @@ void formatter::_write(const char* format, va_list arglist)
             // %% -> %
             case '%':
                 {
-                    _putc(*format);
+                    put_char(*format);
                 }
                 break;
             }
         }
         else
         {
-            _putc(*format);
+            put_char(*format);
         }
 
         ++format;
@@ -188,7 +188,7 @@ void formatter::_write(const char* format, va_list arglist)
 
 void formatter::writeln(const char* format, ...)
 {
-    _put_indent();
+    put_indent();
     va_list arglist;
     va_start(arglist, format);
     _write(format, arglist);
@@ -196,25 +196,12 @@ void formatter::writeln(const char* format, ...)
     newline();
 }
 
-void formatter::write(const char* format, ...)
-{
-    va_list arglist;
-    va_start(arglist, format);
-    _write(format, arglist);
-    va_end(arglist);
-}
-
-void formatter::indent()
-{
-    _put_indent();
-}
-
 void formatter::newline()
 {
-    _puts(_newline);
+    put_str(_newline);
 }
 
-void formatter::_putc(char c)
+void formatter::put_char(char c)
 {
     if (_buffer_top + 1 > _buffer_end)
     {
@@ -224,7 +211,7 @@ void formatter::_putc(char c)
     *(_buffer_top++) = c;
 }
 
-void formatter::_puts(const char* s)
+void formatter::put_str(const char* s)
 {
     size_t length = strlen(s);
 
@@ -243,14 +230,14 @@ void formatter::_puts(const char* s)
     _buffer_top += length;
 }
 
-void formatter::_puti(int n)
+void formatter::put_int(int n)
 {
     const char* digits = "0123456789";
     int t = n;
 
     if (n < 0)
     {
-        _putc('-');
+        put_char('-');
         t = -n;
     }
 
@@ -276,11 +263,11 @@ void formatter::_puti(int n)
             p *= 10;
         }
 
-        _putc(digits[(n / p) % 10]);
+        put_char(digits[(n / p) % 10]);
     }
 }
 
-void formatter::_putid(const char* symbol)
+void formatter::put_id(const char* symbol)
 {
     plnnrc_assert(is_valid_id(symbol));
 
@@ -296,7 +283,7 @@ void formatter::_putid(const char* symbol)
 
     if (isdigit(*c))
     {
-        _putc('_');
+        put_char('_');
     }
 
     for (; *c != 0; ++c)
@@ -308,16 +295,34 @@ void formatter::_putid(const char* symbol)
 
         if (isalnum(*c) || *c == '_')
         {
-            _putc(*c);
+            put_char(*c);
             continue;
         }
 
         if (*c == '-')
         {
-            _putc('_');
+            put_char('_');
             continue;
         }
     }
+}
+
+void formatter::indent()
+{
+    _indent_level++;
+}
+
+void formatter::put_indent()
+{
+    for (int i = 0; i < _indent_level; ++i)
+    {
+        put_str(_tab);
+    }
+}
+
+void formatter::dedent()
+{
+    _indent_level--;
 }
 
 void formatter::flush()
@@ -331,53 +336,45 @@ void formatter::flush()
     }
 }
 
-void formatter::_put_indent()
-{
-    for (int i = 0; i < _indent_level; ++i)
-    {
-        _puts(_tab);
-    }
-}
-
 scope::scope(formatter& output, bool end_with_empty_line)
     : output(output)
     , end_with_empty_line(end_with_empty_line)
 {
-    output._put_indent();
-    output._indent_level++;
-    output._putc('{');
-    output._puts(output._newline);
+    output.put_indent();
+    output.indent();
+    output.put_char('{');
+    output.newline();
 }
 
 scope::~scope()
 {
-    output._indent_level--;
-    output._put_indent();
-    output._putc('}');
-    output._puts(output._newline);
+    output.dedent();
+    output.put_indent();
+    output.put_char('}');
+    output.newline();
 
     if (end_with_empty_line)
     {
-        output._puts(output._newline);
+        output.newline();
     }
 }
 
 class_scope::class_scope(formatter& output)
     : output(output)
 {
-    output._put_indent();
-    output._indent_level++;
-    output._putc('{');
-    output._puts(output._newline);
+    output.put_indent();
+    output.indent();
+    output.put_char('{');
+    output.newline();
 }
 
 class_scope::~class_scope()
 {
-    output._indent_level--;
-    output._put_indent();
-    output._puts("};");
-    output._puts(output._newline);
-    output._puts(output._newline);
+    output.dedent();
+    output.put_indent();
+    output.put_str("};");
+    output.newline();
+    output.newline();
 }
 
 }

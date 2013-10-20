@@ -86,18 +86,29 @@ namespace
         bool end_with_empty_line;
     };
 
-    void write_namespace(node* namespace_node, formatter& output)
+    class paste_qualified_namespace : public paste_func
     {
-        for (sexpr::node* name_expr = namespace_node->s_expr->first_child; name_expr != 0; name_expr = name_expr->next_sibling)
-        {
-            output.write("%i", name_expr->token);
+    public:
+        node* namespace_node;
 
-            if (!is_last(name_expr))
+        paste_qualified_namespace(node* namespace_node)
+            : namespace_node(namespace_node)
+        {
+        }
+
+        virtual void operator()(formatter& output)
+        {
+            for (sexpr::node* name_expr = namespace_node->s_expr->first_child; name_expr != 0; name_expr = name_expr->next_sibling)
             {
-                output.write("::");
+                output.put_id(name_expr->token);
+
+                if (!is_last(name_expr))
+                {
+                    output.put_str("::");
+                }
             }
         }
-    }
+    };
 
     void generate_header_top(ast::tree& ast, formatter& output)
     {
@@ -131,10 +142,8 @@ namespace
 
         if (worldstate_namespace->s_expr->first_child)
         {
-            output.indent();
-            output.write("using namespace ");
-            write_namespace(worldstate_namespace, output);
-            output.writeln(";");
+            paste_qualified_namespace paste(worldstate_namespace);
+            output.writeln("using namespace %p;", &paste);
         }
 
         output.newline();
@@ -986,28 +995,20 @@ namespace
         plnnrc_assert(worldstate_namespace);
         plnnrc_assert(worldstate_namespace->type == node_namespace);
 
+        paste_qualified_namespace paste(worldstate_namespace);
+
         output.writeln("template <typename V>");
-        output.indent();
-        output.write("struct generated_type_reflector<");
-        write_namespace(worldstate_namespace, output);
-        output.writeln("::worldstate, V>");
+        output.writeln("struct generated_type_reflector<%p::worldstate, V>", &paste);
         {
             class_scope s(output);
-            output.indent();
-            output.write("void operator()(const ");
-            write_namespace(worldstate_namespace, output);
-            output.write("::worldstate& world, V& visitor)");
-            output.newline();
+
+            output.writeln("void operator()(const %p::worldstate& world, V& visitor)", &paste);
             {
                 scope s(output, false);
 
                 for (node* atom = worldstate_namespace->next_sibling; atom != 0; atom = atom->next_sibling)
                 {
-                    output.indent();
-                    output.write("PLNNR_GENCODE_VISIT_ATOM_LIST(");
-                    write_namespace(worldstate_namespace, output);
-                    output.write(", atom_%i, %i_tuple, visitor);", atom->s_expr->token, atom->s_expr->token);
-                    output.newline();
+                    output.writeln("PLNNR_GENCODE_VISIT_ATOM_LIST(%p, atom_%i, %i_tuple, visitor);", &paste, atom->s_expr->token, atom->s_expr->token);
                 }
             }
         }
@@ -1015,17 +1016,11 @@ namespace
         for (node* atom = worldstate_namespace->next_sibling; atom != 0; atom = atom->next_sibling)
         {
             output.writeln("template <typename V>");
-            output.indent();
-            output.write("struct generated_type_reflector<");
-            write_namespace(worldstate_namespace, output);
-            output.writeln("::%i_tuple, V>", atom->s_expr->token);
+            output.writeln("struct generated_type_reflector<%p::%i_tuple, V>", &paste, atom->s_expr->token);
             {
                 class_scope s(output);
-                output.indent();
-                output.write("void operator()(const ");
-                write_namespace(worldstate_namespace, output);
-                output.write("::%i_tuple& tuple, V& visitor)", atom->s_expr->token);
-                output.newline();
+
+                output.writeln("void operator()(const %p::%i_tuple& tuple, V& visitor)", &paste, atom->s_expr->token);
                 {
                     scope s(output, false);
 
@@ -1036,22 +1031,14 @@ namespace
                         param_count++;
                     }
 
-                    output.indent();
-                    output.write("PLNNR_GENCODE_VISIT_TUPLE_BEGIN(visitor, ");
-                    write_namespace(worldstate_namespace, output);
-                    output.write(", atom_%i, %d);", atom->s_expr->token, param_count);
-                    output.newline();
+                    output.writeln("PLNNR_GENCODE_VISIT_TUPLE_BEGIN(visitor, %p, atom_%i, %d);", &paste, atom->s_expr->token, param_count);
 
                     for (int i = 0; i < param_count; ++i)
                     {
                         output.writeln("PLNNR_GENCODE_VISIT_TUPLE_ELEMENT(visitor, tuple, %d);", i);
                     }
 
-                    output.indent();
-                    output.write("PLNNR_GENCODE_VISIT_TUPLE_END(visitor, ");
-                    write_namespace(worldstate_namespace, output);
-                    output.write(", atom_%i, %d);", atom->s_expr->token, param_count);
-                    output.newline();
+                    output.writeln("PLNNR_GENCODE_VISIT_TUPLE_END(visitor, %p, atom_%i, %d);", &paste, atom->s_expr->token, param_count);
                 }
             }
         }
