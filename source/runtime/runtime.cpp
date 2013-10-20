@@ -57,9 +57,10 @@ void stack::reset()
     rewind(_buffer);
 }
 
-method_instance* push_method(planner_state& pstate, expand_func expand)
+method_instance* push_method(planner_state& pstate, int task_type, expand_func expand)
 {
     method_instance* new_method = push<method_instance>(pstate.mstack);
+    new_method->type = task_type;
     new_method->expand = expand;
     new_method->args = 0;
     new_method->parent = pstate.top_method;
@@ -138,9 +139,9 @@ bool next_branch(planner_state& pstate, expand_func expand, void* worldstate)
     return method->expand(pstate, worldstate);
 }
 
-bool find_plan(planner_state& pstate, expand_func root_method, void* worldstate)
+bool find_plan(planner_state& pstate, int root_method_type, expand_func root_method, void* worldstate)
 {
-    find_plan_init(pstate, root_method);
+    find_plan_init(pstate, root_method_type, root_method);
 
     find_plan_status status = find_plan_step(pstate, worldstate);
 
@@ -167,9 +168,9 @@ task_instance* reverse_task_list(task_instance* head)
     return new_head;
 }
 
-void find_plan_init(planner_state& pstate, expand_func root_method)
+void find_plan_init(planner_state& pstate, int root_method_type, expand_func root_method)
 {
-    push_method(pstate, root_method);
+    push_method(pstate, root_method_type, root_method);
 }
 
 find_plan_status find_plan_step(planner_state& pstate, void* worldstate)

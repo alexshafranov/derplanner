@@ -729,7 +729,7 @@ namespace
     {
         plnnrc_assert(is_method(ast, task_atom));
 
-        output.writeln("method_instance* t = push_method(pstate, %i_branch_0_expand);", task_atom->s_expr->token);
+        output.writeln("method_instance* t = push_method(pstate, task_%i, %i_branch_0_expand);", task_atom->s_expr->token, task_atom->s_expr->token);
 
         if (task_atom->first_child)
         {
