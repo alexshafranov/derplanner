@@ -84,6 +84,23 @@ struct atom_printf
     int total_elements;
 };
 
+struct task_printf
+{
+    void task(int task_type, const char* task_name)
+    {
+        printf("(%s)\n", task_name);
+    }
+
+    template <typename A>
+    void task(int task_type, const char* task_name, const A* args)
+    {
+        printf("(%s ", task_name);
+        atom_printf atom_visitor;
+        plnnr::reflect(*args, atom_visitor);
+        printf(")\n");
+    }
+};
+
 }
 
 #endif

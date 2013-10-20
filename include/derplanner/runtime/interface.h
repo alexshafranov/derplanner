@@ -49,10 +49,26 @@ struct generated_type_reflector
 };
 
 template <typename T, typename V>
+struct task_type_dispatcher
+{
+    void operator()(const T& task_type, void* args, V& visitor)
+    {
+        // specialized in the generated code.
+    }
+};
+
+template <typename T, typename V>
 void reflect(const T& generated_type, V& visitor)
 {
     generated_type_reflector<T, V> reflector;
     reflector(generated_type, visitor);
+}
+
+template <typename T, typename I, typename V>
+void dispatch(const I& task_instance, V& visitor)
+{
+    task_type_dispatcher<T, V> dispatcher;
+    dispatcher(static_cast<T>(task_instance.type), task_instance.args, visitor);
 }
 
 }
@@ -77,6 +93,17 @@ void reflect(const T& generated_type, V& visitor)
         GENCODE_NAMESPACE::ATOM_TYPE,                                                                                       \
         GENCODE_NAMESPACE::ATOM_NAME_FUNC(GENCODE_NAMESPACE::ATOM_TYPE),                                                    \
         ELEMENT_COUNT)                                                                                                      \
+
+#define PLNNR_GENCODE_VISIT_TASK_WITH_ARGS(VISITOR_INSTANCE, GENCODE_NAMESPACE, TASK_ID, TASK_ARGS_TYPE)    \
+    VISITOR_INSTANCE.task(                                                                                  \
+        GENCODE_NAMESPACE::TASK_ID,                                                                         \
+        GENCODE_NAMESPACE::task_name(GENCODE_NAMESPACE::TASK_ID),                                           \
+        static_cast<GENCODE_NAMESPACE::TASK_ARGS_TYPE*>(args))                                              \
+
+#define PLNNR_GENCODE_VISIT_TASK_NO_ARGS(VISITOR_INSTANCE, GENCODE_NAMESPACE, TASK_ID)  \
+    VISITOR_INSTANCE.task(                                                              \
+        GENCODE_NAMESPACE::TASK_ID,                                                     \
+        GENCODE_NAMESPACE::task_name(GENCODE_NAMESPACE::TASK_ID))                       \
 
 #include <derplanner/runtime/interface.inl>
 

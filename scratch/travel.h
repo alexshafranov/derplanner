@@ -246,6 +246,32 @@ struct generated_type_reflector<travel::travel_by_air_args, V>
 	}
 };
 
+template <typename V>
+struct task_type_dispatcher<travel::task_type, V>
+{
+	void operator()(const travel::task_type& task_type, void* args, V& visitor)
+	{
+		switch (task_type)
+		{
+		case travel::task_root:
+			PLNNR_GENCODE_VISIT_TASK_NO_ARGS(visitor, travel, task_root);
+			break;
+		case travel::task_travel:
+			PLNNR_GENCODE_VISIT_TASK_WITH_ARGS(visitor, travel, task_travel, travel_args);
+			break;
+		case travel::task_travel_by_air:
+			PLNNR_GENCODE_VISIT_TASK_WITH_ARGS(visitor, travel, task_travel_by_air, travel_by_air_args);
+			break;
+		case travel::task_ride_taxi:
+			PLNNR_GENCODE_VISIT_TASK_WITH_ARGS(visitor, travel, task_ride_taxi, ride_taxi_args);
+			break;
+		case travel::task_fly:
+			PLNNR_GENCODE_VISIT_TASK_WITH_ARGS(visitor, travel, task_fly, fly_args);
+			break;
+		};
+	}
+};
+
 }
 
 #endif

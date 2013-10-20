@@ -70,25 +70,11 @@ int main()
 
         task_instance* task = reverse_task_list(pstate.top_task);
 
+        task_printf task_printer;
+
         for (task_instance* t = task; t != 0; t = t->parent)
         {
-            printf("task_type=%s", task_name((task_type)t->type));
-
-            switch (t->type)
-            {
-            case task_ride_taxi:
-                {
-                    ride_taxi_args* args = static_cast<ride_taxi_args*>(t->args);
-                    printf("\t(%d, %d)\n", args->_0, args->_1);
-                }
-                break;
-            case task_fly:
-                {
-                    fly_args* args = static_cast<fly_args*>(t->args);
-                    printf("\t(%d, %d)\n", args->_0, args->_1);
-                }
-                break;
-            }
+            plnnr::dispatch<travel::task_type>(*t, task_printer);
         }
     }
     else
