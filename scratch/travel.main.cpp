@@ -62,20 +62,26 @@ int main()
     pstate.tstack = &tstack;
     pstate.journal = &jstack;
 
-    bool result = find_plan(pstate, travel::task_root, travel::root_branch_0_expand, world.data());
+    find_plan_init(pstate, travel::task_root, travel::root_branch_0_expand);
 
-    if (result)
+    find_plan_status status =  find_plan_step(pstate, world.data());
+
+    while (status == plan_in_progress)
+    {
+        printf("stack:\n");
+        task_printf task_printer;
+        plnnr::walk_stack<travel::task_type>(pstate.top_method, task_printer);
+        printf("===\n");
+
+        status = find_plan_step(pstate, world.data());
+    }
+
+    if (status == plan_found)
     {
         printf("\nplan found:\n\n");
-
         task_instance* task = reverse_task_list(pstate.top_task);
-
         task_printf task_printer;
-
-        for (task_instance* t = task; t != 0; t = t->parent)
-        {
-            plnnr::dispatch<travel::task_type>(*t, task_printer);
-        }
+        plnnr::walk_stack<travel::task_type>(task, task_printer);
     }
     else
     {
