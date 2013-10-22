@@ -159,6 +159,11 @@ namespace
 
             for (node* atom = worldstate->first_child->next_sibling; atom != 0; atom = atom->next_sibling)
             {
+                if (atom->type != node_atom)
+                {
+                    continue;
+                }
+
                 output.writeln("atom_%i,", atom->s_expr->token);
             }
 
@@ -176,6 +181,11 @@ namespace
 
         for (node* atom = worldstate->first_child->next_sibling; atom != 0; atom = atom->next_sibling)
         {
+            if (atom->type != node_atom)
+            {
+                continue;
+            }
+
             output.writeln("struct %i_tuple", atom->s_expr->token);
             {
                 class_scope s(output);
@@ -978,6 +988,11 @@ namespace
 
                 for (node* atom = worldstate->first_child->next_sibling; atom != 0; atom = atom->next_sibling)
                 {
+                    if (atom->type != node_atom)
+                    {
+                        continue;
+                    }
+
                     output.writeln("\"%s\",", atom->s_expr->token);
                 }
 
@@ -1050,6 +1065,11 @@ namespace
 
         for (node* atom = worldstate_namespace->next_sibling; atom != 0; atom = atom->next_sibling)
         {
+            if (atom->type != node_atom)
+            {
+                continue;
+            }
+
             generate_atom_reflector(ast, atom, &paste_world_namespace, "atom_name", "tuple", "atom", output);
         }
 
