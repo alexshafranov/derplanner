@@ -53,6 +53,7 @@ namespace
     node* build_operator(tree& ast, sexpr::node* s_expr);
     node* build_operator_stub(tree& ast, sexpr::node* s_expr);
 
+    node* build_worldstate_atom(tree& ast, sexpr::node* s_expr, int& type_tag);
     node* build_worldstate_type(tree& ast, sexpr::node* s_expr, int& type_tag);
 
     bool build_operator_stubs(tree& ast);
@@ -234,6 +235,25 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
 
 namespace
 {
+    node* build_worldstate_atom(tree& ast, sexpr::node* s_expr, int& type_tag)
+    {
+        node* atom = ast.make_node(node_atom, s_expr->first_child);
+        PLNNRC_CHECK(atom);
+
+        plnnrc_assert(is_valid_id(s_expr->first_child->token));
+
+        ast.ws_atoms.insert(s_expr->first_child->token, atom);
+
+        for (sexpr::node* t_expr = s_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
+        {
+            node* type_node = build_worldstate_type(ast, t_expr, type_tag);
+            PLNNRC_CHECK(type_node);
+            append_child(atom, type_node);
+        }
+
+        return atom;
+    }
+
     node* build_worldstate_type(tree& ast, sexpr::node* s_expr, int& type_tag)
     {
         glue_tokens(s_expr);
@@ -590,17 +610,8 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
             PLNNRC_CHECK(function_def);
 
             sexpr::node* func_atom_expr = c_expr->first_child->next_sibling;
-
-            node* atom = ast.make_node(node_atom, func_atom_expr->first_child);
+            node* atom = build_worldstate_atom(ast, func_atom_expr, type_tag);
             PLNNRC_CHECK(atom);
-
-            for (sexpr::node* t_expr = func_atom_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
-            {
-                node* type_node = build_worldstate_type(ast, t_expr, type_tag);
-                PLNNRC_CHECK(type_node);
-                append_child(atom, type_node);
-            }
-
             append_child(function_def, atom);
 
             plnnrc_assert(is_token(func_atom_expr->next_sibling, token_return));
@@ -614,20 +625,8 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
         }
         else
         {
-            node* atom = ast.make_node(node_atom, c_expr->first_child);
+            node* atom = build_worldstate_atom(ast, c_expr, type_tag);
             PLNNRC_CHECK(atom);
-
-            plnnrc_assert(is_valid_id(c_expr->first_child->token));
-
-            ast.ws_atoms.insert(c_expr->first_child->token, atom);
-
-            for (sexpr::node* t_expr = c_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
-            {
-                node* type_node = build_worldstate_type(ast, t_expr, type_tag);
-                PLNNRC_CHECK(type_node);
-                append_child(atom, type_node);
-            }
-
             append_child(worldstate, atom);
         }
     }
