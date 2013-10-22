@@ -114,6 +114,7 @@ int main(int argc, char** argv)
     options.header_file_name = header_file_name.c_str();
     options.runtime_atom_names = true;
     options.runtime_task_names = true;
+    options.enable_reflection = true;
 
     generate_header(tree, header_writer, options);
     generate_source(tree, source_writer, options);

@@ -1058,6 +1058,11 @@ namespace
 
                 for (node* atom = worldstate_namespace->next_sibling; atom != 0; atom = atom->next_sibling)
                 {
+                    if (atom->type != node_atom)
+                    {
+                        continue;
+                    }
+
                     output.writeln("PLNNR_GENCODE_VISIT_ATOM_LIST(%p, atom_%i, %i_tuple, visitor);", &paste_world_namespace, atom->s_expr->token, atom->s_expr->token);
                 }
             }
