@@ -110,6 +110,30 @@ namespace
         }
     };
 
+    class paste_function_parameters : public paste_func
+    {
+    public:
+        node* function_atom;
+
+        paste_function_parameters(node* function_atom)
+            : function_atom(function_atom)
+        {
+        }
+
+        virtual void operator()(formatter& output)
+        {
+            for (node* worldstate_type = function_atom->first_child; worldstate_type != 0; worldstate_type = worldstate_type->next_sibling)
+            {
+                output.put_str(worldstate_type->s_expr->first_child->token);
+
+                if (!is_last(worldstate_type))
+                {
+                    output.put_str(", ");
+                }
+            }
+        }
+    };
+
     void generate_header_top(ast::tree& ast, formatter& output)
     {
         output.writeln("#include <derplanner/runtime/interface.h>");
@@ -177,6 +201,21 @@ namespace
         {
             class_scope s(output);
             output.writeln("plnnr::tuple_list::handle* atoms[atom_count];");
+
+            for (node* function_def = worldstate->first_child->next_sibling; function_def != 0; function_def = function_def->next_sibling)
+            {
+                if (function_def->type != node_function_def)
+                {
+                    continue;
+                }
+
+                node* function_atom = function_def->first_child;
+                node* return_type = function_atom->next_sibling;
+
+                paste_function_parameters paste(function_atom);
+
+                output.writeln("%s (*%i)(%p);", return_type->s_expr->first_child->token, function_atom->s_expr->token, &paste);
+            }
         }
 
         for (node* atom = worldstate->first_child->next_sibling; atom != 0; atom = atom->next_sibling)
