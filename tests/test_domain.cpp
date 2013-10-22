@@ -297,6 +297,41 @@ namespace
         CHECK_EQUAL(expected, actual_str.c_str());
     }
 
+    TEST(worldstate_call_terms_definition)
+    {
+        char buffer[] = \
+"(:worldstate (test)                                "
+"   (:call (function_name (int) (double)) -> (int)) "
+")                                                  ";
+
+        sexpr::tree expr;
+        expr.parse(buffer);
+
+        ast::tree tree;
+        ast::node* actual_tree = ast::build_worldstate(tree, expr.root()->first_child);
+        CHECK(actual_tree);
+        std::string actual_str = to_string(actual_tree);
+
+        const char* expected = \
+"node_worldstate\n"
+"    node_namespace (test)\n"
+"    node_function_def\n"
+"        node_atom function_name\n"
+"            node_worldstate_type (int)\n"
+"            node_worldstate_type (double)\n"
+"        node_worldstate_type (int)";
+
+        CHECK_EQUAL(expected, actual_str.c_str());
+
+        CHECK_EQUAL(2, tree.ws_types.count());
+
+        ast::node* ws_type_int = tree.ws_types.find("int");
+        CHECK(ws_type_int);
+
+        ast::node* ws_type_double = tree.ws_types.find("double");
+        CHECK(ws_type_double);
+    }
+
     TEST(worldstate_atom_table)
     {
         char buffer[] = \

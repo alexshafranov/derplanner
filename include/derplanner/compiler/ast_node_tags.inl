@@ -29,6 +29,7 @@
 
 PLNNRC_AST_NODE_INNER(node_root)
 PLNNRC_AST_NODE_INNER(node_worldstate)
+PLNNRC_AST_NODE_INNER(node_function_def)
 PLNNRC_AST_NODE_INNER(node_domain)
 PLNNRC_AST_NODE_INNER(node_method)
 PLNNRC_AST_NODE_INNER(node_branch)
