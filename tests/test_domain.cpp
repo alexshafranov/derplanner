@@ -330,6 +330,9 @@ namespace
 
         ast::node* ws_type_double = tree.ws_types.find("double");
         CHECK(ws_type_double);
+
+        CHECK_EQUAL(0, tree.ws_atoms.count());
+        CHECK(tree.ws_funcs.find("function_name") != 0);
     }
 
     TEST(worldstate_atom_table)

@@ -145,6 +145,7 @@ public:
     node* clone_subtree(node* original);
 
     id_table ws_atoms;
+    id_table ws_funcs;
     id_table ws_types;
     id_table methods;
     id_table operators;
