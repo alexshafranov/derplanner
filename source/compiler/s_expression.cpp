@@ -257,6 +257,7 @@ namespace
 
             if (c < 0)
             {
+                state.cursor = begin;
                 return token_none;
             }
 
@@ -264,6 +265,7 @@ namespace
 
             if (n < 0)
             {
+                state.cursor = begin;
                 return token_none;
             }
 

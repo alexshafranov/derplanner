@@ -206,4 +206,13 @@ namespace
         CHECK_EQUAL("hello world", s_exp.root()->first_child->first_child->token);
         CHECK(plnnrc::is_last(s_exp.root()->first_child->first_child));
     }
+
+    TEST(scan_number_rollback)
+    {
+        char buffer[] = "(-123>)";
+        tree s_exp;
+        s_exp.parse(buffer);
+        CHECK_EQUAL(node_symbol, s_exp.root()->first_child->first_child->type);
+        CHECK_EQUAL("-123>", s_exp.root()->first_child->first_child->token);
+    }
 }
