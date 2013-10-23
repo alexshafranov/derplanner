@@ -32,9 +32,10 @@ namespace ast {
 
 namespace
 {
-    PLNNRC_DEFINE_TOKEN(token_and,  "and");
-    PLNNRC_DEFINE_TOKEN(token_or,   "or");
-    PLNNRC_DEFINE_TOKEN(token_not,  "not");
+    PLNNRC_DEFINE_TOKEN(token_and,   "and");
+    PLNNRC_DEFINE_TOKEN(token_or,    "or");
+    PLNNRC_DEFINE_TOKEN(token_not,   "not");
+    PLNNRC_DEFINE_TOKEN(token_call,  ":call");
 
     // forward
     node* build_recursive(tree& ast, sexpr::node* s_expr);
@@ -76,6 +77,11 @@ namespace
         if (is_token(c_expr, token_not))
         {
             return build_logical_op(ast, s_expr, node_op_not);
+        }
+
+        if (is_token(c_expr, token_call))
+        {
+            return build_call_term(ast, s_expr);
         }
 
         return build_atom(ast, s_expr);
@@ -215,7 +221,7 @@ namespace
     inline bool is_literal(node* root)
     {
         plnnrc_assert(root != 0);
-        return (root->type == node_op_not) || is_atom(root) || is_term(root);
+        return (root->type == node_op_not) || (root->type == node_term_call) || is_atom(root);
     }
 
     bool is_conjunction_of_literals(node* root)

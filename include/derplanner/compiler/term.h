@@ -38,7 +38,11 @@ namespace ast {
 
 node* build_atom(tree& ast, sexpr::node* s_expr);
 
-node* build_atom_list(tree& ast, sexpr::node* s_expr);
+node* build_term(tree& ast, sexpr::node* s_expr);
+node* build_variable_term(tree& ast, sexpr::node* s_expr);
+node* build_int_term(tree& ast, sexpr::node* s_expr);
+node* build_float_term(tree& ast, sexpr::node* s_expr);
+node* build_call_term(tree& ast, sexpr::node* s_expr);
 
 }
 }

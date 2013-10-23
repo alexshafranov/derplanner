@@ -31,7 +31,8 @@ namespace ast {
 
 namespace
 {
-    PLNNRC_DEFINE_TOKEN(token_eq, "==");
+    PLNNRC_DEFINE_TOKEN(token_eq,   "==");
+    PLNNRC_DEFINE_TOKEN(token_call, ":call");
 }
 
 node* build_atom(tree& ast, sexpr::node* s_expr)
@@ -46,11 +47,9 @@ node* build_atom(tree& ast, sexpr::node* s_expr)
     node* atom = ast.make_node(atom_type, s_expr->first_child);
     PLNNRC_CHECK(atom);
 
-    for (sexpr::node* v_expr = s_expr->first_child->next_sibling; v_expr != 0; v_expr = v_expr->next_sibling)
+    for (sexpr::node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
     {
-        plnnrc_assert(v_expr->type = sexpr::node_symbol);
-
-        node* argument = ast.make_node(node_term_variable, v_expr);
+        node* argument = build_term(ast, c_expr);
         PLNNRC_CHECK(argument);
         append_child(atom, argument);
     }
@@ -58,19 +57,62 @@ node* build_atom(tree& ast, sexpr::node* s_expr)
     return atom;
 }
 
-node* build_atom_list(tree& ast, sexpr::node* s_expr)
+node* build_term(tree& ast, sexpr::node* s_expr)
 {
-    node* atom_list = ast.make_node(node_atomlist, s_expr);
-    PLNNRC_CHECK(atom_list);
-
-    for (sexpr::node* t_expr = s_expr->first_child; t_expr != 0; t_expr = t_expr->next_sibling)
+    switch (s_expr->type)
     {
-        node* atom = build_atom(ast, t_expr);
-        PLNNRC_CHECK(atom);
-        append_child(atom_list, atom);
+    case sexpr::node_symbol:
+        return build_variable_term(ast, s_expr);
+    case sexpr::node_int:
+        return build_int_term(ast, s_expr);
+    case sexpr::node_float:
+        return build_float_term(ast, s_expr);
+    case sexpr::node_list:
+        return build_call_term(ast, s_expr);
+    default:
+        plnnrc_assert(false);
+        return 0;
+    }
+}
+
+node* build_variable_term(tree& ast, sexpr::node* s_expr)
+{
+    node* variable = ast.make_node(node_term_variable, s_expr);
+    PLNNRC_CHECK(variable);
+    return variable;
+}
+
+node* build_int_term(tree& ast, sexpr::node* s_expr)
+{
+    node* literal = ast.make_node(node_term_int, s_expr);
+    PLNNRC_CHECK(literal);
+    return literal;
+}
+
+node* build_float_term(tree& ast, sexpr::node* s_expr)
+{
+    node* literal = ast.make_node(node_term_float, s_expr);
+    PLNNRC_CHECK(literal);
+    return literal;
+}
+
+node* build_call_term(tree& ast, sexpr::node* s_expr)
+{
+    plnnrc_assert(is_token(s_expr->first_child, token_call));
+    sexpr::node* name_expr = s_expr->first_child->next_sibling;
+    plnnrc_assert(name_expr);
+
+    node* call_term = ast.make_node(node_term_call, name_expr);
+    PLNNRC_CHECK(call_term);
+
+    for (sexpr::node* c_expr = name_expr->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
+    {
+        node* term = build_term(ast, s_expr);
+        PLNNRC_CHECK(term);
+        append_child(call_term, term);
     }
 
-    return atom_list;
+    return call_term;
 }
 
 }
