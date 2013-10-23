@@ -213,6 +213,11 @@ ast::node* id_table::find(const char* key) const
     plnnrc_assert(key != 0);
     plnnrc_assert(_buffer != 0);
 
+    if (!_buffer)
+    {
+        return 0;
+    }
+
     uint32_t hash_code = hash(key);
 
     uint32_t slot = hash_code & _mask;
