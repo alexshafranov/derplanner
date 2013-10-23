@@ -300,9 +300,9 @@ namespace
     TEST(worldstate_call_terms_definition)
     {
         char buffer[] = \
-"(:worldstate (test)                                "
-"   (:call (function_name (int) (double)) -> (int)) "
-")                                                  ";
+"(:worldstate (test)                                    "
+"   (:function (function_name (int) (double)) -> (int)) "
+")                                                      ";
 
         sexpr::tree expr;
         expr.parse(buffer);
@@ -315,7 +315,7 @@ namespace
         const char* expected = \
 "node_worldstate\n"
 "    node_namespace (test)\n"
-"    node_function_def\n"
+"    node_function\n"
 "        node_atom function_name\n"
 "            node_worldstate_type (int)\n"
 "            node_worldstate_type (double)\n"

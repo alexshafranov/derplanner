@@ -31,8 +31,7 @@ namespace ast {
 
 namespace
 {
-    PLNNRC_DEFINE_TOKEN(token_eq,   "==");
-    PLNNRC_DEFINE_TOKEN(token_call, ":call");
+    PLNNRC_DEFINE_TOKEN(token_eq, "==");
 }
 
 node* build_atom(tree& ast, sexpr::node* s_expr)
@@ -98,16 +97,15 @@ node* build_float_term(tree& ast, sexpr::node* s_expr)
 
 node* build_call_term(tree& ast, sexpr::node* s_expr)
 {
-    plnnrc_assert(is_token(s_expr->first_child, token_call));
-    sexpr::node* name_expr = s_expr->first_child->next_sibling;
-    plnnrc_assert(name_expr);
+    sexpr::node* name_expr = s_expr->first_child;
+    plnnrc_assert(name_expr && name_expr->type == sexpr::node_symbol);
 
     node* call_term = ast.make_node(node_term_call, name_expr);
     PLNNRC_CHECK(call_term);
 
     for (sexpr::node* c_expr = name_expr->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
     {
-        node* term = build_term(ast, s_expr);
+        node* term = build_term(ast, c_expr);
         PLNNRC_CHECK(term);
         append_child(call_term, term);
     }

@@ -37,7 +37,7 @@ namespace ast {
 namespace
 {
     PLNNRC_DEFINE_TOKEN(token_worldstate,   ":worldstate");
-    PLNNRC_DEFINE_TOKEN(token_call,         ":call");
+    PLNNRC_DEFINE_TOKEN(token_function,     ":function");
     PLNNRC_DEFINE_TOKEN(token_return,       "->");
     PLNNRC_DEFINE_TOKEN(token_domain,       ":domain");
     PLNNRC_DEFINE_TOKEN(token_method,       ":method");
@@ -588,7 +588,7 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
         plnnrc_assert(c_expr->type == sexpr::node_list);
         plnnrc_assert(c_expr->first_child && c_expr->first_child->type == sexpr::node_symbol);
 
-        if (is_token(c_expr->first_child, token_call))
+        if (is_token(c_expr->first_child, token_function))
         {
             total_func_count++;
         }
@@ -606,9 +606,9 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
 
     for (sexpr::node* c_expr = name_list_expr->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
     {
-        if (is_token(c_expr->first_child, token_call))
+        if (is_token(c_expr->first_child, token_function))
         {
-            node* function_def = ast.make_node(node_function_def, c_expr);
+            node* function_def = ast.make_node(node_function, c_expr);
             PLNNRC_CHECK(function_def);
 
             sexpr::node* func_atom_expr = c_expr->first_child->next_sibling;

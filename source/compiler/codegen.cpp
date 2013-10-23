@@ -204,7 +204,7 @@ namespace
 
             for (node* function_def = worldstate->first_child->next_sibling; function_def != 0; function_def = function_def->next_sibling)
             {
-                if (function_def->type != node_function_def)
+                if (function_def->type != node_function)
                 {
                     continue;
                 }

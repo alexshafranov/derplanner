@@ -35,7 +35,6 @@ namespace
     PLNNRC_DEFINE_TOKEN(token_and,   "and");
     PLNNRC_DEFINE_TOKEN(token_or,    "or");
     PLNNRC_DEFINE_TOKEN(token_not,   "not");
-    PLNNRC_DEFINE_TOKEN(token_call,  ":call");
 
     // forward
     node* build_recursive(tree& ast, sexpr::node* s_expr);
@@ -79,7 +78,7 @@ namespace
             return build_logical_op(ast, s_expr, node_op_not);
         }
 
-        if (is_token(c_expr, token_call))
+        if (ast.ws_funcs.find(c_expr->token))
         {
             return build_call_term(ast, s_expr);
         }
