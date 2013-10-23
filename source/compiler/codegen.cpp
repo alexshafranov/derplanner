@@ -442,6 +442,17 @@ namespace
                         }
                     }
 
+                    if (term->type == node_term_call)
+                    {
+                        paste_function_call paste(term, "state._");
+
+                        output.writeln("if (state.%i_%d->_%d == world.%p)", atom_id, atom_index, atom_param_index, &paste);
+                        {
+                            scope s(output, !is_last(term));
+                            output.writeln("break;");
+                        }
+                    }
+
                     ++atom_param_index;
                 }
             }
@@ -472,6 +483,13 @@ namespace
             {
                 scope s(output, is_first(root));
 
+                const char* comparison_op = "!=";
+
+                if (root->type == node_op_not)
+                {
+                    comparison_op = "==";
+                }
+
                 int atom_param_index = 0;
 
                 for (node* term = atom->first_child; term != 0; term = term->next_sibling)
@@ -480,14 +498,18 @@ namespace
                     {
                         int var_index = annotation<term_ann>(term)->var_index;
 
-                        const char* comparison_op = "!=";
-
-                        if (root->type == node_op_not)
-                        {
-                            comparison_op = "==";
-                        }
-
                         output.writeln("if (state.%i_%d->_%d %s state._%d)", atom_id, atom_index, atom_param_index, comparison_op, var_index);
+                        {
+                            scope s(output);
+                            output.writeln("continue;");
+                        }
+                    }
+
+                    if (term->type == node_term_call)
+                    {
+                        paste_function_call paste(term, "state._");
+
+                        output.writeln("if (state.%i_%d->_%d %s world.%p)", atom_id, atom_index, atom_param_index, comparison_op, &paste);
                         {
                             scope s(output);
                             output.writeln("continue;");
