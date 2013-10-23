@@ -686,7 +686,7 @@ namespace
                         plnnrc_assert(ws_return_type);
                         plnnrc_assert(ws_return_type->type == node_worldstate_type);
                         // check argument type
-                        plnnrc_assert(type_tag(ws_type) == type_tag(ws_return_type));
+                        plnnrc_assert(annotation<ws_type_ann>(ws_type)->type_tag == annotation<ws_type_ann>(ws_return_type)->type_tag);
                     }
 
                     ws_type = ws_type->next_sibling;
