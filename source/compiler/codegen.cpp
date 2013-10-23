@@ -134,6 +134,55 @@ namespace
         }
     };
 
+    class paste_function_call : public paste_func
+    {
+    public:
+        node* function_call;
+        const char* var_prefix;
+
+        paste_function_call(node* function_call, const char* var_prefix)
+            : function_call(function_call)
+            , var_prefix(var_prefix)
+        {
+        }
+
+        virtual void operator()(formatter& output)
+        {
+            output.put_str(function_call->s_expr->token);
+            output.put_char('(');
+
+            for (node* argument = function_call->first_child; argument != 0; argument = argument->next_sibling)
+            {
+                switch (argument->type)
+                {
+                case node_term_variable:
+                    {
+                        int var_index = annotation<term_ann>(argument)->var_index;
+                        output.put_str(var_prefix);
+                        output.put_int(var_index);
+                    }
+                    break;
+                case node_term_call:
+                    {
+                        paste_function_call paste(argument, var_prefix);
+                        paste(output);
+                    }
+                    break;
+                default:
+                    // unsupported argument type
+                    plnnrc_assert(false);
+                }
+
+                if (!is_last(argument))
+                {
+                    output.put_str(", ");
+                }
+            }
+
+            output.put_char(')');
+        }
+    };
+
     void generate_header_top(ast::tree& ast, formatter& output)
     {
         output.writeln("#include <derplanner/runtime/interface.h>");
@@ -284,6 +333,25 @@ namespace
 
     void generate_literal_chain(tree& ast, node* root, formatter& output);
 
+    void generate_literal_chain_call_term(tree& ast, node* root, node* atom, formatter& output)
+    {
+        paste_function_call paste(atom, "state._");
+
+        output.writeln("if (%sworld.%p)", root->type == node_op_not ? "!" : "", &paste);
+        {
+            scope s(output, root->next_sibling);
+
+            if (root->next_sibling)
+            {
+                generate_literal_chain(ast, root->next_sibling, output);
+            }
+            else
+            {
+                output.writeln("PLNNR_COROUTINE_YIELD(state);");
+            }
+        }
+    }
+
     void generate_literal_chain_atom_eq(tree& ast, node* root, node* atom, formatter& output)
     {
         node* arg_0 = atom->first_child;
@@ -322,7 +390,7 @@ namespace
 
     void generate_literal_chain(tree& ast, node* root, formatter& output)
     {
-        plnnrc_assert(root->type == node_op_not || is_atom(root));
+        plnnrc_assert(root->type == node_op_not || root->type == node_term_call || is_atom(root));
 
         node* atom = root;
 
@@ -335,6 +403,12 @@ namespace
         if (atom->type == node_atom_eq)
         {
             generate_literal_chain_atom_eq(ast, root, atom, output);
+            return;
+        }
+
+        if (atom->type == node_term_call)
+        {
+            generate_literal_chain_call_term(ast, root, atom, output);
             return;
         }
 
