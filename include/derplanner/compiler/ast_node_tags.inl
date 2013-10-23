@@ -53,7 +53,6 @@ PLNNRC_AST_NODE_LEAF(node_atom_eq)
 PLNNRC_AST_NODE_LEAF(node_term_variable)
 PLNNRC_AST_NODE_LEAF(node_term_int)
 PLNNRC_AST_NODE_LEAF(node_term_float)
-PLNNRC_AST_NODE_LEAF(node_term_eq)
 PLNNRC_AST_NODE_LEAF(node_term_call)
 
 PLNNRC_AST_NODE_LEAF(node_error)
