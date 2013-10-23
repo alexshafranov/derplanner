@@ -678,9 +678,54 @@ namespace
                         type_tag(c, annotation<ws_type_ann>(ws_type)->type_tag);
                     }
 
+                    if (c->type == node_term_call)
+                    {
+                        node* ws_func = ast.ws_funcs.find(c->s_expr->token);
+                        plnnrc_assert(ws_func);
+                        node* ws_return_type = ws_func->first_child->next_sibling;
+                        plnnrc_assert(ws_return_type);
+                        plnnrc_assert(ws_return_type->type == node_worldstate_type);
+                        // check argument type
+                        plnnrc_assert(type_tag(ws_type) == type_tag(ws_return_type));
+                    }
+
                     ws_type = ws_type->next_sibling;
                 }
 
+                // wrong number of arguments
+                plnnrc_assert(!ws_type);
+            }
+
+            if (n->type == node_term_call)
+            {
+                node* ws_func = ast.ws_funcs.find(n->s_expr->token);
+                plnnrc_assert(ws_func);
+
+                node* ws_type = ws_func->first_child->first_child;
+
+                for (node* c = n->first_child; c != 0; c = c->next_sibling)
+                {
+                    plnnrc_assert(ws_type);
+                    plnnrc_assert(ws_type->type == node_worldstate_type);
+
+                    if (c->type == node_term_variable)
+                    {
+                        type_tag(c, annotation<ws_type_ann>(ws_type)->type_tag);
+                    }
+
+                    if (c->type == node_term_call)
+                    {
+                        node* ws_return_type = ws_func->first_child->next_sibling;
+                        plnnrc_assert(ws_return_type);
+                        plnnrc_assert(ws_return_type->type == node_worldstate_type);
+                        // check argument type
+                        plnnrc_assert(type_tag(ws_type) == type_tag(ws_return_type));
+                    }
+
+                    ws_type = ws_type->next_sibling;
+                }
+
+                // wrong number of arguments
                 plnnrc_assert(!ws_type);
             }
         }
