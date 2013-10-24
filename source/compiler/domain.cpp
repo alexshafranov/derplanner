@@ -773,7 +773,7 @@ void infer_types(tree& ast)
         }
     }
 
-    // for each effect in task list
+    // for each effect in task list and each call term in task list
     for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
     {
         node* method = methods.value();
@@ -791,11 +791,21 @@ void infer_types(tree& ast)
                 {
                     seed_types(ast, task);
                 }
+                else
+                {
+                    for (node* argument = task->first_child; argument != 0; argument = argument->next_sibling)
+                    {
+                        if (argument->type == node_term_call)
+                        {
+                            seed_types(ast, argument);
+                        }
+                    }                        
+                }
             }
         }
     }
 
-    // for each precondition propagate variable types to their definitions
+    // for each precondition and for each effect and function call in task list propagate variable types to their definitions
     for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
     {
         node* method = methods.value();
@@ -822,6 +832,62 @@ void infer_types(tree& ast)
 
                         // check types match
                         plnnrc_assert(type_tag(def) == type_tag(var));
+                    }
+                }
+            }
+
+            node* tasklist = precondition->next_sibling;
+            plnnrc_assert(tasklist);
+
+            for (node* task = tasklist->first_child; task != 0; task = task->next_sibling)
+            {
+                if (is_effect_list(task))
+                {
+                    for (node* var = task->first_child; var != 0; var = var->next_sibling)
+                    {
+                        if (var->type == node_term_variable)
+                        {
+                            node* def = definition(var);
+
+                            if (is_parameter(def))
+                            {
+                                if (!type_tag(def))
+                                {
+                                    type_tag(def, type_tag(var));
+                                }
+
+                                // check types match
+                                plnnrc_assert(type_tag(def) == type_tag(var));
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    for (node* call = task->first_child; call != 0; call = call->next_sibling)
+                    {
+                        if (call->type == node_term_call)
+                        {
+                            for (node* var = call->first_child; var != 0; var = var->next_sibling)
+                            {
+                                if (var->type == node_term_variable)
+                                {
+                                    node* def = definition(var);
+                                    plnnrc_assert(def);
+
+                                    if (is_parameter(def))
+                                    {
+                                        if (!type_tag(def))
+                                        {
+                                            type_tag(def, type_tag(var));
+                                        }
+
+                                        // check types match
+                                        plnnrc_assert(type_tag(def) == type_tag(var));
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
