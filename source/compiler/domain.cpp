@@ -747,6 +747,7 @@ namespace
 
 void infer_types(tree& ast)
 {
+    // for each precondition assign types to variables based on worldstate's atoms and functions parameter types.
     for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
     {
         node* method = methods.value();
@@ -759,6 +760,7 @@ void infer_types(tree& ast)
         }
     }
 
+    // for each operator effect set variable types based on worldstate's atom parameter types.
     for (id_table_values operators = ast.operators.values(); !operators.empty(); operators.pop())
     {
         node* operatr = operators.value();
@@ -771,6 +773,29 @@ void infer_types(tree& ast)
         }
     }
 
+    // for each effect in task list
+    for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+    {
+        node* method = methods.value();
+        node* method_atom = method->first_child;
+        plnnrc_assert(method_atom && method_atom->type == node_atom);
+
+        for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
+        {
+            node* tasklist = branch->first_child->next_sibling;
+            plnnrc_assert(tasklist);
+
+            for (node* task = tasklist->first_child; task != 0; task = task->next_sibling)
+            {
+                if (is_effect_list(task))
+                {
+                    seed_types(ast, task);
+                }
+            }
+        }
+    }
+
+    // for each precondition propagate variable types to their definitions
     for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
     {
         node* method = methods.value();
@@ -784,7 +809,7 @@ void infer_types(tree& ast)
 
             for (node* var = precondition; var != 0; var = preorder_traversal_next(precondition, var))
             {
-                if (var->type == node_term_variable && is_bound(var) && var->parent->type == node_atom)
+                if (var->type == node_term_variable && is_bound(var) && (var->parent->type == node_atom || var->parent->type == node_term_call))
                 {
                     node* def = definition(var);
 
@@ -802,6 +827,9 @@ void infer_types(tree& ast)
             }
         }
     }
+
+    // for each task in a task list propagate variable and function return types
+    // down to undefined argument types of operators and methods
 
     bool all_method_param_types_inferred = false;
 
@@ -860,18 +888,41 @@ void infer_types(tree& ast)
                     for (node* arg = task->first_child; arg != 0; arg = arg->next_sibling)
                     {
                         plnnrc_assert(param);
-                        plnnrc_assert(arg->type == node_term_variable);
-                        plnnrc_assert(is_bound(arg));
-                        node* def = definition(arg);
-                        plnnrc_assert(type_tag(def) != 0);
 
-                        if (!type_tag(param))
+                        if (arg->type == node_term_variable)
                         {
-                            type_tag(param, type_tag(def));
+                            plnnrc_assert(is_bound(arg));
+                            node* def = definition(arg);
+                            plnnrc_assert(type_tag(def) != 0);
+
+                            if (!type_tag(param))
+                            {
+                                type_tag(param, type_tag(def));
+                            }
+                            else
+                            {
+                                // check types match
+                                plnnrc_assert(type_tag(param) == type_tag(def));
+                            }
                         }
 
-                        // check types match
-                        plnnrc_assert(type_tag(param) == type_tag(def));
+                        if (arg->type == node_term_call)
+                        {
+                            node* ws_func = ast.ws_funcs.find(arg->s_expr->token);
+                            plnnrc_assert(ws_func);
+                            node* ws_return_type = ws_func->first_child->next_sibling;
+                            plnnrc_assert(ws_return_type);
+
+                            if (!type_tag(param))
+                            {
+                                type_tag(param, annotation<ws_type_ann>(ws_return_type)->type_tag);
+                            }
+                            else
+                            {
+                                // check types match
+                                plnnrc_assert(type_tag(param) == annotation<ws_type_ann>(ws_return_type)->type_tag);
+                            }
+                        }
 
                         param = param->next_sibling;
                     }
@@ -904,7 +955,7 @@ void infer_types(tree& ast)
 
                 for (node* var = precondition; var != 0; var = preorder_traversal_next(precondition, var))
                 {
-                    if (var->type == node_term_variable && is_bound(var) && var->parent->type != node_atom)
+                    if (var->type == node_term_variable && is_bound(var) && var->parent->type == node_atom_eq)
                     {
                         node* def = definition(var);
                         plnnrc_assert(type_tag(def));
