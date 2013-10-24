@@ -134,13 +134,13 @@ namespace
         }
     };
 
-    class paste_function_call : public paste_func
+    class paste_precondition_function_call : public paste_func
     {
     public:
         node* function_call;
         const char* var_prefix;
 
-        paste_function_call(node* function_call, const char* var_prefix)
+        paste_precondition_function_call(node* function_call, const char* var_prefix)
             : function_call(function_call)
             , var_prefix(var_prefix)
         {
@@ -164,7 +164,66 @@ namespace
                     break;
                 case node_term_call:
                     {
-                        paste_function_call paste(argument, var_prefix);
+                        paste_precondition_function_call paste(argument, var_prefix);
+                        paste(output);
+                    }
+                    break;
+                default:
+                    // unsupported argument type
+                    plnnrc_assert(false);
+                }
+
+                if (!is_last(argument))
+                {
+                    output.put_str(", ");
+                }
+            }
+
+            output.put_char(')');
+        }
+    };
+
+    class paste_tasklist_function_call : public paste_func
+    {
+    public:
+        node* function_call;
+
+        paste_tasklist_function_call(node* function_call)
+            : function_call(function_call)
+        {
+        }
+
+        virtual void operator()(formatter& output)
+        {
+            output.put_str(function_call->s_expr->token);
+            output.put_char('(');
+
+            for (node* argument = function_call->first_child; argument != 0; argument = argument->next_sibling)
+            {
+                switch (argument->type)
+                {
+                case node_term_variable:
+                    {
+                        node* def = definition(argument);
+                        plnnrc_assert(def);
+
+                        int var_index = annotation<term_ann>(def)->var_index;
+
+                        if (is_parameter(def))
+                        {
+                            output.put_str("method_args->_");
+                            output.put_int(var_index);
+                        }
+                        else
+                        {
+                            output.put_str("precondition->_");
+                            output.put_int(var_index);
+                        }
+                    }
+                    break;
+                case node_term_call:
+                    {
+                        paste_tasklist_function_call paste(argument);
                         paste(output);
                     }
                     break;
@@ -335,7 +394,7 @@ namespace
 
     void generate_literal_chain_call_term(tree& ast, node* root, node* atom, formatter& output)
     {
-        paste_function_call paste(atom, "state._");
+        paste_precondition_function_call paste(atom, "state._");
 
         output.writeln("if (%sworld.%p)", root->type == node_op_not ? "!" : "", &paste);
         {
@@ -444,7 +503,7 @@ namespace
 
                     if (term->type == node_term_call)
                     {
-                        paste_function_call paste(term, "state._");
+                        paste_precondition_function_call paste(term, "state._");
 
                         output.writeln("if (state.%i_%d->_%d == world.%p)", atom_id, atom_index, atom_param_index, &paste);
                         {
@@ -507,7 +566,7 @@ namespace
 
                     if (term->type == node_term_call)
                     {
-                        paste_function_call paste(term, "state._");
+                        paste_precondition_function_call paste(term, "state._");
 
                         output.writeln("if (state.%i_%d->_%d %s world.%p)", atom_id, atom_index, atom_param_index, comparison_op, &paste);
                         {
@@ -854,18 +913,26 @@ namespace
 
         for (node* arg = task_atom->first_child; arg != 0; arg = arg->next_sibling)
         {
-            plnnrc_assert(arg->type == node_term_variable);
-            node* def = definition(arg);
-            plnnrc_assert(def);
-            int var_index = annotation<term_ann>(def)->var_index;
+            if (arg->type == node_term_variable)
+            {
+                node* def = definition(arg);
+                plnnrc_assert(def);
+                int var_index = annotation<term_ann>(def)->var_index;
 
-            if (is_parameter(def))
-            {
-                output.writeln("a->_%d = method_args->_%d;", param_index, var_index);
+                if (is_parameter(def))
+                {
+                    output.writeln("a->_%d = method_args->_%d;", param_index, var_index);
+                }
+                else
+                {
+                    output.writeln("a->_%d = precondition->_%d;", param_index, var_index);
+                }
             }
-            else
+
+            if (arg->type == node_term_call)
             {
-                output.writeln("a->_%d = precondition->_%d;", param_index, var_index);
+                paste_tasklist_function_call paste(arg);
+                output.writeln("a->_%d = wstate->%p;", param_index, &paste);
             }
 
             ++param_index;
@@ -894,18 +961,26 @@ namespace
 
         for (node* arg = task_atom->first_child; arg != 0; arg = arg->next_sibling)
         {
-            plnnrc_assert(arg->type == node_term_variable);
-            node* def = definition(arg);
-            plnnrc_assert(def);
-            int var_index = annotation<term_ann>(def)->var_index;
+            if (arg->type == node_term_variable)
+            {
+                node* def = definition(arg);
+                plnnrc_assert(def);
+                int var_index = annotation<term_ann>(def)->var_index;
 
-            if (is_parameter(def))
-            {
-                output.writeln("a->_%d = method_args->_%d;", param_index, var_index);
+                if (is_parameter(def))
+                {
+                    output.writeln("a->_%d = method_args->_%d;", param_index, var_index);
+                }
+                else
+                {
+                    output.writeln("a->_%d = precondition->_%d;", param_index, var_index);
+                }
             }
-            else
+
+            if (arg->type == node_term_call)
             {
-                output.writeln("a->_%d = precondition->_%d;", param_index, var_index);
+                paste_tasklist_function_call paste(arg);
+                output.writeln("a->_%d = wstate->%p;", param_index, &paste);
             }
 
             ++param_index;
