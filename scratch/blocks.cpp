@@ -8,6 +8,10 @@ namespace blocks {
 
 static const char* task_type_to_name[] =
 {
+	"!putdown",
+	"!unstack",
+	"!pickup",
+	"!stack",
 	"solve",
 	"mark-all-blocks",
 	"mark-block",
@@ -20,10 +24,6 @@ static const char* task_type_to_name[] =
 	"check2",
 	"check3",
 	"move-block1",
-	"!putdown",
-	"!unstack",
-	"!pickup",
-	"!stack",
 	"<none>",
 };
 

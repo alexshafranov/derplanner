@@ -84,13 +84,16 @@ namespace travel {
 
 enum task_type
 {
+	task_ride_taxi,
+	task_fly,
 	task_root,
 	task_travel,
 	task_travel_by_air,
-	task_ride_taxi,
-	task_fly,
 	task_count,
 };
+
+static const int operator_count = 2;
+static const int method_count = 3;
 
 const char* task_name(task_type type);
 

@@ -88,5 +88,9 @@ int main()
         printf("plan not found.\n");
     }
 
+    printf("task_count=%d\n", travel::task_count);
+    printf("operator_count=%d\n", travel::operator_count);
+    printf("method_count=%d\n", travel::method_count);
+
     return 0;
 }

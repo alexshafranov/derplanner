@@ -680,6 +680,14 @@ namespace
         {
             class_scope s(output);
 
+            for (id_table_values operators = ast.operators.values(); !operators.empty(); operators.pop())
+            {
+                node* operatr = operators.value();
+                node* operator_atom = operatr->first_child;
+
+                output.writeln("task_%i,", operator_atom->s_expr->token);
+            }
+
             for (node* method = domain->first_child; method != 0; method = method->next_sibling)
             {
                 if (method->type != node_method)
@@ -693,16 +701,12 @@ namespace
                 output.writeln("task_%i,", method_atom->s_expr->token);
             }
 
-            for (id_table_values operators = ast.operators.values(); !operators.empty(); operators.pop())
-            {
-                node* operatr = operators.value();
-                node* operator_atom = operatr->first_child;
-
-                output.writeln("task_%i,", operator_atom->s_expr->token);
-            }
-
             output.writeln("task_count,");
         }
+
+        output.writeln("static const int operator_count = %d;", ast.operators.count());
+        output.writeln("static const int method_count = %d;", ast.methods.count());
+        output.newline();
 
         output.writeln("const char* task_name(task_type type);");
         output.newline();
@@ -1155,6 +1159,13 @@ namespace
             {
                 class_scope s(output);
 
+                for (id_table_values operators = ast.operators.values(); !operators.empty(); operators.pop())
+                {
+                    node* operatr = operators.value();
+                    node* operator_atom = operatr->first_child;
+                    output.writeln("\"%s\",", operator_atom->s_expr->token);
+                }
+
                 for (node* method = domain->first_child; method != 0; method = method->next_sibling)
                 {
                     if (method->type != node_method)
@@ -1166,13 +1177,6 @@ namespace
                     plnnrc_assert(method_atom);
 
                     output.writeln("\"%s\",", method_atom->s_expr->token);
-                }
-
-                for (id_table_values operators = ast.operators.values(); !operators.empty(); operators.pop())
-                {
-                    node* operatr = operators.value();
-                    node* operator_atom = operatr->first_child;
-                    output.writeln("\"%s\",", operator_atom->s_expr->token);
                 }
 
                 output.writeln("\"<none>\",");

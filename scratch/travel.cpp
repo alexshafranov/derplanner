@@ -8,11 +8,11 @@ namespace travel {
 
 static const char* task_type_to_name[] =
 {
+	"!ride_taxi",
+	"!fly",
 	"root",
 	"travel",
 	"travel_by_air",
-	"!ride_taxi",
-	"!fly",
 	"<none>",
 };
 

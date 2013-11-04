@@ -147,6 +147,10 @@ namespace blocks {
 
 enum task_type
 {
+	task_putdown,
+	task_unstack,
+	task_pickup,
+	task_stack,
 	task_solve,
 	task_mark_all_blocks,
 	task_mark_block,
@@ -159,12 +163,11 @@ enum task_type
 	task_check2,
 	task_check3,
 	task_move_block1,
-	task_putdown,
-	task_unstack,
-	task_pickup,
-	task_stack,
 	task_count,
 };
+
+static const int operator_count = 4;
+static const int method_count = 12;
 
 const char* task_name(task_type type);
 
