@@ -1,9 +1,9 @@
-project "compiler"
+project "derplannerc"
     kind "ConsoleApp"
     flags { "ExtraWarnings", "FatalWarnings" }
     files { "../compiler/*.cpp" }
     includedirs { "../include" }
-    links { "libcompiler" }
+    links { "derplanner-compiler" }
     configuration { "vs*" }
         defines { "_CRT_SECURE_NO_WARNINGS" }
     configuration {}
