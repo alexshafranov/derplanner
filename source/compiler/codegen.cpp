@@ -242,10 +242,16 @@ namespace
         }
     };
 
-    void generate_header_top(ast::tree& ast, formatter& output)
+    void generate_header_top(ast::tree& ast, const char* custom_header, formatter& output)
     {
         output.writeln("#include <derplanner/runtime/interface.h>");
         output.newline();
+
+        if (custom_header)
+        {
+            output.writeln("#include \"%s\"", custom_header);
+            output.newline();
+        }
 
         output.writeln("namespace plnnr");
         {
@@ -1419,7 +1425,7 @@ bool generate_header(ast::tree& ast, writer& writer, codegen_options options)
     plnnrc_assert(domain_namespace);
     plnnrc_assert(domain_namespace->type == node_namespace);
 
-    generate_header_top(ast, output);
+    generate_header_top(ast, options.custom_header, output);
 
     {
         namespace_wrap wrap(worldstate_namespace, output);

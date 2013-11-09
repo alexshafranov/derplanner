@@ -75,6 +75,13 @@ int main(int argc, char** argv)
     const char* output_dir = argv[2];
     const char* output_name = argv[3];
 
+    const char* custom_header = 0;
+
+    if (argc >= 5)
+    {
+        custom_header = argv[4];
+    }
+
     size_t input_size = file_size(input_path);
     buffer_context input_buffer(input_size);
     {
@@ -111,6 +118,7 @@ int main(int argc, char** argv)
     options.newline = "\n";
     options.include_guard = include_guard.c_str();
     options.header_file_name = header_file_name.c_str();
+    options.custom_header = custom_header;
     options.runtime_atom_names = true;
     options.runtime_task_names = true;
     options.enable_reflection = true;
