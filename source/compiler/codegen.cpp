@@ -271,13 +271,6 @@ namespace
         output.newline();
 
         output.writeln("using namespace plnnr;");
-
-        if (worldstate_namespace->s_expr->first_child)
-        {
-            paste_fully_qualified_namespace paste(worldstate_namespace);
-            output.writeln("using namespace %p;", &paste);
-        }
-
         output.newline();
     }
 

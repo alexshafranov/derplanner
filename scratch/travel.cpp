@@ -2,7 +2,6 @@
 #include "travel.h"
 
 using namespace plnnr;
-using namespace travel;
 
 namespace travel {
 
