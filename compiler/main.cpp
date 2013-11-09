@@ -87,7 +87,7 @@ int main(int argc, char** argv)
     expr.parse(input_buffer.data);
 
     ast::tree tree;
-    build_translation_unit(tree, expr.root());
+    ast::build_translation_unit(tree, expr.root());
 
     ast::infer_types(tree);
     ast::annotate(tree);
