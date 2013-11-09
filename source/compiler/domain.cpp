@@ -654,6 +654,27 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
     return worldstate;
 }
 
+bool build_translation_unit(tree& ast, sexpr::node* s_expr)
+{
+    for (sexpr::node* c_expr = s_expr->first_child; c_expr != 0; c_expr = c_expr->next_sibling)
+    {
+        if (c_expr->type == sexpr::node_list)
+        {
+            if (is_token(c_expr->first_child, token_worldstate))
+            {
+                PLNNRC_CHECK(build_worldstate(ast, c_expr));
+            }
+
+            if (is_token(c_expr->first_child, token_domain))
+            {
+                PLNNRC_CHECK(build_domain(ast, c_expr));
+            }
+        }
+    }
+
+    return true;
+}
+
 namespace
 {
     void seed_types(tree& ast, node* root)
