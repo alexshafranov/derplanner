@@ -26,7 +26,6 @@ namespace plnnrc {
 
 node_array::node_array()
     : _nodes(0)
-    , _count(0)
     , _capacity(0)
 {
 }
@@ -48,7 +47,6 @@ bool node_array::init(unsigned max_size)
     memory::deallocate(_nodes);
     _nodes = nodes;
     _capacity = max_size;
-    _count = 0;
 
     return true;
 }

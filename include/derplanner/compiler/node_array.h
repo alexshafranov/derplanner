@@ -39,7 +39,6 @@ public:
     const ast::node* operator[](unsigned index) const;
     ast::node*& operator[](unsigned index);
 
-    inline unsigned count() const { return _count; }
     inline unsigned capacity() const { return _capacity; }
 
 private:
@@ -47,7 +46,6 @@ private:
     const node_array& operator=(const node_array&);
 
     ast::node** _nodes;
-    unsigned    _count;
     unsigned    _capacity;
 };
 

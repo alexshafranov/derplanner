@@ -740,11 +740,13 @@ namespace
 
                     if (c->type == node_term_call)
                     {
-                        node* ws_return_type = ws_func->first_child->next_sibling;
+                        node* ws_return_type = ast.ws_funcs.find(c->s_expr->token)->first_child->next_sibling;
                         plnnrc_assert(ws_return_type);
                         plnnrc_assert(ws_return_type->type == node_worldstate_type);
                         // check argument type
-                        plnnrc_assert(type_tag(ws_type) == type_tag(ws_return_type));
+                        int ws_type_tag = annotation<ws_type_ann>(ws_type)->type_tag;
+                        int ws_return_type_tag = annotation<ws_type_ann>(ws_return_type)->type_tag;
+                        plnnrc_assert(ws_type_tag == ws_return_type_tag);
                     }
 
                     ws_type = ws_type->next_sibling;
