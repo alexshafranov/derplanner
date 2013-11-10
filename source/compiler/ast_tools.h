@@ -41,6 +41,11 @@ inline bool all_bound(node* atom)
 
     for (node* arg = atom->first_child; arg != 0; arg = arg->next_sibling)
     {
+        if (arg->type != node_term_variable)
+        {
+            continue;
+        }
+
         if (!is_bound(arg))
         {
             return false;
