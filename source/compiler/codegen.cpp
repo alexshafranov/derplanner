@@ -280,6 +280,9 @@ namespace
 
         output.writeln("using namespace plnnr;");
         output.newline();
+
+        output.writeln("#pragma GCC diagnostic ignored \"-Wunused-variable\"");
+        output.newline();
     }
 
     void generate_worldstate(tree& ast, node* worldstate, formatter& output)
