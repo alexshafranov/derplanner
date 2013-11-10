@@ -159,7 +159,11 @@ namespace
         {
             for (node* param = atom->first_child; param != 0; param = param->next_sibling)
             {
-                link_to_parameter(param, effect_list);
+                // stub operators can have call terms as "variables"
+                if (param->type == node_term_variable)
+                {
+                    link_to_parameter(param, effect_list);
+                }
             }
         }
     }
