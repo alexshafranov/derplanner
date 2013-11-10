@@ -165,6 +165,7 @@ namespace
                 case node_term_call:
                     {
                         paste_precondition_function_call paste(argument, var_prefix);
+                        output.put_str("world.");
                         paste(output);
                     }
                     break;
@@ -224,6 +225,7 @@ namespace
                 case node_term_call:
                     {
                         paste_tasklist_function_call paste(argument);
+                        output.put_str("wstate->");
                         paste(output);
                     }
                     break;
