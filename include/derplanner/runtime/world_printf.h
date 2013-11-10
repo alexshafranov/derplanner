@@ -49,6 +49,23 @@ struct world_printf
     }
 };
 
+template <typename E>
+struct print_atom_element
+{
+    void operator()(const E& element)
+    {
+    }
+};
+
+template <>
+struct print_atom_element<int>
+{
+    void operator()(const int& element)
+    {
+        printf("%d", element);
+    }
+};
+
 struct atom_printf
 {
     atom_printf()
@@ -63,15 +80,15 @@ struct atom_printf
         printf("(");
     }
 
-    void atom_element(const int& element)
+    template <typename E>
+    void atom_element(const E& element)
     {
+        print_atom_element<E> printer;
+        printer(element);
+
         if (++current_element < total_elements)
         {
-            printf("%d, ", element);
-        }
-        else
-        {
-            printf("%d", element);
+            printf(", ");
         }
     }
 

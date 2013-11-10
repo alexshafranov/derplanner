@@ -1392,6 +1392,13 @@ namespace
                             output.writeln("break;");
                         }
                     }
+
+                    output.writeln("default:");
+                    {
+                        indented s(output);
+                        output.writeln("plnnr_assert(false);");
+                        output.writeln("break;");
+                    }
                 }
             }
         }

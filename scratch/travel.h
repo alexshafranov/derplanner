@@ -271,6 +271,9 @@ struct task_type_dispatcher<travel::task_type, V>
 			case travel::task_fly:
 				PLNNR_GENCODE_VISIT_TASK_WITH_ARGS(visitor, travel, task_fly, fly_args);
 				break;
+			default:
+				plnnr_assert(false);
+				break;
 		}
 	}
 };

@@ -615,6 +615,9 @@ struct task_type_dispatcher<blocks::task_type, V>
 			case blocks::task_stack:
 				PLNNR_GENCODE_VISIT_TASK_WITH_ARGS(visitor, blocks, task_stack, stack_args);
 				break;
+			default:
+				plnnr_assert(false);
+				break;
 		}
 	}
 };

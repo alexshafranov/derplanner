@@ -2,7 +2,6 @@
 #include "blocks.h"
 
 using namespace plnnr;
-using namespace blocks;
 
 namespace blocks {
 
