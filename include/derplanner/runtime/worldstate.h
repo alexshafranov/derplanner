@@ -47,6 +47,8 @@ void detach(handle* tuple_list, void* tuple);
 
 void undo(handle* tuple_list, void* tuple);
 
+void clear(handle* tuple_list);
+
 void* head(handle* tuple_list);
 
 handle* head_to_handle(void* head_tuple, size_t size);

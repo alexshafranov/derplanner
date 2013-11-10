@@ -130,6 +130,22 @@ handle* create(tuple_traits traits, size_t page_size)
     return tuple_list;
 }
 
+void clear(handle* tuple_list)
+{
+    page* p = tuple_list->head_page;
+
+    while (p->prev)
+    {
+        page* n = p->prev;
+        memory::deallocate(p->memory);
+        p = n;
+    }
+
+    p->top = p->data;
+    tuple_list->head_page = p;
+    tuple_list->head_tuple = 0;
+}
+
 void destroy(const handle* tuple_list)
 {
     for (page* p = tuple_list->head_page; p != 0;)
