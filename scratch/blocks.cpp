@@ -3,6 +3,8 @@
 
 using namespace plnnr;
 
+#pragma GCC diagnostic ignored "-Wunused-variable"
+
 namespace blocks {
 
 static const char* task_type_to_name[] =
@@ -1749,6 +1751,8 @@ bool move_block_branch_1_expand(planner_state& pstate, void* world)
 			}
 		}
 
+		PLNNR_COROUTINE_YIELD(*method);
+
 		{
 			task_instance* t = push_task(pstate, task_putdown);
 			putdown_args* a = push<putdown_args>(pstate.tstack);
@@ -1789,6 +1793,8 @@ bool move_block_branch_1_expand(planner_state& pstate, void* world)
 				effect->list = list;
 			}
 		}
+
+		PLNNR_COROUTINE_YIELD(*method);
 
 		{
 			{
@@ -1955,6 +1961,8 @@ bool move_block_branch_2_expand(planner_state& pstate, void* world)
 			}
 		}
 
+		PLNNR_COROUTINE_YIELD(*method);
+
 		{
 			task_instance* t = push_task(pstate, task_putdown);
 			putdown_args* a = push<putdown_args>(pstate.tstack);
@@ -1995,6 +2003,8 @@ bool move_block_branch_2_expand(planner_state& pstate, void* world)
 				effect->list = list;
 			}
 		}
+
+		PLNNR_COROUTINE_YIELD(*method);
 
 		{
 			method_instance* t = push_method(pstate, task_check2, check2_branch_0_expand);
@@ -2399,6 +2409,8 @@ bool move_block1_branch_0_expand(planner_state& pstate, void* world)
 			}
 		}
 
+		PLNNR_COROUTINE_YIELD(*method);
+
 		{
 			task_instance* t = push_task(pstate, task_stack);
 			stack_args* a = push<stack_args>(pstate.tstack);
@@ -2457,6 +2469,8 @@ bool move_block1_branch_0_expand(planner_state& pstate, void* world)
 				effect->list = list;
 			}
 		}
+
+		PLNNR_COROUTINE_YIELD(*method);
 
 		{
 			{
@@ -2608,6 +2622,8 @@ bool move_block1_branch_1_expand(planner_state& pstate, void* world)
 			}
 		}
 
+		PLNNR_COROUTINE_YIELD(*method);
+
 		{
 			task_instance* t = push_task(pstate, task_stack);
 			stack_args* a = push<stack_args>(pstate.tstack);
@@ -2666,6 +2682,8 @@ bool move_block1_branch_1_expand(planner_state& pstate, void* world)
 				effect->list = list;
 			}
 		}
+
+		PLNNR_COROUTINE_YIELD(*method);
 
 		{
 			{

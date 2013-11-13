@@ -64,16 +64,28 @@ int main()
 
     find_plan_init(pstate, travel::task_root, travel::root_branch_0_expand);
 
-    find_plan_status status =  find_plan_step(pstate, world.data());
+    find_plan_status status;
 
-    while (status == plan_in_progress)
+    while (true)
     {
-        printf("stack:\n");
+        status = find_plan_step(pstate, world.data());
+
         task_printf task_printer;
+
+        printf("\n");
+        printf("method stack:\n");
         plnnr::walk_stack<travel::task_type>(pstate.top_method, task_printer);
         printf("===\n");
 
-        status = find_plan_step(pstate, world.data());
+        printf("task stack:\n");
+        plnnr::walk_stack<travel::task_type>(pstate.top_task, task_printer);
+        printf("===\n");
+        printf("\n");
+
+        if (status != plan_in_progress)
+        {
+            break;
+        }
     }
 
     if (status == plan_found)
@@ -87,10 +99,6 @@ int main()
     {
         printf("plan not found.\n");
     }
-
-    printf("task_count=%d\n", travel::task_count);
-    printf("operator_count=%d\n", travel::operator_count);
-    printf("method_count=%d\n", travel::method_count);
 
     return 0;
 }

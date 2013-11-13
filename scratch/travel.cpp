@@ -3,6 +3,8 @@
 
 using namespace plnnr;
 
+#pragma GCC diagnostic ignored "-Wunused-variable"
+
 namespace travel {
 
 static const char* task_type_to_name[] =
@@ -315,6 +317,8 @@ bool travel_by_air_branch_0_expand(planner_state& pstate, void* world)
 			a->_1 = precondition->_3;
 			t->args = a;
 		}
+
+		PLNNR_COROUTINE_YIELD(*method);
 
 		{
 			method_instance* t = push_method(pstate, task_travel, travel_branch_0_expand);

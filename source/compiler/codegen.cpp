@@ -1114,7 +1114,7 @@ namespace
                                 output.writeln("method->expanded = true;");
                             }
 
-                            if (is_last(task_atom) || (!is_effect_list(task_atom) && is_method(ast, task_atom)))
+                            if (is_last(task_atom) || (!is_effect_list(task_atom) && (is_method(ast, task_atom) || is_operator(ast, task_atom))))
                             {
                                 output.writeln("PLNNR_COROUTINE_YIELD(*method);");
 
