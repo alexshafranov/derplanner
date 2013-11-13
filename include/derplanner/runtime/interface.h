@@ -110,6 +110,7 @@ bool compare(I* a, I* b)
 {
     task_compare<I> comparator;
     comparator.task_a = a;
+    comparator.result = false;
     dispatch<T>(b, comparator);
     return comparator.result;
 }
