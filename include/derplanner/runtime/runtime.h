@@ -99,6 +99,8 @@ struct planner_state
     stack* journal;
 };
 
+void reset(planner_state& pstate);
+
 enum find_plan_status
 {
     plan_found = 0,

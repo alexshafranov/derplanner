@@ -57,6 +57,15 @@ void stack::reset()
     rewind(_buffer);
 }
 
+void reset(planner_state& pstate)
+{
+    pstate.top_method = 0;
+    pstate.top_task = 0;
+    pstate.mstack->reset();
+    pstate.tstack->reset();
+    pstate.journal->reset();
+}
+
 method_instance* push_method(planner_state& pstate, int task_type, expand_func expand)
 {
     method_instance* new_method = push<method_instance>(pstate.mstack);
