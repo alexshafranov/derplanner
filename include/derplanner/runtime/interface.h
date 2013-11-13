@@ -81,6 +81,39 @@ void walk_stack(const I* top_task, V& visitor)
     }
 }
 
+template <typename I>
+struct task_compare
+{
+    I* task_a;
+    bool result;
+
+    void task(int task_type, const char* task_name)
+    {
+        result = (task_a->type == task_type);
+    }
+
+    template <typename A>
+    void task(int task_type, const char* task_name, const A* args)
+    {
+        result = (task_a->type == task_type);
+
+        if (result)
+        {
+            const A* task_args = static_cast<const A*>(task_a->args);
+            result = (*(task_args) == *(args));
+        }
+    }
+};
+
+template <typename T, typename I>
+bool compare(I* a, I* b)
+{
+    task_compare<I> comparator;
+    comparator.task_a = a;
+    dispatch<T>(b, comparator);
+    return comparator.result;
+}
+
 }
 
 #define PLNNR_GENCODE_VISIT_ATOM_LIST(GENCODE_NAMESPACE, ATOM_TYPE, ATOM_TUPLE, VISITOR_INSTANCE)               \
