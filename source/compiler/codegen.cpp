@@ -735,6 +735,31 @@ namespace
                 output.writeln("%s _%d;", ws_type->s_expr->first_child->token, annotation<term_ann>(param)->var_index);
             }
         }
+
+        output.writeln("inline bool operator==(const %i_args& a, const %i_args& b)", atom->s_expr->token, atom->s_expr->token);
+        {
+            scope s(output, true);
+            int param_index = 0;
+
+            output.writeln("return \\");
+            {
+                indented s(output);
+
+                for (node* param = atom->first_child; param != 0; param = param->next_sibling)
+                {
+                    if (!is_last(param))
+                    {
+                        output.writeln("a._%d == b._%d &&", param_index, param_index);
+                    }
+                    else
+                    {
+                        output.writeln("a._%d == b._%d ;", param_index, param_index);
+                    }
+
+                    param_index++;
+                }
+            }
+        }
     }
 
     void generate_param_structs(tree& ast, node* domain, formatter& output)

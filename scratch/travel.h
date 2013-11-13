@@ -103,11 +103,25 @@ struct ride_taxi_args
 	int _1;
 };
 
+inline bool operator==(const ride_taxi_args& a, const ride_taxi_args& b)
+{
+	return \
+		a._0 == b._0 &&
+		a._1 == b._1 ;
+}
+
 struct fly_args
 {
 	int _0;
 	int _1;
 };
+
+inline bool operator==(const fly_args& a, const fly_args& b)
+{
+	return \
+		a._0 == b._0 &&
+		a._1 == b._1 ;
+}
 
 struct travel_args
 {
@@ -115,11 +129,25 @@ struct travel_args
 	int _1;
 };
 
+inline bool operator==(const travel_args& a, const travel_args& b)
+{
+	return \
+		a._0 == b._0 &&
+		a._1 == b._1 ;
+}
+
 struct travel_by_air_args
 {
 	int _0;
 	int _1;
 };
+
+inline bool operator==(const travel_by_air_args& a, const travel_by_air_args& b)
+{
+	return \
+		a._0 == b._0 &&
+		a._1 == b._1 ;
+}
 
 bool root_branch_0_expand(plnnr::planner_state& pstate, void* world);
 bool travel_branch_0_expand(plnnr::planner_state& pstate, void* world);

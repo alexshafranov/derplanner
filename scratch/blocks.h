@@ -176,16 +176,35 @@ struct putdown_args
 	int _0;
 };
 
+inline bool operator==(const putdown_args& a, const putdown_args& b)
+{
+	return \
+		a._0 == b._0 ;
+}
+
 struct unstack_args
 {
 	int _0;
 	int _1;
 };
 
+inline bool operator==(const unstack_args& a, const unstack_args& b)
+{
+	return \
+		a._0 == b._0 &&
+		a._1 == b._1 ;
+}
+
 struct pickup_args
 {
 	int _0;
 };
+
+inline bool operator==(const pickup_args& a, const pickup_args& b)
+{
+	return \
+		a._0 == b._0 ;
+}
 
 struct stack_args
 {
@@ -193,46 +212,102 @@ struct stack_args
 	int _1;
 };
 
+inline bool operator==(const stack_args& a, const stack_args& b)
+{
+	return \
+		a._0 == b._0 &&
+		a._1 == b._1 ;
+}
+
 struct mark_block_args
 {
 	int _0;
 };
+
+inline bool operator==(const mark_block_args& a, const mark_block_args& b)
+{
+	return \
+		a._0 == b._0 ;
+}
 
 struct mark_block_recursive_args
 {
 	int _0;
 };
 
+inline bool operator==(const mark_block_recursive_args& a, const mark_block_recursive_args& b)
+{
+	return \
+		a._0 == b._0 ;
+}
+
 struct mark_block_term_args
 {
 	int _0;
 };
+
+inline bool operator==(const mark_block_term_args& a, const mark_block_term_args& b)
+{
+	return \
+		a._0 == b._0 ;
+}
 
 struct mark_move_type_args
 {
 	int _0;
 };
 
+inline bool operator==(const mark_move_type_args& a, const mark_move_type_args& b)
+{
+	return \
+		a._0 == b._0 ;
+}
+
 struct check_args
 {
 	int _0;
 };
+
+inline bool operator==(const check_args& a, const check_args& b)
+{
+	return \
+		a._0 == b._0 ;
+}
 
 struct check2_args
 {
 	int _0;
 };
 
+inline bool operator==(const check2_args& a, const check2_args& b)
+{
+	return \
+		a._0 == b._0 ;
+}
+
 struct check3_args
 {
 	int _0;
 };
+
+inline bool operator==(const check3_args& a, const check3_args& b)
+{
+	return \
+		a._0 == b._0 ;
+}
 
 struct move_block1_args
 {
 	int _0;
 	int _1;
 };
+
+inline bool operator==(const move_block1_args& a, const move_block1_args& b)
+{
+	return \
+		a._0 == b._0 &&
+		a._1 == b._1 ;
+}
 
 bool solve_branch_0_expand(plnnr::planner_state& pstate, void* world);
 bool mark_all_blocks_branch_0_expand(plnnr::planner_state& pstate, void* world);
