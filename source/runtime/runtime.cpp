@@ -131,6 +131,19 @@ method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks_and_
     return pstate.top_method;
 }
 
+void undo_effects(stack* journal)
+{
+    if (!journal->empty())
+    {
+        operator_effect* top = reinterpret_cast<operator_effect*>(journal->top()) - 1;
+
+        for (; top != 0; --top)
+        {
+            tuple_list::undo(top->list, top->tuple);
+        }
+    }
+}
+
 bool next_branch(planner_state& pstate, expand_func expand, void* worldstate)
 {
     method_instance* method = pstate.top_method;

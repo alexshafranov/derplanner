@@ -41,6 +41,7 @@ public:
     void reset();
 
     void* top() const { return _top; }
+    bool empty() const { return _top > _buffer; }
 
 private:
     stack(const stack&);
@@ -108,6 +109,7 @@ enum find_plan_status
 method_instance* push_method(planner_state& pstate, int task_type, expand_func expand);
 task_instance* push_task(planner_state& pstate, int task_type);
 method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks);
+void undo_effects(stack* journal);
 bool next_branch(planner_state& pstate, expand_func expand, void* worldstate);
 
 task_instance* reverse_task_list(task_instance* head);
