@@ -88,7 +88,7 @@ task_instance* push_task(planner_state& pstate, int task_type)
     return new_task;
 }
 
-method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks_and_effects)
+method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks, bool rewind_effects)
 {
     method_instance* old_top = pstate.top_method;
     method_instance* new_top = old_top->parent;
@@ -97,7 +97,7 @@ method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks_and_
     {
         pstate.mstack->rewind(new_top->mrewind);
 
-        if (rewind_tasks_and_effects)
+        if (rewind_tasks)
         {
             // rewind tasks
             if (new_top->trewind < pstate.tstack->top())
@@ -121,7 +121,10 @@ method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks_and_
                     tuple_list::undo(top->list, top->tuple);
                 }
 
-                pstate.journal->rewind(new_top->jrewind);
+                if (rewind_effects)
+                {
+                    pstate.journal->rewind(new_top->jrewind);
+                }
             }
         }
     }
@@ -174,7 +177,7 @@ void find_plan_init(planner_state& pstate, int root_method_type, expand_func roo
     push_method(pstate, root_method_type, root_method);
 }
 
-find_plan_status find_plan_step(planner_state& pstate, void* worldstate)
+find_plan_status find_plan_step(planner_state& pstate, void* worldstate, bool keep_full_effect_journal)
 {
     if (pstate.top_method)
     {
@@ -188,7 +191,7 @@ find_plan_status find_plan_step(planner_state& pstate, void* worldstate)
             {
                 while (method && method->expanded)
                 {
-                    method = rewind_top_method(pstate, false);
+                    method = rewind_top_method(pstate, false, false);
                 }
 
                 // all methods were expanded => plan found.
@@ -201,7 +204,7 @@ find_plan_status find_plan_step(planner_state& pstate, void* worldstate)
         // backtrack otherwise
         else
         {
-            rewind_top_method(pstate, true);
+            rewind_top_method(pstate, true, !keep_full_effect_journal);
         }
 
         return plan_in_progress;

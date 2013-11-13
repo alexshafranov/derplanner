@@ -107,7 +107,7 @@ enum find_plan_status
 
 method_instance* push_method(planner_state& pstate, int task_type, expand_func expand);
 task_instance* push_task(planner_state& pstate, int task_type);
-method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks);
+method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks, bool rewind_effects);
 bool next_branch(planner_state& pstate, expand_func expand, void* worldstate);
 
 task_instance* reverse_task_list(task_instance* head);
@@ -115,7 +115,7 @@ task_instance* reverse_task_list(task_instance* head);
 bool find_plan(planner_state& pstate, int root_method_type, expand_func root_method, void* worldstate);
 
 void find_plan_init(planner_state& pstate, int root_method_type, expand_func root_method);
-find_plan_status find_plan_step(planner_state& pstate, void* worldstate);
+find_plan_status find_plan_step(planner_state& pstate, void* worldstate, bool keep_full_effect_journal=false);
 
 }
 
