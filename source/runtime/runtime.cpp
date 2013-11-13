@@ -80,6 +80,7 @@ task_instance* push_task(planner_state& pstate, int task_type)
     task_instance* new_task = push<task_instance>(pstate.tstack);
     new_task->type = task_type;
     new_task->args = 0;
+    new_task->args_size = 0;
     new_task->parent = pstate.top_task;
 
     pstate.top_task = new_task;

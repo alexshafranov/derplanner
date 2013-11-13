@@ -79,6 +79,7 @@ struct task_instance
 {
     int type;
     void* args;
+    size_t args_size;
     task_instance* parent;
 };
 
