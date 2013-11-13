@@ -41,7 +41,8 @@ public:
     void reset();
 
     void* top() const { return _top; }
-    bool empty() const { return _top > _buffer; }
+    void* buffer() const { return _buffer; }
+    bool empty() const { return _top == _buffer; }
 
 private:
     stack(const stack&);
