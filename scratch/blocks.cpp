@@ -1711,7 +1711,6 @@ bool move_block_branch_1_expand(planner_state& pstate, void* world)
 		{
 			task_instance* t = push_task(pstate, task_unstack);
 			unstack_args* a = push<unstack_args>(pstate.tstack);
-			t->args_size = sizeof(unstack_args);
 			a->_0 = precondition->_0;
 			a->_1 = precondition->_1;
 			t->args = a;
@@ -1777,7 +1776,6 @@ bool move_block_branch_1_expand(planner_state& pstate, void* world)
 		{
 			task_instance* t = push_task(pstate, task_putdown);
 			putdown_args* a = push<putdown_args>(pstate.tstack);
-			t->args_size = sizeof(putdown_args);
 			a->_0 = precondition->_0;
 			t->args = a;
 
@@ -1938,7 +1936,6 @@ bool move_block_branch_2_expand(planner_state& pstate, void* world)
 		{
 			task_instance* t = push_task(pstate, task_unstack);
 			unstack_args* a = push<unstack_args>(pstate.tstack);
-			t->args_size = sizeof(unstack_args);
 			a->_0 = precondition->_0;
 			a->_1 = precondition->_1;
 			t->args = a;
@@ -2004,7 +2001,6 @@ bool move_block_branch_2_expand(planner_state& pstate, void* world)
 		{
 			task_instance* t = push_task(pstate, task_putdown);
 			putdown_args* a = push<putdown_args>(pstate.tstack);
-			t->args_size = sizeof(putdown_args);
 			a->_0 = precondition->_0;
 			t->args = a;
 
@@ -2398,7 +2394,6 @@ bool move_block1_branch_0_expand(planner_state& pstate, void* world)
 		{
 			task_instance* t = push_task(pstate, task_unstack);
 			unstack_args* a = push<unstack_args>(pstate.tstack);
-			t->args_size = sizeof(unstack_args);
 			a->_0 = method_args->_0;
 			a->_1 = precondition->_1;
 			t->args = a;
@@ -2464,7 +2459,6 @@ bool move_block1_branch_0_expand(planner_state& pstate, void* world)
 		{
 			task_instance* t = push_task(pstate, task_stack);
 			stack_args* a = push<stack_args>(pstate.tstack);
-			t->args_size = sizeof(stack_args);
 			a->_0 = method_args->_0;
 			a->_1 = method_args->_1;
 			t->args = a;
@@ -2638,7 +2632,6 @@ bool move_block1_branch_1_expand(planner_state& pstate, void* world)
 		{
 			task_instance* t = push_task(pstate, task_pickup);
 			pickup_args* a = push<pickup_args>(pstate.tstack);
-			t->args_size = sizeof(pickup_args);
 			a->_0 = method_args->_0;
 			t->args = a;
 
@@ -2689,7 +2682,6 @@ bool move_block1_branch_1_expand(planner_state& pstate, void* world)
 		{
 			task_instance* t = push_task(pstate, task_stack);
 			stack_args* a = push<stack_args>(pstate.tstack);
-			t->args_size = sizeof(stack_args);
 			a->_0 = method_args->_0;
 			a->_1 = method_args->_1;
 			t->args = a;

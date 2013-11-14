@@ -230,7 +230,6 @@ bool travel_branch_0_expand(planner_state& pstate, void* world)
 		{
 			task_instance* t = push_task(pstate, task_ride_taxi);
 			ride_taxi_args* a = push<ride_taxi_args>(pstate.tstack);
-			t->args_size = sizeof(ride_taxi_args);
 			a->_0 = method_args->_0;
 			a->_1 = method_args->_1;
 			t->args = a;
@@ -319,7 +318,6 @@ bool travel_by_air_branch_0_expand(planner_state& pstate, void* world)
 		{
 			task_instance* t = push_task(pstate, task_fly);
 			fly_args* a = push<fly_args>(pstate.tstack);
-			t->args_size = sizeof(fly_args);
 			a->_0 = precondition->_1;
 			a->_1 = precondition->_3;
 			t->args = a;

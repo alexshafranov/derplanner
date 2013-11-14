@@ -956,7 +956,6 @@ namespace
         if (task_atom->first_child)
         {
             output.writeln("%i_args* a = push<%i_args>(pstate.tstack);", task_atom->s_expr->token, task_atom->s_expr->token);
-            output.writeln("t->args_size = sizeof(%i_args);", task_atom->s_expr->token);
         }
 
         int param_index = 0;
