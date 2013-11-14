@@ -1025,11 +1025,21 @@ bool solve_branch_0_expand(planner_state& pstate, void* world)
 
 		PLNNR_COROUTINE_YIELD(*method);
 
+		if (method->failed)
+		{
+			continue;
+		}
+
 		{
 			method_instance* t = push_method(pstate, task_find_all_movable, find_all_movable_branch_0_expand);
 		}
 
 		PLNNR_COROUTINE_YIELD(*method);
+
+		if (method->failed)
+		{
+			continue;
+		}
 
 		{
 			method_instance* t = push_method(pstate, task_move_block, move_block_branch_0_expand);
@@ -1168,6 +1178,11 @@ bool mark_block_recursive_branch_0_expand(planner_state& pstate, void* world)
 		}
 
 		PLNNR_COROUTINE_YIELD(*method);
+
+		if (method->failed)
+		{
+			continue;
+		}
 
 		{
 			method_instance* t = push_method(pstate, task_mark_block_term, mark_block_term_branch_0_expand);
@@ -1658,6 +1673,11 @@ bool move_block_branch_0_expand(planner_state& pstate, void* world)
 
 		PLNNR_COROUTINE_YIELD(*method);
 
+		if (method->failed)
+		{
+			continue;
+		}
+
 		{
 			method_instance* t = push_method(pstate, task_move_block, move_block_branch_0_expand);
 		}
@@ -1852,6 +1872,11 @@ bool move_block_branch_1_expand(planner_state& pstate, void* world)
 
 		PLNNR_COROUTINE_YIELD(*method);
 
+		if (method->failed)
+		{
+			continue;
+		}
+
 		{
 			method_instance* t = push_method(pstate, task_check2, check2_branch_0_expand);
 			check2_args* a = push<check2_args>(pstate.mstack);
@@ -1861,6 +1886,11 @@ bool move_block_branch_1_expand(planner_state& pstate, void* world)
 
 		PLNNR_COROUTINE_YIELD(*method);
 
+		if (method->failed)
+		{
+			continue;
+		}
+
 		{
 			method_instance* t = push_method(pstate, task_check3, check3_branch_0_expand);
 			check3_args* a = push<check3_args>(pstate.mstack);
@@ -1869,6 +1899,11 @@ bool move_block_branch_1_expand(planner_state& pstate, void* world)
 		}
 
 		PLNNR_COROUTINE_YIELD(*method);
+
+		if (method->failed)
+		{
+			continue;
+		}
 
 		{
 			method_instance* t = push_method(pstate, task_move_block, move_block_branch_0_expand);
@@ -2019,6 +2054,11 @@ bool move_block_branch_2_expand(planner_state& pstate, void* world)
 
 		PLNNR_COROUTINE_YIELD(*method);
 
+		if (method->failed)
+		{
+			continue;
+		}
+
 		{
 			method_instance* t = push_method(pstate, task_check3, check3_branch_0_expand);
 			check3_args* a = push<check3_args>(pstate.mstack);
@@ -2027,6 +2067,11 @@ bool move_block_branch_2_expand(planner_state& pstate, void* world)
 		}
 
 		PLNNR_COROUTINE_YIELD(*method);
+
+		if (method->failed)
+		{
+			continue;
+		}
 
 		{
 			method_instance* t = push_method(pstate, task_move_block, move_block_branch_0_expand);
@@ -2537,6 +2582,11 @@ bool move_block1_branch_0_expand(planner_state& pstate, void* world)
 
 		PLNNR_COROUTINE_YIELD(*method);
 
+		if (method->failed)
+		{
+			continue;
+		}
+
 		{
 			method_instance* t = push_method(pstate, task_check2, check2_branch_0_expand);
 			check2_args* a = push<check2_args>(pstate.mstack);
@@ -2545,6 +2595,11 @@ bool move_block1_branch_0_expand(planner_state& pstate, void* world)
 		}
 
 		PLNNR_COROUTINE_YIELD(*method);
+
+		if (method->failed)
+		{
+			continue;
+		}
 
 		{
 			method_instance* t = push_method(pstate, task_check3, check3_branch_0_expand);

@@ -74,6 +74,7 @@ struct method_instance
     void* jrewind;
     method_instance* parent;
     bool expanded;
+    bool failed;
     int stage;
 };
 

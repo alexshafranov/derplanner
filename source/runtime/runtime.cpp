@@ -77,6 +77,7 @@ method_instance* push_method(planner_state& pstate, int task_type, expand_func e
     new_method->trewind = 0;
     new_method->mrewind = 0;
     new_method->expanded = false;
+    new_method->failed = false;
     new_method->stage = 0;
 
     pstate.top_method = new_method;
@@ -108,6 +109,8 @@ method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks_and_
 
         if (rewind_tasks_and_effects)
         {
+            new_top->failed = true;
+
             // rewind tasks
             if (new_top->trewind < pstate.tstack->top())
             {

@@ -1163,6 +1163,15 @@ namespace
                                 if (!is_last(task_atom))
                                 {
                                     output.newline();
+
+                                    if (is_method(ast, task_atom))
+                                    {
+                                        output.writeln("if (method->failed)");
+                                        {
+                                            scope s(output, true);
+                                            output.writeln("continue;");
+                                        }
+                                    }
                                 }
                             }
                         }

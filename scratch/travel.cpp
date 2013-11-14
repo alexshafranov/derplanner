@@ -311,6 +311,11 @@ bool travel_by_air_branch_0_expand(planner_state& pstate, void* world)
 
 		PLNNR_COROUTINE_YIELD(*method);
 
+		if (method->failed)
+		{
+			continue;
+		}
+
 		{
 			task_instance* t = push_task(pstate, task_fly);
 			fly_args* a = push<fly_args>(pstate.tstack);
