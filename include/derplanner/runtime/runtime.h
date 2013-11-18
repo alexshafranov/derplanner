@@ -72,7 +72,7 @@ struct method_instance
     void* mrewind;
     void* trewind;
     void* jrewind;
-    method_instance* parent;
+    method_instance* prev;
     bool expanded;
     bool failed;
     int stage;
@@ -82,7 +82,7 @@ struct task_instance
 {
     int type;
     void* args;
-    task_instance* parent;
+    task_instance* prev;
 };
 
 struct operator_effect
