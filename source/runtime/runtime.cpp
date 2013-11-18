@@ -91,6 +91,7 @@ task_instance* push_task(planner_state& pstate, int task_type)
     new_task->type = task_type;
     new_task->args = 0;
     new_task->prev = pstate.top_task;
+    new_task->next = 0;
 
     if (pstate.top_task)
     {
