@@ -147,8 +147,9 @@ void undo_effects(stack* journal)
     if (!journal->empty())
     {
         operator_effect* top = static_cast<operator_effect*>(journal->top()) - 1;
+        operator_effect* bottom = memory::align<operator_effect>(journal->buffer());
 
-        for (; top != 0; --top)
+        for (; top != bottom-1 ; --top)
         {
             tuple_list::undo(top->list, top->tuple);
         }

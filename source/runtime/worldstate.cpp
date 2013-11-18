@@ -257,6 +257,7 @@ void undo(handle* tuple_list, void* tuple)
         if (!head || head == next)
         {
             tuple_list->head_tuple = tuple;
+            head = tuple;
             set_ptr(prev, next_offset, 0);
         }
 
