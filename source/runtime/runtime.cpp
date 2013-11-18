@@ -92,6 +92,11 @@ task_instance* push_task(planner_state& pstate, int task_type)
     new_task->args = 0;
     new_task->prev = pstate.top_task;
 
+    if (pstate.top_task)
+    {
+        pstate.top_task->next = new_task;
+    }
+
     pstate.top_task = new_task;
 
     return new_task;
@@ -119,6 +124,7 @@ method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks_and_
                 pstate.tstack->rewind(new_top->trewind);
 
                 pstate.top_task = top_task;
+                pstate.top_task->next = 0;
             }
 
             // rewind effects
@@ -177,21 +183,6 @@ bool find_plan(planner_state& pstate, int root_method_type, expand_func root_met
     }
 
     return status == plan_found;
-}
-
-task_instance* reverse_task_list(task_instance* head)
-{
-    task_instance* new_head = 0;
-
-    while (head)
-    {
-        task_instance* link = head->prev;
-        head->prev = new_head;
-        new_head = head;
-        head = link;
-    }
-
-    return new_head;
 }
 
 void find_plan_init(planner_state& pstate, int root_method_type, expand_func root_method)

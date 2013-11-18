@@ -74,11 +74,11 @@ int main()
 
         printf("\n");
         printf("method stack:\n");
-        plnnr::walk_stack<travel::task_type>(pstate.top_method, task_printer);
+        plnnr::walk_stack_down<travel::task_type>(pstate.top_method, task_printer);
         printf("===\n");
 
         printf("task stack:\n");
-        plnnr::walk_stack<travel::task_type>(pstate.top_task, task_printer);
+        plnnr::walk_stack_down<travel::task_type>(pstate.top_task, task_printer);
         printf("===\n");
         printf("\n");
 
@@ -91,9 +91,9 @@ int main()
     if (status == plan_found)
     {
         printf("\nplan found:\n\n");
-        task_instance* task = reverse_task_list(pstate.top_task);
+        task_instance* task = bottom<task_instance>(pstate.tstack);
         task_printf task_printer;
-        plnnr::walk_stack<travel::task_type>(task, task_printer);
+        plnnr::walk_stack_up<travel::task_type>(task, task_printer);
     }
     else
     {

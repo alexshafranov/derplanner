@@ -59,6 +59,12 @@ T* push(stack* s)
     return static_cast<T*>(s->push(sizeof(T), plnnr_alignof(T)));
 }
 
+template <typename T>
+T* bottom(stack* s)
+{
+    return memory::align<T>(s->buffer());
+}
+
 struct planner_state;
 
 typedef bool (*expand_func)(planner_state&, void*);
@@ -83,6 +89,7 @@ struct task_instance
     int type;
     void* args;
     task_instance* prev;
+    task_instance* next;
 };
 
 struct operator_effect
@@ -114,8 +121,6 @@ task_instance* push_task(planner_state& pstate, int task_type);
 method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks);
 void undo_effects(stack* journal);
 bool next_branch(planner_state& pstate, expand_func expand, void* worldstate);
-
-task_instance* reverse_task_list(task_instance* head);
 
 bool find_plan(planner_state& pstate, int root_method_type, expand_func root_method, void* worldstate);
 

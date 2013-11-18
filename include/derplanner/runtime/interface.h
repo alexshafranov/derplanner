@@ -73,9 +73,18 @@ void dispatch(const I* task_instance, V& visitor)
 }
 
 template <typename T, typename I, typename V>
-void walk_stack(const I* top_task, V& visitor)
+void walk_stack_down(const I* top_task, V& visitor)
 {
     for (const I* task = top_task; task != 0; task = task->prev)
+    {
+        dispatch<T>(task, visitor);
+    }
+}
+
+template <typename T, typename I, typename V>
+void walk_stack_up(const I* top_task, V& visitor)
+{
+    for (const I* task = top_task; task != 0; task = task->next)
     {
         dispatch<T>(task, visitor);
     }

@@ -76,7 +76,7 @@ int main()
     {
         printf("stack:\n");
         task_printf task_printer;
-        plnnr::walk_stack<blocks::task_type>(pstate.top_method, task_printer);
+        plnnr::walk_stack_down<blocks::task_type>(pstate.top_method, task_printer);
         printf("===\n");
 
         status = find_plan_step(pstate, world.data());
@@ -85,9 +85,9 @@ int main()
     if (status == plan_found)
     {
         printf("\nplan found:\n\n");
-        task_instance* task = reverse_task_list(pstate.top_task);
+        task_instance* task = bottom<task_instance>(pstate.tstack);
         task_printf task_printer;
-        plnnr::walk_stack<blocks::task_type>(task, task_printer);
+        plnnr::walk_stack_up<blocks::task_type>(task, task_printer);
     }
     else
     {
