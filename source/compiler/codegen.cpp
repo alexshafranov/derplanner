@@ -244,6 +244,70 @@ namespace
         }
     };
 
+    class paste_effect_function_call : public paste_func
+    {
+    public:
+        node* function_call;
+
+        paste_effect_function_call(node* function_call)
+            : function_call(function_call)
+        {
+        }
+
+        virtual void operator()(formatter& output)
+        {
+            output.put_str(function_call->s_expr->token);
+            output.put_char('(');
+
+            for (node* argument = function_call->first_child; argument != 0; argument = argument->next_sibling)
+            {
+                switch (argument->type)
+                {
+                case node_term_variable:
+                    {
+                        node* def = definition(argument);
+                        plnnrc_assert(def);
+                        int var_index = annotation<term_ann>(def)->var_index;
+
+                        if (is_operator_parameter(def))
+                        {
+                            output.put_str("a->_");
+                            output.put_int(var_index);
+                        }
+                        else if (is_method_parameter(def))
+                        {
+                            output.put_str("method_args->_");
+                            output.put_int(var_index);
+                        }
+                        else
+                        {
+                            output.put_str("precondition->_");
+                            output.put_int(var_index);
+                        }
+                    }
+                    break;
+                case node_term_call:
+                    {
+                        paste_effect_function_call paste(argument);
+                        output.put_str("wstate->");
+                        paste(output);
+                    }
+                    break;
+                default:
+                    // unsupported argument type
+                    plnnrc_assert(false);
+                }
+
+                if (!is_last(argument))
+                {
+                    output.put_str(", ");
+                }
+            }
+
+            output.put_char(')');
+        }
+    };
+
     void generate_header_top(ast::tree& ast, const char* custom_header, formatter& output)
     {
         output.writeln("#include <derplanner/runtime/interface.h>");
@@ -889,21 +953,30 @@ namespace
 
             for (node* arg = effect->first_child; arg != 0; arg = arg->next_sibling)
             {
-                node* def = definition(arg);
-                plnnrc_assert(def);
-                int var_index = annotation<term_ann>(def)->var_index;
+                if (arg->type == node_term_variable)
+                {
+                    node* def = definition(arg);
+                    plnnrc_assert(def);
+                    int var_index = annotation<term_ann>(def)->var_index;
 
-                if (is_operator_parameter(def))
-                {
-                    output.writeln("tuple->_%d = a->_%d;", param_index, var_index);
+                    if (is_operator_parameter(def))
+                    {
+                        output.writeln("tuple->_%d = a->_%d;", param_index, var_index);
+                    }
+                    else if (is_method_parameter(def))
+                    {
+                        output.writeln("tuple->_%d = method_args->_%d;", param_index, var_index);
+                    }
+                    else
+                    {
+                        output.writeln("tuple->_%d = precondition->_%d;", param_index, var_index);
+                    }
                 }
-                else if (is_method_parameter(def))
+
+                if (arg->type == node_term_call)
                 {
-                    output.writeln("tuple->_%d = method_args->_%d;", param_index, var_index);
-                }
-                else
-                {
-                    output.writeln("tuple->_%d = precondition->_%d;", param_index, var_index);
+                    paste_effect_function_call paste(arg);
+                    output.writeln("tuple->_%d = wstate->%p;", param_index, &paste);
                 }
 
                 ++param_index;
