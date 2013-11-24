@@ -877,7 +877,7 @@ namespace
             for (node* branch = method->first_child->next_sibling; branch != 0; branch = branch->next_sibling)
             {
                 plnnrc_assert(branch->type == node_branch);
-                output.writeln("bool %i_branch_%d_expand(plnnr::planner_state& pstate, void* world);", method_name, branch_index);
+                output.writeln("bool %i_branch_%d_expand(plnnr::method_instance*, plnnr::planner_state&, void*);", method_name, branch_index);
                 ++branch_index;
             }
         }
@@ -1155,11 +1155,10 @@ namespace
 
                 plnnrc_assert(tasklist->type == node_task_list);
 
-                output.writeln("bool %i_branch_%d_expand(planner_state& pstate, void* world)", method_name, branch_index);
+                output.writeln("bool %i_branch_%d_expand(method_instance* method, planner_state& pstate, void* world)", method_name, branch_index);
                 {
                     scope s(output);
 
-                    output.writeln("method_instance* method = pstate.top_method;");
                     output.writeln("p%d_state* precondition = static_cast<p%d_state*>(method->precondition);", precondition_index, precondition_index);
                     output.writeln("worldstate* wstate = static_cast<worldstate*>(world);");
 

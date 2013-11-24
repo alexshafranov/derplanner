@@ -66,8 +66,9 @@ T* bottom(stack* s)
 }
 
 struct planner_state;
+struct method_instance;
 
-typedef bool (*expand_func)(planner_state&, void*);
+typedef bool (*expand_func)(method_instance*, planner_state&, void*);
 
 struct method_instance
 {

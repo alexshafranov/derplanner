@@ -183,7 +183,7 @@ bool next_branch(planner_state& pstate, expand_func expand, void* worldstate)
     method->stage = 0;
     method->expand = expand;
     pstate.mstack->rewind(method->precondition);
-    return method->expand(pstate, worldstate);
+    return method->expand(method, pstate, worldstate);
 }
 
 bool find_plan(planner_state& pstate, int root_method_type, expand_func root_method, void* worldstate)
@@ -212,7 +212,7 @@ find_plan_status find_plan_step(planner_state& pstate, void* worldstate)
         method_instance* method = pstate.top_method;
 
         // if found satisfying preconditions
-        if (method->expand(pstate, worldstate))
+        if (method->expand(method, pstate, worldstate))
         {
             if (method == pstate.top_method)
             {
