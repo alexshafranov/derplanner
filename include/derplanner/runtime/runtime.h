@@ -116,10 +116,10 @@ enum internal_task_type
 
 enum find_plan_status
 {
-    plan_found = 0,
-    plan_found_partial,
-    plan_not_found,
+    plan_not_found = 0,
     plan_in_progress,
+    plan_found_partial,
+    plan_found,
 };
 
 method_instance* push_method(planner_state& pstate, int task_type, expand_func expand);
