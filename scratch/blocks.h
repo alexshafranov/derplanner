@@ -309,37 +309,37 @@ inline bool operator==(const move_block1_args& a, const move_block1_args& b)
 		a._1 == b._1 ;
 }
 
-bool solve_branch_0_expand(plnnr::planner_state& pstate, void* world);
-bool mark_all_blocks_branch_0_expand(plnnr::planner_state& pstate, void* world);
-bool mark_block_branch_0_expand(plnnr::planner_state& pstate, void* world);
-bool mark_block_branch_1_expand(plnnr::planner_state& pstate, void* world);
-bool mark_block_recursive_branch_0_expand(plnnr::planner_state& pstate, void* world);
-bool mark_block_recursive_branch_1_expand(plnnr::planner_state& pstate, void* world);
-bool mark_block_term_branch_0_expand(plnnr::planner_state& pstate, void* world);
-bool mark_block_term_branch_1_expand(plnnr::planner_state& pstate, void* world);
-bool mark_block_term_branch_2_expand(plnnr::planner_state& pstate, void* world);
-bool mark_block_term_branch_3_expand(plnnr::planner_state& pstate, void* world);
-bool mark_block_term_branch_4_expand(plnnr::planner_state& pstate, void* world);
-bool mark_block_term_branch_5_expand(plnnr::planner_state& pstate, void* world);
-bool mark_block_term_branch_6_expand(plnnr::planner_state& pstate, void* world);
-bool find_all_movable_branch_0_expand(plnnr::planner_state& pstate, void* world);
-bool mark_move_type_branch_0_expand(plnnr::planner_state& pstate, void* world);
-bool mark_move_type_branch_1_expand(plnnr::planner_state& pstate, void* world);
-bool mark_move_type_branch_2_expand(plnnr::planner_state& pstate, void* world);
-bool move_block_branch_0_expand(plnnr::planner_state& pstate, void* world);
-bool move_block_branch_1_expand(plnnr::planner_state& pstate, void* world);
-bool move_block_branch_2_expand(plnnr::planner_state& pstate, void* world);
-bool move_block_branch_3_expand(plnnr::planner_state& pstate, void* world);
-bool check_branch_0_expand(plnnr::planner_state& pstate, void* world);
-bool check_branch_1_expand(plnnr::planner_state& pstate, void* world);
-bool check2_branch_0_expand(plnnr::planner_state& pstate, void* world);
-bool check2_branch_1_expand(plnnr::planner_state& pstate, void* world);
-bool check3_branch_0_expand(plnnr::planner_state& pstate, void* world);
-bool check3_branch_1_expand(plnnr::planner_state& pstate, void* world);
-bool check3_branch_2_expand(plnnr::planner_state& pstate, void* world);
-bool check3_branch_3_expand(plnnr::planner_state& pstate, void* world);
-bool move_block1_branch_0_expand(plnnr::planner_state& pstate, void* world);
-bool move_block1_branch_1_expand(plnnr::planner_state& pstate, void* world);
+bool solve_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool mark_all_blocks_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool mark_block_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool mark_block_branch_1_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool mark_block_recursive_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool mark_block_recursive_branch_1_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool mark_block_term_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool mark_block_term_branch_1_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool mark_block_term_branch_2_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool mark_block_term_branch_3_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool mark_block_term_branch_4_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool mark_block_term_branch_5_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool mark_block_term_branch_6_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool find_all_movable_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool mark_move_type_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool mark_move_type_branch_1_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool mark_move_type_branch_2_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool move_block_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool move_block_branch_1_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool move_block_branch_2_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool move_block_branch_3_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool check_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool check_branch_1_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool check2_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool check2_branch_1_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool check3_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool check3_branch_1_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool check3_branch_2_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool check3_branch_3_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool move_block1_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool move_block1_branch_1_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
 
 }
 

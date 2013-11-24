@@ -173,9 +173,8 @@ bool next(p3_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-bool root_branch_0_expand(planner_state& pstate, void* world)
+bool root_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p0_state* precondition = static_cast<p0_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 
@@ -206,9 +205,8 @@ bool root_branch_0_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool travel_branch_0_expand(planner_state& pstate, void* world)
+bool travel_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p1_state* precondition = static_cast<p1_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 	travel_args* method_args = static_cast<travel_args*>(method->args);
@@ -243,9 +241,8 @@ bool travel_branch_0_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool travel_branch_1_expand(planner_state& pstate, void* world)
+bool travel_branch_1_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p2_state* precondition = static_cast<p2_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 	travel_args* method_args = static_cast<travel_args*>(method->args);
@@ -279,9 +276,8 @@ bool travel_branch_1_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool travel_by_air_branch_0_expand(planner_state& pstate, void* world)
+bool travel_by_air_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p3_state* precondition = static_cast<p3_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 	travel_by_air_args* method_args = static_cast<travel_by_air_args*>(method->args);

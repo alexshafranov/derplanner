@@ -1001,9 +1001,8 @@ bool next(p30_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-bool solve_branch_0_expand(planner_state& pstate, void* world)
+bool solve_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p0_state* precondition = static_cast<p0_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 
@@ -1052,9 +1051,8 @@ bool solve_branch_0_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool mark_all_blocks_branch_0_expand(planner_state& pstate, void* world)
+bool mark_all_blocks_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p1_state* precondition = static_cast<p1_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 
@@ -1089,9 +1087,8 @@ bool mark_all_blocks_branch_0_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool mark_block_branch_0_expand(planner_state& pstate, void* world)
+bool mark_block_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p2_state* precondition = static_cast<p2_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 	mark_block_args* method_args = static_cast<mark_block_args*>(method->args);
@@ -1124,9 +1121,8 @@ bool mark_block_branch_0_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool mark_block_branch_1_expand(planner_state& pstate, void* world)
+bool mark_block_branch_1_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p3_state* precondition = static_cast<p3_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 	mark_block_args* method_args = static_cast<mark_block_args*>(method->args);
@@ -1150,9 +1146,8 @@ bool mark_block_branch_1_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool mark_block_recursive_branch_0_expand(planner_state& pstate, void* world)
+bool mark_block_recursive_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p4_state* precondition = static_cast<p4_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 	mark_block_recursive_args* method_args = static_cast<mark_block_recursive_args*>(method->args);
@@ -1199,9 +1194,8 @@ bool mark_block_recursive_branch_0_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool mark_block_recursive_branch_1_expand(planner_state& pstate, void* world)
+bool mark_block_recursive_branch_1_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p5_state* precondition = static_cast<p5_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 	mark_block_recursive_args* method_args = static_cast<mark_block_recursive_args*>(method->args);
@@ -1232,9 +1226,8 @@ bool mark_block_recursive_branch_1_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool mark_block_term_branch_0_expand(planner_state& pstate, void* world)
+bool mark_block_term_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p6_state* precondition = static_cast<p6_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 	mark_block_term_args* method_args = static_cast<mark_block_term_args*>(method->args);
@@ -1271,9 +1264,8 @@ bool mark_block_term_branch_0_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool mark_block_term_branch_1_expand(planner_state& pstate, void* world)
+bool mark_block_term_branch_1_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p7_state* precondition = static_cast<p7_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 	mark_block_term_args* method_args = static_cast<mark_block_term_args*>(method->args);
@@ -1310,9 +1302,8 @@ bool mark_block_term_branch_1_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool mark_block_term_branch_2_expand(planner_state& pstate, void* world)
+bool mark_block_term_branch_2_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p8_state* precondition = static_cast<p8_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 	mark_block_term_args* method_args = static_cast<mark_block_term_args*>(method->args);
@@ -1349,9 +1340,8 @@ bool mark_block_term_branch_2_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool mark_block_term_branch_3_expand(planner_state& pstate, void* world)
+bool mark_block_term_branch_3_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p9_state* precondition = static_cast<p9_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 	mark_block_term_args* method_args = static_cast<mark_block_term_args*>(method->args);
@@ -1388,9 +1378,8 @@ bool mark_block_term_branch_3_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool mark_block_term_branch_4_expand(planner_state& pstate, void* world)
+bool mark_block_term_branch_4_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p10_state* precondition = static_cast<p10_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 	mark_block_term_args* method_args = static_cast<mark_block_term_args*>(method->args);
@@ -1427,9 +1416,8 @@ bool mark_block_term_branch_4_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool mark_block_term_branch_5_expand(planner_state& pstate, void* world)
+bool mark_block_term_branch_5_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p11_state* precondition = static_cast<p11_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 	mark_block_term_args* method_args = static_cast<mark_block_term_args*>(method->args);
@@ -1466,9 +1454,8 @@ bool mark_block_term_branch_5_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool mark_block_term_branch_6_expand(planner_state& pstate, void* world)
+bool mark_block_term_branch_6_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p12_state* precondition = static_cast<p12_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 	mark_block_term_args* method_args = static_cast<mark_block_term_args*>(method->args);
@@ -1503,9 +1490,8 @@ bool mark_block_term_branch_6_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool find_all_movable_branch_0_expand(planner_state& pstate, void* world)
+bool find_all_movable_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p13_state* precondition = static_cast<p13_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 
@@ -1540,9 +1526,8 @@ bool find_all_movable_branch_0_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool mark_move_type_branch_0_expand(planner_state& pstate, void* world)
+bool mark_move_type_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p14_state* precondition = static_cast<p14_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 	mark_move_type_args* method_args = static_cast<mark_move_type_args*>(method->args);
@@ -1579,9 +1564,8 @@ bool mark_move_type_branch_0_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool mark_move_type_branch_1_expand(planner_state& pstate, void* world)
+bool mark_move_type_branch_1_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p15_state* precondition = static_cast<p15_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 	mark_move_type_args* method_args = static_cast<mark_move_type_args*>(method->args);
@@ -1619,9 +1603,8 @@ bool mark_move_type_branch_1_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool mark_move_type_branch_2_expand(planner_state& pstate, void* world)
+bool mark_move_type_branch_2_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p16_state* precondition = static_cast<p16_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 	mark_move_type_args* method_args = static_cast<mark_move_type_args*>(method->args);
@@ -1645,9 +1628,8 @@ bool mark_move_type_branch_2_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool move_block_branch_0_expand(planner_state& pstate, void* world)
+bool move_block_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p17_state* precondition = static_cast<p17_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 
@@ -1690,9 +1672,8 @@ bool move_block_branch_0_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool move_block_branch_1_expand(planner_state& pstate, void* world)
+bool move_block_branch_1_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p18_state* precondition = static_cast<p18_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 
@@ -1915,9 +1896,8 @@ bool move_block_branch_1_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool move_block_branch_2_expand(planner_state& pstate, void* world)
+bool move_block_branch_2_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p19_state* precondition = static_cast<p19_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 
@@ -2081,9 +2061,8 @@ bool move_block_branch_2_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool move_block_branch_3_expand(planner_state& pstate, void* world)
+bool move_block_branch_3_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p20_state* precondition = static_cast<p20_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 
@@ -2106,9 +2085,8 @@ bool move_block_branch_3_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool check_branch_0_expand(planner_state& pstate, void* world)
+bool check_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p21_state* precondition = static_cast<p21_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 	check_args* method_args = static_cast<check_args*>(method->args);
@@ -2146,9 +2124,8 @@ bool check_branch_0_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool check_branch_1_expand(planner_state& pstate, void* world)
+bool check_branch_1_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p22_state* precondition = static_cast<p22_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 	check_args* method_args = static_cast<check_args*>(method->args);
@@ -2172,9 +2149,8 @@ bool check_branch_1_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool check2_branch_0_expand(planner_state& pstate, void* world)
+bool check2_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p23_state* precondition = static_cast<p23_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 	check2_args* method_args = static_cast<check2_args*>(method->args);
@@ -2212,9 +2188,8 @@ bool check2_branch_0_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool check2_branch_1_expand(planner_state& pstate, void* world)
+bool check2_branch_1_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p24_state* precondition = static_cast<p24_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 	check2_args* method_args = static_cast<check2_args*>(method->args);
@@ -2238,9 +2213,8 @@ bool check2_branch_1_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool check3_branch_0_expand(planner_state& pstate, void* world)
+bool check3_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p25_state* precondition = static_cast<p25_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 	check3_args* method_args = static_cast<check3_args*>(method->args);
@@ -2266,9 +2240,8 @@ bool check3_branch_0_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool check3_branch_1_expand(planner_state& pstate, void* world)
+bool check3_branch_1_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p26_state* precondition = static_cast<p26_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 	check3_args* method_args = static_cast<check3_args*>(method->args);
@@ -2306,9 +2279,8 @@ bool check3_branch_1_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool check3_branch_2_expand(planner_state& pstate, void* world)
+bool check3_branch_2_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p27_state* precondition = static_cast<p27_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 	check3_args* method_args = static_cast<check3_args*>(method->args);
@@ -2345,9 +2317,8 @@ bool check3_branch_2_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool check3_branch_3_expand(planner_state& pstate, void* world)
+bool check3_branch_3_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p28_state* precondition = static_cast<p28_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 	check3_args* method_args = static_cast<check3_args*>(method->args);
@@ -2371,9 +2342,8 @@ bool check3_branch_3_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool move_block1_branch_0_expand(planner_state& pstate, void* world)
+bool move_block1_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p29_state* precondition = static_cast<p29_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 	move_block1_args* method_args = static_cast<move_block1_args*>(method->args);
@@ -2610,9 +2580,8 @@ bool move_block1_branch_0_expand(planner_state& pstate, void* world)
 	PLNNR_COROUTINE_END();
 }
 
-bool move_block1_branch_1_expand(planner_state& pstate, void* world)
+bool move_block1_branch_1_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	method_instance* method = pstate.top_method;
 	p30_state* precondition = static_cast<p30_state*>(method->precondition);
 	worldstate* wstate = static_cast<worldstate*>(world);
 	move_block1_args* method_args = static_cast<move_block1_args*>(method->args);

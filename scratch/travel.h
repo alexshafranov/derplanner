@@ -149,10 +149,10 @@ inline bool operator==(const travel_by_air_args& a, const travel_by_air_args& b)
 		a._1 == b._1 ;
 }
 
-bool root_branch_0_expand(plnnr::planner_state& pstate, void* world);
-bool travel_branch_0_expand(plnnr::planner_state& pstate, void* world);
-bool travel_branch_1_expand(plnnr::planner_state& pstate, void* world);
-bool travel_by_air_branch_0_expand(plnnr::planner_state& pstate, void* world);
+bool root_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool travel_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool travel_branch_1_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool travel_by_air_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
 
 }
 
