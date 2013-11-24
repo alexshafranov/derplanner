@@ -148,7 +148,7 @@ namespace
 
         virtual void operator()(formatter& output)
         {
-            output.put_str(function_call->s_expr->token);
+            output.put_id(function_call->s_expr->token);
             output.put_char('(');
 
             for (node* argument = function_call->first_child; argument != 0; argument = argument->next_sibling)
@@ -196,7 +196,7 @@ namespace
 
         virtual void operator()(formatter& output)
         {
-            output.put_str(function_call->s_expr->token);
+            output.put_id(function_call->s_expr->token);
             output.put_char('(');
 
             for (node* argument = function_call->first_child; argument != 0; argument = argument->next_sibling)
@@ -256,7 +256,7 @@ namespace
 
         virtual void operator()(formatter& output)
         {
-            output.put_str(function_call->s_expr->token);
+            output.put_id(function_call->s_expr->token);
             output.put_char('(');
 
             for (node* argument = function_call->first_child; argument != 0; argument = argument->next_sibling)
