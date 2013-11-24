@@ -902,21 +902,30 @@ namespace
 
                 for (node* arg = effect->first_child; arg != 0; arg = arg->next_sibling)
                 {
-                    node* def = definition(arg);
-                    plnnrc_assert(def);
-                    int var_index = annotation<term_ann>(def)->var_index;
+                    if (arg->type == node_term_variable)
+                    {
+                        node* def = definition(arg);
+                        plnnrc_assert(def);
+                        int var_index = annotation<term_ann>(def)->var_index;
 
-                    if (is_operator_parameter(def))
-                    {
-                        output.writeln("if (tuple->_%d != a->_%d)", param_index, var_index);
+                        if (is_operator_parameter(def))
+                        {
+                            output.writeln("if (tuple->_%d != a->_%d)", param_index, var_index);
+                        }
+                        else if (is_method_parameter(def))
+                        {
+                            output.writeln("if (tuple->_%d != method_args->_%d)", param_index, var_index);
+                        }
+                        else
+                        {
+                            output.writeln("if (tuple->_%d != precondition->_%d)", param_index, var_index);
+                        }
                     }
-                    else if (is_method_parameter(def))
+
+                    if (arg->type == node_term_call)
                     {
-                        output.writeln("if (tuple->_%d != method_args->_%d)", param_index, var_index);
-                    }
-                    else
-                    {
-                        output.writeln("if (tuple->_%d != precondition->_%d)", param_index, var_index);
+                        paste_effect_function_call paste(arg);
+                        output.writeln("if (tuple->_%d != wstate->%p)", param_index, &paste);
                     }
 
                     {
