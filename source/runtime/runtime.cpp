@@ -103,6 +103,20 @@ task_instance* push_task(planner_state& pstate, int task_type)
     return new_task;
 }
 
+void pop_task(planner_state& pstate)
+{
+    task_instance* top_task = pstate.top_task;
+    task_instance* prev_task = top_task->prev;
+    pstate.top_task = prev_task;
+
+    if (prev_task)
+    {
+        prev_task->next = 0;
+    }
+
+    pstate.tstack->rewind(top_task);
+}
+
 method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks_and_effects)
 {
     method_instance* old_top = pstate.top_method;
@@ -200,18 +214,35 @@ find_plan_status find_plan_step(planner_state& pstate, void* worldstate)
         // if found satisfying preconditions
         if (method->expand(pstate, worldstate))
         {
-            // expanded to primitive tasks => go up popping expanded methods.
             if (method == pstate.top_method)
             {
-                while (method && method->expanded)
+                // partial plan found
+                if (pstate.top_task && pstate.top_task->type == internal_task_yield)
                 {
-                    method = rewind_top_method(pstate, false);
+                    pop_task(pstate);
+
+                    // dump tail of the partial plan
+                    while (!method->expanded)
+                    {
+                        method->expand(pstate, worldstate);
+                    }
+
+                    return plan_found_partial;
                 }
 
-                // all methods were expanded => plan found.
-                if (!method)
+                // expanded to primitive tasks => go up popping expanded methods.
+                if (method->expanded)
                 {
-                    return plan_found;
+                    while (method && method->expanded)
+                    {
+                        method = rewind_top_method(pstate, false);
+                    }
+
+                    // all methods were expanded => plan found.
+                    if (!method)
+                    {
+                        return plan_found;
+                    }
                 }
             }
         }

@@ -997,6 +997,11 @@ namespace
         }
     }
 
+    void generate_yield(formatter& output)
+    {
+        output.writeln("push_task(pstate, internal_task_yield);");
+    }
+
     void generate_operator_effects(tree& ast, node* method, node* task_atom, formatter& output)
     {
         node* operatr = ast.operators.find(task_atom->s_expr->token);
@@ -1209,7 +1214,11 @@ namespace
                             {
                                 scope s(output);
 
-                                if (task_atom->type == node_add_list)
+                                if (task_atom->type == node_task_yield)
+                                {
+                                    generate_yield(output);
+                                }
+                                else if (task_atom->type == node_add_list)
                                 {
                                     generate_effects_add(task_atom, output);
                                 }
@@ -1237,7 +1246,7 @@ namespace
                                 output.writeln("method->expanded = true;");
                             }
 
-                            if (is_last(task_atom) || (!is_effect_list(task_atom) && (is_method(ast, task_atom) || is_operator(ast, task_atom))))
+                            if (is_last(task_atom) || !is_effect_list(task_atom))
                             {
                                 output.writeln("PLNNR_COROUTINE_YIELD(*method);");
 

@@ -109,15 +109,22 @@ struct planner_state
 
 void reset(planner_state& pstate);
 
+enum internal_task_type
+{
+    internal_task_yield = -1,
+};
+
 enum find_plan_status
 {
     plan_found = 0,
+    plan_found_partial,
     plan_not_found,
     plan_in_progress,
 };
 
 method_instance* push_method(planner_state& pstate, int task_type, expand_func expand);
 task_instance* push_task(planner_state& pstate, int task_type);
+void pop_task(planner_state& pstate);
 method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks);
 void undo_effects(stack* journal);
 bool next_branch(planner_state& pstate, expand_func expand, void* worldstate);

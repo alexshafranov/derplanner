@@ -130,14 +130,12 @@ inline node* first_parameter_usage(node* parameter, node* precondition)
 
 inline bool is_operator(tree& ast, node* atom)
 {
-    plnnrc_assert(atom->type == node_atom);
-    return ast.operators.find(atom->s_expr->token);
+    return (atom->type == node_atom) && ast.operators.find(atom->s_expr->token);
 }
 
 inline bool is_method(tree& ast, node* atom)
 {
-    plnnrc_assert(atom->type == node_atom);
-    return ast.methods.find(atom->s_expr->token);
+    return (atom->type == node_atom) && ast.methods.find(atom->s_expr->token);
 }
 
 inline node* find_child(node* parent, node_type type)

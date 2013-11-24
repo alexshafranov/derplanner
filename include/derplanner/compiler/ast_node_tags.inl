@@ -36,6 +36,7 @@ PLNNRC_AST_NODE_INNER(node_branch)
 PLNNRC_AST_NODE_INNER(node_operator)
 PLNNRC_AST_NODE_INNER(node_atomlist)
 PLNNRC_AST_NODE_INNER(node_task_list)
+PLNNRC_AST_NODE_LEAF(node_task_yield)
 PLNNRC_AST_NODE_INNER(node_add_list)
 PLNNRC_AST_NODE_INNER(node_delete_list)
 
