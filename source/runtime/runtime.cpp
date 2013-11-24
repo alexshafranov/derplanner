@@ -220,13 +220,6 @@ find_plan_status find_plan_step(planner_state& pstate, void* worldstate)
                 if (pstate.top_task && pstate.top_task->type == internal_task_yield)
                 {
                     pop_task(pstate);
-
-                    // dump tail of the partial plan
-                    while (!method->expanded)
-                    {
-                        method->expand(pstate, worldstate);
-                    }
-
                     return plan_found_partial;
                 }
 
