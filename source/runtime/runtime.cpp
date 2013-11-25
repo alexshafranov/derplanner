@@ -52,6 +52,11 @@ void stack::rewind(void* position)
     _top = static_cast<char*>(position);
 }
 
+void stack::rewind(size_t offset)
+{
+    _top = _buffer + offset;
+}
+
 void stack::reset()
 {
     rewind(_buffer);
@@ -69,16 +74,19 @@ void reset(planner_state& pstate)
 method_instance* push_method(planner_state& pstate, int task_type, expand_func expand)
 {
     method_instance* new_method = push<method_instance>(pstate.mstack);
+
+    new_method->flags = method_flags_none;
+    new_method->args_align = 0;
+    new_method->precondition_align = 0;
     new_method->type = task_type;
-    new_method->expand = expand;
-    new_method->args = 0;
-    new_method->prev = pstate.top_method;
+    new_method->args_size = 0;
+    new_method->precondition_size = 0;
     new_method->precondition = 0;
-    new_method->trewind = 0;
-    new_method->mrewind = 0;
-    new_method->expanded = false;
-    new_method->failed = false;
+    new_method->task_rewind = 0;
+    new_method->journal_rewind = 0;
     new_method->stage = 0;
+    new_method->expand = expand;
+    new_method->prev = pstate.top_method;
 
     pstate.top_method = new_method;
 
@@ -124,28 +132,29 @@ method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks_and_
 
     if (new_top)
     {
-        pstate.mstack->rewind(new_top->mrewind);
+        // rewind everything after parent method precondition
+        pstate.mstack->rewind(precondition_end(new_top));
 
         if (rewind_tasks_and_effects)
         {
-            new_top->failed = true;
+            new_top->flags |= method_flags_failed;
 
             // rewind tasks
-            if (new_top->trewind < pstate.tstack->top())
+            if (new_top->task_rewind < pstate.tstack->top_offset())
             {
-                task_instance* task = memory::align<task_instance>(new_top->trewind);
+                task_instance* task = memory::align<task_instance>(pstate.tstack->ptr(new_top->task_rewind));
                 task_instance* top_task = task->prev;
 
-                pstate.tstack->rewind(new_top->trewind);
+                pstate.tstack->rewind(new_top->task_rewind);
 
                 pstate.top_task = top_task;
                 pstate.top_task->next = 0;
             }
 
             // rewind effects
-            if (new_top->jrewind < pstate.journal->top())
+            if (new_top->journal_rewind < pstate.journal->top_offset())
             {
-                operator_effect* bottom = static_cast<operator_effect*>(new_top->jrewind);
+                operator_effect* bottom = static_cast<operator_effect*>(pstate.journal->ptr(new_top->journal_rewind));
                 operator_effect* top = static_cast<operator_effect*>(pstate.journal->top()) - 1;
 
                 for (; top != bottom-1; --top)
@@ -153,7 +162,7 @@ method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks_and_
                     tuple_list::undo(top->list, top->tuple);
                 }
 
-                pstate.journal->rewind(new_top->jrewind);
+                pstate.journal->rewind(new_top->journal_rewind);
             }
         }
     }
@@ -182,7 +191,7 @@ bool next_branch(planner_state& pstate, expand_func expand, void* worldstate)
     method_instance* method = pstate.top_method;
     method->stage = 0;
     method->expand = expand;
-    pstate.mstack->rewind(method->precondition);
+    pstate.mstack->rewind(precondition(method));
     return method->expand(method, pstate, worldstate);
 }
 
@@ -224,9 +233,9 @@ find_plan_status find_plan_step(planner_state& pstate, void* worldstate)
                 }
 
                 // expanded to primitive tasks => go up popping expanded methods.
-                if (method->expanded)
+                if (method->flags & method_flags_expanded)
                 {
-                    while (method && method->expanded)
+                    while (method && (method->flags & method_flags_expanded))
                     {
                         method = rewind_top_method(pstate, false);
                     }

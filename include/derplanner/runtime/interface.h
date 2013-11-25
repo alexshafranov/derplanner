@@ -66,25 +66,25 @@ void reflect(const T& generated_type, V& visitor)
 }
 
 template <typename T, typename I, typename V>
-void dispatch(const I* task_instance, V& visitor)
+void dispatch(I* task_instance, V& visitor)
 {
     task_type_dispatcher<T, V> dispatcher;
-    dispatcher(static_cast<T>(task_instance->type), task_instance->args, visitor);
+    dispatcher(static_cast<T>(task_instance->type), arguments(task_instance), visitor);
 }
 
 template <typename T, typename I, typename V>
-void walk_stack_down(const I* top_task, V& visitor)
+void walk_stack_down(I* top_task, V& visitor)
 {
-    for (const I* task = top_task; task != 0; task = task->prev)
+    for (I* task = top_task; task != 0; task = task->prev)
     {
         dispatch<T>(task, visitor);
     }
 }
 
 template <typename T, typename I, typename V>
-void walk_stack_up(const I* top_task, V& visitor)
+void walk_stack_up(I* top_task, V& visitor)
 {
-    for (const I* task = top_task; task != 0; task = task->next)
+    for (I* task = top_task; task != 0; task = task->next)
     {
         dispatch<T>(task, visitor);
     }

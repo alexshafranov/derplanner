@@ -1042,7 +1042,7 @@ namespace
 
         if (task_atom->first_child)
         {
-            output.writeln("%i_args* a = push<%i_args>(pstate.tstack);", task_atom->s_expr->token, task_atom->s_expr->token);
+            output.writeln("%i_args* a = push_arguments<%i_args>(pstate, t);", task_atom->s_expr->token, task_atom->s_expr->token);
         }
 
         int param_index = 0;
@@ -1072,11 +1072,6 @@ namespace
             }
 
             ++param_index;
-        }
-
-        if (task_atom->first_child)
-        {
-            output.writeln("t->args = a;");
         }
 
         generate_operator_effects(ast, method, task_atom, output);
@@ -1090,7 +1085,7 @@ namespace
 
         if (task_atom->first_child)
         {
-            output.writeln("%i_args* a = push<%i_args>(pstate.mstack);", task_atom->s_expr->token, task_atom->s_expr->token);
+            output.writeln("%i_args* a = push_arguments<%i_args>(pstate, t);", task_atom->s_expr->token, task_atom->s_expr->token);
         }
 
         int param_index = 0;
@@ -1120,11 +1115,6 @@ namespace
             }
 
             ++param_index;
-        }
-
-        if (task_atom->first_child)
-        {
-            output.writeln("t->args = a;");
         }
     }
 
@@ -1159,20 +1149,20 @@ namespace
                 {
                     scope s(output);
 
-                    output.writeln("p%d_state* precondition = static_cast<p%d_state*>(method->precondition);", precondition_index, precondition_index);
-                    output.writeln("worldstate* wstate = static_cast<worldstate*>(world);");
+                    output.writeln("p%d_state* precondition = plnnr::precondition<p%d_state>(method);", precondition_index, precondition_index);
 
                     if (has_parameters(method))
                     {
-                        output.writeln("%i_args* method_args = static_cast<%i_args*>(method->args);", method_name, method_name);
+                        output.writeln("%i_args* method_args = plnnr::arguments<%i_args>(method);", method_name, method_name);
                     }
+
+                    output.writeln("worldstate* wstate = static_cast<worldstate*>(world);");
 
                     output.newline();
                     output.writeln("PLNNR_COROUTINE_BEGIN(*method);");
                     output.newline();
 
-                    output.writeln("precondition = push<p%d_state>(pstate.mstack);", precondition_index);
-                    output.writeln("precondition->stage = 0;");
+                    output.writeln("precondition = push_precondition<p%d_state>(pstate, method);", precondition_index);
 
                     for (node* param = atom->first_child; param != 0; param = param->next_sibling)
                     {
@@ -1188,10 +1178,8 @@ namespace
                     }
 
                     output.newline();
-                    output.writeln("method->precondition = precondition;");
-                    output.writeln("method->mrewind = pstate.mstack->top();");
-                    output.writeln("method->trewind = pstate.tstack->top();");
-                    output.writeln("method->jrewind = pstate.journal->top();");
+                    output.writeln("method->task_rewind = pstate.tstack->top_offset();");
+                    output.writeln("method->journal_rewind = pstate.journal->top_offset();");
                     output.newline();
 
                     output.writeln("while (next(*precondition, *wstate))");
@@ -1202,7 +1190,7 @@ namespace
                         {
                             if (!ann->foreach)
                             {
-                                output.writeln("method->expanded = true;");
+                                output.writeln("method->flags |= method_flags_expanded;");
                             }
 
                             output.writeln("PLNNR_COROUTINE_YIELD(*method);");
@@ -1242,7 +1230,7 @@ namespace
 
                             if (is_last(task_atom) && !ann->foreach)
                             {
-                                output.writeln("method->expanded = true;");
+                                output.writeln("method->flags |= method_flags_expanded;");
                             }
 
                             if (is_last(task_atom) || !is_effect_list(task_atom))
@@ -1255,7 +1243,7 @@ namespace
 
                                     if (is_method(ast, task_atom))
                                     {
-                                        output.writeln("if (method->failed)");
+                                        output.writeln("if (method->flags & method_flags_failed)");
                                         {
                                             scope s(output, true);
                                             output.writeln("continue;");
@@ -1271,7 +1259,7 @@ namespace
                         output.writeln("if (precondition->stage > 0)");
                         {
                             scope s(output);
-                            output.writeln("method->expanded = true;");
+                            output.writeln("method->flags |= method_flags_expanded;");
                             output.writeln("PLNNR_COROUTINE_YIELD(*method);");
                         }
                     }
