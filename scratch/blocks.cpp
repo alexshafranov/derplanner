@@ -1003,18 +1003,15 @@ bool next(p30_state& state, worldstate& world)
 
 bool solve_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p0_state* precondition = static_cast<p0_state*>(method->precondition);
+	p0_state* precondition = plnnr::precondition<p0_state>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p0_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p0_state>(pstate, method);
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
@@ -1024,7 +1021,7 @@ bool solve_branch_0_expand(method_instance* method, planner_state& pstate, void*
 
 		PLNNR_COROUTINE_YIELD(*method);
 
-		if (method->failed)
+		if (method->flags & method_flags_failed)
 		{
 			continue;
 		}
@@ -1035,7 +1032,7 @@ bool solve_branch_0_expand(method_instance* method, planner_state& pstate, void*
 
 		PLNNR_COROUTINE_YIELD(*method);
 
-		if (method->failed)
+		if (method->flags & method_flags_failed)
 		{
 			continue;
 		}
@@ -1044,7 +1041,7 @@ bool solve_branch_0_expand(method_instance* method, planner_state& pstate, void*
 			method_instance* t = push_method(pstate, task_move_block, move_block_branch_0_expand);
 		}
 
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -1053,26 +1050,22 @@ bool solve_branch_0_expand(method_instance* method, planner_state& pstate, void*
 
 bool mark_all_blocks_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p1_state* precondition = static_cast<p1_state*>(method->precondition);
+	p1_state* precondition = plnnr::precondition<p1_state>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p1_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p1_state>(pstate, method);
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
 		{
 			method_instance* t = push_method(pstate, task_mark_block, mark_block_branch_0_expand);
-			mark_block_args* a = push<mark_block_args>(pstate.mstack);
+			mark_block_args* a = push_arguments<mark_block_args>(pstate, t);
 			a->_0 = precondition->_0;
-			t->args = a;
 		}
 
 		PLNNR_COROUTINE_YIELD(*method);
@@ -1080,7 +1073,7 @@ bool mark_all_blocks_branch_0_expand(method_instance* method, planner_state& pst
 
 	if (precondition->stage > 0)
 	{
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -1089,31 +1082,27 @@ bool mark_all_blocks_branch_0_expand(method_instance* method, planner_state& pst
 
 bool mark_block_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p2_state* precondition = static_cast<p2_state*>(method->precondition);
+	p2_state* precondition = plnnr::precondition<p2_state>(method);
+	mark_block_args* method_args = plnnr::arguments<mark_block_args>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
-	mark_block_args* method_args = static_cast<mark_block_args*>(method->args);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p2_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p2_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
 		{
 			method_instance* t = push_method(pstate, task_mark_block_recursive, mark_block_recursive_branch_0_expand);
-			mark_block_recursive_args* a = push<mark_block_recursive_args>(pstate.mstack);
+			mark_block_recursive_args* a = push_arguments<mark_block_recursive_args>(pstate, t);
 			a->_0 = method_args->_0;
-			t->args = a;
 		}
 
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -1123,23 +1112,20 @@ bool mark_block_branch_0_expand(method_instance* method, planner_state& pstate, 
 
 bool mark_block_branch_1_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p3_state* precondition = static_cast<p3_state*>(method->precondition);
+	p3_state* precondition = plnnr::precondition<p3_state>(method);
+	mark_block_args* method_args = plnnr::arguments<mark_block_args>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
-	mark_block_args* method_args = static_cast<mark_block_args*>(method->args);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p3_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p3_state>(pstate, method);
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -1148,45 +1134,40 @@ bool mark_block_branch_1_expand(method_instance* method, planner_state& pstate, 
 
 bool mark_block_recursive_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p4_state* precondition = static_cast<p4_state*>(method->precondition);
+	p4_state* precondition = plnnr::precondition<p4_state>(method);
+	mark_block_recursive_args* method_args = plnnr::arguments<mark_block_recursive_args>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
-	mark_block_recursive_args* method_args = static_cast<mark_block_recursive_args*>(method->args);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p4_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p4_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
 		{
 			method_instance* t = push_method(pstate, task_mark_block_recursive, mark_block_recursive_branch_0_expand);
-			mark_block_recursive_args* a = push<mark_block_recursive_args>(pstate.mstack);
+			mark_block_recursive_args* a = push_arguments<mark_block_recursive_args>(pstate, t);
 			a->_0 = precondition->_1;
-			t->args = a;
 		}
 
 		PLNNR_COROUTINE_YIELD(*method);
 
-		if (method->failed)
+		if (method->flags & method_flags_failed)
 		{
 			continue;
 		}
 
 		{
 			method_instance* t = push_method(pstate, task_mark_block_term, mark_block_term_branch_0_expand);
-			mark_block_term_args* a = push<mark_block_term_args>(pstate.mstack);
+			mark_block_term_args* a = push_arguments<mark_block_term_args>(pstate, t);
 			a->_0 = method_args->_0;
-			t->args = a;
 		}
 
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -1196,30 +1177,26 @@ bool mark_block_recursive_branch_0_expand(method_instance* method, planner_state
 
 bool mark_block_recursive_branch_1_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p5_state* precondition = static_cast<p5_state*>(method->precondition);
+	p5_state* precondition = plnnr::precondition<p5_state>(method);
+	mark_block_recursive_args* method_args = plnnr::arguments<mark_block_recursive_args>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
-	mark_block_recursive_args* method_args = static_cast<mark_block_recursive_args*>(method->args);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p5_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p5_state>(pstate, method);
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
 		{
 			method_instance* t = push_method(pstate, task_mark_block_term, mark_block_term_branch_0_expand);
-			mark_block_term_args* a = push<mark_block_term_args>(pstate.mstack);
+			mark_block_term_args* a = push_arguments<mark_block_term_args>(pstate, t);
 			a->_0 = method_args->_0;
-			t->args = a;
 		}
 
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -1228,20 +1205,17 @@ bool mark_block_recursive_branch_1_expand(method_instance* method, planner_state
 
 bool mark_block_term_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p6_state* precondition = static_cast<p6_state*>(method->precondition);
+	p6_state* precondition = plnnr::precondition<p6_state>(method);
+	mark_block_term_args* method_args = plnnr::arguments<mark_block_term_args>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
-	mark_block_term_args* method_args = static_cast<mark_block_term_args*>(method->args);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p6_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p6_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
@@ -1256,7 +1230,7 @@ bool mark_block_term_branch_0_expand(method_instance* method, planner_state& pst
 			}
 		}
 
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -1266,20 +1240,17 @@ bool mark_block_term_branch_0_expand(method_instance* method, planner_state& pst
 
 bool mark_block_term_branch_1_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p7_state* precondition = static_cast<p7_state*>(method->precondition);
+	p7_state* precondition = plnnr::precondition<p7_state>(method);
+	mark_block_term_args* method_args = plnnr::arguments<mark_block_term_args>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
-	mark_block_term_args* method_args = static_cast<mark_block_term_args*>(method->args);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p7_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p7_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
@@ -1294,7 +1265,7 @@ bool mark_block_term_branch_1_expand(method_instance* method, planner_state& pst
 			}
 		}
 
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -1304,20 +1275,17 @@ bool mark_block_term_branch_1_expand(method_instance* method, planner_state& pst
 
 bool mark_block_term_branch_2_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p8_state* precondition = static_cast<p8_state*>(method->precondition);
+	p8_state* precondition = plnnr::precondition<p8_state>(method);
+	mark_block_term_args* method_args = plnnr::arguments<mark_block_term_args>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
-	mark_block_term_args* method_args = static_cast<mark_block_term_args*>(method->args);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p8_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p8_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
@@ -1332,7 +1300,7 @@ bool mark_block_term_branch_2_expand(method_instance* method, planner_state& pst
 			}
 		}
 
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -1342,20 +1310,17 @@ bool mark_block_term_branch_2_expand(method_instance* method, planner_state& pst
 
 bool mark_block_term_branch_3_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p9_state* precondition = static_cast<p9_state*>(method->precondition);
+	p9_state* precondition = plnnr::precondition<p9_state>(method);
+	mark_block_term_args* method_args = plnnr::arguments<mark_block_term_args>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
-	mark_block_term_args* method_args = static_cast<mark_block_term_args*>(method->args);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p9_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p9_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
@@ -1370,7 +1335,7 @@ bool mark_block_term_branch_3_expand(method_instance* method, planner_state& pst
 			}
 		}
 
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -1380,20 +1345,17 @@ bool mark_block_term_branch_3_expand(method_instance* method, planner_state& pst
 
 bool mark_block_term_branch_4_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p10_state* precondition = static_cast<p10_state*>(method->precondition);
+	p10_state* precondition = plnnr::precondition<p10_state>(method);
+	mark_block_term_args* method_args = plnnr::arguments<mark_block_term_args>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
-	mark_block_term_args* method_args = static_cast<mark_block_term_args*>(method->args);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p10_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p10_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
@@ -1408,7 +1370,7 @@ bool mark_block_term_branch_4_expand(method_instance* method, planner_state& pst
 			}
 		}
 
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -1418,20 +1380,17 @@ bool mark_block_term_branch_4_expand(method_instance* method, planner_state& pst
 
 bool mark_block_term_branch_5_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p11_state* precondition = static_cast<p11_state*>(method->precondition);
+	p11_state* precondition = plnnr::precondition<p11_state>(method);
+	mark_block_term_args* method_args = plnnr::arguments<mark_block_term_args>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
-	mark_block_term_args* method_args = static_cast<mark_block_term_args*>(method->args);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p11_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p11_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
@@ -1446,7 +1405,7 @@ bool mark_block_term_branch_5_expand(method_instance* method, planner_state& pst
 			}
 		}
 
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -1456,19 +1415,16 @@ bool mark_block_term_branch_5_expand(method_instance* method, planner_state& pst
 
 bool mark_block_term_branch_6_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p12_state* precondition = static_cast<p12_state*>(method->precondition);
+	p12_state* precondition = plnnr::precondition<p12_state>(method);
+	mark_block_term_args* method_args = plnnr::arguments<mark_block_term_args>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
-	mark_block_term_args* method_args = static_cast<mark_block_term_args*>(method->args);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p12_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p12_state>(pstate, method);
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
@@ -1483,7 +1439,7 @@ bool mark_block_term_branch_6_expand(method_instance* method, planner_state& pst
 			}
 		}
 
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -1492,26 +1448,22 @@ bool mark_block_term_branch_6_expand(method_instance* method, planner_state& pst
 
 bool find_all_movable_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p13_state* precondition = static_cast<p13_state*>(method->precondition);
+	p13_state* precondition = plnnr::precondition<p13_state>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p13_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p13_state>(pstate, method);
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
 		{
 			method_instance* t = push_method(pstate, task_mark_move_type, mark_move_type_branch_0_expand);
-			mark_move_type_args* a = push<mark_move_type_args>(pstate.mstack);
+			mark_move_type_args* a = push_arguments<mark_move_type_args>(pstate, t);
 			a->_0 = precondition->_0;
-			t->args = a;
 		}
 
 		PLNNR_COROUTINE_YIELD(*method);
@@ -1519,7 +1471,7 @@ bool find_all_movable_branch_0_expand(method_instance* method, planner_state& ps
 
 	if (precondition->stage > 0)
 	{
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -1528,20 +1480,17 @@ bool find_all_movable_branch_0_expand(method_instance* method, planner_state& ps
 
 bool mark_move_type_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p14_state* precondition = static_cast<p14_state*>(method->precondition);
+	p14_state* precondition = plnnr::precondition<p14_state>(method);
+	mark_move_type_args* method_args = plnnr::arguments<mark_move_type_args>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
-	mark_move_type_args* method_args = static_cast<mark_move_type_args*>(method->args);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p14_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p14_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
@@ -1556,7 +1505,7 @@ bool mark_move_type_branch_0_expand(method_instance* method, planner_state& psta
 			}
 		}
 
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -1566,20 +1515,17 @@ bool mark_move_type_branch_0_expand(method_instance* method, planner_state& psta
 
 bool mark_move_type_branch_1_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p15_state* precondition = static_cast<p15_state*>(method->precondition);
+	p15_state* precondition = plnnr::precondition<p15_state>(method);
+	mark_move_type_args* method_args = plnnr::arguments<mark_move_type_args>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
-	mark_move_type_args* method_args = static_cast<mark_move_type_args*>(method->args);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p15_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p15_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
@@ -1595,7 +1541,7 @@ bool mark_move_type_branch_1_expand(method_instance* method, planner_state& psta
 			}
 		}
 
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -1605,23 +1551,20 @@ bool mark_move_type_branch_1_expand(method_instance* method, planner_state& psta
 
 bool mark_move_type_branch_2_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p16_state* precondition = static_cast<p16_state*>(method->precondition);
+	p16_state* precondition = plnnr::precondition<p16_state>(method);
+	mark_move_type_args* method_args = plnnr::arguments<mark_move_type_args>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
-	mark_move_type_args* method_args = static_cast<mark_move_type_args*>(method->args);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p16_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p16_state>(pstate, method);
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -1630,32 +1573,28 @@ bool mark_move_type_branch_2_expand(method_instance* method, planner_state& psta
 
 bool move_block_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p17_state* precondition = static_cast<p17_state*>(method->precondition);
+	p17_state* precondition = plnnr::precondition<p17_state>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p17_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p17_state>(pstate, method);
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
 		{
 			method_instance* t = push_method(pstate, task_move_block1, move_block1_branch_0_expand);
-			move_block1_args* a = push<move_block1_args>(pstate.mstack);
+			move_block1_args* a = push_arguments<move_block1_args>(pstate, t);
 			a->_0 = precondition->_0;
 			a->_1 = precondition->_1;
-			t->args = a;
 		}
 
 		PLNNR_COROUTINE_YIELD(*method);
 
-		if (method->failed)
+		if (method->flags & method_flags_failed)
 		{
 			continue;
 		}
@@ -1664,7 +1603,7 @@ bool move_block_branch_0_expand(method_instance* method, planner_state& pstate, 
 			method_instance* t = push_method(pstate, task_move_block, move_block_branch_0_expand);
 		}
 
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -1674,27 +1613,23 @@ bool move_block_branch_0_expand(method_instance* method, planner_state& pstate, 
 
 bool move_block_branch_1_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p18_state* precondition = static_cast<p18_state*>(method->precondition);
+	p18_state* precondition = plnnr::precondition<p18_state>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p18_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p18_state>(pstate, method);
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
 		{
 			task_instance* t = push_task(pstate, task_unstack);
-			unstack_args* a = push<unstack_args>(pstate.tstack);
+			unstack_args* a = push_arguments<unstack_args>(pstate, t);
 			a->_0 = precondition->_0;
 			a->_1 = precondition->_1;
-			t->args = a;
 
 			for (clear_tuple* tuple = tuple_list::head<clear_tuple>(wstate->atoms[atom_clear]); tuple != 0; tuple = tuple->next)
 			{
@@ -1756,9 +1691,8 @@ bool move_block_branch_1_expand(method_instance* method, planner_state& pstate, 
 
 		{
 			task_instance* t = push_task(pstate, task_putdown);
-			putdown_args* a = push<putdown_args>(pstate.tstack);
+			putdown_args* a = push_arguments<putdown_args>(pstate, t);
 			a->_0 = precondition->_0;
-			t->args = a;
 
 			for (holding_tuple* tuple = tuple_list::head<holding_tuple>(wstate->atoms[atom_holding]); tuple != 0; tuple = tuple->next)
 			{
@@ -1844,42 +1778,39 @@ bool move_block_branch_1_expand(method_instance* method, planner_state& pstate, 
 
 		{
 			method_instance* t = push_method(pstate, task_check, check_branch_0_expand);
-			check_args* a = push<check_args>(pstate.mstack);
+			check_args* a = push_arguments<check_args>(pstate, t);
 			a->_0 = precondition->_0;
-			t->args = a;
 		}
 
 		PLNNR_COROUTINE_YIELD(*method);
 
-		if (method->failed)
+		if (method->flags & method_flags_failed)
 		{
 			continue;
 		}
 
 		{
 			method_instance* t = push_method(pstate, task_check2, check2_branch_0_expand);
-			check2_args* a = push<check2_args>(pstate.mstack);
+			check2_args* a = push_arguments<check2_args>(pstate, t);
 			a->_0 = precondition->_1;
-			t->args = a;
 		}
 
 		PLNNR_COROUTINE_YIELD(*method);
 
-		if (method->failed)
+		if (method->flags & method_flags_failed)
 		{
 			continue;
 		}
 
 		{
 			method_instance* t = push_method(pstate, task_check3, check3_branch_0_expand);
-			check3_args* a = push<check3_args>(pstate.mstack);
+			check3_args* a = push_arguments<check3_args>(pstate, t);
 			a->_0 = precondition->_1;
-			t->args = a;
 		}
 
 		PLNNR_COROUTINE_YIELD(*method);
 
-		if (method->failed)
+		if (method->flags & method_flags_failed)
 		{
 			continue;
 		}
@@ -1888,7 +1819,7 @@ bool move_block_branch_1_expand(method_instance* method, planner_state& pstate, 
 			method_instance* t = push_method(pstate, task_move_block, move_block_branch_0_expand);
 		}
 
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -1898,27 +1829,23 @@ bool move_block_branch_1_expand(method_instance* method, planner_state& pstate, 
 
 bool move_block_branch_2_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p19_state* precondition = static_cast<p19_state*>(method->precondition);
+	p19_state* precondition = plnnr::precondition<p19_state>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p19_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p19_state>(pstate, method);
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
 		{
 			task_instance* t = push_task(pstate, task_unstack);
-			unstack_args* a = push<unstack_args>(pstate.tstack);
+			unstack_args* a = push_arguments<unstack_args>(pstate, t);
 			a->_0 = precondition->_0;
 			a->_1 = precondition->_1;
-			t->args = a;
 
 			for (clear_tuple* tuple = tuple_list::head<clear_tuple>(wstate->atoms[atom_clear]); tuple != 0; tuple = tuple->next)
 			{
@@ -1980,9 +1907,8 @@ bool move_block_branch_2_expand(method_instance* method, planner_state& pstate, 
 
 		{
 			task_instance* t = push_task(pstate, task_putdown);
-			putdown_args* a = push<putdown_args>(pstate.tstack);
+			putdown_args* a = push_arguments<putdown_args>(pstate, t);
 			a->_0 = precondition->_0;
-			t->args = a;
 
 			for (holding_tuple* tuple = tuple_list::head<holding_tuple>(wstate->atoms[atom_holding]); tuple != 0; tuple = tuple->next)
 			{
@@ -2023,28 +1949,26 @@ bool move_block_branch_2_expand(method_instance* method, planner_state& pstate, 
 
 		{
 			method_instance* t = push_method(pstate, task_check2, check2_branch_0_expand);
-			check2_args* a = push<check2_args>(pstate.mstack);
+			check2_args* a = push_arguments<check2_args>(pstate, t);
 			a->_0 = precondition->_1;
-			t->args = a;
 		}
 
 		PLNNR_COROUTINE_YIELD(*method);
 
-		if (method->failed)
+		if (method->flags & method_flags_failed)
 		{
 			continue;
 		}
 
 		{
 			method_instance* t = push_method(pstate, task_check3, check3_branch_0_expand);
-			check3_args* a = push<check3_args>(pstate.mstack);
+			check3_args* a = push_arguments<check3_args>(pstate, t);
 			a->_0 = precondition->_1;
-			t->args = a;
 		}
 
 		PLNNR_COROUTINE_YIELD(*method);
 
-		if (method->failed)
+		if (method->flags & method_flags_failed)
 		{
 			continue;
 		}
@@ -2053,7 +1977,7 @@ bool move_block_branch_2_expand(method_instance* method, planner_state& pstate, 
 			method_instance* t = push_method(pstate, task_move_block, move_block_branch_0_expand);
 		}
 
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -2063,22 +1987,19 @@ bool move_block_branch_2_expand(method_instance* method, planner_state& pstate, 
 
 bool move_block_branch_3_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p20_state* precondition = static_cast<p20_state*>(method->precondition);
+	p20_state* precondition = plnnr::precondition<p20_state>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p20_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p20_state>(pstate, method);
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -2087,20 +2008,17 @@ bool move_block_branch_3_expand(method_instance* method, planner_state& pstate, 
 
 bool check_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p21_state* precondition = static_cast<p21_state*>(method->precondition);
+	p21_state* precondition = plnnr::precondition<p21_state>(method);
+	check_args* method_args = plnnr::arguments<check_args>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
-	check_args* method_args = static_cast<check_args*>(method->args);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p21_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p21_state>(pstate, method);
 	precondition->_1 = method_args->_0;
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
@@ -2116,7 +2034,7 @@ bool check_branch_0_expand(method_instance* method, planner_state& pstate, void*
 			}
 		}
 
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -2126,23 +2044,20 @@ bool check_branch_0_expand(method_instance* method, planner_state& pstate, void*
 
 bool check_branch_1_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p22_state* precondition = static_cast<p22_state*>(method->precondition);
+	p22_state* precondition = plnnr::precondition<p22_state>(method);
+	check_args* method_args = plnnr::arguments<check_args>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
-	check_args* method_args = static_cast<check_args*>(method->args);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p22_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p22_state>(pstate, method);
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -2151,20 +2066,17 @@ bool check_branch_1_expand(method_instance* method, planner_state& pstate, void*
 
 bool check2_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p23_state* precondition = static_cast<p23_state*>(method->precondition);
+	p23_state* precondition = plnnr::precondition<p23_state>(method);
+	check2_args* method_args = plnnr::arguments<check2_args>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
-	check2_args* method_args = static_cast<check2_args*>(method->args);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p23_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p23_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
@@ -2180,7 +2092,7 @@ bool check2_branch_0_expand(method_instance* method, planner_state& pstate, void
 			}
 		}
 
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -2190,23 +2102,20 @@ bool check2_branch_0_expand(method_instance* method, planner_state& pstate, void
 
 bool check2_branch_1_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p24_state* precondition = static_cast<p24_state*>(method->precondition);
+	p24_state* precondition = plnnr::precondition<p24_state>(method);
+	check2_args* method_args = plnnr::arguments<check2_args>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
-	check2_args* method_args = static_cast<check2_args*>(method->args);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p24_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p24_state>(pstate, method);
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -2215,24 +2124,21 @@ bool check2_branch_1_expand(method_instance* method, planner_state& pstate, void
 
 bool check3_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p25_state* precondition = static_cast<p25_state*>(method->precondition);
+	p25_state* precondition = plnnr::precondition<p25_state>(method);
+	check3_args* method_args = plnnr::arguments<check3_args>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
-	check3_args* method_args = static_cast<check3_args*>(method->args);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p25_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p25_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -2242,20 +2148,17 @@ bool check3_branch_0_expand(method_instance* method, planner_state& pstate, void
 
 bool check3_branch_1_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p26_state* precondition = static_cast<p26_state*>(method->precondition);
+	p26_state* precondition = plnnr::precondition<p26_state>(method);
+	check3_args* method_args = plnnr::arguments<check3_args>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
-	check3_args* method_args = static_cast<check3_args*>(method->args);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p26_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p26_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
@@ -2271,7 +2174,7 @@ bool check3_branch_1_expand(method_instance* method, planner_state& pstate, void
 			}
 		}
 
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -2281,20 +2184,17 @@ bool check3_branch_1_expand(method_instance* method, planner_state& pstate, void
 
 bool check3_branch_2_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p27_state* precondition = static_cast<p27_state*>(method->precondition);
+	p27_state* precondition = plnnr::precondition<p27_state>(method);
+	check3_args* method_args = plnnr::arguments<check3_args>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
-	check3_args* method_args = static_cast<check3_args*>(method->args);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p27_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p27_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
@@ -2309,7 +2209,7 @@ bool check3_branch_2_expand(method_instance* method, planner_state& pstate, void
 			}
 		}
 
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -2319,23 +2219,20 @@ bool check3_branch_2_expand(method_instance* method, planner_state& pstate, void
 
 bool check3_branch_3_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p28_state* precondition = static_cast<p28_state*>(method->precondition);
+	p28_state* precondition = plnnr::precondition<p28_state>(method);
+	check3_args* method_args = plnnr::arguments<check3_args>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
-	check3_args* method_args = static_cast<check3_args*>(method->args);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p28_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p28_state>(pstate, method);
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -2344,29 +2241,25 @@ bool check3_branch_3_expand(method_instance* method, planner_state& pstate, void
 
 bool move_block1_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p29_state* precondition = static_cast<p29_state*>(method->precondition);
+	p29_state* precondition = plnnr::precondition<p29_state>(method);
+	move_block1_args* method_args = plnnr::arguments<move_block1_args>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
-	move_block1_args* method_args = static_cast<move_block1_args*>(method->args);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p29_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p29_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
 		{
 			task_instance* t = push_task(pstate, task_unstack);
-			unstack_args* a = push<unstack_args>(pstate.tstack);
+			unstack_args* a = push_arguments<unstack_args>(pstate, t);
 			a->_0 = method_args->_0;
 			a->_1 = precondition->_1;
-			t->args = a;
 
 			for (clear_tuple* tuple = tuple_list::head<clear_tuple>(wstate->atoms[atom_clear]); tuple != 0; tuple = tuple->next)
 			{
@@ -2428,10 +2321,9 @@ bool move_block1_branch_0_expand(method_instance* method, planner_state& pstate,
 
 		{
 			task_instance* t = push_task(pstate, task_stack);
-			stack_args* a = push<stack_args>(pstate.tstack);
+			stack_args* a = push_arguments<stack_args>(pstate, t);
 			a->_0 = method_args->_0;
 			a->_1 = method_args->_1;
-			t->args = a;
 
 			for (holding_tuple* tuple = tuple_list::head<holding_tuple>(wstate->atoms[atom_holding]); tuple != 0; tuple = tuple->next)
 			{
@@ -2539,40 +2431,37 @@ bool move_block1_branch_0_expand(method_instance* method, planner_state& pstate,
 
 		{
 			method_instance* t = push_method(pstate, task_check, check_branch_0_expand);
-			check_args* a = push<check_args>(pstate.mstack);
+			check_args* a = push_arguments<check_args>(pstate, t);
 			a->_0 = method_args->_0;
-			t->args = a;
 		}
 
 		PLNNR_COROUTINE_YIELD(*method);
 
-		if (method->failed)
+		if (method->flags & method_flags_failed)
 		{
 			continue;
 		}
 
 		{
 			method_instance* t = push_method(pstate, task_check2, check2_branch_0_expand);
-			check2_args* a = push<check2_args>(pstate.mstack);
+			check2_args* a = push_arguments<check2_args>(pstate, t);
 			a->_0 = precondition->_1;
-			t->args = a;
 		}
 
 		PLNNR_COROUTINE_YIELD(*method);
 
-		if (method->failed)
+		if (method->flags & method_flags_failed)
 		{
 			continue;
 		}
 
 		{
 			method_instance* t = push_method(pstate, task_check3, check3_branch_0_expand);
-			check3_args* a = push<check3_args>(pstate.mstack);
+			check3_args* a = push_arguments<check3_args>(pstate, t);
 			a->_0 = precondition->_1;
-			t->args = a;
 		}
 
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
@@ -2582,27 +2471,23 @@ bool move_block1_branch_0_expand(method_instance* method, planner_state& pstate,
 
 bool move_block1_branch_1_expand(method_instance* method, planner_state& pstate, void* world)
 {
-	p30_state* precondition = static_cast<p30_state*>(method->precondition);
+	p30_state* precondition = plnnr::precondition<p30_state>(method);
+	move_block1_args* method_args = plnnr::arguments<move_block1_args>(method);
 	worldstate* wstate = static_cast<worldstate*>(world);
-	move_block1_args* method_args = static_cast<move_block1_args*>(method->args);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
-	precondition = push<p30_state>(pstate.mstack);
-	precondition->stage = 0;
+	precondition = push_precondition<p30_state>(pstate, method);
 
-	method->precondition = precondition;
-	method->mrewind = pstate.mstack->top();
-	method->trewind = pstate.tstack->top();
-	method->jrewind = pstate.journal->top();
+	method->task_rewind = pstate.tstack->top_offset();
+	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
 		{
 			task_instance* t = push_task(pstate, task_pickup);
-			pickup_args* a = push<pickup_args>(pstate.tstack);
+			pickup_args* a = push_arguments<pickup_args>(pstate, t);
 			a->_0 = method_args->_0;
-			t->args = a;
 
 			for (clear_tuple* tuple = tuple_list::head<clear_tuple>(wstate->atoms[atom_clear]); tuple != 0; tuple = tuple->next)
 			{
@@ -2650,10 +2535,9 @@ bool move_block1_branch_1_expand(method_instance* method, planner_state& pstate,
 
 		{
 			task_instance* t = push_task(pstate, task_stack);
-			stack_args* a = push<stack_args>(pstate.tstack);
+			stack_args* a = push_arguments<stack_args>(pstate, t);
 			a->_0 = method_args->_0;
 			a->_1 = method_args->_1;
-			t->args = a;
 
 			for (holding_tuple* tuple = tuple_list::head<holding_tuple>(wstate->atoms[atom_holding]); tuple != 0; tuple = tuple->next)
 			{
@@ -2761,12 +2645,11 @@ bool move_block1_branch_1_expand(method_instance* method, planner_state& pstate,
 
 		{
 			method_instance* t = push_method(pstate, task_check, check_branch_0_expand);
-			check_args* a = push<check_args>(pstate.mstack);
+			check_args* a = push_arguments<check_args>(pstate, t);
 			a->_0 = method_args->_0;
-			t->args = a;
 		}
 
-		method->expanded = true;
+		method->flags |= method_flags_expanded;
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
