@@ -87,35 +87,30 @@ enum method_flags
 struct method_instance
 {
     uint8_t             flags;
-    uint16_t            args_align;
-    uint16_t            precondition_align;
-    int32_t             type;
-    uint32_t            args_size;
-    uint32_t            precondition_size;
+    uint32_t            arguments;
     uint32_t            precondition;
+    uint32_t            size;
     uint32_t            task_rewind;
     uint32_t            journal_rewind;
     uint32_t            stage;
+    int32_t             type;
     expand_func         expand;
     method_instance*    prev;
 };
 
-struct task_instance
-{
-    int type;
-    void* args;
-    task_instance* prev;
-    task_instance* next;
-};
-
 inline void* arguments(method_instance* method)
 {
-    return method->args_size > 0 ? memory::align(method + 1, method->args_align) : 0;
+    return memory::offset(method, method->arguments);
 }
 
-inline void* arguments(task_instance* task)
+inline void* precondition(method_instance* method)
 {
-    return task->args;
+    return memory::offset(method, method->precondition);
+}
+
+inline void* end(method_instance* method)
+{
+    return memory::offset(method, method->size);
 }
 
 template <typename T>
@@ -125,25 +120,22 @@ T* arguments(method_instance* method)
 }
 
 template <typename T>
-T* arguments(task_instance* task)
-{
-    return static_cast<T*>(task->args);
-}
-
-inline void* precondition(method_instance* method)
-{
-    return reinterpret_cast<char*>(method) + method->precondition;
-}
-
-inline void* precondition_end(method_instance* method)
-{
-    return reinterpret_cast<char*>(method) + method->precondition + method->precondition_size;
-}
-
-template <typename T>
 T* precondition(method_instance* method)
 {
     return static_cast<T*>(precondition(method));
+}
+
+struct task_instance
+{
+    int type;
+    void* args;
+    task_instance* prev;
+    task_instance* next;
+};
+
+inline void* arguments(task_instance* task)
+{
+    return task->args;
 }
 
 struct operator_effect
@@ -179,29 +171,32 @@ enum find_plan_status
 template <typename T>
 T* push_arguments(planner_state& pstate, method_instance* method)
 {
-    T* a = push<T>(pstate.mstack);
-    method->args_size = sizeof(T);
-    method->args_align = plnnr_alignof(T);
-    return a;
+    T* arguments = push<T>(pstate.mstack);
+    size_t method_offset = pstate.mstack->offset(method);
+    size_t arguments_offset = pstate.mstack->offset(arguments);
+    method->arguments = arguments_offset - method_offset;
+    method->size = pstate.mstack->top_offset() - method_offset;
+    return arguments;
 }
 
 template <typename T>
 T* push_precondition(planner_state& pstate, method_instance* method)
 {
-    T* p = push<T>(pstate.mstack);
-    p->stage = 0;
-    method->precondition = pstate.mstack->offset(p) - pstate.mstack->offset(method);
-    method->precondition_size = sizeof(T);
-    method->precondition_align = plnnr_alignof(T);
-    return p;
+    T* precondition = push<T>(pstate.mstack);
+    precondition->stage = 0;
+    size_t method_offset = pstate.mstack->offset(method);
+    size_t precondition_offset = pstate.mstack->offset(precondition);
+    method->precondition = precondition_offset - method_offset;
+    method->size = pstate.mstack->top_offset() - method_offset;
+    return precondition;
 }
 
 template <typename T>
 T* push_arguments(planner_state& pstate, task_instance* task)
 {
-    T* a = push<T>(pstate.tstack);
-    task->args = a;
-    return a;
+    T* arguments = push<T>(pstate.tstack);
+    task->args = arguments;
+    return arguments;
 }
 
 method_instance* push_method(planner_state& pstate, int task_type, expand_func expand);

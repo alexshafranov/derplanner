@@ -73,6 +73,11 @@ inline T* align(void* ptr)
     return static_cast<T*>(align(ptr, plnnr_alignof(T)));
 }
 
+inline void* offset(void* ptr, size_t offset)
+{
+    return static_cast<char*>(ptr) + offset;
+}
+
 }
 }
 

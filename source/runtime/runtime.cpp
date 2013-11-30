@@ -76,15 +76,13 @@ method_instance* push_method(planner_state& pstate, int task_type, expand_func e
     method_instance* new_method = push<method_instance>(pstate.mstack);
 
     new_method->flags = method_flags_none;
-    new_method->args_align = 0;
-    new_method->precondition_align = 0;
-    new_method->type = task_type;
-    new_method->args_size = 0;
-    new_method->precondition_size = 0;
+    new_method->arguments = 0;
     new_method->precondition = 0;
+    new_method->size = sizeof(method_instance);
     new_method->task_rewind = 0;
     new_method->journal_rewind = 0;
     new_method->stage = 0;
+    new_method->type = task_type;
     new_method->expand = expand;
     new_method->prev = pstate.top_method;
 
@@ -133,7 +131,7 @@ method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks_and_
     if (new_top)
     {
         // rewind everything after parent method precondition
-        pstate.mstack->rewind(precondition_end(new_top));
+        pstate.mstack->rewind(end(new_top));
 
         if (rewind_tasks_and_effects)
         {
