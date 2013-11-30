@@ -261,7 +261,12 @@ find_plan_status find_plan_step(planner_state& pstate, void* worldstate)
         // backtrack otherwise
         else
         {
-            rewind_top_method(pstate, true);
+            method = rewind_top_method(pstate, true);
+
+            while (method && (method->flags & method_flags_one_shot))
+            {
+                method = rewind_top_method(pstate, true);
+            }
         }
 
         return plan_in_progress;

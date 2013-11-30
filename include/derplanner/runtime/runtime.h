@@ -79,9 +79,10 @@ typedef bool (*expand_func)(method_instance*, planner_state&, void*);
 
 enum method_flags
 {
-    method_flags_none     = 0x0,
-    method_flags_expanded = 0x1,
-    method_flags_failed   = 0x2,
+    method_flags_none       = 0x0,
+    method_flags_expanded   = 0x1,
+    method_flags_failed     = 0x2,
+    method_flags_one_shot   = 0x4,
 };
 
 struct method_instance
