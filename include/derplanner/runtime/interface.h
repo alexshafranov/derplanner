@@ -108,7 +108,7 @@ struct task_compare
 
         if (result)
         {
-            const A* task_args = static_cast<const A*>(task_a->args);
+            const A* task_args = static_cast<const A*>(arguments(task_a));
             result = (*(task_args) == *(args));
         }
     }

@@ -333,6 +333,7 @@ namespace
         {
             scope s(output);
             output.writeln("struct planner_state;");
+            output.writeln("struct method_instance;");
         }
     }
 

@@ -18,6 +18,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
+#include <string.h>
 #include "derplanner/runtime/assert.h"
 #include "derplanner/runtime/memory.h"
 #include "derplanner/runtime/worldstate.h"
@@ -69,6 +70,13 @@ void reset(planner_state& pstate)
     pstate.mstack->reset();
     pstate.tstack->reset();
     pstate.journal->reset();
+}
+
+method_instance* copy_method(method_instance* method, stack* destination)
+{
+    void* dest = destination->push(method->size, plnnr_alignof(method_instance));
+    ::memcpy(dest, method, method->size);
+    return static_cast<method_instance*>(dest);
 }
 
 method_instance* push_method(planner_state& pstate, int task_type, expand_func expand)

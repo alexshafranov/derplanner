@@ -14,6 +14,7 @@ namespace plnnr
 namespace plnnr
 {
 	struct planner_state;
+	struct method_instance;
 }
 
 namespace travel {
