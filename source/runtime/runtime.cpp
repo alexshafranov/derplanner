@@ -189,7 +189,11 @@ bool next_branch(planner_state& pstate, expand_func expand, void* worldstate)
     method_instance* method = pstate.top_method;
     method->stage = 0;
     method->expand = expand;
+
+    method->size = method->precondition;
     pstate.mstack->rewind(precondition(method));
+    method->precondition = 0;
+
     return method->expand(method, pstate, worldstate);
 }
 
