@@ -55,7 +55,11 @@ node* build_atom(tree& ast, sexpr::node* s_expr)
 
     node* atom = ast.make_node(atom_type, name_expr);
     PLNNRC_CHECK(atom);
-    annotation<atom_ann>(atom)->lazy = lazy;
+
+    if (atom_type == node_atom)
+    {
+        annotation<atom_ann>(atom)->lazy = lazy;
+    }
 
     for (sexpr::node* c_expr = name_expr->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
     {
