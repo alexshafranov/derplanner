@@ -120,6 +120,21 @@ task_instance* push_task(planner_state& pstate, int task_type, expand_func expan
     return new_task;
 }
 
+task_instance* push_task(planner_state& pstate, task_instance* task)
+{
+    task_instance* new_task = push_task(pstate, task->type, task->expand);
+
+    if (arguments(task))
+    {
+        void* args_dst = pstate.tstack->push(task->args_size, task->args_align);
+        ::memcpy(args_dst, arguments(task), task->args_size);
+        new_task->args_align = task->args_align;
+        new_task->args_size = task->args_size;
+    }
+
+    return new_task;
+}
+
 void pop_task(planner_state& pstate)
 {
     task_instance* top_task = pstate.top_task;
@@ -225,6 +240,21 @@ bool find_plan(planner_state& pstate, int root_method_type, expand_func root_met
 void find_plan_init(planner_state& pstate, int root_method_type, expand_func root_method)
 {
     push_method(pstate, root_method_type, root_method);
+}
+
+void find_plan_init(planner_state& pstate, task_instance* composite_task)
+{
+    method_instance* method = push_method(pstate, composite_task->type, composite_task->expand);
+
+    if (arguments(composite_task))
+    {
+        void* args_dst = pstate.mstack->push(composite_task->args_size, composite_task->args_align);
+        ::memcpy(args_dst, arguments(composite_task), composite_task->args_size);
+        size_t method_offset = pstate.mstack->offset(method);
+        size_t arguments_offset = pstate.mstack->offset(args_dst);
+        method->arguments = arguments_offset - method_offset;
+        method->size = pstate.mstack->top_offset() - method_offset;
+    }
 }
 
 find_plan_status find_plan_step(planner_state& pstate, void* worldstate)
