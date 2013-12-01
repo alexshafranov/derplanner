@@ -128,15 +128,16 @@ T* precondition(method_instance* method)
 
 struct task_instance
 {
-    int type;
-    void* args;
-    task_instance* prev;
-    task_instance* next;
+    uint16_t        args_align;
+    uint32_t        args_size;
+    int32_t         type;
+    task_instance*  prev;
+    task_instance*  next;
 };
 
 inline void* arguments(task_instance* task)
 {
-    return task->args;
+    return task->args_size > 0 ? memory::align(task + 1, task->args_align) : 0;
 }
 
 struct operator_effect
@@ -196,7 +197,8 @@ template <typename T>
 T* push_arguments(planner_state& pstate, task_instance* task)
 {
     T* arguments = push<T>(pstate.tstack);
-    task->args = arguments;
+    task->args_align = plnnr_alignof(T);
+    task->args_size = sizeof(T);
     return arguments;
 }
 
