@@ -131,6 +131,7 @@ struct task_instance
     uint16_t        args_align;
     uint32_t        args_size;
     int32_t         type;
+    expand_func     expand;
     task_instance*  prev;
     task_instance*  next;
 };
@@ -203,7 +204,7 @@ T* push_arguments(planner_state& pstate, task_instance* task)
 }
 
 method_instance* push_method(planner_state& pstate, int task_type, expand_func expand);
-task_instance* push_task(planner_state& pstate, int task_type);
+task_instance* push_task(planner_state& pstate, int task_type, expand_func expand);
 void pop_task(planner_state& pstate);
 method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks);
 void undo_effects(stack* journal);
