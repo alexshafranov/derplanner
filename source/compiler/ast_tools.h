@@ -128,6 +128,11 @@ inline node* first_parameter_usage(node* parameter, node* precondition)
     return 0;
 }
 
+inline bool is_lazy(node* atom)
+{
+    return (atom->type == node_atom) && annotation<atom_ann>(atom)->lazy;
+}
+
 inline bool is_operator(tree& ast, node* atom)
 {
     return (atom->type == node_atom) && ast.operators.find(atom->s_expr->token);

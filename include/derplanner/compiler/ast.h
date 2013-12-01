@@ -73,6 +73,7 @@ struct term_ann
 struct atom_ann
 {
     int index;
+    bool lazy;
 };
 
 struct branch_ann

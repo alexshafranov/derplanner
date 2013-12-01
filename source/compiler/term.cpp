@@ -31,7 +31,8 @@ namespace ast {
 
 namespace
 {
-    PLNNRC_DEFINE_TOKEN(token_eq, "==");
+    PLNNRC_DEFINE_TOKEN(token_eq,   "==");
+    PLNNRC_DEFINE_TOKEN(token_lazy, ":lazy");
 }
 
 node* build_atom(tree& ast, sexpr::node* s_expr)
@@ -43,10 +44,20 @@ node* build_atom(tree& ast, sexpr::node* s_expr)
         atom_type = node_atom_eq;
     }
 
-    node* atom = ast.make_node(atom_type, s_expr->first_child);
-    PLNNRC_CHECK(atom);
+    sexpr::node* name_expr = s_expr->first_child;
 
-    for (sexpr::node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
+    bool lazy = is_token(name_expr, token_lazy);
+
+    if (lazy)
+    {
+        name_expr = name_expr->next_sibling;
+    }
+
+    node* atom = ast.make_node(atom_type, name_expr);
+    PLNNRC_CHECK(atom);
+    annotation<atom_ann>(atom)->lazy = lazy;
+
+    for (sexpr::node* c_expr = name_expr->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
     {
         node* argument = build_term(ast, c_expr);
         PLNNRC_CHECK(argument);

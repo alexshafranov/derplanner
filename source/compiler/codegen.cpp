@@ -1037,7 +1037,7 @@ namespace
 
     void generate_operator_task(tree& ast, node* method, node* task_atom, formatter& output)
     {
-        plnnrc_assert(is_operator(ast, task_atom));
+        plnnrc_assert(is_lazy(task_atom) || is_operator(ast, task_atom));
 
         output.writeln("task_instance* t = push_task(pstate, task_%i);", task_atom->s_expr->token);
 
@@ -1075,7 +1075,10 @@ namespace
             ++param_index;
         }
 
-        generate_operator_effects(ast, method, task_atom, output);
+        if (!is_lazy(task_atom))
+        {
+            generate_operator_effects(ast, method, task_atom, output);
+        }
     }
 
     void generate_method_task(tree& ast, node* method, node* task_atom, formatter& output)
@@ -1213,6 +1216,10 @@ namespace
                                 else if (task_atom->type == node_delete_list)
                                 {
                                     generate_effects_delete(task_atom, output);
+                                }
+                                else if (is_lazy(task_atom))
+                                {
+                                    generate_operator_task(ast, method, task_atom, output);
                                 }
                                 else if (is_operator(ast, task_atom))
                                 {
