@@ -94,11 +94,22 @@ node* build_logical_expression(tree& ast, sexpr::node* s_expr)
     node* root = ast.make_node(node_op_and, s_expr);
     PLNNRC_CHECK(root);
 
-    for (sexpr::node* c_expr = s_expr->first_child; c_expr != 0; c_expr = c_expr->next_sibling)
+    // s_expr is operator or atom
+    if (s_expr->first_child && s_expr->first_child->type == sexpr::node_symbol)
     {
-        node* child = build_recursive(ast, c_expr);
+        node* child = build_recursive(ast, s_expr);
         PLNNRC_CHECK(child);
         append_child(root, child);
+    }
+    // list of operators (i.e. s_expr is 'and' by default)
+    else
+    {
+        for (sexpr::node* c_expr = s_expr->first_child; c_expr != 0; c_expr = c_expr->next_sibling)
+        {
+            node* child = build_recursive(ast, c_expr);
+            PLNNRC_CHECK(child);
+            append_child(root, child);
+        }
     }
 
     return root;
