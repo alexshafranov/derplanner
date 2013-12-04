@@ -88,6 +88,7 @@ enum method_flags
 struct method_instance
 {
     uint8_t             flags;
+    uint16_t            branch_expanding;
     uint32_t            arguments;
     uint32_t            precondition;
     uint32_t            size;
@@ -131,6 +132,7 @@ struct task_instance
     uint16_t        args_align;
     uint32_t        args_size;
     int32_t         type;
+    uint32_t        branch_expanding;
     expand_func     expand;
     task_instance*  prev;
     task_instance*  next;

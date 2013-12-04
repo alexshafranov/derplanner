@@ -84,6 +84,7 @@ method_instance* push_method(planner_state& pstate, int task_type, expand_func e
     method_instance* new_method = push<method_instance>(pstate.mstack);
 
     new_method->flags = method_flags_none;
+    new_method->branch_expanding = 0;
     new_method->arguments = 0;
     new_method->precondition = 0;
     new_method->size = sizeof(method_instance);
@@ -106,6 +107,7 @@ task_instance* push_task(planner_state& pstate, int task_type, expand_func expan
     new_task->args_align = 0;
     new_task->args_size = 0;
     new_task->type = task_type;
+    new_task->branch_expanding = 0;
     new_task->expand = expand;
     new_task->prev = pstate.top_task;
     new_task->next = 0;
@@ -213,7 +215,9 @@ void undo_effects(stack* journal)
 bool next_branch(planner_state& pstate, expand_func expand, void* worldstate)
 {
     method_instance* method = pstate.top_method;
+
     method->stage = 0;
+    method->branch_expanding++;
     method->expand = expand;
 
     method->size = method->precondition;
