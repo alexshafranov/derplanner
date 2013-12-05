@@ -51,8 +51,6 @@ void clear(handle* tuple_list);
 
 void* head(handle* tuple_list);
 
-handle* head_to_handle(void* head_tuple, size_t size);
-
 template <typename T>
 inline handle* create(size_t page_size)
 {
@@ -68,12 +66,6 @@ template <typename T>
 inline T* append(handle* tuple_list)
 {
     return static_cast<T*>(append(tuple_list));
-}
-
-template <typename T>
-inline handle* head_to_handle(T* head_tuple)
-{
-    return head_to_handle(head_tuple, sizeof(T));
 }
 
 template <typename T>

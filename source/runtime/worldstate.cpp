@@ -44,11 +44,6 @@ struct handle
     size_t page_size;
 };
 
-struct tuple_footer
-{
-    uint32_t page_offset;
-};
-
 namespace
 {
     void set_ptr(void* tuple, size_t offset, void* ptr)
@@ -71,7 +66,7 @@ namespace
 
         char* top = static_cast<char*>(memory::align(p->top, alignment));
 
-        if (top + bytes + sizeof(tuple_footer) + plnnr_alignof(tuple_footer) > p->memory + tuple_list->page_size)
+        if (top + bytes > p->memory + tuple_list->page_size)
         {
             char* memory = static_cast<char*>(memory::allocate(tuple_list->page_size));
 
@@ -92,11 +87,6 @@ namespace
         }
 
         p->top = top + bytes;
-
-        tuple_footer* footer = memory::align<tuple_footer>(p->top);
-        footer->page_offset = top - p->data + offsetof(page, data);
-
-        p->top = reinterpret_cast<char*>(footer + 1);
 
         return top;
     }
@@ -154,13 +144,6 @@ void destroy(const handle* tuple_list)
         memory::deallocate(p->memory);
         p = n;
     }
-}
-
-handle* head_to_handle(void* head_tuple, size_t size)
-{
-    tuple_footer* footer = memory::align<tuple_footer>(static_cast<char*>(head_tuple) + size);
-    page* p = reinterpret_cast<page*>(static_cast<char*>(head_tuple) - footer->page_offset);
-    return p->owner;
 }
 
 void* append(handle* tuple_list)
