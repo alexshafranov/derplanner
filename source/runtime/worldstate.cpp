@@ -29,7 +29,6 @@ struct handle;
 
 struct page
 {
-    handle* owner;
     page* prev;
     char* memory;
     char* top;
@@ -76,7 +75,6 @@ namespace
             }
 
             p = memory::align<page>(memory);
-            p->owner = tuple_list;
             p->prev = tuple_list->head_page;
             p->memory = memory;
             p->top = p->data;
@@ -107,7 +105,6 @@ handle* create(tuple_traits traits, size_t page_size)
     handle* tuple_list = memory::align<handle>(memory);
     page* head_page = memory::align<page>(tuple_list + 1);
 
-    head_page->owner = tuple_list;
     head_page->prev = 0;
     head_page->memory = memory;
     head_page->top = head_page->data;
