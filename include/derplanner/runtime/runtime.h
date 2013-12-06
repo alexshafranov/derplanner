@@ -155,6 +155,7 @@ struct planner_state
     task_instance* top_task;
     stack* methods;
     stack* tasks;
+    stack* traversal;
     stack* journal;
 };
 

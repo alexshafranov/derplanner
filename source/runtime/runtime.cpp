@@ -69,6 +69,7 @@ void reset(planner_state& pstate)
     pstate.top_task = 0;
     pstate.methods->reset();
     pstate.tasks->reset();
+    pstate.traversal->reset();
     pstate.journal->reset();
 }
 
