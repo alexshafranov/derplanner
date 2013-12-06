@@ -153,8 +153,8 @@ struct planner_state
 {
     method_instance* top_method;
     task_instance* top_task;
-    stack* mstack;
-    stack* tstack;
+    stack* methods;
+    stack* tasks;
     stack* journal;
 };
 
@@ -176,30 +176,30 @@ enum find_plan_status
 template <typename T>
 T* push_arguments(planner_state& pstate, method_instance* method)
 {
-    T* arguments = push<T>(pstate.mstack);
-    size_t method_offset = pstate.mstack->offset(method);
-    size_t arguments_offset = pstate.mstack->offset(arguments);
+    T* arguments = push<T>(pstate.methods);
+    size_t method_offset = pstate.methods->offset(method);
+    size_t arguments_offset = pstate.methods->offset(arguments);
     method->arguments = arguments_offset - method_offset;
-    method->size = pstate.mstack->top_offset() - method_offset;
+    method->size = pstate.methods->top_offset() - method_offset;
     return arguments;
 }
 
 template <typename T>
 T* push_precondition(planner_state& pstate, method_instance* method)
 {
-    T* precondition = push<T>(pstate.mstack);
+    T* precondition = push<T>(pstate.methods);
     precondition->stage = 0;
-    size_t method_offset = pstate.mstack->offset(method);
-    size_t precondition_offset = pstate.mstack->offset(precondition);
+    size_t method_offset = pstate.methods->offset(method);
+    size_t precondition_offset = pstate.methods->offset(precondition);
     method->precondition = precondition_offset - method_offset;
-    method->size = pstate.mstack->top_offset() - method_offset;
+    method->size = pstate.methods->top_offset() - method_offset;
     return precondition;
 }
 
 template <typename T>
 T* push_arguments(planner_state& pstate, task_instance* task)
 {
-    T* arguments = push<T>(pstate.tstack);
+    T* arguments = push<T>(pstate.tasks);
     task->args_align = plnnr_alignof(T);
     task->args_size = sizeof(T);
     return arguments;

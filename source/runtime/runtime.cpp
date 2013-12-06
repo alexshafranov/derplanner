@@ -67,8 +67,8 @@ void reset(planner_state& pstate)
 {
     pstate.top_method = 0;
     pstate.top_task = 0;
-    pstate.mstack->reset();
-    pstate.tstack->reset();
+    pstate.methods->reset();
+    pstate.tasks->reset();
     pstate.journal->reset();
 }
 
@@ -81,7 +81,7 @@ method_instance* copy_method(method_instance* method, stack* destination)
 
 method_instance* push_method(planner_state& pstate, int task_type, expand_func expand)
 {
-    method_instance* new_method = push<method_instance>(pstate.mstack);
+    method_instance* new_method = push<method_instance>(pstate.methods);
 
     new_method->flags = method_flags_none;
     new_method->branch_expanding = 0;
@@ -102,7 +102,7 @@ method_instance* push_method(planner_state& pstate, int task_type, expand_func e
 
 task_instance* push_task(planner_state& pstate, int task_type, expand_func expand)
 {
-    task_instance* new_task = push<task_instance>(pstate.tstack);
+    task_instance* new_task = push<task_instance>(pstate.tasks);
 
     new_task->args_align = 0;
     new_task->args_size = 0;
@@ -128,7 +128,7 @@ task_instance* push_task(planner_state& pstate, task_instance* task)
 
     if (arguments(task))
     {
-        void* args_dst = pstate.tstack->push(task->args_size, task->args_align);
+        void* args_dst = pstate.tasks->push(task->args_size, task->args_align);
         ::memcpy(args_dst, arguments(task), task->args_size);
         new_task->args_align = task->args_align;
         new_task->args_size = task->args_size;
@@ -148,7 +148,7 @@ void pop_task(planner_state& pstate)
         prev_task->next = 0;
     }
 
-    pstate.tstack->rewind(top_task);
+    pstate.tasks->rewind(top_task);
 }
 
 method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks_and_effects)
@@ -159,19 +159,19 @@ method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks_and_
     if (new_top)
     {
         // rewind everything after parent method precondition
-        pstate.mstack->rewind(end(new_top));
+        pstate.methods->rewind(end(new_top));
 
         if (rewind_tasks_and_effects)
         {
             new_top->flags |= method_flags_failed;
 
             // rewind tasks
-            if (new_top->task_rewind < pstate.tstack->top_offset())
+            if (new_top->task_rewind < pstate.tasks->top_offset())
             {
-                task_instance* task = memory::align<task_instance>(pstate.tstack->ptr(new_top->task_rewind));
+                task_instance* task = memory::align<task_instance>(pstate.tasks->ptr(new_top->task_rewind));
                 task_instance* top_task = task->prev;
 
-                pstate.tstack->rewind(new_top->task_rewind);
+                pstate.tasks->rewind(new_top->task_rewind);
 
                 pstate.top_task = top_task;
                 pstate.top_task->next = 0;
@@ -221,7 +221,7 @@ bool next_branch(planner_state& pstate, expand_func expand, void* worldstate)
     method->expand = expand;
 
     method->size = method->precondition;
-    pstate.mstack->rewind(precondition(method));
+    pstate.methods->rewind(precondition(method));
     method->precondition = 0;
 
     return method->expand(method, pstate, worldstate);
@@ -252,12 +252,12 @@ void find_plan_init(planner_state& pstate, task_instance* composite_task)
 
     if (arguments(composite_task))
     {
-        void* args_dst = pstate.mstack->push(composite_task->args_size, composite_task->args_align);
+        void* args_dst = pstate.methods->push(composite_task->args_size, composite_task->args_align);
         ::memcpy(args_dst, arguments(composite_task), composite_task->args_size);
-        size_t method_offset = pstate.mstack->offset(method);
-        size_t arguments_offset = pstate.mstack->offset(args_dst);
+        size_t method_offset = pstate.methods->offset(method);
+        size_t arguments_offset = pstate.methods->offset(args_dst);
         method->arguments = arguments_offset - method_offset;
-        method->size = pstate.mstack->top_offset() - method_offset;
+        method->size = pstate.methods->top_offset() - method_offset;
     }
 }
 

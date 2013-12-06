@@ -57,15 +57,15 @@ int main()
     world_printf printer;
     plnnr::reflect(world_struct, printer);
 
-    plnnr::stack mstack(32768);
-    plnnr::stack tstack(32768);
+    plnnr::stack methods(32768);
+    plnnr::stack tasks(32768);
     plnnr::stack jstack(32768);
 
     planner_state pstate;
     pstate.top_method = 0;
     pstate.top_task = 0;
-    pstate.mstack = &mstack;
-    pstate.tstack = &tstack;
+    pstate.methods = &methods;
+    pstate.tasks = &tasks;
     pstate.journal = &jstack;
 
     find_plan_init(pstate, blocks::task_solve, blocks::solve_branch_0_expand);
@@ -85,7 +85,7 @@ int main()
     if (status == plan_found)
     {
         printf("\nplan found:\n\n");
-        task_instance* task = bottom<task_instance>(pstate.tstack);
+        task_instance* task = bottom<task_instance>(pstate.tasks);
         task_printf task_printer;
         plnnr::walk_stack_up<blocks::task_type>(task, task_printer);
     }

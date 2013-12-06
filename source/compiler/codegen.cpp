@@ -1189,7 +1189,7 @@ namespace
                     }
 
                     output.newline();
-                    output.writeln("method->task_rewind = pstate.tstack->top_offset();");
+                    output.writeln("method->task_rewind = pstate.tasks->top_offset();");
                     output.writeln("method->journal_rewind = pstate.journal->top_offset();");
                     output.newline();
 

@@ -1010,7 +1010,7 @@ bool solve_branch_0_expand(method_instance* method, planner_state& pstate, void*
 
 	precondition = push_precondition<p0_state>(pstate, method);
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -1057,7 +1057,7 @@ bool mark_all_blocks_branch_0_expand(method_instance* method, planner_state& pst
 
 	precondition = push_precondition<p1_state>(pstate, method);
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -1091,7 +1091,7 @@ bool mark_block_branch_0_expand(method_instance* method, planner_state& pstate, 
 	precondition = push_precondition<p2_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -1120,7 +1120,7 @@ bool mark_block_branch_1_expand(method_instance* method, planner_state& pstate, 
 
 	precondition = push_precondition<p3_state>(pstate, method);
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -1143,7 +1143,7 @@ bool mark_block_recursive_branch_0_expand(method_instance* method, planner_state
 	precondition = push_precondition<p4_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -1185,7 +1185,7 @@ bool mark_block_recursive_branch_1_expand(method_instance* method, planner_state
 
 	precondition = push_precondition<p5_state>(pstate, method);
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -1214,7 +1214,7 @@ bool mark_block_term_branch_0_expand(method_instance* method, planner_state& pst
 	precondition = push_precondition<p6_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -1249,7 +1249,7 @@ bool mark_block_term_branch_1_expand(method_instance* method, planner_state& pst
 	precondition = push_precondition<p7_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -1284,7 +1284,7 @@ bool mark_block_term_branch_2_expand(method_instance* method, planner_state& pst
 	precondition = push_precondition<p8_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -1319,7 +1319,7 @@ bool mark_block_term_branch_3_expand(method_instance* method, planner_state& pst
 	precondition = push_precondition<p9_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -1354,7 +1354,7 @@ bool mark_block_term_branch_4_expand(method_instance* method, planner_state& pst
 	precondition = push_precondition<p10_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -1389,7 +1389,7 @@ bool mark_block_term_branch_5_expand(method_instance* method, planner_state& pst
 	precondition = push_precondition<p11_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -1423,7 +1423,7 @@ bool mark_block_term_branch_6_expand(method_instance* method, planner_state& pst
 
 	precondition = push_precondition<p12_state>(pstate, method);
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -1455,7 +1455,7 @@ bool find_all_movable_branch_0_expand(method_instance* method, planner_state& ps
 
 	precondition = push_precondition<p13_state>(pstate, method);
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -1489,7 +1489,7 @@ bool mark_move_type_branch_0_expand(method_instance* method, planner_state& psta
 	precondition = push_precondition<p14_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -1524,7 +1524,7 @@ bool mark_move_type_branch_1_expand(method_instance* method, planner_state& psta
 	precondition = push_precondition<p15_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -1559,7 +1559,7 @@ bool mark_move_type_branch_2_expand(method_instance* method, planner_state& psta
 
 	precondition = push_precondition<p16_state>(pstate, method);
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -1580,7 +1580,7 @@ bool move_block_branch_0_expand(method_instance* method, planner_state& pstate, 
 
 	precondition = push_precondition<p17_state>(pstate, method);
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -1620,7 +1620,7 @@ bool move_block_branch_1_expand(method_instance* method, planner_state& pstate, 
 
 	precondition = push_precondition<p18_state>(pstate, method);
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -1836,7 +1836,7 @@ bool move_block_branch_2_expand(method_instance* method, planner_state& pstate, 
 
 	precondition = push_precondition<p19_state>(pstate, method);
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -1994,7 +1994,7 @@ bool move_block_branch_3_expand(method_instance* method, planner_state& pstate, 
 
 	precondition = push_precondition<p20_state>(pstate, method);
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -2017,7 +2017,7 @@ bool check_branch_0_expand(method_instance* method, planner_state& pstate, void*
 	precondition = push_precondition<p21_state>(pstate, method);
 	precondition->_1 = method_args->_0;
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -2052,7 +2052,7 @@ bool check_branch_1_expand(method_instance* method, planner_state& pstate, void*
 
 	precondition = push_precondition<p22_state>(pstate, method);
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -2075,7 +2075,7 @@ bool check2_branch_0_expand(method_instance* method, planner_state& pstate, void
 	precondition = push_precondition<p23_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -2110,7 +2110,7 @@ bool check2_branch_1_expand(method_instance* method, planner_state& pstate, void
 
 	precondition = push_precondition<p24_state>(pstate, method);
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -2133,7 +2133,7 @@ bool check3_branch_0_expand(method_instance* method, planner_state& pstate, void
 	precondition = push_precondition<p25_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -2157,7 +2157,7 @@ bool check3_branch_1_expand(method_instance* method, planner_state& pstate, void
 	precondition = push_precondition<p26_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -2193,7 +2193,7 @@ bool check3_branch_2_expand(method_instance* method, planner_state& pstate, void
 	precondition = push_precondition<p27_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -2227,7 +2227,7 @@ bool check3_branch_3_expand(method_instance* method, planner_state& pstate, void
 
 	precondition = push_precondition<p28_state>(pstate, method);
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -2250,7 +2250,7 @@ bool move_block1_branch_0_expand(method_instance* method, planner_state& pstate,
 	precondition = push_precondition<p29_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
@@ -2479,7 +2479,7 @@ bool move_block1_branch_1_expand(method_instance* method, planner_state& pstate,
 
 	precondition = push_precondition<p30_state>(pstate, method);
 
-	method->task_rewind = pstate.tstack->top_offset();
+	method->task_rewind = pstate.tasks->top_offset();
 	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
