@@ -67,6 +67,13 @@ T* push(stack* s)
 }
 
 template <typename T>
+void push(stack* s, const T& value)
+{
+    T* d = push<T>(s);
+    *d = value;
+}
+
+template <typename T>
 T* bottom(stack* s)
 {
     return memory::align<T>(s->buffer());

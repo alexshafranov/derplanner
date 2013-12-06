@@ -285,6 +285,7 @@ find_plan_status find_plan_step(planner_state& pstate, void* worldstate)
                 {
                     while (method && (method->flags & method_flags_expanded))
                     {
+                        push(pstate.traversal, method->branch_expanding);
                         method = rewind_top_method(pstate, false);
                     }
 
@@ -300,11 +301,15 @@ find_plan_status find_plan_step(planner_state& pstate, void* worldstate)
         else
         {
             method = rewind_top_method(pstate, true);
+            size_t methods_rewound = 1;
 
             while (method && (method->flags & method_flags_one_shot))
             {
                 method = rewind_top_method(pstate, true);
+                methods_rewound++;
             }
+
+            pstate.traversal->rewind(pstate.traversal->top_offset() - methods_rewound * sizeof(method->branch_expanding));
         }
 
         return plan_in_progress;

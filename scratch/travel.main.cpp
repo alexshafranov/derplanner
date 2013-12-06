@@ -54,12 +54,14 @@ int main()
     plnnr::stack methods(32768);
     plnnr::stack tasks(32768);
     plnnr::stack jstack(32768);
+    plnnr::stack traversal(32768);
 
     planner_state pstate;
     pstate.top_method = 0;
     pstate.top_task = 0;
     pstate.methods = &methods;
     pstate.tasks = &tasks;
+    pstate.traversal = &traversal;
     pstate.journal = &jstack;
 
     find_plan_init(pstate, travel::task_root, travel::root_branch_0_expand);
