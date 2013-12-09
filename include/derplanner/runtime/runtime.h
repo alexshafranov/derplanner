@@ -79,6 +79,12 @@ T* bottom(stack* s)
     return memory::align<T>(s->buffer());
 }
 
+template <typename T>
+T* top(stack* s)
+{
+    return memory::align<T>(s->top()) - 1;
+}
+
 struct planner_state;
 struct method_instance;
 
