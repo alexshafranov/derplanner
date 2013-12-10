@@ -101,7 +101,7 @@ enum method_flags
 struct method_instance
 {
     uint8_t             flags;
-    uint16_t            branch_expanding;
+    uint16_t            expanding_branch;
     uint32_t            arguments;
     uint32_t            precondition;
     uint32_t            size;
@@ -142,10 +142,10 @@ T* precondition(method_instance* method)
 
 struct task_instance
 {
+    uint16_t        branch_index;
     uint16_t        args_align;
     uint32_t        args_size;
     int32_t         type;
-    uint32_t        branch_expanding;
     expand_func     expand;
     task_instance*  prev;
     task_instance*  next;
@@ -168,7 +168,6 @@ struct planner_state
     task_instance* top_task;
     stack* methods;
     stack* tasks;
-    stack* traversal;
     stack* journal;
 };
 
@@ -221,7 +220,7 @@ T* push_arguments(planner_state& pstate, task_instance* task)
 
 method_instance* push_method(planner_state& pstate, int task_type, expand_func expand);
 
-task_instance* push_task(planner_state& pstate, int task_type, expand_func expand);
+task_instance* push_task(planner_state& pstate, int task_type, int branch_index, expand_func expand);
 task_instance* push_task(planner_state& pstate, task_instance* task);
 void pop_task(planner_state& pstate);
 

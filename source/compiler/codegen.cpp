@@ -1000,7 +1000,7 @@ namespace
 
     void generate_yield(formatter& output)
     {
-        output.writeln("push_task(pstate, internal_task_yield, 0);");
+        output.writeln("push_task(pstate, internal_task_yield, method->expanding_branch, 0);");
     }
 
     void generate_operator_effects(tree& ast, node* method, node* task_atom, formatter& output)
@@ -1041,11 +1041,11 @@ namespace
 
         if (is_lazy(task_atom))
         {
-            output.writeln("task_instance* t = push_task(pstate, task_%i, %i_branch_0_expand);", task_atom->s_expr->token, task_atom->s_expr->token);
+            output.writeln("task_instance* t = push_task(pstate, task_%i, method->expanding_branch, %i_branch_0_expand);", task_atom->s_expr->token, task_atom->s_expr->token);
         }
         else
         {
-            output.writeln("task_instance* t = push_task(pstate, task_%i, 0);", task_atom->s_expr->token);
+            output.writeln("task_instance* t = push_task(pstate, task_%i, method->expanding_branch, 0);", task_atom->s_expr->token);
         }
 
         if (task_atom->first_child)

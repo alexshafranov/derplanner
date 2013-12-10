@@ -1626,7 +1626,7 @@ bool move_block_branch_1_expand(method_instance* method, planner_state& pstate, 
 	while (next(*precondition, *wstate))
 	{
 		{
-			task_instance* t = push_task(pstate, task_unstack, 0);
+			task_instance* t = push_task(pstate, task_unstack, method->expanding_branch, 0);
 			unstack_args* a = push_arguments<unstack_args>(pstate, t);
 			a->_0 = precondition->_0;
 			a->_1 = precondition->_1;
@@ -1690,7 +1690,7 @@ bool move_block_branch_1_expand(method_instance* method, planner_state& pstate, 
 		PLNNR_COROUTINE_YIELD(*method);
 
 		{
-			task_instance* t = push_task(pstate, task_putdown, 0);
+			task_instance* t = push_task(pstate, task_putdown, method->expanding_branch, 0);
 			putdown_args* a = push_arguments<putdown_args>(pstate, t);
 			a->_0 = precondition->_0;
 
@@ -1842,7 +1842,7 @@ bool move_block_branch_2_expand(method_instance* method, planner_state& pstate, 
 	while (next(*precondition, *wstate))
 	{
 		{
-			task_instance* t = push_task(pstate, task_unstack, 0);
+			task_instance* t = push_task(pstate, task_unstack, method->expanding_branch, 0);
 			unstack_args* a = push_arguments<unstack_args>(pstate, t);
 			a->_0 = precondition->_0;
 			a->_1 = precondition->_1;
@@ -1906,7 +1906,7 @@ bool move_block_branch_2_expand(method_instance* method, planner_state& pstate, 
 		PLNNR_COROUTINE_YIELD(*method);
 
 		{
-			task_instance* t = push_task(pstate, task_putdown, 0);
+			task_instance* t = push_task(pstate, task_putdown, method->expanding_branch, 0);
 			putdown_args* a = push_arguments<putdown_args>(pstate, t);
 			a->_0 = precondition->_0;
 
@@ -2256,7 +2256,7 @@ bool move_block1_branch_0_expand(method_instance* method, planner_state& pstate,
 	while (next(*precondition, *wstate))
 	{
 		{
-			task_instance* t = push_task(pstate, task_unstack, 0);
+			task_instance* t = push_task(pstate, task_unstack, method->expanding_branch, 0);
 			unstack_args* a = push_arguments<unstack_args>(pstate, t);
 			a->_0 = method_args->_0;
 			a->_1 = precondition->_1;
@@ -2320,7 +2320,7 @@ bool move_block1_branch_0_expand(method_instance* method, planner_state& pstate,
 		PLNNR_COROUTINE_YIELD(*method);
 
 		{
-			task_instance* t = push_task(pstate, task_stack, 0);
+			task_instance* t = push_task(pstate, task_stack, method->expanding_branch, 0);
 			stack_args* a = push_arguments<stack_args>(pstate, t);
 			a->_0 = method_args->_0;
 			a->_1 = method_args->_1;
@@ -2485,7 +2485,7 @@ bool move_block1_branch_1_expand(method_instance* method, planner_state& pstate,
 	while (next(*precondition, *wstate))
 	{
 		{
-			task_instance* t = push_task(pstate, task_pickup, 0);
+			task_instance* t = push_task(pstate, task_pickup, method->expanding_branch, 0);
 			pickup_args* a = push_arguments<pickup_args>(pstate, t);
 			a->_0 = method_args->_0;
 
@@ -2534,7 +2534,7 @@ bool move_block1_branch_1_expand(method_instance* method, planner_state& pstate,
 		PLNNR_COROUTINE_YIELD(*method);
 
 		{
-			task_instance* t = push_task(pstate, task_stack, 0);
+			task_instance* t = push_task(pstate, task_stack, method->expanding_branch, 0);
 			stack_args* a = push_arguments<stack_args>(pstate, t);
 			a->_0 = method_args->_0;
 			a->_1 = method_args->_1;

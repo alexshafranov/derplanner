@@ -69,7 +69,6 @@ void reset(planner_state& pstate)
     pstate.top_task = 0;
     pstate.methods->reset();
     pstate.tasks->reset();
-    pstate.traversal->reset();
     pstate.journal->reset();
 }
 
@@ -85,7 +84,7 @@ method_instance* push_method(planner_state& pstate, int task_type, expand_func e
     method_instance* new_method = push<method_instance>(pstate.methods);
 
     new_method->flags = method_flags_none;
-    new_method->branch_expanding = 0;
+    new_method->expanding_branch = 0;
     new_method->arguments = 0;
     new_method->precondition = 0;
     new_method->size = sizeof(method_instance);
@@ -101,14 +100,14 @@ method_instance* push_method(planner_state& pstate, int task_type, expand_func e
     return new_method;
 }
 
-task_instance* push_task(planner_state& pstate, int task_type, expand_func expand)
+task_instance* push_task(planner_state& pstate, int task_type, int branch_index, expand_func expand)
 {
     task_instance* new_task = push<task_instance>(pstate.tasks);
 
+    new_task->branch_index = branch_index;
     new_task->args_align = 0;
     new_task->args_size = 0;
     new_task->type = task_type;
-    new_task->branch_expanding = 0;
     new_task->expand = expand;
     new_task->prev = pstate.top_task;
     new_task->next = 0;
@@ -125,7 +124,7 @@ task_instance* push_task(planner_state& pstate, int task_type, expand_func expan
 
 task_instance* push_task(planner_state& pstate, task_instance* task)
 {
-    task_instance* new_task = push_task(pstate, task->type, task->expand);
+    task_instance* new_task = push_task(pstate, task->type, task->branch_index, task->expand);
 
     if (arguments(task))
     {
@@ -218,7 +217,7 @@ bool next_branch(planner_state& pstate, expand_func expand, void* worldstate)
     method_instance* method = pstate.top_method;
 
     method->stage = 0;
-    method->branch_expanding++;
+    method->expanding_branch++;
     method->expand = expand;
 
     method->size = method->precondition;
@@ -285,7 +284,6 @@ find_plan_status find_plan_step(planner_state& pstate, void* worldstate)
                 {
                     while (method && (method->flags & method_flags_expanded))
                     {
-                        push(pstate.traversal, method->branch_expanding);
                         method = rewind_top_method(pstate, false);
                     }
 
@@ -301,15 +299,11 @@ find_plan_status find_plan_step(planner_state& pstate, void* worldstate)
         else
         {
             method = rewind_top_method(pstate, true);
-            size_t methods_rewound = 1;
 
             while (method && (method->flags & method_flags_one_shot))
             {
                 method = rewind_top_method(pstate, true);
-                methods_rewound++;
             }
-
-            pstate.traversal->rewind(pstate.traversal->top_offset() - methods_rewound * sizeof(method->branch_expanding));
         }
 
         return plan_in_progress;
