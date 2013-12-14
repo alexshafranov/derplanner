@@ -45,7 +45,6 @@ namespace
     PLNNRC_DEFINE_TOKEN(token_foreach,      ":foreach");
     PLNNRC_DEFINE_TOKEN(token_add,          ":add");
     PLNNRC_DEFINE_TOKEN(token_delete,       ":delete");
-    PLNNRC_DEFINE_TOKEN(token_yield,        ":yield");
 
     node* build_namespace(tree& ast, sexpr::node* s_expr);
     node* build_method(tree& ast, sexpr::node* s_expr);
@@ -397,13 +396,7 @@ namespace
         {
             plnnrc_assert((c_expr->type == sexpr::node_list && c_expr->first_child) || (c_expr->type == sexpr::node_symbol));
 
-            if (is_token(c_expr, token_yield))
-            {
-                node* yield = ast.make_node(node_task_yield);
-                PLNNRC_CHECK(yield);
-                append_child(task_list, yield);
-            }
-            else if (is_token(c_expr->first_child, token_add) || is_token(c_expr->first_child, token_delete))
+            if (is_token(c_expr->first_child, token_add) || is_token(c_expr->first_child, token_delete))
             {
                 node_type type = is_token(c_expr->first_child, token_add) ? node_add_list : node_delete_list;
                 node* task = ast.make_node(type, c_expr);
@@ -960,7 +953,7 @@ void infer_types(tree& ast)
 
                 for (node* task = tasklist->first_child; task != 0; task = task->next_sibling)
                 {
-                    if (is_effect_list(task) || (task->type == node_task_yield))
+                    if (is_effect_list(task))
                     {
                         continue;
                     }

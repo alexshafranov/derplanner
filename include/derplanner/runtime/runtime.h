@@ -95,7 +95,6 @@ enum method_flags
     method_flags_none       = 0x0,
     method_flags_expanded   = 0x1,
     method_flags_failed     = 0x2,
-    method_flags_one_shot   = 0x4,
 };
 
 struct method_instance
@@ -173,16 +172,10 @@ struct planner_state
 
 void reset(planner_state& pstate);
 
-enum internal_task_type
-{
-    internal_task_yield = -1,
-};
-
 enum find_plan_status
 {
     plan_not_found = 0,
     plan_in_progress,
-    plan_found_partial,
     plan_found,
 };
 

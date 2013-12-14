@@ -270,28 +270,18 @@ find_plan_status find_plan_step(planner_state& pstate, void* worldstate)
         // if found satisfying preconditions
         if (method->expand(method, pstate, worldstate))
         {
-            if (method == pstate.top_method)
+            // expanded to primitive tasks => go up popping expanded methods.
+            if (method == pstate.top_method && method->flags & method_flags_expanded)
             {
-                // partial plan found
-                if (pstate.top_task && pstate.top_task->type == internal_task_yield)
+                while (method && (method->flags & method_flags_expanded))
                 {
-                    pop_task(pstate);
-                    return plan_found_partial;
+                    method = rewind_top_method(pstate, false);
                 }
 
-                // expanded to primitive tasks => go up popping expanded methods.
-                if (method->flags & method_flags_expanded)
+                // all methods were expanded => plan found.
+                if (!method)
                 {
-                    while (method && (method->flags & method_flags_expanded))
-                    {
-                        method = rewind_top_method(pstate, false);
-                    }
-
-                    // all methods were expanded => plan found.
-                    if (!method)
-                    {
-                        return plan_found;
-                    }
+                    return plan_found;
                 }
             }
         }
@@ -299,11 +289,6 @@ find_plan_status find_plan_step(planner_state& pstate, void* worldstate)
         else
         {
             method = rewind_top_method(pstate, true);
-
-            while (method && (method->flags & method_flags_one_shot))
-            {
-                method = rewind_top_method(pstate, true);
-            }
         }
 
         return plan_in_progress;

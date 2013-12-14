@@ -998,11 +998,6 @@ namespace
         }
     }
 
-    void generate_yield(formatter& output)
-    {
-        output.writeln("push_task(pstate, internal_task_yield, method->expanding_branch, 0);");
-    }
-
     void generate_operator_effects(tree& ast, node* method, node* task_atom, formatter& output)
     {
         node* operatr = ast.operators.find(task_atom->s_expr->token);
@@ -1212,11 +1207,7 @@ namespace
                             {
                                 scope s(output);
 
-                                if (task_atom->type == node_task_yield)
-                                {
-                                    generate_yield(output);
-                                }
-                                else if (task_atom->type == node_add_list)
+                                if (task_atom->type == node_add_list)
                                 {
                                     generate_effects_add(task_atom, output);
                                 }
