@@ -141,7 +141,6 @@ T* precondition(method_instance* method)
 
 struct task_instance
 {
-    uint16_t        branch_index;
     uint16_t        args_align;
     uint32_t        args_size;
     int32_t         type;
@@ -213,7 +212,7 @@ T* push_arguments(planner_state& pstate, task_instance* task)
 
 method_instance* push_method(planner_state& pstate, int task_type, expand_func expand);
 
-task_instance* push_task(planner_state& pstate, int task_type, int branch_index, expand_func expand);
+task_instance* push_task(planner_state& pstate, int task_type, expand_func expand);
 task_instance* push_task(planner_state& pstate, task_instance* task);
 void pop_task(planner_state& pstate);
 

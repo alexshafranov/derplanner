@@ -100,11 +100,10 @@ method_instance* push_method(planner_state& pstate, int task_type, expand_func e
     return new_method;
 }
 
-task_instance* push_task(planner_state& pstate, int task_type, int branch_index, expand_func expand)
+task_instance* push_task(planner_state& pstate, int task_type, expand_func expand)
 {
     task_instance* new_task = push<task_instance>(pstate.tasks);
 
-    new_task->branch_index = branch_index;
     new_task->args_align = 0;
     new_task->args_size = 0;
     new_task->type = task_type;
@@ -124,7 +123,7 @@ task_instance* push_task(planner_state& pstate, int task_type, int branch_index,
 
 task_instance* push_task(planner_state& pstate, task_instance* task)
 {
-    task_instance* new_task = push_task(pstate, task->type, task->branch_index, task->expand);
+    task_instance* new_task = push_task(pstate, task->type, task->expand);
 
     if (arguments(task))
     {

@@ -219,7 +219,7 @@ bool travel_branch_0_expand(method_instance* method, planner_state& pstate, void
 	while (next(*precondition, *wstate))
 	{
 		{
-			task_instance* t = push_task(pstate, task_ride_taxi, method->expanding_branch, 0);
+			task_instance* t = push_task(pstate, task_ride_taxi, 0);
 			ride_taxi_args* a = push_arguments<ride_taxi_args>(pstate, t);
 			a->_0 = method_args->_0;
 			a->_1 = method_args->_1;
@@ -296,7 +296,7 @@ bool travel_by_air_branch_0_expand(method_instance* method, planner_state& pstat
 		}
 
 		{
-			task_instance* t = push_task(pstate, task_fly, method->expanding_branch, 0);
+			task_instance* t = push_task(pstate, task_fly, 0);
 			fly_args* a = push_arguments<fly_args>(pstate, t);
 			a->_0 = precondition->_1;
 			a->_1 = precondition->_3;
