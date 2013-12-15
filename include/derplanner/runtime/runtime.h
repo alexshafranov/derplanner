@@ -106,6 +106,7 @@ struct method_instance
     uint32_t            size;
     uint32_t            task_rewind;
     uint32_t            journal_rewind;
+    uint32_t            trace_rewind;
     uint32_t            stage;
     int32_t             type;
     expand_func         expand;
@@ -160,6 +161,12 @@ struct operator_effect
     void* tuple;
 };
 
+struct method_trace
+{
+    int32_t type;
+    uint16_t branch_index;
+};
+
 struct planner_state
 {
     method_instance* top_method;
@@ -167,6 +174,7 @@ struct planner_state
     stack* methods;
     stack* tasks;
     stack* journal;
+    stack* trace;
 };
 
 void reset(planner_state& pstate);
@@ -214,7 +222,6 @@ method_instance* push_method(planner_state& pstate, int task_type, expand_func e
 
 task_instance* push_task(planner_state& pstate, int task_type, expand_func expand);
 task_instance* push_task(planner_state& pstate, task_instance* task);
-void pop_task(planner_state& pstate);
 
 method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks);
 bool expand_next_branch(planner_state& pstate, expand_func expand, void* worldstate);

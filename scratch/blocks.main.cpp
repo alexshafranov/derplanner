@@ -60,6 +60,7 @@ int main()
     plnnr::stack methods(32768);
     plnnr::stack tasks(32768);
     plnnr::stack jstack(32768);
+    plnnr::stack trace(32768);
 
     planner_state pstate;
     pstate.top_method = 0;
@@ -67,6 +68,7 @@ int main()
     pstate.methods = &methods;
     pstate.tasks = &tasks;
     pstate.journal = &jstack;
+    pstate.trace = &trace;
 
     find_plan_init(pstate, blocks::task_solve, blocks::solve_branch_0_expand);
 
@@ -74,10 +76,10 @@ int main()
 
     while (status == plan_in_progress)
     {
-        printf("stack:\n");
-        task_printf task_printer;
-        plnnr::walk_stack_down<blocks::task_type>(pstate.top_method, task_printer);
-        printf("===\n");
+        // printf("stack:\n");
+        // task_printf task_printer;
+        // plnnr::walk_stack_down<blocks::task_type>(pstate.top_method, task_printer);
+        // printf("===\n");
 
         status = find_plan_step(pstate, world.data());
     }
@@ -92,6 +94,11 @@ int main()
     else
     {
         printf("plan not found.\n");
+    }
+
+    for (plnnr::method_trace* trace = plnnr::bottom<plnnr::method_trace>(pstate.trace); trace != plnnr::top<plnnr::method_trace>(pstate.trace)+1; ++trace)
+    {
+        printf("%s, %d\n", blocks::task_name(static_cast<blocks::task_type>(trace->type)), trace->branch_index);
     }
 
     return 0;

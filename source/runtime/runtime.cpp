@@ -67,9 +67,15 @@ void reset(planner_state& pstate)
 {
     pstate.top_method = 0;
     pstate.top_task = 0;
+
     pstate.methods->reset();
     pstate.tasks->reset();
     pstate.journal->reset();
+
+    if (pstate.trace)
+    {
+        pstate.trace->reset();
+    }
 }
 
 method_instance* copy_method(method_instance* method, stack* destination)
@@ -90,10 +96,20 @@ method_instance* push_method(planner_state& pstate, int task_type, expand_func e
     new_method->size = sizeof(method_instance);
     new_method->task_rewind = pstate.tasks->top_offset();
     new_method->journal_rewind = pstate.journal->top_offset();
+    new_method->trace_rewind = 0;
     new_method->stage = 0;
     new_method->type = task_type;
     new_method->expand = expand;
     new_method->prev = pstate.top_method;
+
+    if (pstate.trace)
+    {
+        method_trace trace;
+        trace.type = new_method->type;
+        trace.branch_index = new_method->expanding_branch;
+        push(pstate.trace, trace);
+        new_method->trace_rewind = pstate.trace->top_offset();
+    }
 
     pstate.top_method = new_method;
 
@@ -136,20 +152,6 @@ task_instance* push_task(planner_state& pstate, task_instance* task)
     return new_task;
 }
 
-void pop_task(planner_state& pstate)
-{
-    task_instance* top_task = pstate.top_task;
-    task_instance* prev_task = top_task->prev;
-    pstate.top_task = prev_task;
-
-    if (prev_task)
-    {
-        prev_task->next = 0;
-    }
-
-    pstate.tasks->rewind(top_task);
-}
-
 method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks_and_effects)
 {
     method_instance* old_top = pstate.top_method;
@@ -189,6 +191,12 @@ method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks_and_
 
                 pstate.journal->rewind(new_top->journal_rewind);
             }
+
+            // rewind trace
+            if (pstate.trace)
+            {
+                pstate.trace->rewind(new_top->trace_rewind);
+            }
         }
     }
 
@@ -222,6 +230,12 @@ bool expand_next_branch(planner_state& pstate, expand_func expand, void* worldst
     method->size = method->precondition;
     pstate.methods->rewind(precondition(method));
     method->precondition = 0;
+
+    if (pstate.trace)
+    {
+        method_trace* trace = memory::align<method_trace>(pstate.trace->ptr(method->trace_rewind)) - 1;
+        trace->branch_index = method->expanding_branch;
+    }
 
     return method->expand(method, pstate, worldstate);
 }
