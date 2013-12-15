@@ -217,8 +217,9 @@ task_instance* push_task(planner_state& pstate, task_instance* task);
 void pop_task(planner_state& pstate);
 
 method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks);
+bool expand_next_branch(planner_state& pstate, expand_func expand, void* worldstate);
+
 void undo_effects(stack* journal);
-bool next_branch(planner_state& pstate, expand_func expand, void* worldstate);
 method_instance* copy_method(method_instance* method, stack* destination);
 
 bool find_plan(planner_state& pstate, int root_method_type, expand_func root_method, void* worldstate);

@@ -1184,9 +1184,6 @@ namespace
                     }
 
                     output.newline();
-                    output.writeln("method->task_rewind = pstate.tasks->top_offset();");
-                    output.writeln("method->journal_rewind = pstate.journal->top_offset();");
-                    output.newline();
 
                     output.writeln("while (next(*precondition, *wstate))");
                     {
@@ -1272,7 +1269,7 @@ namespace
 
                     if (!is_last(branch))
                     {
-                        output.writeln("return next_branch(pstate, %i_branch_%d_expand, world);", method_name, branch_index+1);
+                        output.writeln("return expand_next_branch(pstate, %i_branch_%d_expand, world);", method_name, branch_index+1);
                     }
 
                     output.writeln("PLNNR_COROUTINE_END();");

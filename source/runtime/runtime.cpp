@@ -88,8 +88,8 @@ method_instance* push_method(planner_state& pstate, int task_type, expand_func e
     new_method->arguments = 0;
     new_method->precondition = 0;
     new_method->size = sizeof(method_instance);
-    new_method->task_rewind = 0;
-    new_method->journal_rewind = 0;
+    new_method->task_rewind = pstate.tasks->top_offset();
+    new_method->journal_rewind = pstate.journal->top_offset();
     new_method->stage = 0;
     new_method->type = task_type;
     new_method->expand = expand;
@@ -211,7 +211,7 @@ void undo_effects(stack* journal)
     }
 }
 
-bool next_branch(planner_state& pstate, expand_func expand, void* worldstate)
+bool expand_next_branch(planner_state& pstate, expand_func expand, void* worldstate)
 {
     method_instance* method = pstate.top_method;
 

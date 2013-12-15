@@ -182,9 +182,6 @@ bool root_branch_0_expand(method_instance* method, planner_state& pstate, void* 
 
 	precondition = push_precondition<p0_state>(pstate, method);
 
-	method->task_rewind = pstate.tasks->top_offset();
-	method->journal_rewind = pstate.journal->top_offset();
-
 	while (next(*precondition, *wstate))
 	{
 		{
@@ -213,9 +210,6 @@ bool travel_branch_0_expand(method_instance* method, planner_state& pstate, void
 	precondition->_0 = method_args->_0;
 	precondition->_1 = method_args->_1;
 
-	method->task_rewind = pstate.tasks->top_offset();
-	method->journal_rewind = pstate.journal->top_offset();
-
 	while (next(*precondition, *wstate))
 	{
 		{
@@ -229,7 +223,7 @@ bool travel_branch_0_expand(method_instance* method, planner_state& pstate, void
 		PLNNR_COROUTINE_YIELD(*method);
 	}
 
-	return next_branch(pstate, travel_branch_1_expand, world);
+	return expand_next_branch(pstate, travel_branch_1_expand, world);
 	PLNNR_COROUTINE_END();
 }
 
@@ -244,9 +238,6 @@ bool travel_branch_1_expand(method_instance* method, planner_state& pstate, void
 	precondition = push_precondition<p2_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 	precondition->_1 = method_args->_1;
-
-	method->task_rewind = pstate.tasks->top_offset();
-	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
@@ -275,9 +266,6 @@ bool travel_by_air_branch_0_expand(method_instance* method, planner_state& pstat
 	precondition = push_precondition<p3_state>(pstate, method);
 	precondition->_0 = method_args->_0;
 	precondition->_2 = method_args->_1;
-
-	method->task_rewind = pstate.tasks->top_offset();
-	method->journal_rewind = pstate.journal->top_offset();
 
 	while (next(*precondition, *wstate))
 	{
