@@ -276,38 +276,40 @@ void find_plan_init(planner_state& pstate, task_instance* composite_task)
 
 find_plan_status find_plan_step(planner_state& pstate, void* worldstate)
 {
-    if (pstate.top_method)
+    plnnr_assert(pstate.top_method);
+
+    method_instance* method = pstate.top_method;
+
+    // if found satisfying preconditions
+    if (method->expand(method, pstate, worldstate))
     {
-        method_instance* method = pstate.top_method;
-
-        // if found satisfying preconditions
-        if (method->expand(method, pstate, worldstate))
+        // expanded to primitive tasks => go up popping expanded methods.
+        if (method == pstate.top_method && method->flags & method_flags_expanded)
         {
-            // expanded to primitive tasks => go up popping expanded methods.
-            if (method == pstate.top_method && method->flags & method_flags_expanded)
+            while (method && (method->flags & method_flags_expanded))
             {
-                while (method && (method->flags & method_flags_expanded))
-                {
-                    method = rewind_top_method(pstate, false);
-                }
+                method = rewind_top_method(pstate, false);
+            }
 
-                // all methods were expanded => plan found.
-                if (!method)
-                {
-                    return plan_found;
-                }
+            // all methods were expanded => plan found.
+            if (!method)
+            {
+                return plan_found;
             }
         }
-        // backtrack otherwise
-        else
-        {
-            method = rewind_top_method(pstate, true);
-        }
+    }
+    // backtrack otherwise
+    else
+    {
+        method = rewind_top_method(pstate, true);
 
-        return plan_in_progress;
+        if (!method)
+        {
+            return plan_not_found;
+        }
     }
 
-    return plan_not_found;
+    return plan_in_progress;
 }
 
 }
