@@ -3,3 +3,7 @@ bin
 *.make
 Makefile
 obj
+*.vcxproj
+*.vcxproj.user
+*.sln
+*.vcxproj.filters
