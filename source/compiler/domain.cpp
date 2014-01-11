@@ -21,7 +21,7 @@
 #include <string.h>
 #include "formatter.h"
 #include "ast_tools.h"
-#include "build_tools.h"
+#include "ast_build_tools.h"
 #include "derplanner/compiler/config.h"
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/s_expression.h"

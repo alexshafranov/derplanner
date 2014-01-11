@@ -35,7 +35,7 @@ namespace plnnrc
     };
 }
 
-#define PLNNRC_DEFINE_TOKEN(NAME, STR) const str_ref NAME = { STR, sizeof(STR) }
+#define PLNNRC_DEFINE_TOKEN(NAME, STR) const ::plnnrc::str_ref NAME = { STR, sizeof(STR) }
 
 namespace
 {
