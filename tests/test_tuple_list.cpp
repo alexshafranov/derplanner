@@ -78,7 +78,7 @@ namespace
         holder h;
 
         // add items
-        for (int i = 0; i < sizeof(journal)/sizeof(journal[0]); ++i)
+        for (int i = 0; i < (int)(sizeof(journal)/sizeof(journal[0])); ++i)
         {
             tuple* new_tuple = tuple_list::append<tuple>(h.list);
             new_tuple->data = i;
