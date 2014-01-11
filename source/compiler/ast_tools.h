@@ -21,10 +21,10 @@
 #ifndef DERPLANNER_COMPILER_AST_TOOLS_H_
 #define DERPLANNER_COMPILER_AST_TOOLS_H_
 
+#include "tree_ops.h"
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/s_expression.h"
 #include "derplanner/compiler/ast.h"
-#include "derplanner/compiler/tree_ops.h"
 
 namespace plnnrc {
 namespace ast {

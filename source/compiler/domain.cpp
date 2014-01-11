@@ -22,13 +22,13 @@
 #include "formatter.h"
 #include "ast_tools.h"
 #include "ast_build_tools.h"
+#include "tree_ops.h"
 #include "derplanner/compiler/config.h"
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/s_expression.h"
 #include "derplanner/compiler/ast.h"
 #include "derplanner/compiler/term.h"
 #include "derplanner/compiler/logical_expression.h"
-#include "derplanner/compiler/tree_ops.h"
 #include "derplanner/compiler/domain.h"
 
 namespace plnnrc {
