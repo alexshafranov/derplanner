@@ -42,7 +42,7 @@ namespace
 
     annotation_trait type_annotation_trait(node_type type)
     {
-        annotation_trait result = {0};
+        annotation_trait result = {0, 0};
 
         if (is_term(type))
         {

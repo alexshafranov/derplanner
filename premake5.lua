@@ -3,19 +3,15 @@ solution "derplanner"
     configurations { "release", "debug" }
     language "C++"
 
-    flags
-    {
-        "NoPCH",
-        "NoRTTI",
-        "ExtraWarnings",
-        "FatalWarnings",
-    }
+    flags { "NoPCH", "NoRTTI", "FatalWarnings" }
+    warnings "Extra"
+    objdir ".build/obj"
 
     configuration "debug"
         flags "Symbols"
 
     configuration "release"
-        flags "OptimizeSpeed"
+        optimize "Speed"
         defines { "NDEBUG" }
 
     configuration { "debug", "x32" }
@@ -35,5 +31,3 @@ solution "derplanner"
     dofile "premake/unittestpp.lua"
     dofile "premake/tests.lua"
     dofile "premake/compiler.lua"
-
-    objdir ".build/obj"

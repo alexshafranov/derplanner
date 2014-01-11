@@ -1,6 +1,7 @@
 project "derplannerc"
     kind "ConsoleApp"
-    flags { "ExtraWarnings", "FatalWarnings" }
+    flags { "FatalWarnings" }
+    warnings "Extra"
     files { "../compiler/*.cpp" }
     includedirs { "../include" }
     links { "derplanner-compiler" }

@@ -1,5 +1,6 @@
 project "derplanner-compiler"
     kind "StaticLib"
-    flags { "ExtraWarnings", "FatalWarnings", "NoExceptions" }
+    flags { "FatalWarnings", "NoExceptions" }
+    warnings "Extra"
     files { "../source/compiler/**.cpp" }
     includedirs { "../include" }

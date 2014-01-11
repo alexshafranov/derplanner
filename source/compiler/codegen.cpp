@@ -308,7 +308,7 @@ namespace
         }
     };
 
-    void generate_header_top(ast::tree& ast, const char* custom_header, formatter& output)
+    void generate_header_top(ast::tree& /*ast*/, const char* custom_header, formatter& output)
     {
         output.writeln("#include <derplanner/runtime/interface.h>");
         output.newline();
@@ -337,7 +337,7 @@ namespace
         }
     }
 
-    void generate_source_top(ast::tree& ast, node* worldstate_namespace, const char* header_file_name, formatter& output)
+    void generate_source_top(ast::tree& /*ast*/, node* /*worldstate_namespace*/, const char* header_file_name, formatter& output)
     {
         output.writeln("#include <derplanner/runtime/runtime.h>");
         output.writeln("#include \"%s\"", header_file_name);
@@ -350,7 +350,7 @@ namespace
         output.newline();
     }
 
-    void generate_worldstate(tree& ast, node* worldstate, formatter& output)
+    void generate_worldstate(tree& /*ast*/, node* worldstate, formatter& output)
     {
         plnnrc_assert(worldstate && worldstate->type == node_worldstate);
 
@@ -998,7 +998,7 @@ namespace
         }
     }
 
-    void generate_operator_effects(tree& ast, node* method, node* task_atom, formatter& output)
+    void generate_operator_effects(tree& ast, node* /*method*/, node* task_atom, formatter& output)
     {
         node* operatr = ast.operators.find(task_atom->s_expr->token);
         plnnrc_assert(operatr);
@@ -1083,7 +1083,7 @@ namespace
         }
     }
 
-    void generate_method_task(tree& ast, node* method, node* task_atom, formatter& output)
+    void generate_method_task(tree& ast, node* /*method*/, node* task_atom, formatter& output)
     {
         plnnrc_assert(is_method(ast, task_atom));
 
@@ -1322,7 +1322,7 @@ namespace
         }
     }
 
-    void generate_atom_name_function(ast::tree& ast, node* worldstate, bool enabled, formatter& output)
+    void generate_atom_name_function(ast::tree& /*ast*/, node* worldstate, bool enabled, formatter& output)
     {
         if (!enabled)
         {
@@ -1353,7 +1353,7 @@ namespace
         }
     }
 
-    void generate_atom_reflector(ast::tree& ast, node* atom, paste_func* paste_namespace, const char* name_function, const char* tuple_struct_postfix, const char* tuple_id_prefix, formatter& output)
+    void generate_atom_reflector(ast::tree& /*ast*/, node* atom, paste_func* paste_namespace, const char* name_function, const char* tuple_struct_postfix, const char* tuple_id_prefix, formatter& output)
     {
         output.writeln("template <typename V>");
         output.writeln("struct generated_type_reflector<%p::%i_%s, V>", paste_namespace, atom->s_expr->token, tuple_struct_postfix);

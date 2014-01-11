@@ -1,6 +1,7 @@
 project "unittestpp"
     kind "StaticLib"
-    flags { "ExtraWarnings", "FatalWarnings" }
+    flags { "FatalWarnings" }
+    warnings "Extra"
     files { "../deps/unittestpp/src/*.cpp" }
     configuration { "linux or macosx" }
         files { "../deps/unittestpp/src/Posix/**.cpp" }
