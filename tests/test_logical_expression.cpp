@@ -20,11 +20,11 @@
 
 #include <string>
 #include <unittestpp.h>
-#include "compiler/tree_ops.h"
 #include <derplanner/compiler/assert.h>
 #include <derplanner/compiler/s_expression.h>
 #include <derplanner/compiler/ast.h>
-#include <derplanner/compiler/logical_expression.h>
+#include "compiler/tree_ops.h"
+#include "compiler/logical_expression.h"
 
 using namespace plnnrc;
 

@@ -25,7 +25,7 @@
 #include "derplanner/compiler/s_expression.h"
 #include "derplanner/compiler/ast.h"
 #include "derplanner/compiler/term.h"
-#include "derplanner/compiler/logical_expression.h"
+#include "logical_expression.h"
 
 namespace plnnrc {
 namespace ast {
