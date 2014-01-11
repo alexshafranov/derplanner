@@ -188,7 +188,7 @@ void flatten(node* root)
     {
         if (is_logical_op(p) && p->type != node_op_not)
         {
-            while (true)
+            for (;;)
             {
                 bool collapsed = false;
 
@@ -328,7 +328,7 @@ namespace
         plnnrc_assert(root != 0);
         plnnrc_assert(root->type == node_op_or);
 
-        while (true)
+        for (;;)
         {
             bool done = true;
 

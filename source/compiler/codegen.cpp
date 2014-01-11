@@ -84,6 +84,8 @@ namespace
         node* namespace_node;
         formatter& output;
         bool end_with_empty_line;
+
+        namespace_wrap& operator=(const namespace_wrap&);
     };
 
     class paste_fully_qualified_namespace : public paste_func
@@ -467,7 +469,7 @@ namespace
 
         output.writeln("if (%sworld.%p)", root->type == node_op_not ? "!" : "", &paste);
         {
-            scope s(output, root->next_sibling);
+            scope s(output, root->next_sibling != 0);
 
             if (root->next_sibling)
             {
@@ -487,9 +489,7 @@ namespace
         node* arg_1 = arg_0->next_sibling;
         plnnrc_assert(arg_1 && arg_1->type == node_term_variable && !arg_1->next_sibling);
 
-        node* def_0 = definition(arg_0);
-        node* def_1 = definition(arg_1);
-        plnnrc_assert(def_0 && def_1);
+        plnnrc_assert(definition(arg_0) && definition(arg_1));
 
         const char* comparison_op = "==";
 
@@ -503,7 +503,7 @@ namespace
 
         output.writeln("if (state._%d %s state._%d)", var_index_0, comparison_op, var_index_1);
         {
-            scope s(output, root->next_sibling);
+            scope s(output, root->next_sibling != 0);
 
             if (root->next_sibling)
             {
@@ -1086,6 +1086,7 @@ namespace
     void generate_method_task(tree& ast, node* /*method*/, node* task_atom, formatter& output)
     {
         plnnrc_assert(is_method(ast, task_atom));
+        (void)(ast);
 
         output.writeln("method_instance* t = push_method(pstate, task_%i, %i_branch_0_expand);", task_atom->s_expr->token, task_atom->s_expr->token);
 

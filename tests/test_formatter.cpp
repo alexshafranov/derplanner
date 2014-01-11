@@ -61,7 +61,7 @@ namespace
         }
 
         char* buffer;
-        unsigned top;
+        size_t top;
     };
 
     TEST(format_integer)

@@ -219,6 +219,7 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
         node* method = methods.value();
         node* method_atom = method->first_child;
         plnnrc_assert(method_atom && method_atom->type == node_atom);
+        (void)(method_atom);
 
         link_method_variables(method);
     }
@@ -228,6 +229,7 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
         node* operatr = operators.value();
         node* operator_atom = operatr->first_child;
         plnnrc_assert(operator_atom && operator_atom->type == node_atom);
+        (void)(operator_atom);
 
         link_operator_variables(operatr);
     }
@@ -324,6 +326,7 @@ namespace
         {
             bool result = ast.methods.insert(task_atom->s_expr->token, method);
             plnnrc_assert(result);
+            (void)(result);
         }
 
         for (sexpr::node* branch_expr = task_atom_expr->next_sibling; branch_expr != 0; branch_expr = next_branch_expr(branch_expr))
@@ -704,6 +707,7 @@ namespace
                         node* ws_return_type = ws_func->first_child->next_sibling;
                         plnnrc_assert(ws_return_type);
                         plnnrc_assert(ws_return_type->type == node_worldstate_type);
+                        (void)(ws_return_type);
                         // check argument type
                         plnnrc_assert(annotation<ws_type_ann>(ws_type)->type_tag == annotation<ws_type_ann>(ws_return_type)->type_tag);
                     }
@@ -741,6 +745,8 @@ namespace
                         int ws_type_tag = annotation<ws_type_ann>(ws_type)->type_tag;
                         int ws_return_type_tag = annotation<ws_type_ann>(ws_return_type)->type_tag;
                         plnnrc_assert(ws_type_tag == ws_return_type_tag);
+                        (void)(ws_type_tag);
+                        (void)(ws_return_type_tag);
                     }
 
                     ws_type = ws_type->next_sibling;

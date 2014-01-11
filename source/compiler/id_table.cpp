@@ -63,7 +63,7 @@ namespace
 
     inline uint32_t required_capacity(uint32_t max_count)
     {
-        return next_pow2(ceilf(max_count / load_factor));
+        return next_pow2((uint32_t)ceilf(max_count / load_factor));
     }
 }
 

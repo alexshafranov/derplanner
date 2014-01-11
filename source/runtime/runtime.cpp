@@ -94,8 +94,8 @@ method_instance* push_method(planner_state& pstate, int task_type, expand_func e
     new_method->arguments = 0;
     new_method->precondition = 0;
     new_method->size = sizeof(method_instance);
-    new_method->task_rewind = pstate.tasks->top_offset();
-    new_method->journal_rewind = pstate.journal->top_offset();
+    new_method->task_rewind = (uint32_t)pstate.tasks->top_offset();
+    new_method->journal_rewind = (uint32_t)pstate.journal->top_offset();
     new_method->trace_rewind = 0;
     new_method->stage = 0;
     new_method->type = task_type;
@@ -108,7 +108,7 @@ method_instance* push_method(planner_state& pstate, int task_type, expand_func e
         trace.type = new_method->type;
         trace.branch_index = new_method->expanding_branch;
         push(pstate.trace, trace);
-        new_method->trace_rewind = pstate.trace->top_offset();
+        new_method->trace_rewind = (uint32_t)pstate.trace->top_offset();
     }
 
     pstate.top_method = new_method;
@@ -269,8 +269,8 @@ void find_plan_init(planner_state& pstate, task_instance* composite_task)
         ::memcpy(args_dst, arguments(composite_task), composite_task->args_size);
         size_t method_offset = pstate.methods->offset(method);
         size_t arguments_offset = pstate.methods->offset(args_dst);
-        method->arguments = arguments_offset - method_offset;
-        method->size = pstate.methods->top_offset() - method_offset;
+        method->arguments = uint32_t(arguments_offset - method_offset);
+        method->size = uint32_t(pstate.methods->top_offset() - method_offset);
     }
 }
 

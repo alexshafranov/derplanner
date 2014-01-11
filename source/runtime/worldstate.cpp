@@ -94,6 +94,7 @@ handle* create(tuple_traits traits, size_t page_size)
 {
     size_t worstcase_size = sizeof(handle) + plnnr_alignof(handle) + sizeof(page) + plnnr_alignof(page);
     plnnr_assert(page_size > worstcase_size);
+    (void)(worstcase_size);
 
     char* memory = static_cast<char*>(memory::allocate(page_size));
 

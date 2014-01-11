@@ -38,6 +38,8 @@ struct scope
 
     formatter& output;
     bool end_with_empty_line;
+
+    scope& operator=(const scope&);
 };
 
 struct class_scope
@@ -46,6 +48,8 @@ struct class_scope
     ~class_scope();
 
     formatter& output;
+
+    class_scope& operator=(const class_scope&);
 };
 
 struct indented
@@ -54,6 +58,8 @@ struct indented
     ~indented();
 
     formatter& output;
+
+    indented& operator=(const indented&);
 };
 
 class paste_func

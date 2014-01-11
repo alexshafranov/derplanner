@@ -24,7 +24,7 @@
 #include <string.h>
 #include "derplanner/compiler/s_expression.h"
 
-#define PLNNRC_CHECK(EXPR) do { if (!(EXPR)) return 0; } while (0)
+#define PLNNRC_CHECK(EXPR) do { if (!(EXPR)) return 0; } while ((void)(__LINE__==-1), false)
 
 namespace plnnrc
 {

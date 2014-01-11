@@ -323,7 +323,7 @@ namespace
 
         CHECK_EQUAL(expected, actual_str.c_str());
 
-        CHECK_EQUAL(2, tree.ws_types.count());
+        CHECK_EQUAL(2u, tree.ws_types.count());
 
         ast::node* ws_type_int = tree.ws_types.find("int");
         CHECK(ws_type_int);
@@ -331,7 +331,7 @@ namespace
         ast::node* ws_type_double = tree.ws_types.find("double");
         CHECK(ws_type_double);
 
-        CHECK_EQUAL(0, tree.ws_atoms.count());
+        CHECK_EQUAL(0u, tree.ws_atoms.count());
         CHECK(tree.ws_funcs.find("function_name") != 0);
     }
 

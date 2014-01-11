@@ -7,6 +7,6 @@ project "unittestpp"
         files { "../deps/unittestpp/src/Posix/**.cpp" }
     configuration { "vs*" }
         defines { "_CRT_SECURE_NO_WARNINGS" }
-    configuration { "windows" }
-        files { "../deps/unittestpp/Win32/**.cpp" }
+    configuration { "vs*" }
+        files { "../deps/unittestpp/src/Win32/**.cpp" }
     configuration {}
