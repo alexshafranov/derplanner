@@ -67,7 +67,7 @@ public:
     id_table_values values() const;
 
 private:
-    friend id_table_values;
+    friend class id_table_values;
 
     id_table(const id_table&);
     const id_table& operator=(const id_table&);

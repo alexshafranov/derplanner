@@ -43,7 +43,7 @@ private:
 template <typename R, typename V>
 struct generated_type_reflector
 {
-    void operator()(const R& reflected, V& visitor)
+    void operator()(const R& /*reflected*/, V& /*visitor*/)
     {
         // specialized in the generated code.
     }
@@ -52,7 +52,7 @@ struct generated_type_reflector
 template <typename T, typename V>
 struct task_type_dispatcher
 {
-    void operator()(const T& task_type, void* args, V& visitor)
+    void operator()(const T& /*task_type*/, void* /*args*/, V& /*visitor*/)
     {
         // specialized in the generated code.
     }
@@ -96,13 +96,13 @@ struct task_compare
     I* task_a;
     bool result;
 
-    void task(int task_type, const char* task_name)
+    void task(int task_type, const char* /*task_name*/)
     {
         result = (task_a->type == task_type);
     }
 
     template <typename A>
-    void task(int task_type, const char* task_name, const A* args)
+    void task(int task_type, const char* /*task_name*/, const A* args)
     {
         result = (task_a->type == task_type);
 

@@ -24,7 +24,7 @@ namespace plnnr {
 
 namespace
 {
-    tuple_list::handle* get_handle(void* data, size_t id)
+    inline tuple_list::handle* get_handle(void* data, size_t id)
     {
         return reinterpret_cast<tuple_list::handle**>(data)[id];
     }
