@@ -73,12 +73,12 @@ namespace
 
     TEST(undo_sequantial_add)
     {
-        void* journal[9];
+        void* journal[10];
 
         holder h;
 
         // add items
-        for (int i = 0; i < 10; ++i)
+        for (int i = 0; i < sizeof(journal)/sizeof(journal[0]); ++i)
         {
             tuple* new_tuple = tuple_list::append<tuple>(h.list);
             new_tuple->data = i;
@@ -112,7 +112,7 @@ namespace
             CHECK_EQUAL(count, t->data);
         }
 
-        CHECK_EQUAL(10, count);
+        CHECK_EQUAL(sizeof(journal)/sizeof(journal[0]), (size_t)count);
 
         for (tuple* tail = head; ; tail = tail->next)
         {
