@@ -24,11 +24,11 @@
 #include "ast_build_tools.h"
 #include "tree_ops.h"
 #include "logical_expression.h"
+#include "term.h"
 #include "derplanner/compiler/config.h"
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/s_expression.h"
 #include "derplanner/compiler/ast.h"
-#include "derplanner/compiler/term.h"
 #include "derplanner/compiler/domain.h"
 
 namespace plnnrc {
