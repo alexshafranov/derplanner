@@ -38,19 +38,15 @@ namespace ast {
 
 namespace
 {
-    node* build_namespace(tree& ast, sexpr::node* s_expr);
-    node* build_method(tree& ast, sexpr::node* s_expr);
-    node* build_branch(tree& ast, sexpr::node* s_expr);
-    node* build_task_list(tree& ast, sexpr::node* s_expr);
-    node* build_operator(tree& ast, sexpr::node* s_expr);
-    node* build_operator_stub(tree& ast, sexpr::node* s_expr);
+    sexpr::node* next_branch_expr(sexpr::node* branch_expr)
+    {
+        if (is_token(branch_expr->first_child, token_foreach))
+        {
+            return branch_expr->next_sibling;
+        }
 
-    node* build_worldstate_atom(tree& ast, sexpr::node* s_expr, int& type_tag);
-    node* build_worldstate_type(tree& ast, sexpr::node* s_expr, int& type_tag);
-
-    bool build_operator_stubs(tree& ast);
-
-    sexpr::node* next_branch_expr(sexpr::node* branch_expr);
+        return branch_expr->next_sibling->next_sibling;
+    }
 
     int count_elements(sexpr::node* root, str_ref token)
     {
@@ -234,329 +230,316 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
     return domain;
 }
 
-namespace
+node* build_worldstate_atom(tree& ast, sexpr::node* s_expr, int& type_tag)
 {
-    node* build_worldstate_atom(tree& ast, sexpr::node* s_expr, int& type_tag)
+    node* atom = ast.make_node(node_atom, s_expr->first_child);
+    PLNNRC_CHECK(atom);
+
+    plnnrc_assert(is_valid_id(s_expr->first_child->token));
+
+    for (sexpr::node* t_expr = s_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
     {
-        node* atom = ast.make_node(node_atom, s_expr->first_child);
-        PLNNRC_CHECK(atom);
-
-        plnnrc_assert(is_valid_id(s_expr->first_child->token));
-
-        for (sexpr::node* t_expr = s_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
-        {
-            node* type_node = build_worldstate_type(ast, t_expr, type_tag);
-            PLNNRC_CHECK(type_node);
-            append_child(atom, type_node);
-        }
-
-        return atom;
+        node* type_node = build_worldstate_type(ast, t_expr, type_tag);
+        PLNNRC_CHECK(type_node);
+        append_child(atom, type_node);
     }
 
-    node* build_worldstate_type(tree& ast, sexpr::node* s_expr, int& type_tag)
+    return atom;
+}
+
+node* build_worldstate_type(tree& ast, sexpr::node* s_expr, int& type_tag)
+{
+    glue_tokens(s_expr);
+
+    node* type = ast.make_node(node_worldstate_type, s_expr);
+    PLNNRC_CHECK(type);
+
+    node* type_proto = ast.ws_types.find(s_expr->first_child->token);
+
+    if (!type_proto)
     {
-        glue_tokens(s_expr);
+        annotation<ws_type_ann>(type)->type_tag = type_tag;
 
-        node* type = ast.make_node(node_worldstate_type, s_expr);
-        PLNNRC_CHECK(type);
-
-        node* type_proto = ast.ws_types.find(s_expr->first_child->token);
-
-        if (!type_proto)
+        if (!ast.ws_types.insert(s_expr->first_child->token, type))
         {
-            annotation<ws_type_ann>(type)->type_tag = type_tag;
-
-            if (!ast.ws_types.insert(s_expr->first_child->token, type))
-            {
-                return 0;
-            }
-
-            type_tag++;
-        }
-        else
-        {
-            annotation<ws_type_ann>(type)->type_tag = annotation<ws_type_ann>(type_proto)->type_tag;
+            return 0;
         }
 
-        return type;
+        type_tag++;
+    }
+    else
+    {
+        annotation<ws_type_ann>(type)->type_tag = annotation<ws_type_ann>(type_proto)->type_tag;
     }
 
-    node* build_namespace(tree& ast, sexpr::node* s_expr)
+    return type;
+}
+
+node* build_namespace(tree& ast, sexpr::node* s_expr)
+{
+    plnnrc_assert(s_expr->type == sexpr::node_list);
+    plnnrc_assert(s_expr->first_child);
+
+    for (sexpr::node* n = s_expr->first_child; n != 0; n = n->next_sibling)
     {
-        plnnrc_assert(s_expr->type == sexpr::node_list);
-        plnnrc_assert(s_expr->first_child);
-
-        for (sexpr::node* n = s_expr->first_child; n != 0; n = n->next_sibling)
-        {
-            plnnrc_assert(n->type == sexpr::node_symbol);
-        }
-
-        node* result = ast.make_node(node_namespace, s_expr);
-        PLNNRC_CHECK(result);
-
-        return result;
+        plnnrc_assert(n->type == sexpr::node_symbol);
     }
 
-    node* build_method(tree& ast, sexpr::node* s_expr)
+    node* result = ast.make_node(node_namespace, s_expr);
+    PLNNRC_CHECK(result);
+
+    return result;
+}
+
+node* build_method(tree& ast, sexpr::node* s_expr)
+{
+    plnnrc_assert(s_expr->type == sexpr::node_list);
+    plnnrc_assert(s_expr->first_child);
+    plnnrc_assert(s_expr->first_child->type == sexpr::node_symbol);
+    plnnrc_assert(is_token(s_expr->first_child, token_method));
+
+    node* method = ast.make_node(node_method, s_expr);
+    PLNNRC_CHECK(method);
+
+    sexpr::node* task_atom_expr = s_expr->first_child->next_sibling;
+    plnnrc_assert(task_atom_expr);
+    plnnrc_assert(task_atom_expr->type == sexpr::node_list);
+
+    node* task_atom = build_atom(ast, task_atom_expr);
+    PLNNRC_CHECK(task_atom);
+
+    append_child(method, task_atom);
+
+    plnnrc_assert(is_valid_id(task_atom->s_expr->token));
+
     {
-        plnnrc_assert(s_expr->type == sexpr::node_list);
-        plnnrc_assert(s_expr->first_child);
-        plnnrc_assert(s_expr->first_child->type == sexpr::node_symbol);
-        plnnrc_assert(is_token(s_expr->first_child, token_method));
-
-        node* method = ast.make_node(node_method, s_expr);
-        PLNNRC_CHECK(method);
-
-        sexpr::node* task_atom_expr = s_expr->first_child->next_sibling;
-        plnnrc_assert(task_atom_expr);
-        plnnrc_assert(task_atom_expr->type == sexpr::node_list);
-
-        node* task_atom = build_atom(ast, task_atom_expr);
-        PLNNRC_CHECK(task_atom);
-
-        append_child(method, task_atom);
-
-        plnnrc_assert(is_valid_id(task_atom->s_expr->token));
-
-        {
-            bool result = ast.methods.insert(task_atom->s_expr->token, method);
-            plnnrc_assert(result);
-            (void)(result);
-        }
-
-        for (sexpr::node* branch_expr = task_atom_expr->next_sibling; branch_expr != 0; branch_expr = next_branch_expr(branch_expr))
-        {
-            node* branch = build_branch(ast, branch_expr);
-            PLNNRC_CHECK(branch);
-            append_child(method, branch);
-        }
-
-        return method;
+        bool result = ast.methods.insert(task_atom->s_expr->token, method);
+        plnnrc_assert(result);
+        (void)(result);
     }
 
-    sexpr::node* next_branch_expr(sexpr::node* branch_expr)
+    for (sexpr::node* branch_expr = task_atom_expr->next_sibling; branch_expr != 0; branch_expr = next_branch_expr(branch_expr))
     {
-        if (is_token(branch_expr->first_child, token_foreach))
-        {
-            return branch_expr->next_sibling;
-        }
-
-        return branch_expr->next_sibling->next_sibling;
-    }
-
-    node* build_branch(tree& ast, sexpr::node* s_expr)
-    {
-        node* branch = ast.make_node(node_branch, s_expr);
+        node* branch = build_branch(ast, branch_expr);
         PLNNRC_CHECK(branch);
+        append_child(method, branch);
+    }
 
-        sexpr::node* precondition_expr = 0;
-        sexpr::node* tasklist_expr = 0;
+    return method;
+}
 
-        branch_ann* ann = annotation<branch_ann>(branch);
+node* build_branch(tree& ast, sexpr::node* s_expr)
+{
+    node* branch = ast.make_node(node_branch, s_expr);
+    PLNNRC_CHECK(branch);
 
-        if (is_token(s_expr->first_child, token_foreach))
+    sexpr::node* precondition_expr = 0;
+    sexpr::node* tasklist_expr = 0;
+
+    branch_ann* ann = annotation<branch_ann>(branch);
+
+    if (is_token(s_expr->first_child, token_foreach))
+    {
+        precondition_expr = s_expr->first_child->next_sibling;
+        plnnrc_assert(precondition_expr);
+        tasklist_expr = precondition_expr->next_sibling;
+        ann->foreach = true;
+    }
+    else
+    {
+        precondition_expr = s_expr;
+        tasklist_expr = precondition_expr->next_sibling;
+        plnnrc_assert(precondition_expr);
+        plnnrc_assert(tasklist_expr);
+        ann->foreach = false;
+    }
+
+    node* precondition = build_logical_expression(ast, precondition_expr);
+    PLNNRC_CHECK(precondition);
+    node* precondition_dnf = convert_to_dnf(ast, precondition);
+    PLNNRC_CHECK(precondition_dnf);
+    precondition_dnf->s_expr = precondition_expr;
+    append_child(branch, precondition_dnf);
+
+    node* task_list = build_task_list(ast, tasklist_expr);
+    PLNNRC_CHECK(task_list);
+    append_child(branch, task_list);
+
+    return branch;
+}
+
+node* build_task_list(tree& ast, sexpr::node* s_expr)
+{
+    plnnrc_assert(s_expr->type == sexpr::node_list);
+    node* task_list = ast.make_node(node_task_list, s_expr);
+    PLNNRC_CHECK(task_list);
+
+    for (sexpr::node* c_expr = s_expr->first_child; c_expr != 0; c_expr = c_expr->next_sibling)
+    {
+        plnnrc_assert((c_expr->type == sexpr::node_list && c_expr->first_child) || (c_expr->type == sexpr::node_symbol));
+
+        if (is_token(c_expr->first_child, token_add) || is_token(c_expr->first_child, token_delete))
         {
-            precondition_expr = s_expr->first_child->next_sibling;
-            plnnrc_assert(precondition_expr);
-            tasklist_expr = precondition_expr->next_sibling;
-            ann->foreach = true;
+            node_type type = is_token(c_expr->first_child, token_add) ? node_add_list : node_delete_list;
+            node* task = ast.make_node(type, c_expr);
+            PLNNRC_CHECK(task);
+
+            for (sexpr::node* t_expr = c_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
+            {
+                node* atom = build_atom(ast, t_expr);
+                PLNNRC_CHECK(atom);
+                append_child(task, atom);
+            }
+
+            append_child(task_list, task);
         }
         else
         {
-            precondition_expr = s_expr;
-            tasklist_expr = precondition_expr->next_sibling;
-            plnnrc_assert(precondition_expr);
-            plnnrc_assert(tasklist_expr);
-            ann->foreach = false;
+            node* task = build_atom(ast, c_expr);
+            PLNNRC_CHECK(task);
+            append_child(task_list, task);
         }
-
-        node* precondition = build_logical_expression(ast, precondition_expr);
-        PLNNRC_CHECK(precondition);
-        node* precondition_dnf = convert_to_dnf(ast, precondition);
-        PLNNRC_CHECK(precondition_dnf);
-        precondition_dnf->s_expr = precondition_expr;
-        append_child(branch, precondition_dnf);
-
-        node* task_list = build_task_list(ast, tasklist_expr);
-        PLNNRC_CHECK(task_list);
-        append_child(branch, task_list);
-
-        return branch;
     }
 
-    node* build_task_list(tree& ast, sexpr::node* s_expr)
+    return task_list;
+}
+
+node* build_operator(tree& ast, sexpr::node* s_expr)
+{
+    plnnrc_assert(s_expr->type == sexpr::node_list);
+    plnnrc_assert(s_expr->first_child);
+    plnnrc_assert(s_expr->first_child->type == sexpr::node_symbol);
+    plnnrc_assert(is_token(s_expr->first_child, token_operator));
+
+    node* operatr = ast.make_node(node_operator, s_expr);
+    PLNNRC_CHECK(operatr);
+
+    sexpr::node* task_atom_expr = s_expr->first_child->next_sibling;
+    plnnrc_assert(task_atom_expr);
+    plnnrc_assert(task_atom_expr->type == sexpr::node_list);
+
+    plnnrc_assert(is_valid_id(task_atom_expr->first_child->token));
+
+    node* task_atom = build_atom(ast, task_atom_expr);
+    PLNNRC_CHECK(task_atom);
+    append_child(operatr, task_atom);
+
+    plnnrc_assert(is_valid_id(task_atom->s_expr->token));
+
+    PLNNRC_CHECK(ast.operators.insert(task_atom->s_expr->token, operatr));
+
+    sexpr::node* delete_effects_expr = 0;
+    sexpr::node* add_effects_expr = 0;
+
+    for (sexpr::node* child = task_atom_expr->next_sibling; child != 0; child = child->next_sibling)
     {
-        plnnrc_assert(s_expr->type == sexpr::node_list);
-        node* task_list = ast.make_node(node_task_list, s_expr);
-        PLNNRC_CHECK(task_list);
+        plnnrc_assert(child->type == sexpr::node_list);
 
-        for (sexpr::node* c_expr = s_expr->first_child; c_expr != 0; c_expr = c_expr->next_sibling)
+        if (is_token(child->first_child, token_delete))
         {
-            plnnrc_assert((c_expr->type == sexpr::node_list && c_expr->first_child) || (c_expr->type == sexpr::node_symbol));
+            plnnrc_assert(!delete_effects_expr);
+            delete_effects_expr = child;
+            continue;
+        }
 
-            if (is_token(c_expr->first_child, token_add) || is_token(c_expr->first_child, token_delete))
+        if (is_token(child->first_child, token_add))
+        {
+            plnnrc_assert(!add_effects_expr);
+            add_effects_expr = child;
+            continue;
+        }
+
+        // error: unknown element in operator definition
+        plnnrc_assert(false);
+    }
+
+    node* delete_effects = ast.make_node(node_delete_list, delete_effects_expr);
+    PLNNRC_CHECK(delete_effects);
+    append_child(operatr, delete_effects);
+
+    if (delete_effects_expr)
+    {
+        for (sexpr::node* t_expr = delete_effects_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
+        {
+            node* atom = build_atom(ast, t_expr);
+            PLNNRC_CHECK(atom);
+            append_child(delete_effects, atom);
+        }
+    }
+
+    node* add_effects = ast.make_node(node_add_list, add_effects_expr);
+    PLNNRC_CHECK(add_effects);
+    append_child(operatr, add_effects);
+
+    if (add_effects_expr)
+    {
+        for (sexpr::node* t_expr = add_effects_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
+        {
+            node* atom = build_atom(ast, t_expr);
+            PLNNRC_CHECK(atom);
+            append_child(add_effects, atom);
+        }
+    }
+
+    return operatr;
+}
+
+node* build_operator_stub(tree& ast, sexpr::node* s_expr)
+{
+    plnnrc_assert(is_valid_id(s_expr->token));
+
+    node* operatr = ast.make_node(node_operator, s_expr->parent);
+    PLNNRC_CHECK(operatr);
+
+    PLNNRC_CHECK(ast.operators.insert(s_expr->token, operatr));
+
+    node* operator_atom = build_atom(ast, s_expr->parent);
+    PLNNRC_CHECK(operator_atom);
+    append_child(operatr, operator_atom);
+
+    node* delete_effects = ast.make_node(node_atomlist);
+    PLNNRC_CHECK(delete_effects);
+    append_child(operatr, delete_effects);
+
+    node* add_effects = ast.make_node(node_atomlist);
+    PLNNRC_CHECK(add_effects);
+    append_child(operatr, add_effects);
+
+    return operatr;
+}
+
+bool build_operator_stubs(tree& ast)
+{
+    for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+    {
+        node* method = methods.value();
+        node* method_atom = method->first_child;
+        plnnrc_assert(method_atom && method_atom->type == node_atom);
+
+        for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
+        {
+            plnnrc_assert(branch->first_child);
+            node* tasklist = branch->first_child->next_sibling;
+            plnnrc_assert(tasklist);
+
+            for (node* task = tasklist->first_child; task != 0; task = task->next_sibling)
             {
-                node_type type = is_token(c_expr->first_child, token_add) ? node_add_list : node_delete_list;
-                node* task = ast.make_node(type, c_expr);
-                PLNNRC_CHECK(task);
-
-                for (sexpr::node* t_expr = c_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
+                if (task->type == node_atom && !is_method(ast, task))
                 {
-                    node* atom = build_atom(ast, t_expr);
-                    PLNNRC_CHECK(atom);
-                    append_child(task, atom);
-                }
-
-                append_child(task_list, task);
-            }
-            else
-            {
-                node* task = build_atom(ast, c_expr);
-                PLNNRC_CHECK(task);
-                append_child(task_list, task);
-            }
-        }
-
-        return task_list;
-    }
-
-    node* build_operator(tree& ast, sexpr::node* s_expr)
-    {
-        plnnrc_assert(s_expr->type == sexpr::node_list);
-        plnnrc_assert(s_expr->first_child);
-        plnnrc_assert(s_expr->first_child->type == sexpr::node_symbol);
-        plnnrc_assert(is_token(s_expr->first_child, token_operator));
-
-        node* operatr = ast.make_node(node_operator, s_expr);
-        PLNNRC_CHECK(operatr);
-
-        sexpr::node* task_atom_expr = s_expr->first_child->next_sibling;
-        plnnrc_assert(task_atom_expr);
-        plnnrc_assert(task_atom_expr->type == sexpr::node_list);
-
-        plnnrc_assert(is_valid_id(task_atom_expr->first_child->token));
-
-        node* task_atom = build_atom(ast, task_atom_expr);
-        PLNNRC_CHECK(task_atom);
-        append_child(operatr, task_atom);
-
-        plnnrc_assert(is_valid_id(task_atom->s_expr->token));
-
-        PLNNRC_CHECK(ast.operators.insert(task_atom->s_expr->token, operatr));
-
-        sexpr::node* delete_effects_expr = 0;
-        sexpr::node* add_effects_expr = 0;
-
-        for (sexpr::node* child = task_atom_expr->next_sibling; child != 0; child = child->next_sibling)
-        {
-            plnnrc_assert(child->type == sexpr::node_list);
-
-            if (is_token(child->first_child, token_delete))
-            {
-                plnnrc_assert(!delete_effects_expr);
-                delete_effects_expr = child;
-                continue;
-            }
-
-            if (is_token(child->first_child, token_add))
-            {
-                plnnrc_assert(!add_effects_expr);
-                add_effects_expr = child;
-                continue;
-            }
-
-            // error: unknown element in operator definition
-            plnnrc_assert(false);
-        }
-
-        node* delete_effects = ast.make_node(node_delete_list, delete_effects_expr);
-        PLNNRC_CHECK(delete_effects);
-        append_child(operatr, delete_effects);
-
-        if (delete_effects_expr)
-        {
-            for (sexpr::node* t_expr = delete_effects_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
-            {
-                node* atom = build_atom(ast, t_expr);
-                PLNNRC_CHECK(atom);
-                append_child(delete_effects, atom);
-            }
-        }
-
-        node* add_effects = ast.make_node(node_add_list, add_effects_expr);
-        PLNNRC_CHECK(add_effects);
-        append_child(operatr, add_effects);
-
-        if (add_effects_expr)
-        {
-            for (sexpr::node* t_expr = add_effects_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
-            {
-                node* atom = build_atom(ast, t_expr);
-                PLNNRC_CHECK(atom);
-                append_child(add_effects, atom);
-            }
-        }
-
-        return operatr;
-    }
-
-    node* build_operator_stub(tree& ast, sexpr::node* s_expr)
-    {
-        plnnrc_assert(is_valid_id(s_expr->token));
-
-        node* operatr = ast.make_node(node_operator, s_expr->parent);
-        PLNNRC_CHECK(operatr);
-
-        PLNNRC_CHECK(ast.operators.insert(s_expr->token, operatr));
-
-        node* operator_atom = build_atom(ast, s_expr->parent);
-        PLNNRC_CHECK(operator_atom);
-        append_child(operatr, operator_atom);
-
-        node* delete_effects = ast.make_node(node_atomlist);
-        PLNNRC_CHECK(delete_effects);
-        append_child(operatr, delete_effects);
-
-        node* add_effects = ast.make_node(node_atomlist);
-        PLNNRC_CHECK(add_effects);
-        append_child(operatr, add_effects);
-
-        return operatr;
-    }
-
-    bool build_operator_stubs(tree& ast)
-    {
-        for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
-        {
-            node* method = methods.value();
-            node* method_atom = method->first_child;
-            plnnrc_assert(method_atom && method_atom->type == node_atom);
-
-            for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
-            {
-                plnnrc_assert(branch->first_child);
-                node* tasklist = branch->first_child->next_sibling;
-                plnnrc_assert(tasklist);
-
-                for (node* task = tasklist->first_child; task != 0; task = task->next_sibling)
-                {
-                    if (task->type == node_atom && !is_method(ast, task))
+                    if (ast.operators.find(task->s_expr->token))
                     {
-                        if (ast.operators.find(task->s_expr->token))
-                        {
-                            // check number of arguments here.
-                            continue;
-                        }
-
-                        node* operatr = build_operator_stub(ast, task->s_expr);
-                        PLNNRC_CHECK(operatr);
+                        // check number of arguments here.
+                        continue;
                     }
+
+                    node* operatr = build_operator_stub(ast, task->s_expr);
+                    PLNNRC_CHECK(operatr);
                 }
             }
         }
-
-        return true;
     }
+
+    return true;
 }
 
 node* build_worldstate(tree& ast, sexpr::node* s_expr)
