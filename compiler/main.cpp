@@ -25,7 +25,7 @@
 #include <derplanner/compiler/memory.h>
 #include <derplanner/compiler/s_expression.h>
 #include <derplanner/compiler/ast.h>
-#include <derplanner/compiler/domain.h>
+#include <derplanner/compiler/ast_build.h>
 #include <derplanner/compiler/codegen.h>
 
 using namespace plnnrc;
@@ -95,9 +95,6 @@ int main(int argc, char** argv)
 
     ast::tree tree;
     ast::build_translation_unit(tree, expr.root());
-
-    ast::infer_types(tree);
-    ast::annotate(tree);
 
     std::string header_file_name = std::string(output_name) + ".h";
     std::string source_file_name = std::string(output_name) + ".cpp";

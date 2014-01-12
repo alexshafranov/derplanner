@@ -19,6 +19,10 @@
 //
 
 #include <string.h>
+#include "derplanner/compiler/config.h"
+#include "derplanner/compiler/assert.h"
+#include "derplanner/compiler/s_expression.h"
+#include "derplanner/compiler/ast.h"
 #include "formatter.h"
 #include "ast_tools.h"
 #include "ast_build_tools.h"
@@ -26,11 +30,7 @@
 #include "ast_logical_expression.h"
 #include "ast_term.h"
 #include "tokens.h"
-#include "derplanner/compiler/config.h"
-#include "derplanner/compiler/assert.h"
-#include "derplanner/compiler/s_expression.h"
-#include "derplanner/compiler/ast.h"
-#include "derplanner/compiler/domain.h"
+#include "ast_domain.h"
 
 namespace plnnrc {
 namespace ast {
@@ -226,6 +226,9 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
     }
 
     append_child(ast.root(), domain);
+
+    infer_types(ast);
+    annotate(ast);
 
     return domain;
 }

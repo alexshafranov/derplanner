@@ -21,11 +21,11 @@
 #include <stdio.h>
 #include <string>
 #include <unittestpp.h>
-#include "compiler/tree_ops.h"
 #include <derplanner/compiler/assert.h>
 #include <derplanner/compiler/s_expression.h>
 #include <derplanner/compiler/ast.h>
-#include <derplanner/compiler/domain.h>
+#include "compiler/tree_ops.h"
+#include "compiler/ast_domain.h"
 
 using namespace plnnrc;
 
