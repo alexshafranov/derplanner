@@ -25,7 +25,7 @@
 #include "ast_build_tools.h"
 #include "tree_ops.h"
 #include "tokens.h"
-#include "term.h"
+#include "ast_term.h"
 
 namespace plnnrc {
 namespace ast {

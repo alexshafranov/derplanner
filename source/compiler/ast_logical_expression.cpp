@@ -24,9 +24,9 @@
 #include "derplanner/compiler/ast.h"
 #include "ast_build_tools.h"
 #include "tree_ops.h"
-#include "term.h"
+#include "ast_term.h"
 #include "tokens.h"
-#include "logical_expression.h"
+#include "ast_logical_expression.h"
 
 namespace plnnrc {
 namespace ast {
