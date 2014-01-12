@@ -35,20 +35,19 @@ namespace ast
 
 namespace ast {
 
-node* build_domain(tree& ast, sexpr::node* s_expr);
-node* build_worldstate(tree& ast, sexpr::node* s_expr);
-
 node* build_namespace(tree& ast, sexpr::node* s_expr);
+
+node* build_domain(tree& ast, sexpr::node* s_expr);
 node* build_method(tree& ast, sexpr::node* s_expr);
 node* build_branch(tree& ast, sexpr::node* s_expr);
 node* build_task_list(tree& ast, sexpr::node* s_expr);
 node* build_operator(tree& ast, sexpr::node* s_expr);
 node* build_operator_stub(tree& ast, sexpr::node* s_expr);
+bool build_operator_stubs(tree& ast);
 
+node* build_worldstate(tree& ast, sexpr::node* s_expr);
 node* build_worldstate_atom(tree& ast, sexpr::node* s_expr, int& type_tag);
 node* build_worldstate_type(tree& ast, sexpr::node* s_expr, int& type_tag);
-
-bool build_operator_stubs(tree& ast);
 
 void infer_types(tree& ast);
 void annotate(tree& ast);
