@@ -25,6 +25,7 @@
 #include "ast_build_tools.h"
 #include "tree_ops.h"
 #include "term.h"
+#include "tokens.h"
 #include "logical_expression.h"
 
 namespace plnnrc {
@@ -32,10 +33,6 @@ namespace ast {
 
 namespace
 {
-    PLNNRC_DEFINE_TOKEN(token_and,   "and");
-    PLNNRC_DEFINE_TOKEN(token_or,    "or");
-    PLNNRC_DEFINE_TOKEN(token_not,   "not");
-
     // forward
     node* build_recursive(tree& ast, sexpr::node* s_expr);
 

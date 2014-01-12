@@ -18,9 +18,35 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef DERPLANNER_COMPILER_BUILD_TOOLS_H_
-#define DERPLANNER_COMPILER_BUILD_TOOLS_H_
+#ifndef DERPLANNER_COMPILER_TOKENS_H_
+#define DERPLANNER_COMPILER_TOKENS_H_
 
-#define PLNNRC_CHECK(EXPR) do { if (!(EXPR)) return 0; } while ((void)(__LINE__==-1), false)
+#include <string.h>
+#include "derplanner/compiler/s_expression.h"
+
+namespace plnnrc
+{
+    struct str_ref
+    {
+        const char* str;
+        size_t len;
+    };
+
+    inline bool is_token(::plnnrc::sexpr::node* s_expr, ::plnnrc::str_ref token)
+    {
+        return s_expr && s_expr->token && strncmp(s_expr->token, token.str, token.len) == 0;
+    }
+}
+
+#define PLNNRC_DECLARE_TOKEN(NAME, STR) extern const ::plnnrc::str_ref NAME
+#define PLNNRC_DEFINE_TOKEN(NAME, STR) const ::plnnrc::str_ref NAME = { STR, sizeof(STR) }
+
+namespace plnnrc {
+
+#define PLNNRC_TOKEN(NAME, STR) PLNNRC_DECLARE_TOKEN(NAME, STR);
+#include "token_tags.inl"
+#undef PLNNRC_TOKEN
+
+}
 
 #endif

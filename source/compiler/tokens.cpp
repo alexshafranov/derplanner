@@ -18,9 +18,12 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef DERPLANNER_COMPILER_BUILD_TOOLS_H_
-#define DERPLANNER_COMPILER_BUILD_TOOLS_H_
+#include "tokens.h"
 
-#define PLNNRC_CHECK(EXPR) do { if (!(EXPR)) return 0; } while ((void)(__LINE__==-1), false)
+namespace plnnrc {
 
-#endif
+#define PLNNRC_TOKEN(NAME, STR) PLNNRC_DEFINE_TOKEN(NAME, STR);
+#include "token_tags.inl"
+#undef PLNNRC_TOKEN
+
+}

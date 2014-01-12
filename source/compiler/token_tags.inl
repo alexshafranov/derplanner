@@ -18,9 +18,18 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef DERPLANNER_COMPILER_BUILD_TOOLS_H_
-#define DERPLANNER_COMPILER_BUILD_TOOLS_H_
 
-#define PLNNRC_CHECK(EXPR) do { if (!(EXPR)) return 0; } while ((void)(__LINE__==-1), false)
-
-#endif
+PLNNRC_TOKEN(token_worldstate,  ":worldstate")
+PLNNRC_TOKEN(token_function,    ":function")
+PLNNRC_TOKEN(token_return,      "->")
+PLNNRC_TOKEN(token_domain,      ":domain")
+PLNNRC_TOKEN(token_method,      ":method")
+PLNNRC_TOKEN(token_operator,    ":operator")
+PLNNRC_TOKEN(token_foreach,     ":foreach")
+PLNNRC_TOKEN(token_add,         ":add")
+PLNNRC_TOKEN(token_delete,      ":delete")
+PLNNRC_TOKEN(token_and,         "and")
+PLNNRC_TOKEN(token_or,          "or")
+PLNNRC_TOKEN(token_not,         "not")
+PLNNRC_TOKEN(token_eq,          "==")
+PLNNRC_TOKEN(token_lazy,        ":lazy")

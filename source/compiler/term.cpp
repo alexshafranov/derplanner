@@ -24,16 +24,11 @@
 #include "derplanner/compiler/ast.h"
 #include "ast_build_tools.h"
 #include "tree_ops.h"
+#include "tokens.h"
 #include "term.h"
 
 namespace plnnrc {
 namespace ast {
-
-namespace
-{
-    PLNNRC_DEFINE_TOKEN(token_eq,   "==");
-    PLNNRC_DEFINE_TOKEN(token_lazy, ":lazy");
-}
 
 node* build_atom(tree& ast, sexpr::node* s_expr)
 {

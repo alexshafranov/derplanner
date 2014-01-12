@@ -25,6 +25,7 @@
 #include "tree_ops.h"
 #include "logical_expression.h"
 #include "term.h"
+#include "tokens.h"
 #include "derplanner/compiler/config.h"
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/s_expression.h"
@@ -36,16 +37,6 @@ namespace ast {
 
 namespace
 {
-    PLNNRC_DEFINE_TOKEN(token_worldstate,   ":worldstate");
-    PLNNRC_DEFINE_TOKEN(token_function,     ":function");
-    PLNNRC_DEFINE_TOKEN(token_return,       "->");
-    PLNNRC_DEFINE_TOKEN(token_domain,       ":domain");
-    PLNNRC_DEFINE_TOKEN(token_method,       ":method");
-    PLNNRC_DEFINE_TOKEN(token_operator,     ":operator");
-    PLNNRC_DEFINE_TOKEN(token_foreach,      ":foreach");
-    PLNNRC_DEFINE_TOKEN(token_add,          ":add");
-    PLNNRC_DEFINE_TOKEN(token_delete,       ":delete");
-
     node* build_namespace(tree& ast, sexpr::node* s_expr);
     node* build_method(tree& ast, sexpr::node* s_expr);
     node* build_branch(tree& ast, sexpr::node* s_expr);
