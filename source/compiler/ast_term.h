@@ -18,8 +18,8 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef DERPLANNER_COMPILER_TERM_H_
-#define DERPLANNER_COMPILER_TERM_H_
+#ifndef DERPLANNER_COMPILER_AST_TERM_H_
+#define DERPLANNER_COMPILER_AST_TERM_H_
 
 namespace plnnrc {
 
