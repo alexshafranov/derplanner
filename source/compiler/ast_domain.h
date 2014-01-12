@@ -35,8 +35,6 @@ namespace ast
 
 namespace ast {
 
-bool build_translation_unit(tree& ast, sexpr::node* s_expr);
-
 node* build_domain(tree& ast, sexpr::node* s_expr);
 node* build_worldstate(tree& ast, sexpr::node* s_expr);
 
