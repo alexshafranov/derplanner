@@ -224,9 +224,6 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
 
     append_child(ast.root(), domain);
 
-    infer_types(ast);
-    annotate(ast);
-
     return domain;
 }
 
@@ -647,6 +644,8 @@ bool build_translation_unit(tree& ast, sexpr::node* s_expr)
             if (is_token(c_expr->first_child, token_domain))
             {
                 PLNNRC_CHECK(build_domain(ast, c_expr));
+                infer_types(ast);
+                annotate(ast);
             }
         }
     }
@@ -899,138 +898,141 @@ void infer_types(tree& ast)
         }
     }
 
-    // for each task in a task list propagate variable and function return types
-    // down to undefined argument types of operators and methods
-
-    bool all_method_param_types_inferred = false;
-
-    while (!all_method_param_types_inferred)
+    if (ast.methods.count() > 0)
     {
-        all_method_param_types_inferred = true;
+        // for each task in a task list propagate variable and function return types
+        // down to undefined argument types of operators and methods
 
-        int num_methods_processed = 0;
+        bool all_method_param_types_inferred = false;
 
-        for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+        while (!all_method_param_types_inferred)
         {
-            node* method = methods.value();
-            node* method_atom = method->first_child;
-            plnnrc_assert(method_atom && method_atom->type == node_atom);
+            all_method_param_types_inferred = true;
 
-            method_ann* ann = annotation<method_ann>(method);
+            int num_methods_processed = 0;
 
-            if (ann->processed)
+            for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
             {
-                continue;
-            }
+                node* method = methods.value();
+                node* method_atom = method->first_child;
+                plnnrc_assert(method_atom && method_atom->type == node_atom);
 
-            if (has_untyped_params(method_atom))
-            {
-                all_method_param_types_inferred = false;
-                continue;
-            }
+                method_ann* ann = annotation<method_ann>(method);
 
-            for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
-            {
-                plnnrc_assert(branch->first_child);
-                node* tasklist = branch->first_child->next_sibling;
-                plnnrc_assert(tasklist);
-
-                for (node* task = tasklist->first_child; task != 0; task = task->next_sibling)
+                if (ann->processed)
                 {
-                    if (is_effect_list(task))
-                    {
-                        continue;
-                    }
-
-                    node* callee = ast.methods.find(task->s_expr->token);
-
-                    if (!callee)
-                    {
-                        callee = ast.operators.find(task->s_expr->token);
-                    }
-
-                    plnnrc_assert(callee);
-
-                    node* callee_atom = callee->first_child;
-                    plnnrc_assert(callee_atom && callee_atom->type == node_atom);
-
-                    node* param = callee_atom->first_child;
-
-                    for (node* arg = task->first_child; arg != 0; arg = arg->next_sibling)
-                    {
-                        plnnrc_assert(param);
-
-                        if (arg->type == node_term_variable)
-                        {
-                            plnnrc_assert(is_bound(arg));
-                            node* def = definition(arg);
-                            plnnrc_assert(type_tag(def) != 0);
-
-                            if (!type_tag(param))
-                            {
-                                type_tag(param, type_tag(def));
-                            }
-                            else
-                            {
-                                // check types match
-                                plnnrc_assert(type_tag(param) == type_tag(def));
-                            }
-                        }
-
-                        if (arg->type == node_term_call)
-                        {
-                            node* ws_func = ast.ws_funcs.find(arg->s_expr->token);
-                            plnnrc_assert(ws_func);
-                            node* ws_return_type = ws_func->first_child->next_sibling;
-                            plnnrc_assert(ws_return_type);
-
-                            if (!type_tag(param))
-                            {
-                                type_tag(param, annotation<ws_type_ann>(ws_return_type)->type_tag);
-                            }
-                            else
-                            {
-                                // check types match
-                                plnnrc_assert(type_tag(param) == annotation<ws_type_ann>(ws_return_type)->type_tag);
-                            }
-                        }
-
-                        param = param->next_sibling;
-                    }
-
-                    plnnrc_assert(!param);
+                    continue;
                 }
+
+                if (has_untyped_params(method_atom))
+                {
+                    all_method_param_types_inferred = false;
+                    continue;
+                }
+
+                for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
+                {
+                    plnnrc_assert(branch->first_child);
+                    node* tasklist = branch->first_child->next_sibling;
+                    plnnrc_assert(tasklist);
+
+                    for (node* task = tasklist->first_child; task != 0; task = task->next_sibling)
+                    {
+                        if (is_effect_list(task))
+                        {
+                            continue;
+                        }
+
+                        node* callee = ast.methods.find(task->s_expr->token);
+
+                        if (!callee)
+                        {
+                            callee = ast.operators.find(task->s_expr->token);
+                        }
+
+                        plnnrc_assert(callee);
+
+                        node* callee_atom = callee->first_child;
+                        plnnrc_assert(callee_atom && callee_atom->type == node_atom);
+
+                        node* param = callee_atom->first_child;
+
+                        for (node* arg = task->first_child; arg != 0; arg = arg->next_sibling)
+                        {
+                            plnnrc_assert(param);
+
+                            if (arg->type == node_term_variable)
+                            {
+                                plnnrc_assert(is_bound(arg));
+                                node* def = definition(arg);
+                                plnnrc_assert(type_tag(def) != 0);
+
+                                if (!type_tag(param))
+                                {
+                                    type_tag(param, type_tag(def));
+                                }
+                                else
+                                {
+                                    // check types match
+                                    plnnrc_assert(type_tag(param) == type_tag(def));
+                                }
+                            }
+
+                            if (arg->type == node_term_call)
+                            {
+                                node* ws_func = ast.ws_funcs.find(arg->s_expr->token);
+                                plnnrc_assert(ws_func);
+                                node* ws_return_type = ws_func->first_child->next_sibling;
+                                plnnrc_assert(ws_return_type);
+
+                                if (!type_tag(param))
+                                {
+                                    type_tag(param, annotation<ws_type_ann>(ws_return_type)->type_tag);
+                                }
+                                else
+                                {
+                                    // check types match
+                                    plnnrc_assert(type_tag(param) == annotation<ws_type_ann>(ws_return_type)->type_tag);
+                                }
+                            }
+
+                            param = param->next_sibling;
+                        }
+
+                        plnnrc_assert(!param);
+                    }
+                }
+
+                ann->processed = true;
+                num_methods_processed++;
             }
 
-            ann->processed = true;
-            num_methods_processed++;
-        }
-
-        if (num_methods_processed == 0)
-        {
-            // unable to infer some method parameters.
-            plnnrc_assert(false);
-        }
-
-        // propagate types for non atom vars in preconditions
-        for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
-        {
-            node* method = methods.value();
-            node* method_atom = method->first_child;
-            plnnrc_assert(method_atom && method_atom->type == node_atom);
-
-            for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
+            if (num_methods_processed == 0)
             {
-                node* precondition = branch->first_child;
-                plnnrc_assert(precondition);
+                // unable to infer some method parameters.
+                plnnrc_assert(false);
+            }
 
-                for (node* var = precondition; var != 0; var = preorder_traversal_next(precondition, var))
+            // propagate types for non atom vars in preconditions
+            for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+            {
+                node* method = methods.value();
+                node* method_atom = method->first_child;
+                plnnrc_assert(method_atom && method_atom->type == node_atom);
+
+                for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
                 {
-                    if (var->type == node_term_variable && is_bound(var) && var->parent->type == node_atom_eq)
+                    node* precondition = branch->first_child;
+                    plnnrc_assert(precondition);
+
+                    for (node* var = precondition; var != 0; var = preorder_traversal_next(precondition, var))
                     {
-                        node* def = definition(var);
-                        plnnrc_assert(type_tag(def));
-                        type_tag(var, type_tag(def));
+                        if (var->type == node_term_variable && is_bound(var) && var->parent->type == node_atom_eq)
+                        {
+                            node* def = definition(var);
+                            plnnrc_assert(type_tag(def));
+                            type_tag(var, type_tag(def));
+                        }
                     }
                 }
             }
