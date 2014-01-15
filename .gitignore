@@ -7,3 +7,6 @@ obj
 *.vcxproj.user
 *.sln
 *.vcxproj.filters
+*.opensdf
+*.sdf
+*.suo
