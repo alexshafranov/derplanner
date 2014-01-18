@@ -19,8 +19,8 @@
 //
 
 #include "formatter.h"
+#include "tree_tools.h"
 #include "ast_tools.h"
-#include "tree_ops.h"
 #include "derplanner/compiler/config.h"
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/io.h"

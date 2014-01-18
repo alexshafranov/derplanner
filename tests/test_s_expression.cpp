@@ -22,7 +22,7 @@
 #include <string>
 #include <string.h>
 #include <unittestpp.h>
-#include "compiler/tree_ops.h"
+#include "compiler/tree_tools.h"
 #include <derplanner/compiler/s_expression.h>
 
 using namespace plnnrc::sexpr;

@@ -20,7 +20,7 @@
 
 #include <stdlib.h>
 #include "pool.h"
-#include "tree_ops.h"
+#include "tree_tools.h"
 #include "derplanner/compiler/config.h"
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/memory.h"

@@ -27,7 +27,7 @@
 #include "formatter.h"
 #include "ast_tools.h"
 #include "ast_build_tools.h"
-#include "tree_ops.h"
+#include "tree_tools.h"
 #include "tokens.h"
 #include "ast_logical_expression.h"
 #include "ast_term.h"

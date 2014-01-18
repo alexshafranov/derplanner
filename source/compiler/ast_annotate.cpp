@@ -20,7 +20,7 @@
 
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/ast.h"
-#include "tree_ops.h"
+#include "tree_tools.h"
 #include "ast_tools.h"
 #include "ast_infer.h"
 

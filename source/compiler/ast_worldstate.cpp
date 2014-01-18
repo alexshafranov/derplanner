@@ -21,7 +21,7 @@
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/s_expression.h"
 #include "derplanner/compiler/ast.h"
-#include "tree_ops.h"
+#include "tree_tools.h"
 #include "ast_build_tools.h"
 #include "tokens.h"
 #include "ast_term.h"

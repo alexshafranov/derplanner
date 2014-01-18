@@ -23,7 +23,7 @@
 #include <derplanner/compiler/assert.h>
 #include <derplanner/compiler/s_expression.h>
 #include <derplanner/compiler/ast.h>
-#include "compiler/tree_ops.h"
+#include "compiler/tree_tools.h"
 #include "compiler/ast_logical_expression.h"
 
 using namespace plnnrc;

@@ -24,7 +24,7 @@
 #include <derplanner/compiler/assert.h>
 #include <derplanner/compiler/s_expression.h>
 #include <derplanner/compiler/ast.h>
-#include "compiler/tree_ops.h"
+#include "compiler/tree_tools.h"
 #include "compiler/ast_domain.h"
 #include "compiler/ast_worldstate.h"
 #include "compiler/ast_infer.h"

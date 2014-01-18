@@ -18,8 +18,8 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef DERPLANNER_COMPILER_TREE_OPS_H_
-#define DERPLANNER_COMPILER_TREE_OPS_H_
+#ifndef DERPLANNER_COMPILER_TREE_TOOLS_H_
+#define DERPLANNER_COMPILER_TREE_TOOLS_H_
 
 #include "derplanner/compiler/assert.h"
 
