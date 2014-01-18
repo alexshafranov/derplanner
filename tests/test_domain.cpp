@@ -26,6 +26,7 @@
 #include <derplanner/compiler/ast.h>
 #include "compiler/tree_ops.h"
 #include "compiler/ast_domain.h"
+#include "compiler/ast_worldstate.h"
 
 using namespace plnnrc;
 

@@ -23,18 +23,13 @@
 
 namespace plnnrc {
 
-namespace sexpr
-{
-    struct node;
-}
-
-namespace ast
-{
-    struct node;
-    class  tree;
-}
+namespace sexpr { struct node; }
+namespace ast { struct node; }
+namespace ast { class tree; }
 
 namespace ast {
+
+node* build_namespace(tree& ast, sexpr::node* s_expr);
 
 node* build_atom(tree& ast, sexpr::node* s_expr);
 

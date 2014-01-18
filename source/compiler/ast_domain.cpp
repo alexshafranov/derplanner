@@ -28,9 +28,10 @@
 #include "ast_tools.h"
 #include "ast_build_tools.h"
 #include "tree_ops.h"
+#include "tokens.h"
 #include "ast_logical_expression.h"
 #include "ast_term.h"
-#include "tokens.h"
+#include "ast_worldstate.h"
 #include "ast_domain.h"
 
 namespace plnnrc {
@@ -225,67 +226,6 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
     append_child(ast.root(), domain);
 
     return domain;
-}
-
-node* build_worldstate_atom(tree& ast, sexpr::node* s_expr, int& type_tag)
-{
-    node* atom = ast.make_node(node_atom, s_expr->first_child);
-    PLNNRC_CHECK(atom);
-
-    plnnrc_assert(is_valid_id(s_expr->first_child->token));
-
-    for (sexpr::node* t_expr = s_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
-    {
-        node* type_node = build_worldstate_type(ast, t_expr, type_tag);
-        PLNNRC_CHECK(type_node);
-        append_child(atom, type_node);
-    }
-
-    return atom;
-}
-
-node* build_worldstate_type(tree& ast, sexpr::node* s_expr, int& type_tag)
-{
-    glue_tokens(s_expr);
-
-    node* type = ast.make_node(node_worldstate_type, s_expr);
-    PLNNRC_CHECK(type);
-
-    node* type_proto = ast.ws_types.find(s_expr->first_child->token);
-
-    if (!type_proto)
-    {
-        annotation<ws_type_ann>(type)->type_tag = type_tag;
-
-        if (!ast.ws_types.insert(s_expr->first_child->token, type))
-        {
-            return 0;
-        }
-
-        type_tag++;
-    }
-    else
-    {
-        annotation<ws_type_ann>(type)->type_tag = annotation<ws_type_ann>(type_proto)->type_tag;
-    }
-
-    return type;
-}
-
-node* build_namespace(tree& ast, sexpr::node* s_expr)
-{
-    plnnrc_assert(s_expr->type == sexpr::node_list);
-    plnnrc_assert(s_expr->first_child);
-
-    for (sexpr::node* n = s_expr->first_child; n != 0; n = n->next_sibling)
-    {
-        plnnrc_assert(n->type == sexpr::node_symbol);
-    }
-
-    node* result = ast.make_node(node_namespace, s_expr);
-    PLNNRC_CHECK(result);
-
-    return result;
 }
 
 node* build_method(tree& ast, sexpr::node* s_expr)
@@ -537,97 +477,6 @@ bool build_operator_stubs(tree& ast)
     }
 
     return true;
-}
-
-node* build_worldstate(tree& ast, sexpr::node* s_expr)
-{
-    plnnrc_assert(s_expr->type == sexpr::node_list);
-    plnnrc_assert(s_expr->first_child);
-    plnnrc_assert(s_expr->first_child->type == sexpr::node_symbol);
-    plnnrc_assert(is_token(s_expr->first_child, token_worldstate));
-
-    node* worldstate = ast.make_node(node_worldstate, s_expr);
-    PLNNRC_CHECK(worldstate);
-
-    sexpr::node* name_list_expr = s_expr->first_child->next_sibling;
-    plnnrc_assert(name_list_expr);
-
-    node* worldstate_namespace = build_namespace(ast, name_list_expr);
-    PLNNRC_CHECK(worldstate_namespace);
-    append_child(worldstate, worldstate_namespace);
-
-    unsigned total_atom_count = 0;
-    unsigned total_func_count = 0;
-
-    for (sexpr::node* c_expr = name_list_expr->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
-    {
-        plnnrc_assert(c_expr->type == sexpr::node_list);
-        plnnrc_assert(c_expr->first_child && c_expr->first_child->type == sexpr::node_symbol);
-
-        if (is_token(c_expr->first_child, token_function))
-        {
-            total_func_count++;
-        }
-        else
-        {
-            total_atom_count++;
-        }
-    }
-
-    PLNNRC_CHECK(ast.ws_atoms.init(total_atom_count));
-    PLNNRC_CHECK(ast.ws_funcs.init(total_func_count));
-    PLNNRC_CHECK(ast.ws_types.init(32));
-
-    int type_tag = 1;
-
-    for (sexpr::node* c_expr = name_list_expr->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
-    {
-        if (is_token(c_expr->first_child, token_function))
-        {
-            node* function_def = ast.make_node(node_function, c_expr);
-            PLNNRC_CHECK(function_def);
-
-            sexpr::node* func_atom_expr = c_expr->first_child->next_sibling;
-            node* atom = build_worldstate_atom(ast, func_atom_expr, type_tag);
-            PLNNRC_CHECK(atom);
-            append_child(function_def, atom);
-
-            ast.ws_funcs.insert(atom->s_expr->token, function_def);
-
-            plnnrc_assert(is_token(func_atom_expr->next_sibling, token_return));
-
-            sexpr::node* return_type_expr = func_atom_expr->next_sibling->next_sibling;
-            node* return_type = build_worldstate_type(ast, return_type_expr, type_tag);
-            PLNNRC_CHECK(return_type);
-            append_child(function_def, return_type);
-
-            append_child(worldstate, function_def);
-        }
-        else
-        {
-            node* atom = build_worldstate_atom(ast, c_expr, type_tag);
-            PLNNRC_CHECK(atom);
-            ast.ws_atoms.insert(atom->s_expr->token, atom);
-            append_child(worldstate, atom);
-        }
-    }
-
-    PLNNRC_CHECK(ast.type_tag_to_node.init(ast.ws_types.count() + 1));
-
-    ast.type_tag_to_node[0] = 0;
-
-    for (id_table_values types = ast.ws_types.values(); !types.empty(); types.pop())
-    {
-        node* ws_type = types.value();
-        int type_tag = annotation<ws_type_ann>(ws_type)->type_tag;
-        ast.type_tag_to_node[type_tag] = ws_type;
-    }
-
-    plnnrc_assert(!ast.type_tag_to_node[0]);
-
-    append_child(ast.root(), worldstate);
-
-    return worldstate;
 }
 
 bool build_translation_unit(tree& ast, sexpr::node* s_expr)

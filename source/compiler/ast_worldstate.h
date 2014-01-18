@@ -18,8 +18,8 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef DERPLANNER_COMPILER_AST_DOMAIN_H_
-#define DERPLANNER_COMPILER_AST_DOMAIN_H_
+#ifndef DERPLANNER_COMPILER_AST_WORLDSTATE_H_
+#define DERPLANNER_COMPILER_AST_WORLDSTATE_H_
 
 namespace plnnrc {
 
@@ -29,16 +29,9 @@ namespace ast { class tree; }
 
 namespace ast {
 
-node* build_domain(tree& ast, sexpr::node* s_expr);
-node* build_method(tree& ast, sexpr::node* s_expr);
-node* build_branch(tree& ast, sexpr::node* s_expr);
-node* build_task_list(tree& ast, sexpr::node* s_expr);
-node* build_operator(tree& ast, sexpr::node* s_expr);
-node* build_operator_stub(tree& ast, sexpr::node* s_expr);
-bool  build_operator_stubs(tree& ast);
-
-void infer_types(tree& ast);
-void annotate(tree& ast);
+node* build_worldstate(tree& ast, sexpr::node* s_expr);
+node* build_worldstate_atom(tree& ast, sexpr::node* s_expr, int& type_tag);
+node* build_worldstate_type(tree& ast, sexpr::node* s_expr, int& type_tag);
 
 }
 }
