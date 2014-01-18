@@ -23,7 +23,6 @@
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/s_expression.h"
 #include "derplanner/compiler/ast.h"
-#include "derplanner/compiler/ast_build.h"
 #include "formatter.h"
 #include "ast_tools.h"
 #include "ast_build_tools.h"
@@ -474,29 +473,6 @@ bool build_operator_stubs(tree& ast)
                     node* operatr = build_operator_stub(ast, task->s_expr);
                     PLNNRC_CHECK(operatr);
                 }
-            }
-        }
-    }
-
-    return true;
-}
-
-bool build_translation_unit(tree& ast, sexpr::node* s_expr)
-{
-    for (sexpr::node* c_expr = s_expr->first_child; c_expr != 0; c_expr = c_expr->next_sibling)
-    {
-        if (c_expr->type == sexpr::node_list)
-        {
-            if (is_token(c_expr->first_child, token_worldstate))
-            {
-                PLNNRC_CHECK(build_worldstate(ast, c_expr));
-            }
-
-            if (is_token(c_expr->first_child, token_domain))
-            {
-                PLNNRC_CHECK(build_domain(ast, c_expr));
-                infer_types(ast);
-                annotate(ast);
             }
         }
     }
