@@ -23,11 +23,7 @@
 
 namespace plnnrc {
 
-namespace ast
-{
-    class tree;
-}
-
+namespace ast { class tree; }
 class writer;
 
 struct codegen_options

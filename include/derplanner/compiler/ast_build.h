@@ -23,15 +23,8 @@
 
 namespace plnnrc {
 
-namespace sexpr
-{
-    struct node;
-}
-
-namespace ast
-{
-    class tree;
-}
+namespace sexpr { struct node; }
+namespace ast { class tree; }
 
 namespace ast {
 
