@@ -18,26 +18,20 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef DERPLANNER_COMPILER_AST_DOMAIN_H_
-#define DERPLANNER_COMPILER_AST_DOMAIN_H_
+#ifndef DERPLANNER_COMPILER_AST_INFER_H_
+#define DERPLANNER_COMPILER_AST_INFER_H_
 
 namespace plnnrc {
 
-namespace sexpr { struct node; }
 namespace ast { struct node; }
 namespace ast { class tree; }
 
 namespace ast {
 
-node* build_domain(tree& ast, sexpr::node* s_expr);
-node* build_method(tree& ast, sexpr::node* s_expr);
-node* build_branch(tree& ast, sexpr::node* s_expr);
-node* build_task_list(tree& ast, sexpr::node* s_expr);
-node* build_operator(tree& ast, sexpr::node* s_expr);
-node* build_operator_stub(tree& ast, sexpr::node* s_expr);
-bool  build_operator_stubs(tree& ast);
+void infer_types(tree& ast);
 
-void annotate(tree& ast);
+void seed_types(tree& ast, node* root);
+bool has_untyped_params(node* method_atom);
 
 }
 }

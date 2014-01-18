@@ -27,6 +27,7 @@
 #include "compiler/tree_ops.h"
 #include "compiler/ast_domain.h"
 #include "compiler/ast_worldstate.h"
+#include "compiler/ast_infer.h"
 
 using namespace plnnrc;
 
