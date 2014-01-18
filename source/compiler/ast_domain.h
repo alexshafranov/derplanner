@@ -37,8 +37,6 @@ node* build_operator(tree& ast, sexpr::node* s_expr);
 node* build_operator_stub(tree& ast, sexpr::node* s_expr);
 bool  build_operator_stubs(tree& ast);
 
-void annotate(tree& ast);
-
 }
 }
 
