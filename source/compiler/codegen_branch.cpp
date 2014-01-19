@@ -27,72 +27,12 @@
 
 namespace plnnrc {
 
-class paste_tasklist_function_call : public paste_func
+class paste_function_call : public paste_func
 {
 public:
     ast::node* function_call;
 
-    paste_tasklist_function_call(ast::node* function_call)
-        : function_call(function_call)
-    {
-    }
-
-    virtual void operator()(formatter& output)
-    {
-        output.put_id(function_call->s_expr->token);
-        output.put_char('(');
-
-        for (ast::node* argument = function_call->first_child; argument != 0; argument = argument->next_sibling)
-        {
-            switch (argument->type)
-            {
-            case ast::node_term_variable:
-                {
-                    ast::node* def = definition(argument);
-                    plnnrc_assert(def);
-
-                    int var_index = ast::annotation<ast::term_ann>(def)->var_index;
-
-                    if (is_parameter(def))
-                    {
-                        output.put_str("method_args->_");
-                        output.put_int(var_index);
-                    }
-                    else
-                    {
-                        output.put_str("precondition->_");
-                        output.put_int(var_index);
-                    }
-                }
-                break;
-            case ast::node_term_call:
-                {
-                    paste_tasklist_function_call paste(argument);
-                    output.put_str("wstate->");
-                    paste(output);
-                }
-                break;
-            default:
-                // unsupported argument type
-                plnnrc_assert(false);
-            }
-
-            if (!is_last(argument))
-            {
-                output.put_str(", ");
-            }
-        }
-
-        output.put_char(')');
-    }
-};
-
-class paste_effect_function_call : public paste_func
-{
-public:
-    ast::node* function_call;
-
-    paste_effect_function_call(ast::node* function_call)
+    paste_function_call(ast::node* function_call)
         : function_call(function_call)
     {
     }
@@ -131,7 +71,7 @@ public:
                 break;
             case ast::node_term_call:
                 {
-                    paste_effect_function_call paste(argument);
+                    paste_function_call paste(argument);
                     output.put_str("wstate->");
                     paste(output);
                 }
@@ -377,7 +317,7 @@ void generate_effects_add(ast::node* effects, formatter& output)
 
             if (arg->type == ast::node_term_call)
             {
-                paste_effect_function_call paste(arg);
+                paste_function_call paste(arg);
                 output.writeln("tuple->_%d = wstate->%p;", param_index, &paste);
             }
 
@@ -426,7 +366,7 @@ void generate_effects_delete(ast::node* effects, formatter& output)
 
                 if (arg->type == ast::node_term_call)
                 {
-                    paste_effect_function_call paste(arg);
+                    paste_function_call paste(arg);
                     output.writeln("if (tuple->_%d != wstate->%p)", param_index, &paste);
                 }
 
@@ -489,7 +429,7 @@ void generate_operator_task(ast::tree& ast, ast::node* method, ast::node* task_a
 
         if (arg->type == ast::node_term_call)
         {
-            paste_tasklist_function_call paste(arg);
+            paste_function_call paste(arg);
             output.writeln("a->_%d = wstate->%p;", param_index, &paste);
         }
 
@@ -536,7 +476,7 @@ void generate_method_task(ast::tree& ast, ast::node* /*method*/, ast::node* task
 
         if (arg->type == ast::node_term_call)
         {
-            paste_tasklist_function_call paste(arg);
+            paste_function_call paste(arg);
             output.writeln("a->_%d = wstate->%p;", param_index, &paste);
         }
 
