@@ -39,6 +39,9 @@ public:
     const ast::node* operator[](unsigned index) const;
     ast::node*& operator[](unsigned index);
 
+    void append(ast::node* node);
+
+    inline unsigned size() const { return _size; }
     inline unsigned capacity() const { return _capacity; }
 
 private:
@@ -46,6 +49,7 @@ private:
     const node_array& operator=(const node_array&);
 
     ast::node** _nodes;
+    unsigned    _size;
     unsigned    _capacity;
 };
 

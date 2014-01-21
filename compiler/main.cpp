@@ -96,6 +96,17 @@ int main(int argc, char** argv)
     ast::tree tree;
     ast::build_translation_unit(tree, expr.root());
 
+    if (tree.error_nodes.size() > 0)
+    {
+        for (unsigned i = 0; i < tree.error_nodes.size(); ++i)
+        {
+            ast::node* error = tree.error_nodes[i];
+            printf("error: %d:%d\n", error->s_expr->line, error->s_expr->column);
+        }
+
+        return 1;
+    }
+
     std::string header_file_name = std::string(output_name) + ".h";
     std::string source_file_name = std::string(output_name) + ".cpp";
     std::string header_file_path = std::string(output_dir) + "/" + header_file_name;
@@ -126,5 +137,8 @@ int main(int argc, char** argv)
     if (header_writer.error() || source_writer.error())
     {
         printf("i/o error occured.");
+        return 1;
     }
+
+    return 0;
 }

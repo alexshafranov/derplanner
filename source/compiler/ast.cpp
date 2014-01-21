@@ -79,6 +79,12 @@ namespace
             return result;
         }
 
+        if (type == node_error)
+        {
+            result.size = sizeof(error_ann);
+            result.alignment = plnnrc_alignof(error_ann);
+        }
+
         return result;
     }
 }

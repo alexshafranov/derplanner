@@ -23,6 +23,7 @@
 
 #include "derplanner/compiler/id_table.h"
 #include "derplanner/compiler/node_array.h"
+#include "derplanner/compiler/errors.h"
 
 namespace plnnrc {
 
@@ -84,6 +85,11 @@ struct branch_ann
 struct method_ann
 {
     bool processed;
+};
+
+struct error_ann
+{
+    compilation_error id;
 };
 
 template <typename T>

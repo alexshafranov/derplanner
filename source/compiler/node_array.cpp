@@ -26,6 +26,7 @@ namespace plnnrc {
 
 node_array::node_array()
     : _nodes(0)
+    , _size(0)
     , _capacity(0)
 {
 }
@@ -45,7 +46,9 @@ bool node_array::init(unsigned max_size)
     }
 
     memory::deallocate(_nodes);
+
     _nodes = nodes;
+    _size = 0;
     _capacity = max_size;
 
     return true;
@@ -61,6 +64,12 @@ ast::node*& node_array::operator[](unsigned index)
 {
     plnnrc_assert(index < _capacity);
     return _nodes[index];
+}
+
+void node_array::append(ast::node* node)
+{
+    plnnrc_assert(_size < _capacity);
+    _nodes[_size++] = node;
 }
 
 }
