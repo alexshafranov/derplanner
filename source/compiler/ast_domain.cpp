@@ -224,8 +224,6 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
         link_operator_variables(operatr);
     }
 
-    append_child(ast.root(), domain);
-
     return domain;
 }
 

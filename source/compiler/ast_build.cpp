@@ -23,6 +23,7 @@
 #include "derplanner/compiler/ast.h"
 #include "tokens.h"
 #include "ast_build_tools.h"
+#include "tree_tools.h"
 #include "ast_worldstate.h"
 #include "ast_domain.h"
 #include "ast_infer.h"
@@ -40,14 +41,22 @@ bool build_translation_unit(tree& ast, sexpr::node* s_expr)
         {
             if (is_token(c_expr->first_child, token_worldstate))
             {
-                PLNNRC_CHECK(build_worldstate(ast, c_expr));
+                node* worldstate = build_worldstate(ast, c_expr);
+                PLNNRC_CHECK(worldstate);
+                append_child(ast.root(), worldstate);
+                continue;
             }
 
             if (is_token(c_expr->first_child, token_domain))
             {
-                PLNNRC_CHECK(build_domain(ast, c_expr));
+                node* domain = build_domain(ast, c_expr);
+                PLNNRC_CHECK(domain);
+                append_child(ast.root(), domain);
+
                 infer_types(ast);
                 annotate(ast);
+
+                continue;
             }
         }
     }

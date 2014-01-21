@@ -116,8 +116,6 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
 
     plnnrc_assert(!ast.type_tag_to_node[0]);
 
-    append_child(ast.root(), worldstate);
-
     return worldstate;
 }
 
