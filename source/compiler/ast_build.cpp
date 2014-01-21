@@ -58,6 +58,8 @@ bool build_translation_unit(tree& ast, sexpr::node* s_expr)
 
                 continue;
             }
+
+            report_error(ast, ast.root(), (compilation_error)0, c_expr);
         }
     }
 

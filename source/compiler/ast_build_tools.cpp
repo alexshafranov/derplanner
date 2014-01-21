@@ -18,21 +18,25 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef DERPLANNER_COMPILER_BUILD_TOOLS_H_
-#define DERPLANNER_COMPILER_BUILD_TOOLS_H_
-
-#include "derplanner/compiler/errors.h"
-
-#define PLNNRC_CHECK(EXPR) do { if (!(EXPR)) return 0; } while ((void)(__LINE__==-1), false)
+#include "derplanner/compiler/ast.h"
+#include "tree_tools.h"
+#include "ast_build_tools.h"
 
 namespace plnnrc {
 
-namespace ast { class tree; }
-namespace ast { struct node; }
-namespace sexpr { struct node; }
+ast::node* report_error(ast::tree& ast, ast::node* parent, compilation_error /*error_id*/, sexpr::node* s_expr)
+{
+    ast::node* error = ast.make_node(ast::node_error, s_expr);
 
-ast::node* report_error(ast::tree& ast, ast::node* parent, compilation_error error_id, sexpr::node* s_expr);
+    if (error)
+    {
+        if (parent)
+        {
+            append_child(parent, error);
+        }
+    }
 
+    return error;
 }
 
-#endif
+}
