@@ -96,6 +96,15 @@ namespace
     TEST(column_number)
     {
         tree s_exp;
+        char buffer[] = "(hello world)";
+        s_exp.parse(buffer);
+        CHECK_EQUAL(2, s_exp.root()->first_child->first_child->column);
+        CHECK_EQUAL(8, s_exp.root()->first_child->first_child->next_sibling->column);
+    }
+
+    TEST(column_number_is_reset_on_newline)
+    {
+        tree s_exp;
         char buffer[] = "(hello\nworld)";
         s_exp.parse(buffer);
         CHECK_EQUAL(2, s_exp.root()->first_child->first_child->column);

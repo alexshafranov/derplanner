@@ -53,6 +53,7 @@ namespace
         pool::handle* pool;
         int line;
         int column;
+        int column_next;
         char* cursor;
         char* cursor_next;
         char* null_location;
@@ -65,6 +66,7 @@ namespace
         state.pool = pool;
         state.line = 1;
         state.column = 1;
+        state.column_next = 1;
         state.cursor = buffer;
         state.cursor_next = buffer;
         state.null_location = 0;
@@ -207,6 +209,7 @@ namespace
             move(state);
         }
 
+        state.column_next = state.column;
         state.cursor_next = state.cursor;
         state.null_location = state.cursor;
         state.cursor = begin;
@@ -274,6 +277,7 @@ namespace
             move(state);
         }
 
+        state.column_next = state.column;
         state.cursor_next = state.cursor;
         state.null_location = state.cursor;
         state.cursor = begin;
@@ -302,6 +306,7 @@ namespace
 
     token_type next_token(parse_state& state)
     {
+        state.column = state.column_next;
         state.cursor = state.cursor_next;
 
         while (*state.cursor)
@@ -325,11 +330,13 @@ namespace
                 break;
             case '(':
                 move(state);
+                state.column_next = state.column;
                 state.cursor_next = state.cursor;
                 null_terminate(state);
                 return token_lp;
             case ')':
                 move(state);
+                state.column_next = state.column;
                 state.cursor_next = state.cursor;
                 null_terminate(state);
                 return token_rp;
@@ -460,6 +467,7 @@ parse_status tree::parse(char* buffer)
             break;
         case token_none:
             {
+                state.column_next = state.column;
                 state.cursor_next = state.cursor;
             }
             break;
