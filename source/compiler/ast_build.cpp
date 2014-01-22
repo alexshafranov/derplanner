@@ -53,8 +53,11 @@ bool build_translation_unit(tree& ast, sexpr::node* s_expr)
                 PLNNRC_CHECK(domain);
                 append_child(ast.root(), domain);
 
-                infer_types(ast);
-                annotate(ast);
+                if (!ast.error_nodes.size())
+                {
+                    infer_types(ast);
+                    annotate(ast);
+                }
 
                 continue;
             }
