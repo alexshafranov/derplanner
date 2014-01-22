@@ -25,6 +25,31 @@
 
 #define PLNNRC_CHECK(EXPR) do { if (!(EXPR)) return 0; } while ((void)(__LINE__==-1), false)
 
+#define PLNNRC_EXPECT_TYPE(AST, NODE, EXPECTED_TYPE)                                                    \
+    do                                                                                                  \
+    {                                                                                                   \
+        if ((NODE)->type != (EXPECTED_TYPE))                                                            \
+        {                                                                                               \
+            return ::plnnrc::report_error((AST), 0, ::plnnrc::error_expected, (NODE));                  \
+        }                                                                                               \
+    }                                                                                                   \
+    while ((void)(__LINE__==-1), false)                                                                 \
+
+#define PLNNRC_EXPECT_CHILD(AST, NODE, EXPECTED_TYPE)                                                   \
+    do                                                                                                  \
+    {                                                                                                   \
+        if (!(NODE)->first_child)                                                                       \
+        {                                                                                               \
+            return ::plnnrc::report_error((AST), 0, ::plnnrc::error_expected, (NODE));                  \
+        }                                                                                               \
+                                                                                                        \
+        if ((NODE)->first_child->type != (EXPECTED_TYPE))                                               \
+        {                                                                                               \
+            return ::plnnrc::report_error((AST), 0, ::plnnrc::error_expected, (NODE));                  \
+        }                                                                                               \
+    }                                                                                                   \
+    while ((void)(__LINE__==-1), false)                                                                 \
+
 #define PLNNRC_EXPECT_NEXT(AST, NODE, EXPECTED_TYPE)                                                    \
     do                                                                                                  \
     {                                                                                                   \

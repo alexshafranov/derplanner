@@ -32,12 +32,11 @@ namespace ast {
 
 node* build_namespace(tree& ast, sexpr::node* s_expr)
 {
-    plnnrc_assert(s_expr->type == sexpr::node_list);
-    plnnrc_assert(s_expr->first_child);
+    PLNNRC_EXPECT_CHILD(ast, s_expr, sexpr::node_symbol);
 
     for (sexpr::node* n = s_expr->first_child; n != 0; n = n->next_sibling)
     {
-        plnnrc_assert(n->type == sexpr::node_symbol);
+        PLNNRC_EXPECT_TYPE(ast, n, sexpr::node_symbol);
     }
 
     node* result = ast.make_node(node_namespace, s_expr);

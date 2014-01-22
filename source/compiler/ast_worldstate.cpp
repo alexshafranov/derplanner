@@ -47,8 +47,7 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
 
     for (sexpr::node* c_expr = name_list_expr->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
     {
-        plnnrc_assert(c_expr->type == sexpr::node_list);
-        plnnrc_assert(c_expr->first_child && c_expr->first_child->type == sexpr::node_symbol);
+        PLNNRC_EXPECT_CHILD(ast, c_expr, sexpr::node_symbol);
 
         if (is_token(c_expr->first_child, token_function))
         {
