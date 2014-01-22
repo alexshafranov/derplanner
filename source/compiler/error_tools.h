@@ -25,6 +25,21 @@
 
 #define PLNNRC_CHECK(EXPR) do { if (!(EXPR)) return 0; } while ((void)(__LINE__==-1), false)
 
+#define PLNNRC_EXPECT_NEXT(AST, NODE, EXPECTED_TYPE)                                    \
+    do                                                                                  \
+    {                                                                                   \
+        if (!(NODE)->next_sibling)                                                      \
+        {                                                                               \
+            return ::plnnrc::report_error((AST), 0, ::plnnrc::error_expected, (NODE));  \
+        }                                                                               \
+                                                                                        \
+        if ((NODE)->next_sibling->type != (EXPECTED_TYPE))                              \
+        {                                                                               \
+            return ::plnnrc::report_error((AST), 0, ::plnnrc::error_expected, (NODE));  \
+        }                                                                               \
+    }                                                                                   \
+    while ((void)(__LINE__==-1), false)                                                 \
+
 namespace plnnrc {
 
 namespace ast { class tree; }

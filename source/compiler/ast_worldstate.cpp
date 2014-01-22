@@ -32,16 +32,11 @@ namespace ast {
 
 node* build_worldstate(tree& ast, sexpr::node* s_expr)
 {
-    plnnrc_assert(s_expr->type == sexpr::node_list);
-    plnnrc_assert(s_expr->first_child);
-    plnnrc_assert(s_expr->first_child->type == sexpr::node_symbol);
-    plnnrc_assert(is_token(s_expr->first_child, token_worldstate));
-
     node* worldstate = ast.make_node(node_worldstate, s_expr);
     PLNNRC_CHECK(worldstate);
 
+    PLNNRC_EXPECT_NEXT(ast, s_expr->first_child, sexpr::node_list);
     sexpr::node* name_list_expr = s_expr->first_child->next_sibling;
-    plnnrc_assert(name_list_expr);
 
     node* worldstate_namespace = build_namespace(ast, name_list_expr);
     PLNNRC_CHECK(worldstate_namespace);

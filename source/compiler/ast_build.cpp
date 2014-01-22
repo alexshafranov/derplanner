@@ -60,7 +60,7 @@ bool build_translation_unit(tree& ast, sexpr::node* s_expr)
             }
         }
 
-        report_error(ast, ast.root(), error_unexpected_symbol, c_expr);
+        report_error(ast, ast.root(), error_unexpected, c_expr);
     }
 
     return true;
