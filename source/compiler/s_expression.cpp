@@ -48,28 +48,38 @@ namespace
         token_float,
     };
 
+    struct token
+    {
+        token_type  type;
+        char*       begin;
+        int         count;
+    };
+
+    void init(token& token)
+    {
+        token.type = token_none;
+        token.begin = 0;
+        token.count = 0;
+    }
+
     struct parse_state
     {
         pool::handle* pool;
         int line;
         int column;
-        int column_next;
         char* cursor;
-        char* cursor_next;
-        char* null_location;
+        char* null;
         node* parent;
         node* root;
     };
 
-    void init_state(parse_state& state, char* buffer, pool::handle* pool)
+    void init(parse_state& state, char* buffer, pool::handle* pool)
     {
         state.pool = pool;
         state.line = 1;
         state.column = 1;
-        state.column_next = 1;
         state.cursor = buffer;
-        state.cursor_next = buffer;
-        state.null_location = 0;
+        state.null = 0;
         state.parent = 0;
         state.root = 0;
     }
@@ -78,6 +88,11 @@ namespace
     {
         state.cursor++;
         state.column++;
+    }
+
+    void move(token& token)
+    {
+        token.count++;
     }
 
     node* append_child(parse_state& state)
@@ -164,11 +179,6 @@ namespace
         return n;
     }
 
-    bool buffer_left(parse_state& state)
-    {
-        return *state.cursor_next != '\0';
-    }
-
     void increment_line(parse_state& state)
     {
         char c = *state.cursor;
@@ -184,9 +194,9 @@ namespace
         state.column = 1;
     }
 
-    bool is_delimeter(parse_state& state)
+    bool is_delimeter(char* position)
     {
-        switch (*state.cursor)
+        switch (*position)
         {
         case '\0':
         case '\n': case '\r':
@@ -198,28 +208,24 @@ namespace
         return false;
     }
 
-    void scan_symbol(parse_state& state)
+    token scan_symbol(parse_state& state)
     {
-        char* begin = state.cursor;
-        int line = state.line;
-        int column = state.column;
+        token result;
+        result.type = token_symbol;
+        result.begin = state.cursor;
+        result.count = 0;
 
-        while (!is_delimeter(state))
+        while (!is_delimeter(result.begin + result.count))
         {
-            move(state);
+            move(result);
         }
 
-        state.column_next = state.column;
-        state.cursor_next = state.cursor;
-        state.null_location = state.cursor;
-        state.cursor = begin;
-        state.line = line;
-        state.column = column;
+        return result;
     }
 
-    int scan_number_char_class(parse_state& state)
+    int scan_number_char_class(char* position)
     {
-        switch (*state.cursor)
+        switch (*position)
         {
         case '+': case '-':
             return 0;
@@ -246,68 +252,62 @@ namespace
         -1,  7, -1, -1,
     };
 
-    token_type scan_number(parse_state& state)
+    token scan_number(parse_state& state)
     {
-        char* begin = state.cursor;
-        int line = state.line;
-        int column = state.column;
+        token result;
+        result.type = token_none;
+        result.begin = state.cursor;
+        result.count = 0;
 
         int s = 0;
 
-        while (!is_delimeter(state))
+        while (!is_delimeter(result.begin + result.count))
         {
-            int c = scan_number_char_class(state);
+            int c = scan_number_char_class(result.begin + result.count);
 
             if (c < 0)
             {
-                state.cursor = begin;
-                return token_none;
+                return result;
             }
 
             int n = scan_number_transitions[s * 4 + c];
 
             if (n < 0)
             {
-                state.cursor = begin;
-                return token_none;
+                return result;
             }
 
             s = n;
 
-            move(state);
+            move(result);
         }
-
-        state.column_next = state.column;
-        state.cursor_next = state.cursor;
-        state.null_location = state.cursor;
-        state.cursor = begin;
-        state.line = line;
-        state.column = column;
 
         switch (s)
         {
         case 3:
-            return token_int;
+            result.type = token_int;
+            break;
         case 4: case 7:
-            return token_float;
+            result.type = token_float;
+            break;
         }
 
-        return token_none;
+        return result;
     }
 
     void null_terminate(parse_state& state)
     {
-        if (state.null_location)
+        if (state.null)
         {
-            *state.null_location = '\0';
-            state.null_location = 0;
+            *state.null = '\0';
+            state.null = 0;
         }
     }
 
-    token_type next_token(parse_state& state)
+    token next_token(parse_state& state)
     {
-        state.column = state.column_next;
-        state.cursor = state.cursor_next;
+        token result;
+        init(result);
 
         while (*state.cursor)
         {
@@ -329,41 +329,40 @@ namespace
                 null_terminate(state);
                 break;
             case '(':
-                move(state);
-                state.column_next = state.column;
-                state.cursor_next = state.cursor;
+                result.type = token_lp;
+                result.begin = state.cursor;
+                result.count = 1;
                 null_terminate(state);
-                return token_lp;
+                return result;
             case ')':
-                move(state);
-                state.column_next = state.column;
-                state.cursor_next = state.cursor;
+                result.type = token_rp;
+                result.begin = state.cursor;
+                result.count = 1;
                 null_terminate(state);
-                return token_rp;
+                return result;
             default:
+                result = scan_number(state);
+
+                if (result.type == token_none)
                 {
-                    token_type t = scan_number(state);
-
-                    if (t != token_none)
-                    {
-                        return t;
-                    }
-
-                    scan_symbol(state);
-                    return token_symbol;
+                    result = scan_symbol(state);
                 }
+
+                state.null = result.begin + result.count;
+
+                return result;
             }
         }
 
-        return token_none;
+        return result;
     }
 
     token_type lookahead_token(parse_state& state)
     {
         parse_state saved_state = state;
-        token_type result = next_token(state);
+        token result = next_token(state);
         state = saved_state;
-        return result;
+        return result.type;
     }
 
 } // unnamed namespace
@@ -403,7 +402,7 @@ parse_status tree::parse(char* buffer)
     _pool = pool;
 
     parse_state state;
-    init_state(state, buffer, _pool);
+    init(state, buffer, _pool);
 
     _root = push_list(state);
 
@@ -421,9 +420,16 @@ parse_status tree::parse(char* buffer)
         return parse_expected_lp;
     }
 
-    while (buffer_left(state))
+    for (;;)
     {
-        switch (next_token(state))
+        token t = next_token(state);
+
+        if (t.type == token_none)
+        {
+            break;
+        }
+
+        switch (t.type)
         {
         case token_lp:
             {
@@ -465,13 +471,10 @@ parse_status tree::parse(char* buffer)
                 }
             }
             break;
-        case token_none:
-            {
-                state.column_next = state.column;
-                state.cursor_next = state.cursor;
-            }
-            break;
         }
+
+        state.cursor = t.begin + t.count;
+        state.column += t.count;
     }
 
     if (state.parent)
