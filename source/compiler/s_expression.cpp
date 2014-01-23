@@ -357,7 +357,7 @@ namespace
         return result;
     }
 
-    token_type lookahead_token(parse_state& state)
+    token_type lookahead(parse_state& state)
     {
         parse_state saved_state = state;
         token result = next_token(state);
@@ -413,7 +413,7 @@ parse_status tree::parse(char* buffer)
 
     state.root = _root;
 
-    token_type root_token = lookahead_token(state);
+    token_type root_token = lookahead(state);
 
     if (root_token != token_lp && root_token != token_none)
     {
