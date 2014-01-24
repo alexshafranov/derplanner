@@ -83,12 +83,14 @@ int main(int argc, char** argv)
     }
 
     size_t input_size = file_size(input_path);
-    buffer_context input_buffer(input_size);
+    buffer_context input_buffer(input_size+1);
     {
-        file_context ctx(input_path, "rt");
+        file_context ctx(input_path, "rb");
         size_t rb = fread(input_buffer.data, sizeof(char), input_size, ctx.fd);
         (void)rb;
     }
+
+    input_buffer.data[input_size] = 0;
 
     sexpr::tree expr;
     expr.parse(input_buffer.data);
