@@ -156,6 +156,7 @@ namespace
 
         if (!n || n == state.root)
         {
+            state.parent = 0;
             return 0;
         }
 
@@ -477,7 +478,7 @@ parse_status tree::parse(char* buffer)
         state.column += t.count;
     }
 
-    if (state.parent)
+    if (state.parent != state.root)
     {
         return parse_excess_open;
     }
