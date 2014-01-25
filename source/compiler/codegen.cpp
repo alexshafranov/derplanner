@@ -99,31 +99,30 @@ bool generate_header(ast::tree& ast, writer& writer, codegen_options options)
     }
 
     ast::node* worldstate = find_child(ast.root(), ast::node_worldstate);
-    plnnrc_assert(worldstate);
-
     ast::node* domain = find_child(ast.root(), ast::node_domain);
-    plnnrc_assert(domain);
-
+ 
     output.writeln("#ifndef %s", options.include_guard);
     output.writeln("#define %s", options.include_guard);
     output.newline();
 
-    ast::node* worldstate_namespace = worldstate->first_child;
-    plnnrc_assert(worldstate_namespace);
-    plnnrc_assert(worldstate_namespace->type == ast::node_namespace);
-
-    ast::node* domain_namespace = domain->first_child;
-    plnnrc_assert(domain_namespace);
-    plnnrc_assert(domain_namespace->type == ast::node_namespace);
-
     generate_header_top(ast, options.custom_header, output);
 
+    if (worldstate)
     {
+        ast::node* worldstate_namespace = worldstate->first_child;
+        plnnrc_assert(worldstate_namespace);
+        plnnrc_assert(worldstate_namespace->type == ast::node_namespace);
+
         namespace_wrap wrap(worldstate_namespace, output);
         generate_worldstate(ast, worldstate, output);
     }
 
+    if (domain)
     {
+        ast::node* domain_namespace = domain->first_child;
+        plnnrc_assert(domain_namespace);
+        plnnrc_assert(domain_namespace->type == ast::node_namespace);
+
         namespace_wrap wrap(domain_namespace, output);
         generate_task_type_enum(ast, domain, output);
         generate_param_structs(ast, domain, output);
@@ -133,8 +132,17 @@ bool generate_header(ast::tree& ast, writer& writer, codegen_options options)
     if (options.enable_reflection)
     {
         namespace_wrap wrap("plnnr", output);
-        generate_reflectors(ast, worldstate, domain, output);
-        generate_task_type_dispatcher(ast, domain, output);
+
+        if (worldstate)
+        {
+            generate_worldstate_reflectors(ast, worldstate, output);
+        }
+
+        if (domain)
+        {
+            generate_domain_reflectors(ast, domain, output);
+            generate_task_type_dispatcher(ast, domain, output);
+        }
     }
 
     output.writeln("#endif");
@@ -151,26 +159,29 @@ bool generate_source(ast::tree& ast, writer& writer, codegen_options options)
         return false;
     }
 
+    generate_source_top(options.header_file_name, output);
+
     ast::node* worldstate = find_child(ast.root(), ast::node_worldstate);
-    plnnrc_assert(worldstate);
-
     ast::node* domain = find_child(ast.root(), ast::node_domain);
-    plnnrc_assert(domain);
 
-    ast::node* worldstate_namespace = worldstate->first_child;
-    plnnrc_assert(worldstate_namespace);
-    plnnrc_assert(worldstate_namespace->type == ast::node_namespace);
-
-    ast::node* domain_namespace = domain->first_child;
-    plnnrc_assert(domain_namespace);
-    plnnrc_assert(domain_namespace->type == ast::node_namespace);
-
-    generate_source_top(ast, worldstate_namespace, options.header_file_name, output);
-
+    if (worldstate)
     {
+        ast::node* worldstate_namespace = worldstate->first_child;
+        plnnrc_assert(worldstate_namespace);
+        plnnrc_assert(worldstate_namespace->type == ast::node_namespace);
+
+        namespace_wrap wrap(worldstate_namespace, output, domain != 0);
+        generate_atom_name_function(ast, worldstate, options.runtime_atom_names, output);
+    }
+
+    if (domain)
+    {
+        ast::node* domain_namespace = domain->first_child;
+        plnnrc_assert(domain_namespace);
+        plnnrc_assert(domain_namespace->type == ast::node_namespace);
+
         namespace_wrap wrap(domain_namespace, output, false);
         generate_task_name_function(ast, domain, options.runtime_task_names, output);
-        generate_atom_name_function(ast, worldstate, options.runtime_atom_names, output);
         generate_preconditions(ast, domain, output);
         generate_branch_expands(ast, domain, output);
     }

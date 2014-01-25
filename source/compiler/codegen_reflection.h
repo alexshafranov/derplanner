@@ -28,7 +28,8 @@ namespace ast { class tree; }
 class formatter;
 class paste_func;
 
-void generate_reflectors(ast::tree& ast, ast::node* worldstate, ast::node* domain, formatter& output);
+void generate_worldstate_reflectors(ast::tree& ast, ast::node* worldstate, formatter& output);
+void generate_domain_reflectors(ast::tree& ast, ast::node* domain, formatter& output);
 void generate_atom_reflector(ast::tree& ast, ast::node* atom, paste_func* paste_namespace, const char* name_function, const char* tuple_struct_postfix, const char* tuple_id_prefix, formatter& output);
 void generate_task_type_dispatcher(ast::tree& ast, ast::node* domain, formatter& output);
 

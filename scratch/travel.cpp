@@ -7,18 +7,6 @@ using namespace plnnr;
 
 namespace travel {
 
-static const char* task_type_to_name[] =
-{
-	"!ride_taxi",
-	"!fly",
-	"root",
-	"travel",
-	"travel_by_air",
-	"<none>",
-};
-
-const char* task_name(task_type type) { return task_type_to_name[type]; }
-
 static const char* atom_type_to_name[] =
 {
 	"start",
@@ -31,12 +19,28 @@ static const char* atom_type_to_name[] =
 
 const char* atom_name(atom_type type) { return atom_type_to_name[type]; }
 
-// method root [12:10]
+}
+
+namespace travel {
+
+static const char* task_type_to_name[] =
+{
+	"!ride_taxi",
+	"!fly",
+	"root",
+	"travel",
+	"travel_by_air",
+	"<none>",
+};
+
+const char* task_name(task_type type) { return task_type_to_name[type]; }
+
+// method root [12:9]
 struct p0_state
 {
-	// s [12:12]
+	// s [12:17]
 	int _0;
-	// f [12:16]
+	// f [12:28]
 	int _1;
 	start_tuple* start_0;
 	finish_tuple* finish_1;
@@ -62,12 +66,12 @@ bool next(p0_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method travel [17:10]
+// method travel [17:9]
 struct p1_state
 {
-	// x [17:12]
+	// x [17:26]
 	int _0;
-	// y [17:13]
+	// y [17:28]
 	int _1;
 	short_distance_tuple* short_distance_0;
 	int stage;
@@ -95,12 +99,12 @@ bool next(p1_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method travel [20:10]
+// method travel [20:9]
 struct p2_state
 {
-	// x [20:12]
+	// x [20:25]
 	int _0;
-	// y [20:13]
+	// y [20:27]
 	int _1;
 	long_distance_tuple* long_distance_0;
 	int stage;
@@ -128,16 +132,16 @@ bool next(p2_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method travel_by_air [25:10]
+// method travel_by_air [25:9]
 struct p3_state
 {
-	// x [25:12]
+	// x [25:19]
 	int _0;
-	// ax [25:13]
+	// ax [25:21]
 	int _1;
-	// y [25:17]
+	// y [25:34]
 	int _2;
-	// ay [25:18]
+	// ay [25:36]
 	int _3;
 	airport_tuple* airport_0;
 	airport_tuple* airport_1;

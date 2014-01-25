@@ -27,7 +27,7 @@ namespace ast { struct node; }
 namespace ast { class tree; }
 class formatter;
 
-void generate_source_top(ast::tree& ast, ast::node* worldstate_namespace, const char* header_file_name, formatter& output);
+void generate_source_top(const char* header_file_name, formatter& output);
 void generate_task_name_function(ast::tree& ast, ast::node* domain, bool enabled, formatter& output);
 void generate_atom_name_function(ast::tree& ast, ast::node* worldstate, bool enabled, formatter& output);
 

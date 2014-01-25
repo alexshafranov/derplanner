@@ -51,18 +51,13 @@ public:
     }
 };
 
-void generate_reflectors(ast::tree& ast, ast::node* worldstate, ast::node* domain, formatter& output)
+void generate_worldstate_reflectors(ast::tree& ast, ast::node* worldstate, formatter& output)
 {
     ast::node* worldstate_namespace = worldstate->first_child;
     plnnrc_assert(worldstate_namespace);
     plnnrc_assert(worldstate_namespace->type == ast::node_namespace);
 
-    ast::node* domain_namespace = domain->first_child;
-    plnnrc_assert(domain_namespace);
-    plnnrc_assert(domain_namespace->type == ast::node_namespace);
-
     paste_fully_qualified_namespace paste_world_namespace(worldstate_namespace);
-    paste_fully_qualified_namespace paste_domain_namespace(domain_namespace);
 
     output.writeln("template <typename V>");
     output.writeln("struct generated_type_reflector<%p::worldstate, V>", &paste_world_namespace);
@@ -94,6 +89,15 @@ void generate_reflectors(ast::tree& ast, ast::node* worldstate, ast::node* domai
 
         generate_atom_reflector(ast, atom, &paste_world_namespace, "atom_name", "tuple", "atom", output);
     }
+}
+
+void generate_domain_reflectors(ast::tree& ast, ast::node* domain, formatter& output)
+{
+    ast::node* domain_namespace = domain->first_child;
+    plnnrc_assert(domain_namespace);
+    plnnrc_assert(domain_namespace->type == ast::node_namespace);
+
+    paste_fully_qualified_namespace paste_domain_namespace(domain_namespace);
 
     for (id_table_values operators = ast.operators.values(); !operators.empty(); operators.pop())
     {
