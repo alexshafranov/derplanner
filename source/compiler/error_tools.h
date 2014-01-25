@@ -21,57 +21,35 @@
 #ifndef DERPLANNER_COMPILER_BUILD_TOOLS_H_
 #define DERPLANNER_COMPILER_BUILD_TOOLS_H_
 
-#include "derplanner/compiler/errors.h"
+#include "derplanner/compiler/s_expression.h"
+#include "tokens.h"
 
-#define PLNNRC_CHECK(EXPR) do { if (!(EXPR)) return 0; } while ((void)(__LINE__==-1), false) 
+#define PLNNRC_CHECK(EXPR) do { if (!(EXPR)) return 0; } while ((void)(__LINE__==-1), false)
 
 #define PLNNRC_CHECK_NODE(NODE, ALLOC_EXPR) ::plnnrc::ast::node* NODE = (ALLOC_EXPR); PLNNRC_CHECK(NODE)
 
-#define PLNNRC_EXPECT_TYPE(AST, NODE, EXPECTED_TYPE)                                                    \
-    do                                                                                                  \
-    {                                                                                                   \
-        if ((NODE)->type != (EXPECTED_TYPE))                                                            \
-        {                                                                                               \
-            return ::plnnrc::report_error((AST), 0, ::plnnrc::error_expected, (NODE));                  \
-        }                                                                                               \
-    }                                                                                                   \
-    while ((void)(__LINE__==-1), false)                                                                 \
+#define PLNNRC_RETURN(EXPECT_EXPR)                          \
+    do                                                      \
+    {                                                       \
+        ::plnnrc::ast::node* error_node = (EXPECT_EXPR);    \
+        if (error_node) return error_node;                  \
+    }                                                       \
+    while ((void)(__LINE__==-1), false)                     \
 
-#define PLNNRC_EXPECT_CHILD(AST, NODE, EXPECTED_TYPE)                                                   \
-    do                                                                                                  \
-    {                                                                                                   \
-        if (!(NODE)->first_child)                                                                       \
-        {                                                                                               \
-            return ::plnnrc::report_error((AST), 0, ::plnnrc::error_expected, (NODE));                  \
-        }                                                                                               \
-                                                                                                        \
-        if ((NODE)->first_child->type != (EXPECTED_TYPE))                                               \
-        {                                                                                               \
-            return ::plnnrc::report_error((AST), 0, ::plnnrc::error_expected, (NODE));                  \
-        }                                                                                               \
-    }                                                                                                   \
-    while ((void)(__LINE__==-1), false)                                                                 \
+#define PLNNRC_CONTINUE(EXPECT_EXPR) if ((EXPECT_EXPR)) continue;
 
-#define PLNNRC_EXPECT_NEXT(AST, NODE, EXPECTED_TYPE)                                                    \
-    do                                                                                                  \
-    {                                                                                                   \
-        if (!(NODE)->next_sibling)                                                                      \
-        {                                                                                               \
-            return ::plnnrc::report_error((AST), 0, ::plnnrc::error_expected, (NODE));                  \
-        }                                                                                               \
-                                                                                                        \
-        if ((NODE)->next_sibling->type != (EXPECTED_TYPE))                                              \
-        {                                                                                               \
-            return ::plnnrc::report_error((AST), 0, ::plnnrc::error_expected, (NODE)->next_sibling);    \
-        }                                                                                               \
-    }                                                                                                   \
-    while ((void)(__LINE__==-1), false)                                                                 \
+#define PLNNRC_BREAK(EXPECT_EXPR) if ((EXPECT_EXPR)) break;
 
 namespace plnnrc {
 
 namespace ast { class tree; }
 namespace ast { struct node; }
-namespace sexpr { struct node; }
+
+ast::node* expect_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_type expected, ast::node* parent=0);
+ast::node* expect_child_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_type expected, ast::node* parent=0);
+ast::node* expect_next_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_type expected, ast::node* parent=0);
+
+ast::node* expect_next_token(ast::tree& ast, sexpr::node* s_expr, str_ref expected, ast::node* parent=0);
 
 ast::node* report_error(ast::tree& ast, ast::node* parent, compilation_error error_id, sexpr::node* s_expr);
 

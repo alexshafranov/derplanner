@@ -19,10 +19,16 @@
 //
 
 #include "derplanner/compiler/ast.h"
+#include "derplanner/compiler/errors.h"
 #include "tree_tools.h"
 #include "error_tools.h"
 
 namespace plnnrc {
+
+ast::node* report_error(ast::tree& ast, compilation_error error_id, sexpr::node* s_expr)
+{
+    return report_error(ast, 0, error_id, s_expr); 
+}
 
 ast::node* report_error(ast::tree& ast, ast::node* parent, compilation_error error_id, sexpr::node* s_expr)
 {
@@ -44,6 +50,61 @@ ast::node* report_error(ast::tree& ast, ast::node* parent, compilation_error err
     }
 
     return error;
+}
+
+ast::node* expect_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_type expected, ast::node* parent)
+{
+    if (s_expr->type != expected)
+    {
+        return report_error(ast, parent, error_expected, s_expr);
+    }
+
+    return 0;
+}
+
+ast::node* expect_child_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_type expected, ast::node* parent)
+{
+    if (!s_expr->first_child)
+    {
+        return report_error(ast, parent, error_expected, s_expr);
+    }
+
+    if (s_expr->first_child->type != expected)
+    {
+        return report_error(ast, parent, error_expected, s_expr);
+    }
+
+    return 0;
+}
+
+ast::node* expect_next_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_type expected, ast::node* parent)
+{
+    if (!s_expr->next_sibling)
+    {
+        return report_error(ast, parent, error_expected, s_expr);
+    }
+
+    if (s_expr->next_sibling->type != expected)
+    {
+        return report_error(ast, parent, error_expected, s_expr->next_sibling);
+    }
+
+    return 0;
+}
+
+ast::node* expect_next_token(ast::tree& ast, sexpr::node* s_expr, str_ref expected, ast::node* parent)
+{
+    if (!s_expr->next_sibling)
+    {
+        return report_error(ast, parent, error_expected, s_expr);
+    }
+
+    if (!is_token(s_expr->next_sibling, expected))
+    {
+        return report_error(ast, parent, error_expected, s_expr->next_sibling);
+    }
+
+    return 0;
 }
 
 }
