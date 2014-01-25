@@ -38,16 +38,14 @@ namespace
 
     node* build_logical_op(tree& ast, sexpr::node* s_expr, node_type op_type)
     {
-        node* root = ast.make_node(op_type, s_expr);
-        PLNNRC_CHECK(root);
+        PLNNRC_CHECK_NODE(root, ast.make_node(op_type, s_expr));
 
         plnnrc_assert(root != 0);
         plnnrc_assert(s_expr->first_child != 0);
 
         for (sexpr::node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
         {
-            node* child = build_recursive(ast, c_expr);
-            PLNNRC_CHECK(child);
+            PLNNRC_CHECK_NODE(child, build_recursive(ast, c_expr));
             append_child(root, child);
         }
 
@@ -88,14 +86,12 @@ node* build_logical_expression(tree& ast, sexpr::node* s_expr)
 {
     plnnrc_assert(s_expr->type == sexpr::node_list);
 
-    node* root = ast.make_node(node_op_and, s_expr);
-    PLNNRC_CHECK(root);
+    PLNNRC_CHECK_NODE(root, ast.make_node(node_op_and, s_expr));
 
     // s_expr is operator or atom
     if (s_expr->first_child && s_expr->first_child->type == sexpr::node_symbol)
     {
-        node* child = build_recursive(ast, s_expr);
-        PLNNRC_CHECK(child);
+        PLNNRC_CHECK_NODE(child, build_recursive(ast, s_expr));
         append_child(root, child);
     }
     // list of operators (i.e. s_expr is 'and' by default)
@@ -103,8 +99,7 @@ node* build_logical_expression(tree& ast, sexpr::node* s_expr)
     {
         for (sexpr::node* c_expr = s_expr->first_child; c_expr != 0; c_expr = c_expr->next_sibling)
         {
-            node* child = build_recursive(ast, c_expr);
-            PLNNRC_CHECK(child);
+            PLNNRC_CHECK_NODE(child, build_recursive(ast, c_expr));
             append_child(root, child);
         }
     }
@@ -159,8 +154,7 @@ node* convert_to_nnf(tree& ast, node* root)
 
                         detach_node(x);
 
-                        node* new_not = ast.make_node(node_op_not);
-                        PLNNRC_CHECK(new_not);
+                        PLNNRC_CHECK_NODE(new_not, ast.make_node(node_op_not));
                         append_child(new_not, x);
                         insert_child(after, new_not);
                         after = new_not;
@@ -357,10 +351,8 @@ node* convert_to_dnf(tree& ast, node* root)
 {
     plnnrc_assert(root);
 
-    node* nnf_root = convert_to_nnf(ast, root);
-    node* new_root = ast.make_node(node_op_or);
-
-    PLNNRC_CHECK(nnf_root || new_root);
+    PLNNRC_CHECK_NODE(nnf_root, convert_to_nnf(ast, root));
+    PLNNRC_CHECK_NODE(new_root, ast.make_node(node_op_or));
 
     append_child(new_root, nnf_root);
     flatten(new_root);

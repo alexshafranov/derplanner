@@ -23,7 +23,9 @@
 
 #include "derplanner/compiler/errors.h"
 
-#define PLNNRC_CHECK(EXPR) do { if (!(EXPR)) return 0; } while ((void)(__LINE__==-1), false)
+#define PLNNRC_CHECK(EXPR) do { if (!(EXPR)) return 0; } while ((void)(__LINE__==-1), false) 
+
+#define PLNNRC_CHECK_NODE(NODE, ALLOC_EXPR) ::plnnrc::ast::node* NODE = (ALLOC_EXPR); PLNNRC_CHECK(NODE)
 
 #define PLNNRC_EXPECT_TYPE(AST, NODE, EXPECTED_TYPE)                                                    \
     do                                                                                                  \

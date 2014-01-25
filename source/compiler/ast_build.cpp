@@ -41,16 +41,14 @@ bool build_translation_unit(tree& ast, sexpr::node* s_expr)
         {
             if (is_token(c_expr->first_child, token_worldstate))
             {
-                node* worldstate = build_worldstate(ast, c_expr);
-                PLNNRC_CHECK(worldstate);
+                PLNNRC_CHECK_NODE(worldstate, build_worldstate(ast, c_expr));
                 append_child(ast.root(), worldstate);
                 continue;
             }
 
             if (is_token(c_expr->first_child, token_domain))
             {
-                node* domain = build_domain(ast, c_expr);
-                PLNNRC_CHECK(domain);
+                PLNNRC_CHECK_NODE(domain, build_domain(ast, c_expr));
                 append_child(ast.root(), domain);
 
                 if (!ast.error_nodes.size())

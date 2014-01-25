@@ -39,8 +39,7 @@ node* build_namespace(tree& ast, sexpr::node* s_expr)
         PLNNRC_EXPECT_TYPE(ast, n, sexpr::node_symbol);
     }
 
-    node* result = ast.make_node(node_namespace, s_expr);
-    PLNNRC_CHECK(result);
+    PLNNRC_CHECK_NODE(result, ast.make_node(node_namespace, s_expr));
 
     return result;
 }
@@ -63,8 +62,7 @@ node* build_atom(tree& ast, sexpr::node* s_expr)
         name_expr = name_expr->next_sibling;
     }
 
-    node* atom = ast.make_node(atom_type, name_expr);
-    PLNNRC_CHECK(atom);
+    PLNNRC_CHECK_NODE(atom, ast.make_node(atom_type, name_expr));
 
     if (atom_type == node_atom)
     {
@@ -73,8 +71,7 @@ node* build_atom(tree& ast, sexpr::node* s_expr)
 
     for (sexpr::node* c_expr = name_expr->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
     {
-        node* argument = build_term(ast, c_expr);
-        PLNNRC_CHECK(argument);
+        PLNNRC_CHECK_NODE(argument, build_term(ast, c_expr));
         append_child(atom, argument);
     }
 
@@ -101,22 +98,19 @@ node* build_term(tree& ast, sexpr::node* s_expr)
 
 node* build_variable_term(tree& ast, sexpr::node* s_expr)
 {
-    node* variable = ast.make_node(node_term_variable, s_expr);
-    PLNNRC_CHECK(variable);
+    PLNNRC_CHECK_NODE(variable, ast.make_node(node_term_variable, s_expr));
     return variable;
 }
 
 node* build_int_term(tree& ast, sexpr::node* s_expr)
 {
-    node* literal = ast.make_node(node_term_int, s_expr);
-    PLNNRC_CHECK(literal);
+    PLNNRC_CHECK_NODE(literal, ast.make_node(node_term_int, s_expr));
     return literal;
 }
 
 node* build_float_term(tree& ast, sexpr::node* s_expr)
 {
-    node* literal = ast.make_node(node_term_float, s_expr);
-    PLNNRC_CHECK(literal);
+    PLNNRC_CHECK_NODE(literal, ast.make_node(node_term_float, s_expr));
     return literal;
 }
 
@@ -125,13 +119,11 @@ node* build_call_term(tree& ast, sexpr::node* s_expr)
     sexpr::node* name_expr = s_expr->first_child;
     plnnrc_assert(name_expr && name_expr->type == sexpr::node_symbol);
 
-    node* call_term = ast.make_node(node_term_call, name_expr);
-    PLNNRC_CHECK(call_term);
+    PLNNRC_CHECK_NODE(call_term, ast.make_node(node_term_call, name_expr));
 
     for (sexpr::node* c_expr = name_expr->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
     {
-        node* term = build_term(ast, c_expr);
-        PLNNRC_CHECK(term);
+        PLNNRC_CHECK_NODE(term, build_term(ast, c_expr));
         append_child(call_term, term);
     }
 
