@@ -93,7 +93,15 @@ int main(int argc, char** argv)
     input_buffer.data[input_size] = 0;
 
     sexpr::tree expr;
-    expr.parse(input_buffer.data);
+    {
+        sexpr::parse_status status = expr.parse(input_buffer.data);
+
+        if (status != sexpr::parse_ok)
+        {
+            printf("error: unbalanced parentheses.\n");
+            return 1;
+        }
+    }
 
     ast::tree tree;
     ast::build_translation_unit(tree, expr.root());
