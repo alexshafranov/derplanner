@@ -36,6 +36,7 @@ void seed_types(tree& ast, node* root)
         {
             node* ws_atom = ast.ws_atoms.find(n->s_expr->token);
             plnnrc_assert(ws_atom);
+            plnnrc_assert(ws_atom->first_child);
 
             node* ws_type = ws_atom->first_child;
             plnnrc_assert(ws_type->type == node_worldstate_type);
