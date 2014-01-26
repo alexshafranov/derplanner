@@ -46,6 +46,8 @@ node* build_namespace(tree& ast, sexpr::node* s_expr)
 
 node* build_atom(tree& ast, sexpr::node* s_expr)
 {
+    PLNNRC_RETURN(expect_child_type(ast, s_expr, sexpr::node_symbol));
+
     node_type atom_type = node_atom;
 
     if (is_token(s_expr->first_child, token_eq))
@@ -59,6 +61,7 @@ node* build_atom(tree& ast, sexpr::node* s_expr)
 
     if (lazy)
     {
+        PLNNRC_RETURN(expect_next_type(ast, name_expr, sexpr::node_symbol));
         name_expr = name_expr->next_sibling;
     }
 
@@ -116,8 +119,8 @@ node* build_float_term(tree& ast, sexpr::node* s_expr)
 
 node* build_call_term(tree& ast, sexpr::node* s_expr)
 {
+    PLNNRC_RETURN(expect_child_type(ast, s_expr, sexpr::node_symbol));
     sexpr::node* name_expr = s_expr->first_child;
-    plnnrc_assert(name_expr && name_expr->type == sexpr::node_symbol);
 
     PLNNRC_CHECK_NODE(call_term, ast.make_node(node_term_call, name_expr));
 

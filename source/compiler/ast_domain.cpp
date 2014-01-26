@@ -161,15 +161,10 @@ namespace
 
 node* build_domain(tree& ast, sexpr::node* s_expr)
 {
-    plnnrc_assert(s_expr->type == sexpr::node_list);
-    plnnrc_assert(s_expr->first_child);
-    plnnrc_assert(s_expr->first_child->type == sexpr::node_symbol);
-    plnnrc_assert(is_token(s_expr->first_child, token_domain));
-
     PLNNRC_CHECK_NODE(domain, ast.make_node(node_domain, s_expr));
 
+    PLNNRC_RETURN(expect_next_type(ast, s_expr->first_child, sexpr::node_list));
     sexpr::node* name_list_expr = s_expr->first_child->next_sibling;
-    plnnrc_assert(name_list_expr);
 
     PLNNRC_CHECK_NODE(domain_namespace, build_namespace(ast, name_list_expr));
     append_child(domain, domain_namespace);
@@ -196,7 +191,11 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
             PLNNRC_CHECK(element);
         }
 
-        plnnrc_assert(element != 0);
+        if (!element)
+        {
+            element = report_error(ast, 0, error_unexpected, c_expr);
+        }
+
         append_child(domain, element);
     }
 
@@ -227,27 +226,18 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
 
 node* build_method(tree& ast, sexpr::node* s_expr)
 {
-    plnnrc_assert(s_expr->type == sexpr::node_list);
-    plnnrc_assert(s_expr->first_child);
-    plnnrc_assert(s_expr->first_child->type == sexpr::node_symbol);
-    plnnrc_assert(is_token(s_expr->first_child, token_method));
-
     PLNNRC_CHECK_NODE(method, ast.make_node(node_method, s_expr));
 
+    PLNNRC_RETURN(expect_next_type(ast, s_expr->first_child, sexpr::node_list));
     sexpr::node* task_atom_expr = s_expr->first_child->next_sibling;
-    plnnrc_assert(task_atom_expr);
-    plnnrc_assert(task_atom_expr->type == sexpr::node_list);
 
     PLNNRC_CHECK_NODE(task_atom, build_atom(ast, task_atom_expr));
-
     append_child(method, task_atom);
 
-    plnnrc_assert(is_valid_id(task_atom->s_expr->token));
-
+    if (task_atom->type != node_error)
     {
-        bool result = ast.methods.insert(task_atom->s_expr->token, method);
-        plnnrc_assert(result);
-        (void)(result);
+        plnnrc_assert(is_valid_id(task_atom->s_expr->token));
+        ast.methods.insert(task_atom->s_expr->token, method);
     }
 
     for (sexpr::node* branch_expr = task_atom_expr->next_sibling; branch_expr != 0; branch_expr = next_branch_expr(branch_expr))
