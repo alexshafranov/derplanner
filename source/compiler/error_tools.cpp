@@ -107,4 +107,14 @@ ast::node* expect_next_token(ast::tree& ast, sexpr::node* s_expr, str_ref expect
     return 0;
 }
 
+ast::node* expect_condition(ast::tree& ast, sexpr::node* s_expr, bool condition, compilation_error error_id, ast::node* parent)
+{
+    if (!condition)
+    {
+        return report_error(ast, parent, error_id, s_expr);
+    }
+
+    return 0;
+}
+
 }

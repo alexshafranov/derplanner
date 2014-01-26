@@ -333,49 +333,40 @@ node* build_task_list(tree& ast, sexpr::node* s_expr)
 
 node* build_operator(tree& ast, sexpr::node* s_expr)
 {
-    plnnrc_assert(s_expr->type == sexpr::node_list);
-    plnnrc_assert(s_expr->first_child);
-    plnnrc_assert(s_expr->first_child->type == sexpr::node_symbol);
-    plnnrc_assert(is_token(s_expr->first_child, token_operator));
-
     PLNNRC_CHECK_NODE(operatr, ast.make_node(node_operator, s_expr));
 
+    PLNNRC_RETURN(expect_next_type(ast, s_expr->first_child, sexpr::node_list));
     sexpr::node* task_atom_expr = s_expr->first_child->next_sibling;
-    plnnrc_assert(task_atom_expr);
-    plnnrc_assert(task_atom_expr->type == sexpr::node_list);
-
-    plnnrc_assert(is_valid_id(task_atom_expr->first_child->token));
 
     PLNNRC_CHECK_NODE(task_atom, build_atom(ast, task_atom_expr));
     append_child(operatr, task_atom);
 
-    plnnrc_assert(is_valid_id(task_atom->s_expr->token));
-
-    PLNNRC_CHECK(ast.operators.insert(task_atom->s_expr->token, operatr));
+    if (task_atom->type != node_error)
+    {
+        plnnrc_assert(is_valid_id(task_atom->s_expr->token));
+        PLNNRC_CHECK(ast.operators.insert(task_atom->s_expr->token, operatr));
+    }
 
     sexpr::node* delete_effects_expr = 0;
     sexpr::node* add_effects_expr = 0;
 
     for (sexpr::node* child = task_atom_expr->next_sibling; child != 0; child = child->next_sibling)
     {
-        plnnrc_assert(child->type == sexpr::node_list);
+        PLNNRC_RETURN(expect_type(ast, child, sexpr::node_list));
 
         if (is_token(child->first_child, token_delete))
         {
-            plnnrc_assert(!delete_effects_expr);
+            PLNNRC_RETURN(expect_condition(ast, child, delete_effects_expr == 0, error_multiple_definitions));
             delete_effects_expr = child;
             continue;
         }
 
         if (is_token(child->first_child, token_add))
         {
-            plnnrc_assert(!add_effects_expr);
+            PLNNRC_RETURN(expect_condition(ast, child, add_effects_expr == 0, error_multiple_definitions));
             add_effects_expr = child;
             continue;
         }
-
-        // error: unknown element in operator definition
-        plnnrc_assert(false);
     }
 
     PLNNRC_CHECK_NODE(delete_effects, ast.make_node(node_delete_list, delete_effects_expr));

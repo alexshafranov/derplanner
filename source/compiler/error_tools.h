@@ -53,6 +53,8 @@ ast::node* expect_next_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_typ
 
 ast::node* expect_next_token(ast::tree& ast, sexpr::node* s_expr, str_ref expected, ast::node* parent=0);
 
+ast::node* expect_condition(ast::tree& ast, sexpr::node* s_expr, bool condition, compilation_error error_id, ast::node* parent=0);
+
 ast::node* report_error(ast::tree& ast, ast::node* parent, compilation_error error_id, sexpr::node* s_expr);
 
 }
