@@ -7,6 +7,29 @@ using namespace plnnr;
 
 namespace blocks {
 
+static const char* atom_type_to_name[] =
+{
+	"block",
+	"on-table",
+	"on",
+	"clear",
+	"goal-on-table",
+	"goal-on",
+	"goal-clear",
+	"holding",
+	"dont-move",
+	"need-to-move",
+	"put-on-table",
+	"stack-on-block",
+	"<none>",
+};
+
+const char* atom_name(atom_type type) { return atom_type_to_name[type]; }
+
+}
+
+namespace blocks {
+
 static const char* task_type_to_name[] =
 {
 	"!putdown",
@@ -30,26 +53,7 @@ static const char* task_type_to_name[] =
 
 const char* task_name(task_type type) { return task_type_to_name[type]; }
 
-static const char* atom_type_to_name[] =
-{
-	"block",
-	"on-table",
-	"on",
-	"clear",
-	"goal-on-table",
-	"goal-on",
-	"goal-clear",
-	"holding",
-	"dont-move",
-	"need-to-move",
-	"put-on-table",
-	"stack-on-block",
-	"<none>",
-};
-
-const char* atom_name(atom_type type) { return atom_type_to_name[type]; }
-
-// method solve [43:10]
+// method solve [43:9]
 struct p0_state
 {
 	int stage;
@@ -64,10 +68,10 @@ bool next(p0_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method mark-all-blocks [49:14]
+// method mark-all-blocks [49:13]
 struct p1_state
 {
-	// x [49:16]
+	// x [49:21]
 	int _0;
 	block_tuple* block_0;
 	int stage;
@@ -87,10 +91,10 @@ bool next(p1_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method mark-block [55:10]
+// method mark-block [55:9]
 struct p2_state
 {
-	// x [55:14]
+	// x [55:26]
 	int _0;
 	dont_move_tuple* dont_move_0;
 	need_to_move_tuple* need_to_move_1;
@@ -128,7 +132,7 @@ bool next(p2_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method mark-block [58:10]
+// method mark-block [58:9]
 struct p3_state
 {
 	int stage;
@@ -143,12 +147,12 @@ bool next(p3_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method mark-block-recursive [63:10]
+// method mark-block-recursive [63:9]
 struct p4_state
 {
-	// x [63:12]
+	// x [63:14]
 	int _0;
-	// w [63:13]
+	// w [63:16]
 	int _1;
 	on_tuple* on_0;
 	int stage;
@@ -173,7 +177,7 @@ bool next(p4_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method mark-block-recursive [66:10]
+// method mark-block-recursive [66:9]
 struct p5_state
 {
 	int stage;
@@ -188,14 +192,14 @@ bool next(p5_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method mark-block-term [71:10]
+// method mark-block-term [71:9]
 struct p6_state
 {
-	// x [71:12]
+	// x [71:14]
 	int _0;
-	// y [71:13]
+	// y [71:16]
 	int _1;
-	// z [71:18]
+	// z [71:30]
 	int _2;
 	on_tuple* on_0;
 	goal_on_tuple* goal_on_1;
@@ -234,12 +238,12 @@ bool next(p6_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method mark-block-term [74:10]
+// method mark-block-term [74:9]
 struct p7_state
 {
-	// x [74:12]
+	// x [74:20]
 	int _0;
-	// z [74:17]
+	// z [74:34]
 	int _1;
 	on_table_tuple* on_table_0;
 	goal_on_tuple* goal_on_1;
@@ -273,12 +277,12 @@ bool next(p7_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method mark-block-term [77:10]
+// method mark-block-term [77:9]
 struct p8_state
 {
-	// x [77:12]
+	// x [77:14]
 	int _0;
-	// y [77:13]
+	// y [77:16]
 	int _1;
 	on_tuple* on_0;
 	goal_on_table_tuple* goal_on_table_1;
@@ -312,12 +316,12 @@ bool next(p8_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method mark-block-term [80:10]
+// method mark-block-term [80:9]
 struct p9_state
 {
-	// x [80:12]
+	// x [80:14]
 	int _0;
-	// y [80:13]
+	// y [80:16]
 	int _1;
 	on_tuple* on_0;
 	goal_clear_tuple* goal_clear_1;
@@ -351,14 +355,14 @@ bool next(p9_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method mark-block-term [83:10]
+// method mark-block-term [83:9]
 struct p10_state
 {
-	// x [83:12]
+	// x [83:14]
 	int _0;
-	// z [83:13]
+	// z [83:16]
 	int _1;
-	// y [83:17]
+	// y [83:28]
 	int _2;
 	on_tuple* on_0;
 	goal_on_tuple* goal_on_1;
@@ -397,12 +401,12 @@ bool next(p10_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method mark-block-term [86:10]
+// method mark-block-term [86:9]
 struct p11_state
 {
-	// x [86:12]
+	// x [86:14]
 	int _0;
-	// w [86:13]
+	// w [86:16]
 	int _1;
 	on_tuple* on_0;
 	need_to_move_tuple* need_to_move_1;
@@ -436,7 +440,7 @@ bool next(p11_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method mark-block-term [89:10]
+// method mark-block-term [89:9]
 struct p12_state
 {
 	int stage;
@@ -451,10 +455,10 @@ bool next(p12_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method find-all-movable [95:14]
+// method find-all-movable [95:13]
 struct p13_state
 {
-	// x [95:16]
+	// x [95:21]
 	int _0;
 	clear_tuple* clear_0;
 	need_to_move_tuple* need_to_move_1;
@@ -483,10 +487,10 @@ bool next(p13_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method mark-move-type [101:10]
+// method mark-move-type [101:9]
 struct p14_state
 {
-	// x [101:12]
+	// x [101:25]
 	int _0;
 	goal_on_table_tuple* goal_on_table_0;
 	put_on_table_tuple* put_on_table_1;
@@ -521,12 +525,12 @@ bool next(p14_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method mark-move-type [104:10]
+// method mark-move-type [104:9]
 struct p15_state
 {
-	// x [104:12]
+	// x [104:19]
 	int _0;
-	// y [104:13]
+	// y [104:21]
 	int _1;
 	goal_on_tuple* goal_on_0;
 	stack_on_block_tuple* stack_on_block_1;
@@ -586,7 +590,7 @@ bool next(p15_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method mark-move-type [107:10]
+// method mark-move-type [107:9]
 struct p16_state
 {
 	int stage;
@@ -601,12 +605,12 @@ bool next(p16_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method move-block [112:10]
+// method move-block [112:9]
 struct p17_state
 {
-	// x [112:12]
+	// x [112:26]
 	int _0;
-	// y [112:13]
+	// y [112:28]
 	int _1;
 	stack_on_block_tuple* stack_on_block_0;
 	int stage;
@@ -628,12 +632,12 @@ bool next(p17_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method move-block [115:10]
+// method move-block [115:9]
 struct p18_state
 {
-	// x [115:12]
+	// x [115:24]
 	int _0;
-	// y [115:17]
+	// y [115:33]
 	int _1;
 	put_on_table_tuple* put_on_table_0;
 	on_tuple* on_1;
@@ -664,12 +668,12 @@ bool next(p18_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method move-block [118:10]
+// method move-block [118:9]
 struct p19_state
 {
-	// x [118:12]
+	// x [118:17]
 	int _0;
-	// y [118:21]
+	// y [118:43]
 	int _1;
 	clear_tuple* clear_0;
 	need_to_move_tuple* need_to_move_1;
@@ -709,7 +713,7 @@ bool next(p19_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method move-block [121:10]
+// method move-block [121:9]
 struct p20_state
 {
 	int stage;
@@ -724,12 +728,12 @@ bool next(p20_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method check [126:10]
+// method check [126:9]
 struct p21_state
 {
-	// y [126:12]
+	// y [126:19]
 	int _0;
-	// x [126:13]
+	// x [126:21]
 	int _1;
 	goal_on_tuple* goal_on_0;
 	clear_tuple* clear_1;
@@ -763,7 +767,7 @@ bool next(p21_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method check [129:10]
+// method check [129:9]
 struct p22_state
 {
 	int stage;
@@ -778,12 +782,12 @@ bool next(p22_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method check2 [134:10]
+// method check2 [134:9]
 struct p23_state
 {
-	// x [134:12]
+	// x [134:21]
 	int _0;
-	// y [134:16]
+	// y [134:33]
 	int _1;
 	dont_move_tuple* dont_move_0;
 	goal_on_tuple* goal_on_1;
@@ -826,7 +830,7 @@ bool next(p23_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method check2 [137:10]
+// method check2 [137:9]
 struct p24_state
 {
 	int stage;
@@ -841,10 +845,10 @@ bool next(p24_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method check3 [142:10]
+// method check3 [142:9]
 struct p25_state
 {
-	// x [142:12]
+	// x [142:21]
 	int _0;
 	dont_move_tuple* dont_move_0;
 	int stage;
@@ -867,12 +871,12 @@ bool next(p25_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method check3 [145:10]
+// method check3 [145:9]
 struct p26_state
 {
-	// x [145:12]
+	// x [145:19]
 	int _0;
-	// y [145:13]
+	// y [145:21]
 	int _1;
 	goal_on_tuple* goal_on_0;
 	clear_tuple* clear_1;
@@ -915,10 +919,10 @@ bool next(p26_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method check3 [148:10]
+// method check3 [148:9]
 struct p27_state
 {
-	// x [148:12]
+	// x [148:25]
 	int _0;
 	goal_on_table_tuple* goal_on_table_0;
 	int stage;
@@ -941,7 +945,7 @@ bool next(p27_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method check3 [151:10]
+// method check3 [151:9]
 struct p28_state
 {
 	int stage;
@@ -956,12 +960,12 @@ bool next(p28_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method move-block1 [156:10]
+// method move-block1 [156:9]
 struct p29_state
 {
-	// x [156:12]
+	// x [156:14]
 	int _0;
-	// y [156:13]
+	// y [156:16]
 	int _1;
 	on_tuple* on_0;
 	int stage;
@@ -986,7 +990,7 @@ bool next(p29_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-// method move-block1 [159:10]
+// method move-block1 [159:9]
 struct p30_state
 {
 	int stage;
