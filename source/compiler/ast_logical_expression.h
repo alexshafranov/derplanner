@@ -30,6 +30,8 @@ namespace ast { class  tree; }
 namespace ast {
 
 node* build_logical_expression(tree& ast, sexpr::node* s_expr);
+node* build_logical_expression_recursive(tree& ast, sexpr::node* s_expr);
+node* build_logical_op(tree& ast, sexpr::node* s_expr, node_type op_type);
 
 void flatten(node* root);
 node* convert_to_nnf(tree& ast, node* root);

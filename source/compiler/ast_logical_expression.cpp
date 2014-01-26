@@ -31,57 +31,6 @@
 namespace plnnrc {
 namespace ast {
 
-namespace
-{
-    // forward
-    node* build_recursive(tree& ast, sexpr::node* s_expr);
-
-    node* build_logical_op(tree& ast, sexpr::node* s_expr, node_type op_type)
-    {
-        PLNNRC_CHECK_NODE(root, ast.make_node(op_type, s_expr));
-
-        plnnrc_assert(root != 0);
-        plnnrc_assert(s_expr->first_child != 0);
-
-        for (sexpr::node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
-        {
-            PLNNRC_CHECK_NODE(child, build_recursive(ast, c_expr));
-            append_child(root, child);
-        }
-
-        return root;
-    }
-
-    node* build_recursive(tree& ast, sexpr::node* s_expr)
-    {
-        plnnrc_assert(s_expr->type == sexpr::node_list);
-        sexpr::node* c_expr = s_expr->first_child;
-        plnnrc_assert(c_expr && c_expr->type == sexpr::node_symbol);
-
-        if (is_token(c_expr, token_and))
-        {
-            return build_logical_op(ast, s_expr, node_op_and);
-        }
-
-        if (is_token(c_expr, token_or))
-        {
-            return build_logical_op(ast, s_expr, node_op_or);
-        }
-
-        if (is_token(c_expr, token_not))
-        {
-            return build_logical_op(ast, s_expr, node_op_not);
-        }
-
-        if (ast.ws_funcs.find(c_expr->token))
-        {
-            return build_call_term(ast, s_expr);
-        }
-
-        return build_atom(ast, s_expr);
-    }
-}
-
 node* build_logical_expression(tree& ast, sexpr::node* s_expr)
 {
     PLNNRC_CHECK_NODE(root, ast.make_node(node_op_and, s_expr));
@@ -89,7 +38,7 @@ node* build_logical_expression(tree& ast, sexpr::node* s_expr)
     // s_expr is operator or atom
     if (s_expr->first_child && s_expr->first_child->type == sexpr::node_symbol)
     {
-        PLNNRC_CHECK_NODE(child, build_recursive(ast, s_expr));
+        PLNNRC_CHECK_NODE(child, build_logical_expression_recursive(ast, s_expr));
         append_child(root, child);
     }
     // list of operators (i.e. s_expr is 'and' by default)
@@ -97,12 +46,57 @@ node* build_logical_expression(tree& ast, sexpr::node* s_expr)
     {
         for (sexpr::node* c_expr = s_expr->first_child; c_expr != 0; c_expr = c_expr->next_sibling)
         {
-            PLNNRC_CHECK_NODE(child, build_recursive(ast, c_expr));
+            PLNNRC_CHECK_NODE(child, build_logical_expression_recursive(ast, c_expr));
             append_child(root, child);
         }
     }
 
     return root;
+}
+
+node* build_logical_op(tree& ast, sexpr::node* s_expr, node_type op_type)
+{
+    PLNNRC_CHECK_NODE(root, ast.make_node(op_type, s_expr));
+
+    plnnrc_assert(root != 0);
+    plnnrc_assert(s_expr->first_child != 0);
+
+    for (sexpr::node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
+    {
+        PLNNRC_CHECK_NODE(child, build_logical_expression_recursive(ast, c_expr));
+        append_child(root, child);
+    }
+
+    return root;
+}
+
+node* build_logical_expression_recursive(tree& ast, sexpr::node* s_expr)
+{
+    plnnrc_assert(s_expr->type == sexpr::node_list);
+    sexpr::node* c_expr = s_expr->first_child;
+    plnnrc_assert(c_expr && c_expr->type == sexpr::node_symbol);
+
+    if (is_token(c_expr, token_and))
+    {
+        return build_logical_op(ast, s_expr, node_op_and);
+    }
+
+    if (is_token(c_expr, token_or))
+    {
+        return build_logical_op(ast, s_expr, node_op_or);
+    }
+
+    if (is_token(c_expr, token_not))
+    {
+        return build_logical_op(ast, s_expr, node_op_not);
+    }
+
+    if (ast.ws_funcs.find(c_expr->token))
+    {
+        return build_call_term(ast, s_expr);
+    }
+
+    return build_atom(ast, s_expr);
 }
 
 node* convert_to_nnf(tree& ast, node* root)
