@@ -282,9 +282,17 @@ node* build_branch(tree& ast, sexpr::node* s_expr)
     }
 
     PLNNRC_CHECK_NODE(precondition, build_logical_expression(ast, precondition_expr));
-    PLNNRC_CHECK_NODE(precondition_dnf, convert_to_dnf(ast, precondition));
-    precondition_dnf->s_expr = precondition_expr;
-    append_child(branch, precondition_dnf);
+
+    if (!find_descendant(precondition, node_error))
+    {
+        PLNNRC_CHECK_NODE(precondition_dnf, convert_to_dnf(ast, precondition));
+        precondition_dnf->s_expr = precondition_expr;
+        append_child(branch, precondition_dnf);
+    }
+    else
+    {
+        append_child(branch, precondition);
+    }
 
     PLNNRC_CHECK_NODE(task_list, build_task_list(ast, tasklist_expr));
     append_child(branch, task_list);

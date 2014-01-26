@@ -156,6 +156,19 @@ inline node* find_child(node* parent, node_type type)
     return 0;
 }
 
+inline node* find_descendant(node* parent, node_type type)
+{
+    for (node* n = parent; n != 0; n = preorder_traversal_next(parent, n))
+    {
+        if (n->type == type)
+        {
+            return n;
+        }
+    }
+
+    return 0;
+}
+
 }
 }
 
