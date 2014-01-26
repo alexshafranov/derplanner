@@ -38,8 +38,6 @@
 
 #define PLNNRC_CONTINUE(EXPECT_EXPR) if ((EXPECT_EXPR)) continue;
 
-#define PLNNRC_BREAK(EXPECT_EXPR) if ((EXPECT_EXPR)) break;
-
 #define PLNNRC_SKIP_ERROR_NODE(NODE) PLNNRC_CONTINUE(((NODE)->type == ::plnnrc::ast::node_error))
 
 namespace plnnrc {
