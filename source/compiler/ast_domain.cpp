@@ -23,7 +23,6 @@
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/s_expression.h"
 #include "derplanner/compiler/ast.h"
-#include "formatter.h"
 #include "ast_tools.h"
 #include "error_tools.h"
 #include "tree_tools.h"
@@ -243,7 +242,7 @@ node* build_method(tree& ast, sexpr::node* s_expr)
 
     if (task_atom->type != node_error)
     {
-        plnnrc_assert(is_valid_id(task_atom->s_expr->token));
+        PLNNRC_RETURN(expect_valid_id(ast, task_atom->s_expr));
         ast.methods.insert(task_atom->s_expr->token, method);
     }
 
@@ -343,7 +342,7 @@ node* build_operator(tree& ast, sexpr::node* s_expr)
 
     if (task_atom->type != node_error)
     {
-        plnnrc_assert(is_valid_id(task_atom->s_expr->token));
+        PLNNRC_RETURN(expect_valid_id(ast, task_atom->s_expr));
         PLNNRC_CHECK(ast.operators.insert(task_atom->s_expr->token, operatr));
     }
 
@@ -398,7 +397,7 @@ node* build_operator(tree& ast, sexpr::node* s_expr)
 
 node* build_operator_stub(tree& ast, sexpr::node* s_expr)
 {
-    plnnrc_assert(is_valid_id(s_expr->token));
+    PLNNRC_RETURN(expect_valid_id(ast, s_expr));
 
     PLNNRC_CHECK_NODE(operatr, ast.make_node(node_operator, s_expr->parent));
     PLNNRC_CHECK(ast.operators.insert(s_expr->token, operatr));

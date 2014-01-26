@@ -29,6 +29,7 @@ enum compilation_error
     error_unexpected,
     error_expected,
     error_multiple_definitions,
+    error_invalid_id,
 };
 
 }

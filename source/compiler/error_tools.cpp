@@ -18,8 +18,10 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
+#include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/ast.h"
 #include "derplanner/compiler/errors.h"
+#include "formatter.h"
 #include "tree_tools.h"
 #include "error_tools.h"
 
@@ -102,6 +104,18 @@ ast::node* expect_next_token(ast::tree& ast, sexpr::node* s_expr, str_ref expect
     if (!is_token(s_expr->next_sibling, expected))
     {
         return report_error(ast, parent, error_expected, s_expr->next_sibling);
+    }
+
+    return 0;
+}
+
+ast::node* expect_valid_id(ast::tree& ast, sexpr::node* s_expr, ast::node* parent)
+{
+    plnnrc_assert(s_expr);
+
+    if (!is_valid_id(s_expr->token))
+    {
+        return report_error(ast, parent, error_invalid_id, s_expr);
     }
 
     return 0;
