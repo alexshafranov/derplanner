@@ -302,13 +302,10 @@ node* build_branch(tree& ast, sexpr::node* s_expr)
 
 node* build_task_list(tree& ast, sexpr::node* s_expr)
 {
-    plnnrc_assert(s_expr->type == sexpr::node_list);
     PLNNRC_CHECK_NODE(task_list, ast.make_node(node_task_list, s_expr));
 
     for (sexpr::node* c_expr = s_expr->first_child; c_expr != 0; c_expr = c_expr->next_sibling)
     {
-        plnnrc_assert((c_expr->type == sexpr::node_list && c_expr->first_child) || (c_expr->type == sexpr::node_symbol));
-
         if (is_token(c_expr->first_child, token_add) || is_token(c_expr->first_child, token_delete))
         {
             node_type type = is_token(c_expr->first_child, token_add) ? node_add_list : node_delete_list;
@@ -316,6 +313,7 @@ node* build_task_list(tree& ast, sexpr::node* s_expr)
 
             for (sexpr::node* t_expr = c_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
             {
+                PLNNRC_CONTINUE(expect_type(ast, t_expr, sexpr::node_list, task));
                 PLNNRC_CHECK_NODE(atom, build_atom(ast, t_expr));
                 append_child(task, atom);
             }
@@ -324,6 +322,7 @@ node* build_task_list(tree& ast, sexpr::node* s_expr)
         }
         else
         {
+            PLNNRC_CONTINUE(expect_type(ast, c_expr, sexpr::node_list, task_list));
             PLNNRC_CHECK_NODE(task, build_atom(ast, c_expr));
             append_child(task_list, task);
         }
