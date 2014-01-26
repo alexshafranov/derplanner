@@ -46,6 +46,7 @@ node* build_logical_expression(tree& ast, sexpr::node* s_expr)
     {
         for (sexpr::node* c_expr = s_expr->first_child; c_expr != 0; c_expr = c_expr->next_sibling)
         {
+            PLNNRC_CONTINUE(expect_type(ast, c_expr, sexpr::node_list, root));
             PLNNRC_CHECK_NODE(child, build_logical_expression_recursive(ast, c_expr));
             append_child(root, child);
         }
@@ -58,11 +59,9 @@ node* build_logical_op(tree& ast, sexpr::node* s_expr, node_type op_type)
 {
     PLNNRC_CHECK_NODE(root, ast.make_node(op_type, s_expr));
 
-    plnnrc_assert(root != 0);
-    plnnrc_assert(s_expr->first_child != 0);
-
     for (sexpr::node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
     {
+        PLNNRC_CONTINUE(expect_type(ast, c_expr, sexpr::node_list, root));
         PLNNRC_CHECK_NODE(child, build_logical_expression_recursive(ast, c_expr));
         append_child(root, child);
     }
@@ -72,9 +71,8 @@ node* build_logical_op(tree& ast, sexpr::node* s_expr, node_type op_type)
 
 node* build_logical_expression_recursive(tree& ast, sexpr::node* s_expr)
 {
-    plnnrc_assert(s_expr->type == sexpr::node_list);
+    PLNNRC_RETURN(expect_child_type(ast, s_expr, sexpr::node_symbol));
     sexpr::node* c_expr = s_expr->first_child;
-    plnnrc_assert(c_expr && c_expr->type == sexpr::node_symbol);
 
     if (is_token(c_expr, token_and))
     {
