@@ -47,6 +47,12 @@ namespace
             return branch_expr->next_sibling;
         }
 
+        // error condition - handled in build_branch.
+        if (!branch_expr->next_sibling)
+        {
+            return 0;
+        }
+
         return branch_expr->next_sibling->next_sibling;
     }
 
@@ -132,6 +138,7 @@ namespace
 
         for (node* branch = atom->next_sibling; branch != 0; branch = branch->next_sibling)
         {
+            PLNNRC_SKIP_ERROR_NODE(branch);
             node* precondition = branch->first_child;
             plnnrc_assert(precondition);
             node* tasklist = precondition->next_sibling;
@@ -242,6 +249,7 @@ node* build_method(tree& ast, sexpr::node* s_expr)
 
     for (sexpr::node* branch_expr = task_atom_expr->next_sibling; branch_expr != 0; branch_expr = next_branch_expr(branch_expr))
     {
+        PLNNRC_CONTINUE(expect_type(ast, branch_expr, sexpr::node_list, method));
         PLNNRC_CHECK_NODE(branch, build_branch(ast, branch_expr));
         append_child(method, branch);
     }
@@ -257,21 +265,20 @@ node* build_branch(tree& ast, sexpr::node* s_expr)
     sexpr::node* tasklist_expr = 0;
 
     branch_ann* ann = annotation<branch_ann>(branch);
+    ann->foreach = is_token(s_expr->first_child, token_foreach);
 
-    if (is_token(s_expr->first_child, token_foreach))
+    if (ann->foreach)
     {
+        PLNNRC_RETURN(expect_next_type(ast, s_expr->first_child, sexpr::node_list));
         precondition_expr = s_expr->first_child->next_sibling;
-        plnnrc_assert(precondition_expr);
+        PLNNRC_RETURN(expect_next_type(ast, precondition_expr, sexpr::node_list));
         tasklist_expr = precondition_expr->next_sibling;
-        ann->foreach = true;
     }
     else
     {
         precondition_expr = s_expr;
+        PLNNRC_RETURN(expect_next_type(ast, precondition_expr, sexpr::node_list));
         tasklist_expr = precondition_expr->next_sibling;
-        plnnrc_assert(precondition_expr);
-        plnnrc_assert(tasklist_expr);
-        ann->foreach = false;
     }
 
     PLNNRC_CHECK_NODE(precondition, build_logical_expression(ast, precondition_expr));
@@ -420,6 +427,8 @@ bool build_operator_stubs(tree& ast)
 
         for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
         {
+            PLNNRC_SKIP_ERROR_NODE(branch);
+
             plnnrc_assert(branch->first_child);
             node* tasklist = branch->first_child->next_sibling;
             plnnrc_assert(tasklist);

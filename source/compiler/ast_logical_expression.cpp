@@ -84,8 +84,6 @@ namespace
 
 node* build_logical_expression(tree& ast, sexpr::node* s_expr)
 {
-    plnnrc_assert(s_expr->type == sexpr::node_list);
-
     PLNNRC_CHECK_NODE(root, ast.make_node(node_op_and, s_expr));
 
     // s_expr is operator or atom
