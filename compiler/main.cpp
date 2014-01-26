@@ -106,11 +106,11 @@ int main(int argc, char** argv)
     ast::tree tree;
     ast::build_translation_unit(tree, expr.root());
 
-    if (tree.error_nodes.size() > 0)
+    if (tree.error_node_cache.size() > 0)
     {
-        for (unsigned i = 0; i < tree.error_nodes.size(); ++i)
+        for (unsigned i = 0; i < tree.error_node_cache.size(); ++i)
         {
-            ast::node* error = tree.error_nodes[i];
+            ast::node* error = tree.error_node_cache[i];
             printf("error: %d:%d\n", error->s_expr->line, error->s_expr->column);
         }
 

@@ -89,12 +89,12 @@ namespace
     }
 }
 
-tree::tree(int max_error_nodes)
+tree::tree(int error_node_cache_size)
     : _node_pool(0)
 {
     memset(&_root, 0, sizeof(_root));
     _root.type = node_root;
-    error_nodes.init(max_error_nodes);
+    error_node_cache.init(error_node_cache_size);
 }
 
 tree::~tree()

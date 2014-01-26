@@ -43,9 +43,9 @@ ast::node* report_error(ast::tree& ast, ast::node* parent, compilation_error err
             append_child(parent, error);
         }
 
-        if (ast.error_nodes.size() < ast.error_nodes.capacity())
+        if (ast.error_node_cache.size() < ast.error_node_cache.capacity())
         {
-            ast.error_nodes.append(error);
+            ast.error_node_cache.append(error);
         }
 
         ast::annotation<ast::error_ann>(error)->id = error_id;

@@ -141,7 +141,7 @@ inline bool is_effect_list(const node* n)
 class tree
 {
 public:
-    tree(int max_error_nodes=8);
+    tree(int error_node_cache_size=8);
     ~tree();
 
     inline node* root() { return &_root; }
@@ -157,7 +157,7 @@ public:
     id_table methods;
     id_table operators;
     node_array type_tag_to_node;
-    node_array error_nodes;
+    node_array error_node_cache;
 
 private:
     tree(const tree&);
