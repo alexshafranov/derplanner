@@ -211,7 +211,7 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
 
         if (!element)
         {
-            element = report_error(ast, 0, error_unexpected, c_expr);
+            element = emit_error(ast, 0, error_unexpected, c_expr);
         }
 
         append_child(domain, element);

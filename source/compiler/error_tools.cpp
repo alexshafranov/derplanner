@@ -27,12 +27,12 @@
 
 namespace plnnrc {
 
-ast::node* report_error(ast::tree& ast, compilation_error error_id, sexpr::node* s_expr, bool past_token_locaion)
+ast::node* emit_error(ast::tree& ast, compilation_error error_id, sexpr::node* s_expr, bool past_token_locaion)
 {
-    return report_error(ast, 0, error_id, s_expr, past_token_locaion);
+    return emit_error(ast, 0, error_id, s_expr, past_token_locaion);
 }
 
-ast::node* report_error(ast::tree& ast, ast::node* parent, compilation_error error_id, sexpr::node* s_expr, bool past_token_locaion)
+ast::node* emit_error(ast::tree& ast, ast::node* parent, compilation_error error_id, sexpr::node* s_expr, bool past_token_locaion)
 {
     ast::node* error = ast.make_node(ast::node_error, s_expr);
 
@@ -69,7 +69,7 @@ ast::node* expect_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_type exp
 {
     if (s_expr->type != expected)
     {
-        return report_error(ast, parent, error_expected, s_expr);
+        return emit_error(ast, parent, error_expected, s_expr);
     }
 
     return 0;
@@ -79,12 +79,12 @@ ast::node* expect_child_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_ty
 {
     if (!s_expr->first_child)
     {
-        return report_error(ast, parent, error_expected, s_expr);
+        return emit_error(ast, parent, error_expected, s_expr);
     }
 
     if (s_expr->first_child->type != expected)
     {
-        return report_error(ast, parent, error_expected, s_expr);
+        return emit_error(ast, parent, error_expected, s_expr);
     }
 
     return 0;
@@ -94,12 +94,12 @@ ast::node* expect_next_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_typ
 {
     if (!s_expr->next_sibling)
     {
-        return report_error(ast, parent, error_expected, s_expr, true);
+        return emit_error(ast, parent, error_expected, s_expr, true);
     }
 
     if (s_expr->next_sibling->type != expected)
     {
-        return report_error(ast, parent, error_expected, s_expr->next_sibling);
+        return emit_error(ast, parent, error_expected, s_expr->next_sibling);
     }
 
     return 0;
@@ -109,12 +109,12 @@ ast::node* expect_next_token(ast::tree& ast, sexpr::node* s_expr, str_ref expect
 {
     if (!s_expr->next_sibling)
     {
-        return report_error(ast, parent, error_expected, s_expr, true);
+        return emit_error(ast, parent, error_expected, s_expr, true);
     }
 
     if (!is_token(s_expr->next_sibling, expected))
     {
-        return report_error(ast, parent, error_expected, s_expr->next_sibling);
+        return emit_error(ast, parent, error_expected, s_expr->next_sibling);
     }
 
     return 0;
@@ -126,7 +126,7 @@ ast::node* expect_valid_id(ast::tree& ast, sexpr::node* s_expr, ast::node* paren
 
     if (!is_valid_id(s_expr->token))
     {
-        return report_error(ast, parent, error_invalid_id, s_expr);
+        return emit_error(ast, parent, error_invalid_id, s_expr);
     }
 
     return 0;
@@ -136,7 +136,7 @@ ast::node* expect_condition(ast::tree& ast, sexpr::node* s_expr, bool condition,
 {
     if (!condition)
     {
-        return report_error(ast, parent, error_id, s_expr);
+        return emit_error(ast, parent, error_id, s_expr);
     }
 
     return 0;
@@ -144,7 +144,7 @@ ast::node* expect_condition(ast::tree& ast, sexpr::node* s_expr, bool condition,
 
 ast::node* replace_with_error(ast::tree& ast, ast::node* node, compilation_error error_id)
 {
-    ast::node* error_node = report_error(ast, error_id, node->s_expr);
+    ast::node* error_node = emit_error(ast, error_id, node->s_expr);
     PLNNRC_CHECK(error_node);
     insert_child(node, error_node);
     detach_node(node);
