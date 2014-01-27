@@ -27,12 +27,12 @@
 
 namespace plnnrc {
 
-ast::node* report_error(ast::tree& ast, compilation_error error_id, sexpr::node* s_expr)
+ast::node* report_error(ast::tree& ast, compilation_error error_id, sexpr::node* s_expr, bool past_token_locaion)
 {
-    return report_error(ast, 0, error_id, s_expr); 
+    return report_error(ast, 0, error_id, s_expr, past_token_locaion);
 }
 
-ast::node* report_error(ast::tree& ast, ast::node* parent, compilation_error error_id, sexpr::node* s_expr)
+ast::node* report_error(ast::tree& ast, ast::node* parent, compilation_error error_id, sexpr::node* s_expr, bool past_token_locaion)
 {
     ast::node* error = ast.make_node(ast::node_error, s_expr);
 
@@ -48,7 +48,18 @@ ast::node* report_error(ast::tree& ast, ast::node* parent, compilation_error err
             ast.error_node_cache.append(error);
         }
 
-        ast::annotation<ast::error_ann>(error)->id = error_id;
+        ast::error_ann* annotation = ast::annotation<ast::error_ann>(error);
+        annotation->id = error_id;
+        annotation->line = s_expr->line;
+
+        if (past_token_locaion)
+        {
+            annotation->column = s_expr->column + static_cast<int>(strlen(s_expr->token));
+        }
+        else
+        {
+            annotation->column = s_expr->column;
+        }
     }
 
     return error;
@@ -83,7 +94,7 @@ ast::node* expect_next_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_typ
 {
     if (!s_expr->next_sibling)
     {
-        return report_error(ast, parent, error_expected, s_expr);
+        return report_error(ast, parent, error_expected, s_expr, true);
     }
 
     if (s_expr->next_sibling->type != expected)
@@ -98,7 +109,7 @@ ast::node* expect_next_token(ast::tree& ast, sexpr::node* s_expr, str_ref expect
 {
     if (!s_expr->next_sibling)
     {
-        return report_error(ast, parent, error_expected, s_expr);
+        return report_error(ast, parent, error_expected, s_expr, true);
     }
 
     if (!is_token(s_expr->next_sibling, expected))

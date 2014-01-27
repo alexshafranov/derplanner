@@ -55,8 +55,8 @@ ast::node* expect_condition(ast::tree& ast, sexpr::node* s_expr, bool condition,
 
 ast::node* replace_with_error(ast::tree& ast, ast::node* node, compilation_error error_id);
 
-ast::node* report_error(ast::tree& ast, compilation_error error_id, sexpr::node* s_expr);
-ast::node* report_error(ast::tree& ast, ast::node* parent, compilation_error error_id, sexpr::node* s_expr);
+ast::node* report_error(ast::tree& ast, compilation_error error_id, sexpr::node* s_expr, bool past_token_locaion=false);
+ast::node* report_error(ast::tree& ast, ast::node* parent, compilation_error error_id, sexpr::node* s_expr, bool past_token_locaion=false);
 
 }
 

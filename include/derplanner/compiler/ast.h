@@ -90,6 +90,8 @@ struct method_ann
 struct error_ann
 {
     compilation_error id;
+    int line;
+    int column;
 };
 
 template <typename T>
