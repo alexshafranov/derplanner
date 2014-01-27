@@ -131,4 +131,13 @@ ast::node* expect_condition(ast::tree& ast, sexpr::node* s_expr, bool condition,
     return 0;
 }
 
+ast::node* replace_with_error(ast::tree& ast, ast::node* node, compilation_error error_id)
+{
+    ast::node* error_node = report_error(ast, error_id, node->s_expr);
+    PLNNRC_CHECK(error_node);
+    insert_child(node, error_node);
+    detach_node(node);
+    return error_node;
+}
+
 }

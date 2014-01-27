@@ -53,6 +53,9 @@ ast::node* expect_next_token(ast::tree& ast, sexpr::node* s_expr, str_ref expect
 ast::node* expect_valid_id(ast::tree& ast, sexpr::node* s_expr, ast::node* parent=0);
 ast::node* expect_condition(ast::tree& ast, sexpr::node* s_expr, bool condition, compilation_error error_id, ast::node* parent=0);
 
+ast::node* replace_with_error(ast::tree& ast, ast::node* node, compilation_error error_id);
+
+ast::node* report_error(ast::tree& ast, compilation_error error_id, sexpr::node* s_expr);
 ast::node* report_error(ast::tree& ast, ast::node* parent, compilation_error error_id, sexpr::node* s_expr);
 
 }

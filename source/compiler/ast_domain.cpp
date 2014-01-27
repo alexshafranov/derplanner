@@ -112,7 +112,7 @@ namespace
         }
     }
 
-    void link_branch_variables(node* method_atom, node* precondition, node* tasklist)
+    void link_branch_variables(tree& ast, node* method_atom, node* precondition, node* tasklist)
     {
         for (node* p = method_atom->first_child; p != 0; p = p->next_sibling)
         {
@@ -128,9 +128,21 @@ namespace
                 link_to_variable(n, tasklist, tasklist);
             }
         }
+
+        for (node* n = tasklist; n != 0;)
+        {
+            node* next = preorder_traversal_next(tasklist, n);
+
+            if (n->type == node_term_variable && !definition(n))
+            {
+                replace_with_error(ast, n, error_unbound_var);
+            }
+
+            n = next;
+        }
     }
 
-    void link_method_variables(node* method)
+    void link_method_variables(tree& ast, node* method)
     {
         node* atom = method->first_child;
         plnnrc_assert(atom && atom->type == node_atom);
@@ -142,7 +154,7 @@ namespace
             plnnrc_assert(precondition);
             node* tasklist = precondition->next_sibling;
             plnnrc_assert(tasklist);
-            link_branch_variables(atom, precondition, tasklist);
+            link_branch_variables(ast, atom, precondition, tasklist);
         }
     }
 
@@ -214,7 +226,7 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
         plnnrc_assert(method_atom && method_atom->type == node_atom);
         (void)(method_atom);
 
-        link_method_variables(method);
+        link_method_variables(ast, method);
     }
 
     for (id_table_values operators = ast.operators.values(); !operators.empty(); operators.pop())

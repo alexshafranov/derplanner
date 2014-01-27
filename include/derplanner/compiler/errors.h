@@ -30,6 +30,7 @@ enum compilation_error
     error_expected,
     error_multiple_definitions,
     error_invalid_id,
+    error_unbound_var,
 };
 
 }
