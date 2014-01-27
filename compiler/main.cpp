@@ -19,6 +19,7 @@
 //
 
 #include <string>
+#include <algorithm>
 #include <stdio.h>
 
 #include <derplanner/compiler/io.h>
@@ -69,6 +70,14 @@ size_t file_size(const char* path)
     return input_size;
 }
 
+struct error_node_comparator
+{
+    bool operator()(const ast::node* a, const ast::node* b)
+    {
+        return a->s_expr->line < b->s_expr->line;
+    }
+};
+
 int main(int argc, char** argv)
 {
     const char* input_path = argv[1];
@@ -108,6 +117,11 @@ int main(int argc, char** argv)
 
     if (tree.error_node_cache.size() > 0)
     {
+        std::stable_sort(
+            &tree.error_node_cache[0],
+            &tree.error_node_cache[0] + tree.error_node_cache.size(),
+            error_node_comparator());
+
         for (unsigned i = 0; i < tree.error_node_cache.size(); ++i)
         {
             ast::node* error = tree.error_node_cache[i];
