@@ -432,6 +432,8 @@ bool build_operator_stubs(tree& ast)
 
             for (node* task = tasklist->first_child; task != 0; task = task->next_sibling)
             {
+                PLNNRC_SKIP_SUBTREE_WITH_ERRORS(task);
+
                 if (task->type == node_atom && !is_method(ast, task))
                 {
                     if (ast.operators.find(task->s_expr->token))

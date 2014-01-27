@@ -22,6 +22,7 @@
 #define DERPLANNER_COMPILER_BUILD_TOOLS_H_
 
 #include "derplanner/compiler/s_expression.h"
+#include "ast_tools.h"
 #include "tokens.h"
 
 #define PLNNRC_CHECK(EXPR) do { if (!(EXPR)) return 0; } while ((void)(__LINE__==-1), false)
@@ -37,8 +38,8 @@
     while ((void)(__LINE__==-1), false)                     \
 
 #define PLNNRC_CONTINUE(EXPECT_EXPR) if ((EXPECT_EXPR)) continue;
-
 #define PLNNRC_SKIP_ERROR_NODE(NODE) PLNNRC_CONTINUE(((NODE)->type == ::plnnrc::ast::node_error))
+#define PLNNRC_SKIP_SUBTREE_WITH_ERRORS(NODE) PLNNRC_CONTINUE(::plnnrc::ast::find_descendant((NODE), ::plnnrc::ast::node_error) != 0)
 
 namespace plnnrc {
 
