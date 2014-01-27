@@ -101,6 +101,7 @@ node* build_term(tree& ast, sexpr::node* s_expr)
 
 node* build_variable_term(tree& ast, sexpr::node* s_expr)
 {
+    PLNNRC_RETURN(expect_valid_id(ast, s_expr));
     PLNNRC_CHECK_NODE(variable, ast.make_node(node_term_variable, s_expr));
     return variable;
 }
