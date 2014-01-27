@@ -47,6 +47,7 @@ node* build_namespace(tree& ast, sexpr::node* s_expr)
 node* build_atom(tree& ast, sexpr::node* s_expr)
 {
     PLNNRC_RETURN(expect_child_type(ast, s_expr, sexpr::node_symbol));
+    PLNNRC_RETURN(expect_valid_id(ast, s_expr->first_child));
 
     node_type atom_type = node_atom;
 
