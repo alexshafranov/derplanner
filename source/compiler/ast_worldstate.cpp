@@ -120,6 +120,7 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
 
 node* build_worldstate_atom(tree& ast, sexpr::node* s_expr, int& type_tag)
 {
+    PLNNRC_RETURN(expect_valid_id(ast, s_expr->first_child));
     PLNNRC_CHECK_NODE(atom, ast.make_node(node_atom, s_expr->first_child));
 
     for (sexpr::node* t_expr = s_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
