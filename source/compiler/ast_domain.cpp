@@ -116,6 +116,7 @@ namespace
     {
         for (node* p = method_atom->first_child; p != 0; p = p->next_sibling)
         {
+            PLNNRC_SKIP_ERROR_NODE(p);
             link_to_parameter(p, precondition);
             link_to_parameter(p, tasklist);
         }
@@ -146,6 +147,18 @@ namespace
     {
         node* atom = method->first_child;
         plnnrc_assert(atom && atom->type == node_atom);
+
+        for (node* p = atom->first_child; p != 0;)
+        {
+            node* next = p->next_sibling;
+
+            if (p->type != node_term_variable)
+            {
+                replace_with_error(ast, p, error_unexpected);
+            }
+
+            p = next;
+        }
 
         for (node* branch = atom->next_sibling; branch != 0; branch = branch->next_sibling)
         {
