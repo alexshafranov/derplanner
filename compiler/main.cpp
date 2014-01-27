@@ -74,6 +74,11 @@ struct error_node_comparator
 {
     bool operator()(const ast::node* a, const ast::node* b)
     {
+        if (a->s_expr->line == b->s_expr->line)
+        {
+            return a->s_expr->column < b->s_expr->column;
+        }
+
         return a->s_expr->line < b->s_expr->line;
     }
 };
