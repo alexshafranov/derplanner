@@ -147,18 +147,10 @@ ast::node* replace_with_error(ast::tree& ast, ast::node* node, compilation_error
     ast::node* error_node = emit_error(ast, error_id, node->s_expr);
     PLNNRC_CHECK(error_node);
 
-    insert_child(node, error_node);
-    detach_node(node);
+    node->type = error_node->type;
+    node->annotation = error_node->annotation;
 
-    for (ast::node* c = node->first_child; c != 0;)
-    {
-        ast::node* n = c->next_sibling;
-        detach_node(c);
-        append_child(error_node, c);
-        c = n;
-    }
-
-    return error_node;
+    return node;
 }
 
 ast::node* replace_with_error_if(bool condition, ast::tree& ast, ast::node* node, compilation_error error_id)

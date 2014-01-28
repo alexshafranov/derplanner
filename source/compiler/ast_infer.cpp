@@ -29,35 +29,10 @@
 namespace plnnrc {
 namespace ast {
 
-namespace
-{
-    struct move_to_next
-    {
-        move_to_next(node* root, node*& current)
-            : current(current)
-        {
-            next = preorder_traversal_next(root, current);
-        }
-
-        ~move_to_next()
-        {
-            current = next;
-        }
-
-        node*& current;
-        node* next;
-
-        move_to_next(const move_to_next&);
-        move_to_next& operator=(const move_to_next&);
-    };
-}
-
 void seed_types(tree& ast, node* root)
 {
-    for (node* n = root; n != 0;)
+    for (node* n = root; n != 0; n = preorder_traversal_next(root, n))
     {
-        move_to_next m(root, n);
-
         if (n->type == node_atom)
         {
             node* ws_atom = ast.ws_atoms.find(n->s_expr->token);

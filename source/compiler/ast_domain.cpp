@@ -130,16 +130,12 @@ namespace
             }
         }
 
-        for (node* n = tasklist; n != 0;)
+        for (node* n = tasklist; n != 0; n = preorder_traversal_next(tasklist, n))
         {
-            node* next = preorder_traversal_next(tasklist, n);
-
             if (n->type == node_term_variable && !definition(n))
             {
                 replace_with_error(ast, n, error_unbound_var);
             }
-
-            n = next;
         }
     }
 
@@ -148,16 +144,12 @@ namespace
         node* atom = method->first_child;
         plnnrc_assert(atom && atom->type == node_atom);
 
-        for (node* p = atom->first_child; p != 0;)
+        for (node* p = atom->first_child; p != 0; p = p->next_sibling)
         {
-            node* next = p->next_sibling;
-
             if (p->type != node_term_variable)
             {
                 replace_with_error(ast, p, error_unexpected);
             }
-
-            p = next;
         }
 
         for (node* branch = atom->next_sibling; branch != 0; branch = branch->next_sibling)
