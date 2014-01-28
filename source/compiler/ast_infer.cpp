@@ -39,9 +39,8 @@ void seed_types(tree& ast, node* root)
             PLNNRC_CONTINUE(replace_with_error_if(!ws_atom, ast, n, error_not_found));
 
             node* ws_type = ws_atom->first_child;
-            plnnrc_assert(ws_type->type == node_worldstate_type);
 
-            for (node* c = n->first_child; c != 0; c = c->next_sibling)
+            for (node* c = n->first_child; c != 0; c = c->next_sibling, ws_type = ws_type->next_sibling)
             {
                 plnnrc_assert(ws_type);
                 plnnrc_assert(ws_type->type == node_worldstate_type);
@@ -54,7 +53,7 @@ void seed_types(tree& ast, node* root)
                 if (c->type == node_term_call)
                 {
                     node* ws_func = ast.ws_funcs.find(c->s_expr->token);
-                    plnnrc_assert(ws_func);
+                    PLNNRC_CONTINUE(replace_with_error_if(!ws_func, ast, c, error_not_found));
                     node* ws_return_type = ws_func->first_child->next_sibling;
                     plnnrc_assert(ws_return_type);
                     plnnrc_assert(ws_return_type->type == node_worldstate_type);
@@ -62,8 +61,6 @@ void seed_types(tree& ast, node* root)
                     // check argument type
                     plnnrc_assert(annotation<ws_type_ann>(ws_type)->type_tag == annotation<ws_type_ann>(ws_return_type)->type_tag);
                 }
-
-                ws_type = ws_type->next_sibling;
             }
 
             // wrong number of arguments
