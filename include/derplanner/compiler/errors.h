@@ -32,6 +32,7 @@ enum compilation_error
     error_invalid_id,
     error_unbound_var,
     error_not_found,
+    error_wrong_number_of_arguments,
 };
 
 }

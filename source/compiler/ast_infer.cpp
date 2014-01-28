@@ -42,8 +42,7 @@ void seed_types(tree& ast, node* root)
 
             for (node* c = n->first_child; c != 0; c = c->next_sibling, ws_type = ws_type->next_sibling)
             {
-                plnnrc_assert(ws_type);
-                plnnrc_assert(ws_type->type == node_worldstate_type);
+                PLNNRC_BREAK(replace_with_error_if(!ws_type, ast, n, error_wrong_number_of_arguments));
 
                 if (c->type == node_term_variable)
                 {
@@ -63,8 +62,12 @@ void seed_types(tree& ast, node* root)
                 }
             }
 
-            // wrong number of arguments
-            plnnrc_assert(!ws_type);
+            if (n->type == node_error)
+            {
+                continue;
+            }
+
+            PLNNRC_CONTINUE(replace_with_error_if(ws_type != 0, ast, n, error_wrong_number_of_arguments));
         }
 
         if (n->type == node_term_call)
