@@ -124,7 +124,7 @@ bool has_untyped_params(node* method_atom)
 
 void infer_types(tree& ast)
 {
-    // for each precondition assign types to variables based on worldstate's atoms and functions parameter types.
+    // for each precondition assign types to variables based on worldstate's atoms and function parameter types.
     for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
     {
         node* method = methods.value();
