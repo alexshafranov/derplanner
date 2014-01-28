@@ -23,20 +23,45 @@
 #include "derplanner/compiler/ast.h"
 #include "tree_tools.h"
 #include "ast_tools.h"
+#include "error_tools.h"
 #include "ast_infer.h"
 
 namespace plnnrc {
 namespace ast {
 
+namespace
+{
+    struct move_to_next
+    {
+        move_to_next(node* root, node*& current)
+            : current(current)
+        {
+            next = preorder_traversal_next(root, current);
+        }
+
+        ~move_to_next()
+        {
+            current = next;
+        }
+
+        node*& current;
+        node* next;
+
+        move_to_next(const move_to_next&);
+        move_to_next& operator=(const move_to_next&);
+    };
+}
+
 void seed_types(tree& ast, node* root)
 {
-    for (node* n = root; n != 0; n = preorder_traversal_next(root, n))
+    for (node* n = root; n != 0;)
     {
+        move_to_next m(root, n);
+
         if (n->type == node_atom)
         {
             node* ws_atom = ast.ws_atoms.find(n->s_expr->token);
-            plnnrc_assert(ws_atom);
-            plnnrc_assert(ws_atom->first_child);
+            PLNNRC_CONTINUE(replace_with_error_if(!ws_atom, ast, n, error_not_found));
 
             node* ws_type = ws_atom->first_child;
             plnnrc_assert(ws_type->type == node_worldstate_type);
