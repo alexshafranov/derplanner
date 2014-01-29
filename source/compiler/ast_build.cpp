@@ -54,6 +54,10 @@ bool build_translation_unit(tree& ast, sexpr::node* s_expr)
                 if (!ast.error_node_cache.size())
                 {
                     infer_types(ast);
+                }
+
+                if (!ast.error_node_cache.size())
+                {
                     annotate(ast);
                 }
 

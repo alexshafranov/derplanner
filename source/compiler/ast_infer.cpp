@@ -241,7 +241,21 @@ namespace
             if (num_methods_processed == 0)
             {
                 // unable to infer some method parameters.
-                plnnrc_assert(false);
+                for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+                {
+                    node* method = methods.value();
+                    node* method_atom = method->first_child;
+
+                    for (node* param = method_atom->first_child; param != 0; param = param->next_sibling)
+                    {
+                        if (!type_tag(param))
+                        {
+                            replace_with_error(ast, param, error_unable_to_infer_type);
+                        }
+                    }
+                }
+
+                break;
             }
 
             // propagate types for non atom vars in preconditions
