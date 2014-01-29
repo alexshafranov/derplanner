@@ -58,6 +58,28 @@ namespace
         return ws_type;
     }
 
+    void set_or_check_var_type(tree& ast, node* var)
+    {
+        node* def = definition(var);
+
+        if (is_parameter(def))
+        {
+            // if type is not yet assigned -> assign
+            if (!type_tag(def))
+            {
+                type_tag(def, type_tag(var));
+            }
+            else
+            {
+                // otherwise, check types match
+                int def_type = type_tag(def);
+                int var_type = type_tag(var);
+
+                replace_with_error_if(def_type != var_type, ast, var->parent, error_type_mismatch);
+            }
+        }
+    }
+
     void propagate_types_up(tree& ast)
     {
         // for each precondition and for each effect and function call in task list propagate variable types to their definitions
@@ -74,29 +96,11 @@ namespace
                 {
                     if (var->type == node_term_variable && is_bound(var) && (var->parent->type == node_atom || var->parent->type == node_term_call))
                     {
-                        node* def = definition(var);
-
-                        if (is_parameter(def))
-                        {
-                            // if type is not yet assigned -> assign 
-                            if (!type_tag(def))
-                            {
-                                type_tag(def, type_tag(var));
-                            }
-                            else
-                            {
-                                // otherwise, check types match
-                                int def_type = type_tag(def);
-                                int var_type = type_tag(var);
-
-                                replace_with_error_if(def_type != var_type, ast, var->parent, error_type_mismatch);
-                            }
-                        }
+                        set_or_check_var_type(ast, var);
                     }
                 }
 
                 node* tasklist = precondition->next_sibling;
-                plnnrc_assert(tasklist);
 
                 for (node* task = tasklist->first_child; task != 0; task = task->next_sibling)
                 {
@@ -106,18 +110,7 @@ namespace
                         {
                             if (var->type == node_term_variable)
                             {
-                                node* def = definition(var);
-
-                                if (is_parameter(def))
-                                {
-                                    if (!type_tag(def))
-                                    {
-                                        type_tag(def, type_tag(var));
-                                    }
-
-                                    // check types match
-                                    plnnrc_assert(type_tag(def) == type_tag(var));
-                                }
+                                set_or_check_var_type(ast, var);
                             }
                         }
                     }
@@ -131,19 +124,7 @@ namespace
                                 {
                                     if (var->type == node_term_variable)
                                     {
-                                        node* def = definition(var);
-                                        plnnrc_assert(def);
-
-                                        if (is_parameter(def))
-                                        {
-                                            if (!type_tag(def))
-                                            {
-                                                type_tag(def, type_tag(var));
-                                            }
-
-                                            // check types match
-                                            plnnrc_assert(type_tag(def) == type_tag(var));
-                                        }
+                                        set_or_check_var_type(ast, var);
                                     }
                                 }
                             }
