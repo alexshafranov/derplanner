@@ -152,7 +152,6 @@ namespace
             {
                 node* method = methods.value();
                 node* method_atom = method->first_child;
-                plnnrc_assert(method_atom && method_atom->type == node_atom);
 
                 method_ann* ann = annotation<method_ann>(method);
 
@@ -169,9 +168,7 @@ namespace
 
                 for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
                 {
-                    plnnrc_assert(branch->first_child);
                     node* tasklist = branch->first_child->next_sibling;
-                    plnnrc_assert(tasklist);
 
                     for (node* task = tasklist->first_child; task != 0; task = task->next_sibling)
                     {
@@ -190,13 +187,12 @@ namespace
                         plnnrc_assert(callee);
 
                         node* callee_atom = callee->first_child;
-                        plnnrc_assert(callee_atom && callee_atom->type == node_atom);
 
                         node* param = callee_atom->first_child;
 
-                        for (node* arg = task->first_child; arg != 0; arg = arg->next_sibling)
+                        for (node* arg = task->first_child; arg != 0; arg = arg->next_sibling, param = param->next_sibling)
                         {
-                            plnnrc_assert(param);
+                            PLNNRC_BREAK(replace_with_error_if(!param, ast, task, error_wrong_number_of_arguments));
 
                             if (arg->type == node_term_variable)
                             {
@@ -211,7 +207,7 @@ namespace
                                 else
                                 {
                                     // check types match
-                                    plnnrc_assert(type_tag(param) == type_tag(def));
+                                    replace_with_error_if(type_tag(param) != type_tag(def), ast, arg, error_type_mismatch);
                                 }
                             }
 
@@ -229,14 +225,12 @@ namespace
                                 else
                                 {
                                     // check types match
-                                    plnnrc_assert(type_tag(param) == annotation<ws_type_ann>(ws_return_type)->type_tag);
+                                    replace_with_error_if(type_tag(param) != annotation<ws_type_ann>(ws_return_type)->type_tag, ast, arg, error_type_mismatch);
                                 }
                             }
-
-                            param = param->next_sibling;
                         }
 
-                        plnnrc_assert(!param);
+                        replace_with_error_if(param != 0, ast, task, error_wrong_number_of_arguments);
                     }
                 }
 
