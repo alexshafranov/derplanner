@@ -29,6 +29,36 @@
 namespace plnnrc {
 namespace ast {
 
+namespace
+{
+    node* seed_parameter_types(tree& ast, node* root, node* argument_type)
+    {
+        node* ws_type = argument_type;
+
+        for (node* c = root->first_child; c != 0; c = c->next_sibling, ws_type = ws_type->next_sibling)
+        {
+            PLNNRC_BREAK(replace_with_error_if(!ws_type, ast, root, error_wrong_number_of_arguments));
+
+            if (c->type == node_term_variable)
+            {
+                type_tag(c, annotation<ws_type_ann>(ws_type)->type_tag);
+            }
+
+            if (c->type == node_term_call)
+            {
+                node* ws_func = ast.ws_funcs.find(c->s_expr->token);
+                PLNNRC_CONTINUE(replace_with_error_if(!ws_func, ast, c, error_not_found));
+                node* ws_return_type = ws_func->first_child->next_sibling;
+                int ws_type_tag = annotation<ws_type_ann>(ws_type)->type_tag;
+                int ws_return_type_tag = annotation<ws_type_ann>(ws_return_type)->type_tag;
+                PLNNRC_CONTINUE(replace_with_error_if(ws_type_tag != ws_return_type_tag, ast, c, error_type_mismatch));
+            }
+        }
+
+        return ws_type;
+    }
+}
+
 void seed_types(tree& ast, node* root)
 {
     for (node* n = root; n != 0; n = preorder_traversal_next(root, n))
@@ -38,27 +68,7 @@ void seed_types(tree& ast, node* root)
             node* ws_atom = ast.ws_atoms.find(n->s_expr->token);
             PLNNRC_CONTINUE(replace_with_error_if(!ws_atom, ast, n, error_not_found));
 
-            node* ws_type = ws_atom->first_child;
-
-            for (node* c = n->first_child; c != 0; c = c->next_sibling, ws_type = ws_type->next_sibling)
-            {
-                PLNNRC_BREAK(replace_with_error_if(!ws_type, ast, n, error_wrong_number_of_arguments));
-
-                if (c->type == node_term_variable)
-                {
-                    type_tag(c, annotation<ws_type_ann>(ws_type)->type_tag);
-                }
-
-                if (c->type == node_term_call)
-                {
-                    node* ws_func = ast.ws_funcs.find(c->s_expr->token);
-                    PLNNRC_CONTINUE(replace_with_error_if(!ws_func, ast, c, error_not_found));
-                    node* ws_return_type = ws_func->first_child->next_sibling;
-                    int ws_type_tag = annotation<ws_type_ann>(ws_type)->type_tag;
-                    int ws_return_type_tag = annotation<ws_type_ann>(ws_return_type)->type_tag;
-                    PLNNRC_CONTINUE(replace_with_error_if(ws_type_tag != ws_return_type_tag, ast, c, error_type_mismatch));
-                }
-            }
+            node* ws_type = seed_parameter_types(ast, n, ws_atom->first_child);
 
             if (n->type == node_error)
             {
@@ -71,38 +81,16 @@ void seed_types(tree& ast, node* root)
         if (n->type == node_term_call)
         {
             node* ws_func = ast.ws_funcs.find(n->s_expr->token);
-            plnnrc_assert(ws_func);
+            PLNNRC_CONTINUE(replace_with_error_if(!ws_func, ast, n, error_not_found));
 
-            node* ws_type = ws_func->first_child->first_child;
+            node* ws_type = seed_parameter_types(ast, n, ws_func->first_child->first_child);
 
-            for (node* c = n->first_child; c != 0; c = c->next_sibling)
+            if (n->type == node_error)
             {
-                plnnrc_assert(ws_type);
-                plnnrc_assert(ws_type->type == node_worldstate_type);
-
-                if (c->type == node_term_variable)
-                {
-                    type_tag(c, annotation<ws_type_ann>(ws_type)->type_tag);
-                }
-
-                if (c->type == node_term_call)
-                {
-                    node* ws_return_type = ast.ws_funcs.find(c->s_expr->token)->first_child->next_sibling;
-                    plnnrc_assert(ws_return_type);
-                    plnnrc_assert(ws_return_type->type == node_worldstate_type);
-                    // check argument type
-                    int ws_type_tag = annotation<ws_type_ann>(ws_type)->type_tag;
-                    int ws_return_type_tag = annotation<ws_type_ann>(ws_return_type)->type_tag;
-                    plnnrc_assert(ws_type_tag == ws_return_type_tag);
-                    (void)(ws_type_tag);
-                    (void)(ws_return_type_tag);
-                }
-
-                ws_type = ws_type->next_sibling;
+                continue;
             }
 
-            // wrong number of arguments
-            plnnrc_assert(!ws_type);
+            PLNNRC_CONTINUE(replace_with_error_if(ws_type != 0, ast, n, error_wrong_number_of_arguments));
         }
     }
 }
