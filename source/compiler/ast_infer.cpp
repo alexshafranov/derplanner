@@ -115,7 +115,6 @@ void infer_types(tree& ast)
     {
         node* method = methods.value();
         node* method_atom = method->first_child;
-        plnnrc_assert(method_atom && method_atom->type == node_atom);
 
         for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
         {
@@ -128,7 +127,6 @@ void infer_types(tree& ast)
     {
         node* operatr = operators.value();
         node* operator_atom = operatr->first_child;
-        plnnrc_assert(operator_atom && operator_atom->type == node_atom);
 
         for (node* effect_list = operator_atom->next_sibling; effect_list != 0; effect_list = effect_list->next_sibling)
         {
@@ -141,12 +139,10 @@ void infer_types(tree& ast)
     {
         node* method = methods.value();
         node* method_atom = method->first_child;
-        plnnrc_assert(method_atom && method_atom->type == node_atom);
 
         for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
         {
             node* tasklist = branch->first_child->next_sibling;
-            plnnrc_assert(tasklist);
 
             for (node* task = tasklist->first_child; task != 0; task = task->next_sibling)
             {
