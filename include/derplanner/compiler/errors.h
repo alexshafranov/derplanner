@@ -33,6 +33,7 @@ enum compilation_error
     error_unbound_var,
     error_not_found,
     error_wrong_number_of_arguments,
+    error_type_mismatch,
 };
 
 }

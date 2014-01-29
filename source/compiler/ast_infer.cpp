@@ -54,11 +54,9 @@ void seed_types(tree& ast, node* root)
                     node* ws_func = ast.ws_funcs.find(c->s_expr->token);
                     PLNNRC_CONTINUE(replace_with_error_if(!ws_func, ast, c, error_not_found));
                     node* ws_return_type = ws_func->first_child->next_sibling;
-                    plnnrc_assert(ws_return_type);
-                    plnnrc_assert(ws_return_type->type == node_worldstate_type);
-                    (void)(ws_return_type);
-                    // check argument type
-                    plnnrc_assert(annotation<ws_type_ann>(ws_type)->type_tag == annotation<ws_type_ann>(ws_return_type)->type_tag);
+                    int ws_type_tag = annotation<ws_type_ann>(ws_type)->type_tag;
+                    int ws_return_type_tag = annotation<ws_type_ann>(ws_return_type)->type_tag;
+                    PLNNRC_CONTINUE(replace_with_error_if(ws_type_tag != ws_return_type_tag, ast, c, error_type_mismatch));
                 }
             }
 
