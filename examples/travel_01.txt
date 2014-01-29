@@ -5,7 +5,6 @@
     (short_distance (int) (int))
     (long_distance  (int) (int))
     (airport        (int) (int))
-    (xxx (type1) (type2))
 )
 
 (:domain (travel)
@@ -15,10 +14,10 @@
     )
 
     (:method (travel x y)
-        ((short_distance x y) (xxx x y))
+        ((short_distance x y))
         ((!ride_taxi x y))
 
-        ((long_distance x y) (xxx x y))
+        ((long_distance x y))
         ((travel_by_air x y))
     )
 
