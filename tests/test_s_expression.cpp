@@ -194,22 +194,24 @@ namespace
         {
             char buffer[] = "(hello world))";
             tree s_exp;
-            parse_status actual = s_exp.parse(buffer);
-            CHECK_EQUAL(parse_excess_close, actual);
+            parse_result actual = s_exp.parse(buffer);
+            CHECK_EQUAL(parse_excess_close, actual.status);
+            CHECK_EQUAL(14, actual.column);
         }
 
         {
-            char buffer[] = "((hello world)";
+            char buffer[] = "(hello (world (world (world)";
             tree s_exp;
-            parse_status actual = s_exp.parse(buffer);
-            CHECK_EQUAL(parse_excess_open, actual);
+            parse_result actual = s_exp.parse(buffer);
+            CHECK_EQUAL(parse_excess_open, actual.status);
+            CHECK_EQUAL(15, actual.column);
         }
 
         {
             char buffer[] = "(hello) (world)";
             tree s_exp;
-            parse_status actual = s_exp.parse(buffer);
-            CHECK_EQUAL(parse_ok, actual);
+            parse_result actual = s_exp.parse(buffer);
+            CHECK_EQUAL(parse_ok, actual.status);
         }
     }
 

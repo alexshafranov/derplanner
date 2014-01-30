@@ -65,13 +65,20 @@ enum parse_status
     parse_out_of_memory,
 };
 
+struct parse_result
+{
+    parse_status status;
+    int line;
+    int column;
+};
+
 class tree
 {
 public:
     tree();
     ~tree();
 
-    parse_status parse(char* buffer);
+    parse_result parse(char* buffer);
     inline node* root() const { return _root; }
 
 private:

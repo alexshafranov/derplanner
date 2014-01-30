@@ -53,6 +53,8 @@ namespace
         token_type  type;
         char*       begin;
         int         count;
+        int         line;
+        int         column;
     };
 
     void init(token& token)
@@ -60,6 +62,8 @@ namespace
         token.type = token_none;
         token.begin = 0;
         token.count = 0;
+        token.line = 0;
+        token.column = 0;
     }
 
     struct parse_state
@@ -333,12 +337,16 @@ namespace
                 result.type = token_lp;
                 result.begin = state.cursor;
                 result.count = 1;
+                result.line = state.line;
+                result.column = state.column;
                 null_terminate(state);
                 return result;
             case ')':
                 result.type = token_rp;
                 result.begin = state.cursor;
                 result.count = 1;
+                result.line = state.line;
+                result.column = state.column;
                 null_terminate(state);
                 return result;
             default:
@@ -349,6 +357,9 @@ namespace
                     result = scan_symbol(state);
                 }
 
+                result.line = state.line;
+                result.column = state.column;
+
                 state.null = result.begin + result.count;
 
                 return result;
@@ -358,12 +369,12 @@ namespace
         return result;
     }
 
-    token_type lookahead(parse_state& state)
+    token lookahead(parse_state& state)
     {
         parse_state saved_state = state;
         token result = next_token(state);
         state = saved_state;
-        return result.type;
+        return result;
     }
 
 } // unnamed namespace
@@ -382,9 +393,14 @@ tree::~tree()
     }
 }
 
-parse_status tree::parse(char* buffer)
+parse_result tree::parse(char* buffer)
 {
     plnnrc_assert(buffer != 0);
+
+    parse_result result;
+    result.status = parse_ok;
+    result.line = -1;
+    result.column = -1;
 
     if (_pool)
     {
@@ -397,7 +413,8 @@ parse_status tree::parse(char* buffer)
 
     if (!pool)
     {
-        return parse_out_of_memory;
+        result.status = parse_out_of_memory;
+        return result;
     }
 
     _pool = pool;
@@ -409,16 +426,20 @@ parse_status tree::parse(char* buffer)
 
     if (!_root)
     {
-        return parse_out_of_memory;
+        result.status = parse_out_of_memory;
+        return result;
     }
 
     state.root = _root;
 
-    token_type root_token = lookahead(state);
+    token root_token = lookahead(state);
 
-    if (root_token != token_lp && root_token != token_none)
+    if (root_token.type != token_lp && root_token.type != token_none)
     {
-        return parse_expected_lp;
+        result.status = parse_expected_lp;
+        result.line = root_token.line;
+        result.column = root_token.column;
+        return result;
     }
 
     for (;;)
@@ -436,7 +457,8 @@ parse_status tree::parse(char* buffer)
             {
                 if (!push_list(state))
                 {
-                    return parse_out_of_memory;
+                    result.status = parse_out_of_memory;
+                    return result;
                 }
             }
             break;
@@ -444,7 +466,10 @@ parse_status tree::parse(char* buffer)
             {
                 if (!pop_list(state))
                 {
-                    return parse_excess_close;
+                    result.status = parse_excess_close;
+                    result.line = state.line;
+                    result.column = state.column;
+                    return result;
                 }
             }
             break;
@@ -452,7 +477,8 @@ parse_status tree::parse(char* buffer)
             {
                 if (!append_node(state, node_int))
                 {
-                    return parse_out_of_memory;
+                    result.status = parse_out_of_memory;
+                    return result;
                 }
             }
             break;
@@ -460,7 +486,8 @@ parse_status tree::parse(char* buffer)
             {
                 if (!append_node(state, node_float))
                 {
-                    return parse_out_of_memory;
+                    result.status = parse_out_of_memory;
+                    return result;
                 }
             }
             break;
@@ -468,7 +495,8 @@ parse_status tree::parse(char* buffer)
             {
                 if (!append_node(state, node_symbol))
                 {
-                    return parse_out_of_memory;
+                    result.status = parse_out_of_memory;
+                    return result;
                 }
             }
             break;
@@ -480,10 +508,13 @@ parse_status tree::parse(char* buffer)
 
     if (state.parent != state.root)
     {
-        return parse_excess_open;
+        result.status = parse_excess_open;
+        result.line = state.parent->line;
+        result.column = state.parent->column;
+        return result;
     }
 
-    return parse_ok;
+    return result;
 }
 
 float as_float(const node* n)

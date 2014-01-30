@@ -108,11 +108,11 @@ int main(int argc, char** argv)
 
     sexpr::tree expr;
     {
-        sexpr::parse_status status = expr.parse(input_buffer.data);
+        sexpr::parse_result result = expr.parse(input_buffer.data);
 
-        if (status != sexpr::parse_ok)
+        if (result.status != sexpr::parse_ok)
         {
-            printf("error: unbalanced parentheses.\n");
+            printf("error: %d:%d\n", result.line, result.column);
             return 1;
         }
     }
