@@ -198,7 +198,8 @@ namespace
                             {
                                 plnnrc_assert(is_bound(arg));
                                 node* def = definition(arg);
-                                plnnrc_assert(type_tag(def) != 0);
+
+                                PLNNRC_CONTINUE(replace_with_error_if(!type_tag(def), ast, arg, error_unable_to_infer_type));
 
                                 if (!type_tag(param))
                                 {
