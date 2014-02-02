@@ -23,6 +23,7 @@
 
 namespace plnnrc {
 
+class writer;
 namespace sexpr { struct node; }
 
 enum compilation_error
@@ -33,8 +34,6 @@ enum compilation_error
     #include "derplanner/compiler/error_tags.inl"
     #undef PLNNRC_ERROR
 };
-
-const char* error_format_string(compilation_error id);
 
 namespace ast {
 
@@ -56,6 +55,8 @@ struct error_ann
     error_argument_type argument_types[max_error_args];
     sexpr::node* argument_nodes[max_error_args];
 };
+
+void format_error(error_ann* annotation, writer& stream);
 
 }
 }
