@@ -77,7 +77,7 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
 
             if (atom->type != node_error)
             {
-                PLNNRC_CONTINUE(expect_condition(ast, atom->s_expr, !ast.ws_funcs.find(atom->s_expr->token), error_multiple_definitions, worldstate));
+                PLNNRC_CONTINUE(expect_condition(ast, atom->s_expr, !ast.ws_funcs.find(atom->s_expr->token), error_redefinition, worldstate));
                 ast.ws_funcs.insert(atom->s_expr->token, function_def);
             }
 
@@ -96,7 +96,7 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
 
             if (atom->type != node_error)
             {
-                PLNNRC_CONTINUE(expect_condition(ast, atom->s_expr, !ast.ws_atoms.find(atom->s_expr->token), error_multiple_definitions, worldstate));
+                PLNNRC_CONTINUE(expect_condition(ast, atom->s_expr, !ast.ws_atoms.find(atom->s_expr->token), error_redefinition, worldstate));
                 ast.ws_atoms.insert(atom->s_expr->token, atom);
             }
 

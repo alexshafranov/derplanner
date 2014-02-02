@@ -47,7 +47,7 @@ namespace
             if (c->type == node_term_call)
             {
                 node* ws_func = ast.ws_funcs.find(c->s_expr->token);
-                PLNNRC_CONTINUE(replace_with_error_if(!ws_func, ast, c, error_not_found));
+                PLNNRC_CONTINUE(replace_with_error_if(!ws_func, ast, c, error_undefined));
                 node* ws_return_type = ws_func->first_child->next_sibling;
                 int ws_type_tag = annotation<ws_type_ann>(ws_type)->type_tag;
                 int ws_return_type_tag = annotation<ws_type_ann>(ws_return_type)->type_tag;
@@ -293,7 +293,7 @@ void seed_types(tree& ast, node* root)
         if (n->type == node_atom)
         {
             node* ws_atom = ast.ws_atoms.find(n->s_expr->token);
-            PLNNRC_CONTINUE(replace_with_error_if(!ws_atom, ast, n, error_not_found));
+            PLNNRC_CONTINUE(replace_with_error_if(!ws_atom, ast, n, error_undefined));
 
             node* ws_type = seed_parameter_types(ast, n, ws_atom->first_child);
 
@@ -308,7 +308,7 @@ void seed_types(tree& ast, node* root)
         if (n->type == node_term_call)
         {
             node* ws_func = ast.ws_funcs.find(n->s_expr->token);
-            PLNNRC_CONTINUE(replace_with_error_if(!ws_func, ast, n, error_not_found));
+            PLNNRC_CONTINUE(replace_with_error_if(!ws_func, ast, n, error_undefined));
 
             node* ws_type = seed_parameter_types(ast, n, ws_func->first_child->first_child);
 

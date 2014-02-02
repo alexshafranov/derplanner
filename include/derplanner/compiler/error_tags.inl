@@ -18,20 +18,14 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef DERPLANNER_COMPILER_ERRORS_H_
-#define DERPLANNER_COMPILER_ERRORS_H_
 
-namespace plnnrc {
-
-enum compilation_error
-{
-    error_none = 0,
-
-    #define PLNNRC_ERROR(ID, DESC) ID,
-    #include "derplanner/compiler/error_tags.inl"
-    #undef PLNNRC_ERROR
-};
-
-}
-
-#endif
+PLNNRC_ERROR(error_unexpected, "%s expected.")
+PLNNRC_ERROR(error_expected, "")
+PLNNRC_ERROR(error_multiple_definitions, "multiple definitions of %s.")
+PLNNRC_ERROR(error_redefinition, "redefinition of %s originally defined at [%d:%d].")
+PLNNRC_ERROR(error_invalid_id, "invalid identifier.")
+PLNNRC_ERROR(error_unbound_var, "unbound variable %s in task list.")
+PLNNRC_ERROR(error_undefined, "%s is undefined.")
+PLNNRC_ERROR(error_wrong_number_of_arguments, "wrong number of arguments for %s.")
+PLNNRC_ERROR(error_type_mismatch, "")
+PLNNRC_ERROR(error_unable_to_infer_type, "")
