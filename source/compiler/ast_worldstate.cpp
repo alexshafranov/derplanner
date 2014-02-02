@@ -77,6 +77,7 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
 
             if (atom->type != node_error)
             {
+                PLNNRC_CONTINUE(expect_condition(ast, atom->s_expr, !ast.ws_funcs.find(atom->s_expr->token), error_multiple_definitions, worldstate));
                 ast.ws_funcs.insert(atom->s_expr->token, function_def);
             }
 
