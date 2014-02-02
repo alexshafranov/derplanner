@@ -35,37 +35,51 @@ namespace ast {
 
 bool build_translation_unit(tree& ast, sexpr::node* s_expr)
 {
+    sexpr::node* worldstate_expr = 0;
+    sexpr::node* domain_expr = 0;
+
     for (sexpr::node* c_expr = s_expr->first_child; c_expr != 0; c_expr = c_expr->next_sibling)
     {
         if (c_expr->type == sexpr::node_list)
         {
             if (is_token(c_expr->first_child, token_worldstate))
             {
-                PLNNRC_CHECK_NODE(worldstate, build_worldstate(ast, c_expr));
-                append_child(ast.root(), worldstate);
+                PLNNRC_CONTINUE(expect_condition(ast, c_expr, !worldstate_expr, error_multiple_definitions, ast.root()));
+                worldstate_expr = c_expr;
                 continue;
             }
 
             if (is_token(c_expr->first_child, token_domain))
             {
-                PLNNRC_CHECK_NODE(domain, build_domain(ast, c_expr));
-                append_child(ast.root(), domain);
-
-                if (!ast.error_node_cache.size())
-                {
-                    infer_types(ast);
-                }
-
-                if (!ast.error_node_cache.size())
-                {
-                    annotate(ast);
-                }
-
+                PLNNRC_CONTINUE(expect_condition(ast, c_expr, !domain_expr, error_multiple_definitions, ast.root()));
+                domain_expr = c_expr;
                 continue;
             }
         }
 
         emit_error(ast, ast.root(), error_unexpected, c_expr);
+    }
+
+    if (worldstate_expr)
+    {
+        PLNNRC_CHECK_NODE(worldstate, build_worldstate(ast, worldstate_expr));
+        append_child(ast.root(), worldstate);
+    }
+
+    if (domain_expr)
+    {
+        PLNNRC_CHECK_NODE(domain, build_domain(ast, domain_expr));
+        append_child(ast.root(), domain);
+
+        if (!ast.error_node_cache.size())
+        {
+            infer_types(ast);
+        }
+
+        if (!ast.error_node_cache.size())
+        {
+            annotate(ast);
+        }
     }
 
     return true;
