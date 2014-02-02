@@ -55,11 +55,6 @@ node* build_atom(tree& ast, sexpr::node* s_expr)
         atom_type = node_atom_eq;
     }
 
-    if (atom_type == node_atom)
-    {
-        PLNNRC_RETURN(expect_valid_id(ast, s_expr->first_child));
-    }
-
     sexpr::node* name_expr = s_expr->first_child;
 
     bool lazy = is_token(name_expr, token_lazy);
@@ -68,6 +63,11 @@ node* build_atom(tree& ast, sexpr::node* s_expr)
     {
         PLNNRC_RETURN(expect_next_type(ast, name_expr, sexpr::node_symbol));
         name_expr = name_expr->next_sibling;
+    }
+
+    if (atom_type == node_atom)
+    {
+        PLNNRC_RETURN(expect_valid_id(ast, name_expr));
     }
 
     PLNNRC_CHECK_NODE(atom, ast.make_node(atom_type, name_expr));
