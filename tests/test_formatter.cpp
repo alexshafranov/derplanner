@@ -32,11 +32,7 @@ namespace
             , top(0)
         {
             buffer = new char[size];
-
-            for (unsigned i = 0; i < size; ++i)
-            {
-                buffer[i] = 0;
-            }
+            memset(buffer, 0, size);
         }
 
         ~buffer_writer()
