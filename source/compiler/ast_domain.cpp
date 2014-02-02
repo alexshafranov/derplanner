@@ -148,7 +148,7 @@ namespace
         {
             if (p->type != node_term_variable)
             {
-                replace_with_error(ast, p, error_unexpected);
+                replace_with_error(ast, p, error_expected);
             }
         }
 
