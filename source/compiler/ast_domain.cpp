@@ -422,10 +422,10 @@ node* build_operator_stub(tree& ast, sexpr::node* s_expr)
     PLNNRC_CHECK_NODE(operator_atom, build_atom(ast, s_expr->parent));
     append_child(operatr, operator_atom);
 
-    PLNNRC_CHECK_NODE(delete_effects, ast.make_node(node_atomlist));
+    PLNNRC_CHECK_NODE(delete_effects, ast.make_node(node_delete_list));
     append_child(operatr, delete_effects);
 
-    PLNNRC_CHECK_NODE(add_effects, ast.make_node(node_atomlist));
+    PLNNRC_CHECK_NODE(add_effects, ast.make_node(node_add_list));
     append_child(operatr, add_effects);
 
     return operatr;

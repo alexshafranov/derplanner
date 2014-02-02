@@ -19,44 +19,37 @@
 //
 
 
-#ifndef PLNNRC_AST_NODE_INNER
-    #define PLNNRC_AST_NODE_INNER(NODE_ID) PLNNRC_AST_NODE(NODE_ID)
+#ifndef PLNNRC_AST_NODE_WITH_TOKEN
+    #define PLNNRC_AST_NODE_WITH_TOKEN(NODE_ID) PLNNRC_AST_NODE(NODE_ID)
 #endif
 
-#ifndef PLNNRC_AST_NODE_LEAF
-    #define PLNNRC_AST_NODE_LEAF(NODE_ID) PLNNRC_AST_NODE(NODE_ID)
-#endif
+PLNNRC_AST_NODE(node_root)
+PLNNRC_AST_NODE(node_worldstate)
+PLNNRC_AST_NODE(node_function)
+PLNNRC_AST_NODE(node_domain)
+PLNNRC_AST_NODE(node_method)
+PLNNRC_AST_NODE(node_branch)
+PLNNRC_AST_NODE(node_operator)
+PLNNRC_AST_NODE(node_task_list)
+PLNNRC_AST_NODE(node_add_list)
+PLNNRC_AST_NODE(node_delete_list)
 
-PLNNRC_AST_NODE_INNER(node_root)
-PLNNRC_AST_NODE_INNER(node_worldstate)
-PLNNRC_AST_NODE_INNER(node_function)
-PLNNRC_AST_NODE_INNER(node_domain)
-PLNNRC_AST_NODE_INNER(node_method)
-PLNNRC_AST_NODE_INNER(node_branch)
-PLNNRC_AST_NODE_INNER(node_operator)
-PLNNRC_AST_NODE_INNER(node_atomlist)
-PLNNRC_AST_NODE_INNER(node_task_list)
-PLNNRC_AST_NODE_LEAF(node_task_yield)
-PLNNRC_AST_NODE_INNER(node_add_list)
-PLNNRC_AST_NODE_INNER(node_delete_list)
+PLNNRC_AST_NODE(node_op_and)
+PLNNRC_AST_NODE(node_op_or)
+PLNNRC_AST_NODE(node_op_not)
 
-PLNNRC_AST_NODE_INNER(node_op_and)
-PLNNRC_AST_NODE_INNER(node_op_or)
-PLNNRC_AST_NODE_INNER(node_op_not)
+PLNNRC_AST_NODE_WITH_TOKEN(node_namespace)
 
-PLNNRC_AST_NODE_LEAF(node_namespace)
+PLNNRC_AST_NODE_WITH_TOKEN(node_worldstate_type)
 
-PLNNRC_AST_NODE_LEAF(node_worldstate_type)
+PLNNRC_AST_NODE_WITH_TOKEN(node_atom)
+PLNNRC_AST_NODE_WITH_TOKEN(node_atom_eq)
 
-PLNNRC_AST_NODE_LEAF(node_atom)
-PLNNRC_AST_NODE_LEAF(node_atom_eq)
+PLNNRC_AST_NODE_WITH_TOKEN(node_term_variable)
+PLNNRC_AST_NODE_WITH_TOKEN(node_term_int)
+PLNNRC_AST_NODE_WITH_TOKEN(node_term_float)
+PLNNRC_AST_NODE_WITH_TOKEN(node_term_call)
 
-PLNNRC_AST_NODE_LEAF(node_term_variable)
-PLNNRC_AST_NODE_LEAF(node_term_int)
-PLNNRC_AST_NODE_LEAF(node_term_float)
-PLNNRC_AST_NODE_LEAF(node_term_call)
+PLNNRC_AST_NODE_WITH_TOKEN(node_error)
 
-PLNNRC_AST_NODE_LEAF(node_error)
-
-#undef PLNNRC_AST_NODE_INNER
-#undef PLNNRC_AST_NODE_LEAF
+#undef PLNNRC_AST_NODE_WITH_TOKEN

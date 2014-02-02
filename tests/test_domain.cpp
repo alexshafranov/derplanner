@@ -63,8 +63,8 @@ namespace
 
     std::string node_to_string(ast::node* node)
     {
-        #define PLNNRC_AST_NODE_INNER(NODE_ID) case ast::NODE_ID: return std::string(#NODE_ID);
-        #define PLNNRC_AST_NODE_LEAF(NODE_ID)  case ast::NODE_ID: return std::string(#NODE_ID) + " " + to_string(node->s_expr);
+        #define PLNNRC_AST_NODE(NODE_ID) case ast::NODE_ID: return std::string(#NODE_ID);
+        #define PLNNRC_AST_NODE_WITH_TOKEN(NODE_ID)  case ast::NODE_ID: return std::string(#NODE_ID) + " " + to_string(node->s_expr);
 
         switch (node->type)
         {
@@ -74,8 +74,8 @@ namespace
             return std::string("<error>");
         }
 
-        #undef PLNNRC_AST_NODE_INNER
-        #undef PLNNRC_AST_NODE_LEAF
+        #undef PLNNRC_AST_NODE_WITH_TOKEN
+        #undef PLNNRC_AST_NODE
     }
 
     std::string to_string(ast::node* root, int level=0)
@@ -243,8 +243,8 @@ namespace
 "node_operator\n"
 "    node_atom !stub\n"
 "        node_term_variable z\n"
-"    node_atomlist\n"
-"    node_atomlist";
+"    node_delete_list\n"
+"    node_add_list";
 
         CHECK_EQUAL(expected_stub, to_string(stub_operator).c_str());
     }
