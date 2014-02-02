@@ -25,6 +25,7 @@
 #include "derplanner/compiler/config.h"
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/memory.h"
+#include "derplanner/compiler/errors.h"
 #include "derplanner/compiler/ast.h"
 
 namespace plnnrc {

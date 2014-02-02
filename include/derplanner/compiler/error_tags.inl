@@ -19,13 +19,13 @@
 //
 
 
-PLNNRC_ERROR(error_unexpected, "'%s' expected.")
+PLNNRC_ERROR(error_unexpected, "'$0' expected.")
 PLNNRC_ERROR(error_expected, "")
-PLNNRC_ERROR(error_multiple_definitions, "multiple definitions of '%s'.")
-PLNNRC_ERROR(error_redefinition, "redefinition of '%s' originally defined at [%d:%d].")
+PLNNRC_ERROR(error_multiple_definitions, "multiple definitions of '$0'.")
+PLNNRC_ERROR(error_redefinition, "redefinition of '$0' originally defined at [$1].")
 PLNNRC_ERROR(error_invalid_id, "invalid identifier.")
-PLNNRC_ERROR(error_unbound_var, "unbound variable '%s' in task list.")
-PLNNRC_ERROR(error_undefined, "'%s' is undefined.")
-PLNNRC_ERROR(error_wrong_number_of_arguments, "wrong number of arguments for '%s'.")
-PLNNRC_ERROR(error_type_mismatch, "expected argument of type '%s', got '%s'.")
-PLNNRC_ERROR(error_unable_to_infer_type, "unable to infer type of '%s'.")
+PLNNRC_ERROR(error_unbound_var, "unbound variable '$0' in task list.")
+PLNNRC_ERROR(error_undefined, "'$0' is undefined.")
+PLNNRC_ERROR(error_wrong_number_of_arguments, "wrong number of arguments for '$0'.")
+PLNNRC_ERROR(error_type_mismatch, "expected argument of type '$0', got '$1'.")
+PLNNRC_ERROR(error_unable_to_infer_type, "unable to infer type of '$0'.")

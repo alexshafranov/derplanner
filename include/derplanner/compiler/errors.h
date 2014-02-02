@@ -23,6 +23,8 @@
 
 namespace plnnrc {
 
+namespace sexpr { struct node; }
+
 enum compilation_error
 {
     error_none = 0,
@@ -34,6 +36,28 @@ enum compilation_error
 
 const char* error_format_string(compilation_error id);
 
+namespace ast {
+
+enum error_argument_type
+{
+    error_argument_none = 0,
+    error_argument_node_token,
+    error_argument_node_location,
+};
+
+enum { max_error_args = 4 };
+
+struct error_ann
+{
+    compilation_error id;
+    int line;
+    int column;
+    int argument_count;
+    error_argument_type argument_types[max_error_args];
+    sexpr::node* argument_nodes[max_error_args];
+};
+
+}
 }
 
 #endif

@@ -21,6 +21,7 @@
 #ifndef DERPLANNER_COMPILER_BUILD_TOOLS_H_
 #define DERPLANNER_COMPILER_BUILD_TOOLS_H_
 
+#include "derplanner/compiler/errors.h"
 #include "derplanner/compiler/s_expression.h"
 #include "ast_tools.h"
 #include "tokens.h"

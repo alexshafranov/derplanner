@@ -25,6 +25,7 @@
 #include <derplanner/compiler/io.h>
 #include <derplanner/compiler/memory.h>
 #include <derplanner/compiler/s_expression.h>
+#include <derplanner/compiler/errors.h>
 #include <derplanner/compiler/ast.h>
 #include <derplanner/compiler/ast_build.h>
 #include <derplanner/compiler/codegen.h>
