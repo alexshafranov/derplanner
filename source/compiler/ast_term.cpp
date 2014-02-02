@@ -37,6 +37,7 @@ node* build_namespace(tree& ast, sexpr::node* s_expr)
     for (sexpr::node* n = s_expr->first_child; n != 0; n = n->next_sibling)
     {
         PLNNRC_RETURN(expect_type(ast, n, sexpr::node_symbol));
+        PLNNRC_RETURN(expect_valid_id(ast, n));
     }
 
     PLNNRC_CHECK_NODE(result, ast.make_node(node_namespace, s_expr));
