@@ -18,22 +18,21 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef DERPLANNER_COMPILER_ERRORS_H_
-#define DERPLANNER_COMPILER_ERRORS_H_
+#include "derplanner/compiler/assert.h"
+#include "derplanner/compiler/errors.h"
 
 namespace plnnrc {
 
-enum compilation_error
+const char* error_format_string(compilation_error id)
 {
-    error_none = 0,
-
-    #define PLNNRC_ERROR(ID, DESC) ID,
+    switch (id)
+    {
+    #define PLNNRC_ERROR(ID, STR) case ID: return STR;
     #include "derplanner/compiler/error_tags.inl"
     #undef PLNNRC_ERROR
-};
-
-const char* error_format_string(compilation_error id);
-
+    default:
+        return "<none>";
+    };
 }
 
-#endif
+}
