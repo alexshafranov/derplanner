@@ -95,6 +95,7 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
 
             if (atom->type != node_error)
             {
+                PLNNRC_CONTINUE(expect_condition(ast, atom->s_expr, !ast.ws_atoms.find(atom->s_expr->token), error_multiple_definitions, worldstate));
                 ast.ws_atoms.insert(atom->s_expr->token, atom);
             }
 
@@ -151,12 +152,7 @@ node* build_worldstate_type(tree& ast, sexpr::node* s_expr, int& type_tag)
     if (!type_proto)
     {
         annotation<ws_type_ann>(type)->type_tag = type_tag;
-
-        if (!ast.ws_types.insert(s_expr->first_child->token, type))
-        {
-            return 0;
-        }
-
+        PLNNRC_CHECK(ast.ws_types.insert(s_expr->first_child->token, type));
         type_tag++;
     }
     else
