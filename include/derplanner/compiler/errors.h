@@ -26,8 +26,8 @@ namespace plnnrc {
 enum compilation_error
 {
     error_none = 0,
-    error_unexpected,
     error_expected,
+    error_unexpected,
     error_multiple_definitions,
     error_invalid_id,
     error_unbound_var,
