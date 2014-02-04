@@ -134,7 +134,7 @@ namespace
         {
             if (n->type == node_term_variable && !definition(n))
             {
-                replace_with_error(ast, n, error_unbound_var);
+                replace_with_error(ast, n, error_unbound_var) << n->s_expr;
             }
         }
     }
