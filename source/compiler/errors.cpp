@@ -61,20 +61,26 @@ void format_error(error_ann* annotation, writer& stream)
             error_argument_type arg_type = annotation->argument_types[slot];
             plnnrc_assert(arg_type != error_argument_none);
 
-            if (arg_type == error_argument_node_token)
+            switch (arg_type)
             {
-                sexpr::node* s_expr = annotation->argument_nodes[slot];
-                output.put_str(s_expr->token);
-            }
-
-            if (arg_type == error_argument_node_location)
-            {
-                sexpr::node* s_expr = annotation->argument_nodes[slot];
-                output.put_char('[');
-                output.put_int(s_expr->line);
-                output.put_char(':');
-                output.put_int(s_expr->column);
-                output.put_char(']');
+            case error_argument_node_token:
+                {
+                    sexpr::node* s_expr = annotation->argument_nodes[slot];
+                    output.put_str(s_expr->token);
+                    break;
+                }
+            case error_argument_node_location:
+                {
+                    sexpr::node* s_expr = annotation->argument_nodes[slot];
+                    output.put_char('[');
+                    output.put_int(s_expr->line);
+                    output.put_char(':');
+                    output.put_int(s_expr->column);
+                    output.put_char(']');
+                    break;
+                }
+            default:
+                break;
             }
         }
         else
