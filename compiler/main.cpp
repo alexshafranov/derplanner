@@ -130,9 +130,10 @@ int main(int argc, char** argv)
 
         for (unsigned i = 0; i < tree.error_node_cache.size(); ++i)
         {
+            stdio_file_writer writer(stderr);
             ast::node* error = tree.error_node_cache[i];
             ast::error_ann* error_annotation = ast::annotation<ast::error_ann>(error);
-            printf("error: %d:%d\n", error_annotation->line, error_annotation->column);
+            format_error(error_annotation, writer);
         }
 
         return 1;

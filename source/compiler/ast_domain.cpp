@@ -260,7 +260,9 @@ node* build_method(tree& ast, sexpr::node* s_expr)
     if (task_atom->type != node_error)
     {
         PLNNRC_RETURN(expect_valid_id(ast, task_atom->s_expr));
-        PLNNRC_RETURN(expect_condition(ast, task_atom->s_expr, !ast.methods.find(task_atom->s_expr->token), error_redefinition));
+        PLNNRC_RETURN(expect_condition(ast, task_atom->s_expr, !ast.methods.find(task_atom->s_expr->token), error_redefinition)
+            << task_atom->s_expr
+            << location(ast.methods.find(task_atom->s_expr->token)));
         ast.methods.insert(task_atom->s_expr->token, method);
     }
 

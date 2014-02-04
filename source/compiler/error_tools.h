@@ -51,7 +51,7 @@ namespace ast { struct node; }
 class error_annotation_builder
 {
 public:
-    error_annotation_builder(ast::node* node=0)
+    error_annotation_builder(ast::node* node)
         : _node(node)
     {
     }
@@ -66,7 +66,7 @@ private:
 };
 
 template <typename T>
-error_annotation_builder& operator<<(error_annotation_builder& builder, const T& t)
+error_annotation_builder operator<<(error_annotation_builder builder, const T& t)
 {
     builder.add_argument(t);
     return builder;

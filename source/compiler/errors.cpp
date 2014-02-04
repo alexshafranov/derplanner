@@ -22,6 +22,7 @@
 #include "formatter.h"
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/s_expression.h"
+#include "derplanner/compiler/ast.h"
 #include "derplanner/compiler/errors.h"
 
 namespace plnnrc {
@@ -41,6 +42,23 @@ namespace
     }
 }
 
+location::location(sexpr::node* s_expr)
+    : line(s_expr->line)
+    , column(s_expr->column)
+{
+}
+
+location::location(ast::node* node)
+    : line(0)
+    , column(0)
+{
+    if (node && node->s_expr)
+    {
+        line = node->s_expr->line;
+        column = node->s_expr->column;
+    }
+}
+
 namespace ast {
 
 void format_error(error_ann* annotation, writer& stream)
@@ -49,6 +67,13 @@ void format_error(error_ann* annotation, writer& stream)
     output.init(2048);
 
     const char* format = error_format_string(annotation->id);
+
+    output.put_str("error: ");
+    output.put_char('[');
+    output.put_int(annotation->line);
+    output.put_char(':');
+    output.put_int(annotation->column);
+    output.put_str("] ");
 
     while (*format)
     {
@@ -71,11 +96,11 @@ void format_error(error_ann* annotation, writer& stream)
                 }
             case error_argument_node_location:
                 {
-                    sexpr::node* s_expr = annotation->argument_nodes[slot];
+                    location arg = annotation->argument_locations[slot];
                     output.put_char('[');
-                    output.put_int(s_expr->line);
+                    output.put_int(arg.line);
                     output.put_char(':');
-                    output.put_int(s_expr->column);
+                    output.put_int(arg.column);
                     output.put_char(']');
                     break;
                 }
@@ -90,6 +115,8 @@ void format_error(error_ann* annotation, writer& stream)
 
         ++format;
     }
+
+    output.put_char('\n');
 }
 
 }

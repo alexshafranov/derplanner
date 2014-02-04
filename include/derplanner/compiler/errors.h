@@ -25,6 +25,7 @@ namespace plnnrc {
 
 class writer;
 namespace sexpr { struct node; }
+namespace ast { struct node; }
 
 enum compilation_error
 {
@@ -43,6 +44,10 @@ public:
         , column(column)
     {
     }
+
+    location(sexpr::node* s_expr);
+
+    location(ast::node* node);
 
     location(const location& other)
         : line(other.line)
