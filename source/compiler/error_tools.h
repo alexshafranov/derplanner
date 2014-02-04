@@ -60,6 +60,7 @@ public:
 
     void add_argument(sexpr::node* arg);
     void add_argument(const location& arg);
+    void add_argument(const char* arg);
 
 private:
     ast::node* _node;

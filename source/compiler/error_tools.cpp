@@ -33,8 +33,8 @@ void error_annotation_builder::add_argument(sexpr::node* arg)
     {
         ast::error_ann* ann = ast::annotation<ast::error_ann>(_node);
         plnnrc_assert(ann->argument_count < ast::max_error_args);
-        ann->argument_types[ann->argument_count] = ast::error_argument_node_token;
-        ann->argument_nodes[ann->argument_count] = arg;
+        ann->argument_type[ann->argument_count] = ast::error_argument_node_token;
+        ann->argument_node[ann->argument_count] = arg;
         ann->argument_count++;
     }
 }
@@ -45,8 +45,20 @@ void error_annotation_builder::add_argument(const location& arg)
     {
         ast::error_ann* ann = ast::annotation<ast::error_ann>(_node);
         plnnrc_assert(ann->argument_count < ast::max_error_args);
-        ann->argument_types[ann->argument_count] = ast::error_argument_node_location;
-        ann->argument_locations[ann->argument_count++] = arg;
+        ann->argument_type[ann->argument_count] = ast::error_argument_node_location;
+        ann->argument_location[ann->argument_count++] = arg;
+        ann->argument_count++;
+    }
+}
+
+void error_annotation_builder::add_argument(const char* arg)
+{
+    if (_node)
+    {
+        ast::error_ann* ann = ast::annotation<ast::error_ann>(_node);
+        plnnrc_assert(ann->argument_count < ast::max_error_args);
+        ann->argument_type[ann->argument_count] = ast::error_argument_node_string;
+        ann->argument_string[ann->argument_count++] = arg;
         ann->argument_count++;
     }
 }

@@ -83,26 +83,31 @@ void format_error(error_ann* annotation, writer& stream)
             plnnrc_assert(isdigit(digit));
             int slot = digit - '0';
             plnnrc_assert(slot < annotation->argument_count);
-            error_argument_type arg_type = annotation->argument_types[slot];
+            error_argument_type arg_type = annotation->argument_type[slot];
             plnnrc_assert(arg_type != error_argument_none);
 
             switch (arg_type)
             {
             case error_argument_node_token:
                 {
-                    sexpr::node* s_expr = annotation->argument_nodes[slot];
+                    sexpr::node* s_expr = annotation->argument_node[slot];
                     output.put_str(s_expr->token);
                     break;
                 }
             case error_argument_node_location:
                 {
-                    location arg = annotation->argument_locations[slot];
+                    location arg = annotation->argument_location[slot];
                     output.put_char('[');
                     output.put_int(arg.line);
                     output.put_char(':');
                     output.put_int(arg.column);
                     output.put_char(']');
                     break;
+                }
+            case error_argument_node_string:
+                {
+                    const char* arg = annotation->argument_string[slot];
+                    output.put_str(arg);
                 }
             default:
                 break;

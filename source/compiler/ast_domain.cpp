@@ -378,14 +378,14 @@ node* build_operator(tree& ast, sexpr::node* s_expr)
 
         if (is_token(child->first_child, token_delete))
         {
-            PLNNRC_RETURN(expect_condition(ast, child, delete_effects_expr == 0, error_multiple_definitions));
+            PLNNRC_RETURN(expect_condition(ast, child, delete_effects_expr == 0, error_multiple_definitions) << "delete effects");
             delete_effects_expr = child;
             continue;
         }
 
         if (is_token(child->first_child, token_add))
         {
-            PLNNRC_RETURN(expect_condition(ast, child, add_effects_expr == 0, error_multiple_definitions));
+            PLNNRC_RETURN(expect_condition(ast, child, add_effects_expr == 0, error_multiple_definitions) << "add effects");
             add_effects_expr = child;
             continue;
         }
