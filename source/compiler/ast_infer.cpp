@@ -199,7 +199,7 @@ namespace
                                 plnnrc_assert(is_bound(arg));
                                 node* def = definition(arg);
 
-                                PLNNRC_CONTINUE(replace_with_error_if(!type_tag(def), ast, arg, error_unable_to_infer_type));
+                                PLNNRC_CONTINUE(replace_with_error_if(!type_tag(def), ast, arg, error_unable_to_infer_type) << arg->s_expr);
 
                                 if (!type_tag(param))
                                 {
@@ -251,7 +251,7 @@ namespace
                     {
                         if (!type_tag(param))
                         {
-                            replace_with_error(ast, param, error_unable_to_infer_type);
+                            replace_with_error(ast, param, error_unable_to_infer_type) << param->s_expr;
                         }
                     }
                 }
