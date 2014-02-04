@@ -30,6 +30,7 @@ namespace ast {
 
 void infer_types(tree& ast);
 
+void seed_types(tree& ast);
 void seed_types(tree& ast, node* root);
 bool has_untyped_params(node* method_atom);
 

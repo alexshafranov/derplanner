@@ -37,7 +37,7 @@ namespace
 
         for (node* c = root->first_child; c != 0; c = c->next_sibling, ws_type = ws_type->next_sibling)
         {
-            PLNNRC_BREAK(replace_with_error_if(!ws_type, ast, root, error_wrong_number_of_arguments));
+            PLNNRC_BREAK(replace_with_error_if(!ws_type, ast, root, error_wrong_number_of_arguments) << root->s_expr);
 
             if (c->type == node_term_variable)
             {
@@ -192,7 +192,7 @@ namespace
 
                         for (node* arg = task->first_child; arg != 0; arg = arg->next_sibling, param = param->next_sibling)
                         {
-                            PLNNRC_BREAK(replace_with_error_if(!param, ast, task, error_wrong_number_of_arguments));
+                            PLNNRC_BREAK(replace_with_error_if(!param, ast, task, error_wrong_number_of_arguments) << task->s_expr);
 
                             if (arg->type == node_term_variable)
                             {
@@ -231,7 +231,7 @@ namespace
                             }
                         }
 
-                        replace_with_error_if(param != 0, ast, task, error_wrong_number_of_arguments);
+                        replace_with_error_if(param != 0, ast, task, error_wrong_number_of_arguments) << task->s_expr;
                     }
                 }
 
@@ -302,7 +302,7 @@ void seed_types(tree& ast, node* root)
                 continue;
             }
 
-            PLNNRC_CONTINUE(replace_with_error_if(ws_type != 0, ast, n, error_wrong_number_of_arguments));
+            PLNNRC_CONTINUE(replace_with_error_if(ws_type != 0, ast, n, error_wrong_number_of_arguments) << n->s_expr);
         }
 
         if (n->type == node_term_call)
@@ -317,7 +317,7 @@ void seed_types(tree& ast, node* root)
                 continue;
             }
 
-            PLNNRC_CONTINUE(replace_with_error_if(ws_type != 0, ast, n, error_wrong_number_of_arguments));
+            PLNNRC_CONTINUE(replace_with_error_if(ws_type != 0, ast, n, error_wrong_number_of_arguments) << n->s_expr);
         }
     }
 }
@@ -335,7 +335,7 @@ bool has_untyped_params(node* method_atom)
     return false;
 }
 
-void infer_types(tree& ast)
+void seed_types(tree& ast)
 {
     // for each precondition assign types to variables based on worldstate's atoms and function parameter types.
     for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
@@ -390,7 +390,10 @@ void infer_types(tree& ast)
             }
         }
     }
+}
 
+void infer_types(tree& ast)
+{
     propagate_types_up(ast);
 
     if (ast.methods.count() > 0)

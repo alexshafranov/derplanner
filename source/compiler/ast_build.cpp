@@ -71,6 +71,8 @@ bool build_translation_unit(tree& ast, sexpr::node* s_expr)
         PLNNRC_CHECK_NODE(domain, build_domain(ast, domain_expr));
         append_child(ast.root(), domain);
 
+        seed_types(ast);
+
         if (!ast.error_node_cache.size())
         {
             infer_types(ast);
