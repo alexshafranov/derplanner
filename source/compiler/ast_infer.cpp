@@ -42,6 +42,18 @@ namespace
             if (c->type == node_term_variable)
             {
                 type_tag(c, annotation<ws_type_ann>(ws_type)->type_tag);
+
+                node* def = definition(c);
+
+                if (def && type_tag(def))
+                {
+                    int def_type = type_tag(def);
+                    int var_type = type_tag(c);
+
+                    replace_with_error_if(def_type != var_type, ast, c, error_type_mismatch)
+                        << ast.type_tag_to_node[def_type]->s_expr->first_child
+                        << ast.type_tag_to_node[var_type]->s_expr->first_child;
+                }
             }
 
             if (c->type == node_term_call)
@@ -51,7 +63,9 @@ namespace
                 node* ws_return_type = ws_func->first_child->next_sibling;
                 int ws_type_tag = annotation<ws_type_ann>(ws_type)->type_tag;
                 int ws_return_type_tag = annotation<ws_type_ann>(ws_return_type)->type_tag;
-                PLNNRC_CONTINUE(replace_with_error_if(ws_type_tag != ws_return_type_tag, ast, c, error_type_mismatch));
+                PLNNRC_CONTINUE(replace_with_error_if(ws_type_tag != ws_return_type_tag, ast, c, error_type_mismatch)
+                    << ws_type->s_expr->first_child
+                    << ws_return_type->s_expr->first_child);
             }
         }
 
@@ -75,7 +89,9 @@ namespace
                 int def_type = type_tag(def);
                 int var_type = type_tag(var);
 
-                replace_with_error_if(def_type != var_type, ast, var->parent, error_type_mismatch);
+                replace_with_error_if(def_type != var_type, ast, var->parent, error_type_mismatch)
+                    << ast.type_tag_to_node[def_type]->s_expr->first_child
+                    << ast.type_tag_to_node[var_type]->s_expr->first_child;
             }
         }
     }
@@ -208,7 +224,9 @@ namespace
                                 else
                                 {
                                     // check types match
-                                    replace_with_error_if(type_tag(param) != type_tag(def), ast, arg, error_type_mismatch);
+                                    replace_with_error_if(type_tag(param) != type_tag(def), ast, arg, error_type_mismatch)
+                                        << ast.type_tag_to_node[type_tag(param)]->s_expr->first_child
+                                        << ast.type_tag_to_node[type_tag(def)]->s_expr->first_child;
                                 }
                             }
 
@@ -226,7 +244,9 @@ namespace
                                 else
                                 {
                                     // check types match
-                                    replace_with_error_if(type_tag(param) != annotation<ws_type_ann>(ws_return_type)->type_tag, ast, arg, error_type_mismatch);
+                                    replace_with_error_if(type_tag(param) != annotation<ws_type_ann>(ws_return_type)->type_tag, ast, arg, error_type_mismatch)
+                                        << ast.type_tag_to_node[type_tag(param)]->s_expr->first_child
+                                        << ws_return_type->s_expr->first_child;
                                 }
                             }
                         }
