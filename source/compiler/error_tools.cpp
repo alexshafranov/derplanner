@@ -150,7 +150,7 @@ error_annotation_builder expect_valid_id(ast::tree& ast, sexpr::node* s_expr, as
 
     if (!is_valid_id(s_expr->token))
     {
-        return emit_error(ast, parent, error_invalid_id, s_expr);
+        return emit_error(ast, parent, error_invalid_id, s_expr) << s_expr;
     }
 
     return 0;
