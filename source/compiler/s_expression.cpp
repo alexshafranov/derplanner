@@ -500,6 +500,9 @@ parse_result tree::parse(char* buffer)
                 }
             }
             break;
+        default:
+            plnnrc_assert(false);
+            break;
         }
 
         state.cursor = t.begin + t.count;
