@@ -27,12 +27,32 @@
 
 namespace plnnrc {
 
-ast::node* emit_error(ast::tree& ast, compilation_error error_id, sexpr::node* s_expr, bool past_token_locaion)
+void error_annotation_builder::add_argument(sexpr::node* arg)
+{
+    if (_node)
+    {
+        ast::error_ann* ann = ast::annotation<ast::error_ann>(_node);
+        plnnrc_assert(ann->argument_count < ast::max_error_args);
+        ann->argument_nodes[ann->argument_count++] = arg;
+    }
+}
+
+void error_annotation_builder::add_argument(const location& arg)
+{
+    if (_node)
+    {
+        ast::error_ann* ann = ast::annotation<ast::error_ann>(_node);
+        plnnrc_assert(ann->argument_count < ast::max_error_args);
+        ann->argument_locations[ann->argument_count++] = arg;
+    }
+}
+
+error_annotation_builder emit_error(ast::tree& ast, compilation_error error_id, sexpr::node* s_expr, bool past_token_locaion)
 {
     return emit_error(ast, 0, error_id, s_expr, past_token_locaion);
 }
 
-ast::node* emit_error(ast::tree& ast, ast::node* parent, compilation_error error_id, sexpr::node* s_expr, bool past_token_locaion)
+error_annotation_builder emit_error(ast::tree& ast, ast::node* parent, compilation_error error_id, sexpr::node* s_expr, bool past_token_locaion)
 {
     ast::node* error = ast.make_node(ast::node_error, s_expr);
 
@@ -62,10 +82,10 @@ ast::node* emit_error(ast::tree& ast, ast::node* parent, compilation_error error
         }
     }
 
-    return error;
+    return error_annotation_builder(error);
 }
 
-ast::node* expect_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_type expected, ast::node* parent)
+error_annotation_builder expect_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_type expected, ast::node* parent)
 {
     if (s_expr->type != expected)
     {
@@ -75,7 +95,7 @@ ast::node* expect_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_type exp
     return 0;
 }
 
-ast::node* expect_child_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_type expected, ast::node* parent)
+error_annotation_builder expect_child_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_type expected, ast::node* parent)
 {
     if (!s_expr->first_child)
     {
@@ -90,7 +110,7 @@ ast::node* expect_child_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_ty
     return 0;
 }
 
-ast::node* expect_next_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_type expected, ast::node* parent)
+error_annotation_builder expect_next_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_type expected, ast::node* parent)
 {
     if (!s_expr->next_sibling)
     {
@@ -105,7 +125,7 @@ ast::node* expect_next_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_typ
     return 0;
 }
 
-ast::node* expect_next_token(ast::tree& ast, sexpr::node* s_expr, str_ref expected, ast::node* parent)
+error_annotation_builder expect_next_token(ast::tree& ast, sexpr::node* s_expr, str_ref expected, ast::node* parent)
 {
     if (!s_expr->next_sibling)
     {
@@ -120,7 +140,7 @@ ast::node* expect_next_token(ast::tree& ast, sexpr::node* s_expr, str_ref expect
     return 0;
 }
 
-ast::node* expect_valid_id(ast::tree& ast, sexpr::node* s_expr, ast::node* parent)
+error_annotation_builder expect_valid_id(ast::tree& ast, sexpr::node* s_expr, ast::node* parent)
 {
     plnnrc_assert(s_expr);
 
@@ -132,7 +152,7 @@ ast::node* expect_valid_id(ast::tree& ast, sexpr::node* s_expr, ast::node* paren
     return 0;
 }
 
-ast::node* expect_condition(ast::tree& ast, sexpr::node* s_expr, bool condition, compilation_error error_id, ast::node* parent)
+error_annotation_builder expect_condition(ast::tree& ast, sexpr::node* s_expr, bool condition, compilation_error error_id, ast::node* parent)
 {
     if (!condition)
     {
@@ -142,18 +162,17 @@ ast::node* expect_condition(ast::tree& ast, sexpr::node* s_expr, bool condition,
     return 0;
 }
 
-ast::node* replace_with_error(ast::tree& ast, ast::node* node, compilation_error error_id)
+error_annotation_builder replace_with_error(ast::tree& ast, ast::node* node, compilation_error error_id)
 {
     ast::node* error_node = emit_error(ast, error_id, node->s_expr);
-    PLNNRC_CHECK(error_node);
 
     node->type = error_node->type;
     node->annotation = error_node->annotation;
 
-    return node;
+    return error_annotation_builder(node);
 }
 
-ast::node* replace_with_error_if(bool condition, ast::tree& ast, ast::node* node, compilation_error error_id)
+error_annotation_builder replace_with_error_if(bool condition, ast::tree& ast, ast::node* node, compilation_error error_id)
 {
     if (condition)
     {

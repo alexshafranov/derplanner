@@ -35,6 +35,32 @@ enum compilation_error
     #undef PLNNRC_ERROR
 };
 
+class location
+{
+public:
+    location(int line, int column)
+        : line(line)
+        , column(column)
+    {
+    }
+
+    location(const location& other)
+        : line(other.line)
+        , column(other.column)
+    {
+    }
+
+    location& operator=(const location& other)
+    {
+        line = other.line;
+        column = other.column;
+        return *this;
+    }
+
+    int line;
+    int column;
+};
+
 namespace ast {
 
 enum error_argument_type
@@ -54,6 +80,7 @@ struct error_ann
     int argument_count;
     error_argument_type argument_types[max_error_args];
     sexpr::node* argument_nodes[max_error_args];
+    location argument_locations[max_error_args];
 };
 
 void format_error(error_ann* annotation, writer& stream);

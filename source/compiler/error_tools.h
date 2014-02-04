@@ -48,18 +48,42 @@ namespace plnnrc {
 namespace ast { class tree; }
 namespace ast { struct node; }
 
-ast::node* expect_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_type expected, ast::node* parent=0);
-ast::node* expect_child_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_type expected, ast::node* parent=0);
-ast::node* expect_next_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_type expected, ast::node* parent=0);
-ast::node* expect_next_token(ast::tree& ast, sexpr::node* s_expr, str_ref expected, ast::node* parent=0);
-ast::node* expect_valid_id(ast::tree& ast, sexpr::node* s_expr, ast::node* parent=0);
-ast::node* expect_condition(ast::tree& ast, sexpr::node* s_expr, bool condition, compilation_error error_id, ast::node* parent=0);
+class error_annotation_builder
+{
+public:
+    error_annotation_builder(ast::node* node=0)
+        : _node(node)
+    {
+    }
 
-ast::node* replace_with_error(ast::tree& ast, ast::node* node, compilation_error error_id);
-ast::node* replace_with_error_if(bool condition, ast::tree& ast, ast::node* node, compilation_error error_id);
+    operator ast::node*() const { return _node; }
 
-ast::node* emit_error(ast::tree& ast, compilation_error error_id, sexpr::node* s_expr, bool past_token_locaion=false);
-ast::node* emit_error(ast::tree& ast, ast::node* parent, compilation_error error_id, sexpr::node* s_expr, bool past_token_locaion=false);
+    void add_argument(sexpr::node* arg);
+    void add_argument(const location& arg);
+
+private:
+    ast::node* _node;
+};
+
+template <typename T>
+error_annotation_builder& operator<<(error_annotation_builder& builder, const T& t)
+{
+    builder.add_argument(t);
+    return builder;
+}
+
+error_annotation_builder expect_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_type expected, ast::node* parent=0);
+error_annotation_builder expect_child_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_type expected, ast::node* parent=0);
+error_annotation_builder expect_next_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_type expected, ast::node* parent=0);
+error_annotation_builder expect_next_token(ast::tree& ast, sexpr::node* s_expr, str_ref expected, ast::node* parent=0);
+error_annotation_builder expect_valid_id(ast::tree& ast, sexpr::node* s_expr, ast::node* parent=0);
+error_annotation_builder expect_condition(ast::tree& ast, sexpr::node* s_expr, bool condition, compilation_error error_id, ast::node* parent=0);
+
+error_annotation_builder replace_with_error(ast::tree& ast, ast::node* node, compilation_error error_id);
+error_annotation_builder replace_with_error_if(bool condition, ast::tree& ast, ast::node* node, compilation_error error_id);
+
+error_annotation_builder emit_error(ast::tree& ast, compilation_error error_id, sexpr::node* s_expr, bool past_token_locaion=false);
+error_annotation_builder emit_error(ast::tree& ast, ast::node* parent, compilation_error error_id, sexpr::node* s_expr, bool past_token_locaion=false);
 
 }
 
