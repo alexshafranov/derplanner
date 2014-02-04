@@ -19,7 +19,7 @@
 //
 
 
-PLNNRC_ERROR(error_unexpected, "'$0' expected.")
+PLNNRC_ERROR(error_unexpected, "unexpected expression.")
 PLNNRC_ERROR(error_expected, "")
 PLNNRC_ERROR(error_multiple_definitions, "multiple definitions of $0.")
 PLNNRC_ERROR(error_redefinition, "redefinition of '$0', originally defined at $1.")
