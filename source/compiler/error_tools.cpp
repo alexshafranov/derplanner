@@ -117,7 +117,7 @@ error_annotation_builder expect_type(ast::tree& ast, sexpr::node* s_expr, sexpr:
 {
     if (s_expr->type != expected)
     {
-        return emit_error(ast, parent, error_expected, s_expr);
+        return emit_error(ast, parent, error_expected_type, s_expr) << static_cast<int>(expected);
     }
 
     return 0;
@@ -127,12 +127,12 @@ error_annotation_builder expect_child_type(ast::tree& ast, sexpr::node* s_expr, 
 {
     if (!s_expr->first_child)
     {
-        return emit_error(ast, parent, error_expected, s_expr);
+        return emit_error(ast, parent, error_expected_type, s_expr) << static_cast<int>(expected);
     }
 
     if (s_expr->first_child->type != expected)
     {
-        return emit_error(ast, parent, error_expected, s_expr);
+        return emit_error(ast, parent, error_expected_type, s_expr) << static_cast<int>(expected);
     }
 
     return 0;
@@ -142,12 +142,12 @@ error_annotation_builder expect_next_type(ast::tree& ast, sexpr::node* s_expr, s
 {
     if (!s_expr->next_sibling)
     {
-        return emit_error(ast, parent, error_expected, s_expr, true);
+        return emit_error(ast, parent, error_expected_type, s_expr, true) << static_cast<int>(expected);
     }
 
     if (s_expr->next_sibling->type != expected)
     {
-        return emit_error(ast, parent, error_expected, s_expr->next_sibling);
+        return emit_error(ast, parent, error_expected_type, s_expr->next_sibling) << static_cast<int>(expected);
     }
 
     return 0;

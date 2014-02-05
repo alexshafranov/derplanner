@@ -20,7 +20,7 @@
 
 
 PLNNRC_ERROR(error_unexpected, "unexpected expression.")
-PLNNRC_ERROR(error_expected, "")
+PLNNRC_ERROR(error_expected_type, "expected $0{<none>|list|symbol|int|float} expression.")
 PLNNRC_ERROR(error_expected_token, "expected '$0'.")
 PLNNRC_ERROR(error_expected_parameter, "expected parameter identifier.")
 PLNNRC_ERROR(error_multiple_definitions, "multiple definitions of $0{worldstate|domain|delete effects|add effects}.")
