@@ -44,14 +44,14 @@ bool build_translation_unit(tree& ast, sexpr::node* s_expr)
         {
             if (is_token(c_expr->first_child, token_worldstate))
             {
-                PLNNRC_CONTINUE(expect_condition(ast, c_expr, !worldstate_expr, error_multiple_definitions, ast.root()) << "worldstate");
+                PLNNRC_CONTINUE(expect_condition(ast, c_expr, !worldstate_expr, error_multiple_definitions, ast.root()) << 0);
                 worldstate_expr = c_expr;
                 continue;
             }
 
             if (is_token(c_expr->first_child, token_domain))
             {
-                PLNNRC_CONTINUE(expect_condition(ast, c_expr, !domain_expr, error_multiple_definitions, ast.root()) << "domain");
+                PLNNRC_CONTINUE(expect_condition(ast, c_expr, !domain_expr, error_multiple_definitions, ast.root()) << 1);
                 domain_expr = c_expr;
                 continue;
             }

@@ -59,6 +59,23 @@ location::location(ast::node* node)
     }
 }
 
+namespace
+{
+    void move(const char*& cursor)
+    {
+        cursor++;
+    }
+
+    void skip(const char*& cursor, char until)
+    {
+        while (*cursor != until)
+        {
+            plnnrc_assert(cursor);
+            move(cursor);
+        }
+    }
+}
+
 namespace ast {
 
 void format_error(error_ann* annotation, writer& stream)
@@ -79,7 +96,8 @@ void format_error(error_ann* annotation, writer& stream)
     {
         if (*format == '$')
         {
-            char digit = *(++format);
+            move(format);
+            char digit = *format;
             plnnrc_assert(isdigit(digit));
             int slot = digit - '0';
             plnnrc_assert(slot < annotation->argument_count);
@@ -109,6 +127,28 @@ void format_error(error_ann* annotation, writer& stream)
                     const char* arg = annotation->argument_string[slot];
                     output.put_str(arg);
                 }
+            case error_argument_selection:
+                {
+                    move(format);
+                    plnnrc_assert(*format == '{');
+                    move(format);
+                    int selection = annotation->argument_selection[slot];
+
+                    for (int i = 0; i < selection; ++i)
+                    {
+                        skip(format, '|');
+                        move(format);
+                    }
+
+                    while (*format != '|' && *format != '}')
+                    {
+                        plnnrc_assert(format);
+                        output.put_char(*format);
+                        move(format);
+                    }
+
+                    skip(format, '}');
+                }
             default:
                 break;
             }
@@ -118,7 +158,7 @@ void format_error(error_ann* annotation, writer& stream)
             output.put_char(*format);
         }
 
-        ++format;
+        move(format);
     }
 
     output.put_char('\n');

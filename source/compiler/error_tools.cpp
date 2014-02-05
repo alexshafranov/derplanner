@@ -63,6 +63,18 @@ void error_annotation_builder::add_argument(const char* arg)
     }
 }
 
+void error_annotation_builder::add_argument(int arg)
+{
+    if (_node)
+    {
+        ast::error_ann* ann = ast::annotation<ast::error_ann>(_node);
+        plnnrc_assert(ann->argument_count < ast::max_error_args);
+        ann->argument_type[ann->argument_count] = ast::error_argument_selection;
+        ann->argument_selection[ann->argument_count++] = arg;
+        ann->argument_count++;
+    }
+}
+
 error_annotation_builder emit_error(ast::tree& ast, compilation_error error_id, sexpr::node* s_expr, bool past_token_locaion)
 {
     return emit_error(ast, 0, error_id, s_expr, past_token_locaion);

@@ -74,6 +74,7 @@ enum error_argument_type
     error_argument_node_token,
     error_argument_node_location,
     error_argument_node_string,
+    error_argument_selection,
 };
 
 enum { max_error_args = 4 };
@@ -88,6 +89,7 @@ struct error_ann
     sexpr::node* argument_node[max_error_args];
     location argument_location[max_error_args];
     const char* argument_string[max_error_args];
+    int argument_selection[max_error_args];
 };
 
 void format_error(error_ann* annotation, writer& stream);
