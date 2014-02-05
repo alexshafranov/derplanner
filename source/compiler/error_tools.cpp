@@ -157,12 +157,12 @@ error_annotation_builder expect_next_token(ast::tree& ast, sexpr::node* s_expr, 
 {
     if (!s_expr->next_sibling)
     {
-        return emit_error(ast, parent, error_expected, s_expr, true);
+        return emit_error(ast, parent, error_expected_token, s_expr, true) << (expected.str);
     }
 
     if (!is_token(s_expr->next_sibling, expected))
     {
-        return emit_error(ast, parent, error_expected, s_expr->next_sibling);
+        return emit_error(ast, parent, error_expected_token, s_expr->next_sibling) << (expected.str);
     }
 
     return 0;

@@ -21,6 +21,7 @@
 
 PLNNRC_ERROR(error_unexpected, "unexpected expression.")
 PLNNRC_ERROR(error_expected, "")
+PLNNRC_ERROR(error_expected_token, "expected '$0'.")
 PLNNRC_ERROR(error_expected_parameter, "expected parameter identifier.")
 PLNNRC_ERROR(error_multiple_definitions, "multiple definitions of $0{worldstate|domain|delete effects|add effects}.")
 PLNNRC_ERROR(error_redefinition, "redefinition of '$0', originally defined at $1.")
