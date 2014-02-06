@@ -2,7 +2,7 @@ project "tests"
     kind "ConsoleApp"
     flags { "FatalWarnings" }
     warnings "Extra"
-    files { "../tests/*.cpp" }
+    files { "../test/*.cpp" }
     includedirs { "../deps/unittestpp", "../include", "../source" }
     links { "unittestpp", "derplanner-compiler", "derplanner-runtime" }
     configuration { "vs*" }
