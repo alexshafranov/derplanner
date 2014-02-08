@@ -75,12 +75,12 @@ void error_annotation_builder::add_argument(int arg)
     }
 }
 
-error_annotation_builder emit_error(ast::tree& ast, compilation_error error_id, sexpr::node* s_expr, bool past_token_locaion)
+error_annotation_builder emit_error(ast::tree& ast, compilation_error error_id, sexpr::node* s_expr, bool past_expr_location)
 {
-    return emit_error(ast, 0, error_id, s_expr, past_token_locaion);
+    return emit_error(ast, 0, error_id, s_expr, past_expr_location);
 }
 
-error_annotation_builder emit_error(ast::tree& ast, ast::node* parent, compilation_error error_id, sexpr::node* s_expr, bool past_token_locaion)
+error_annotation_builder emit_error(ast::tree& ast, ast::node* parent, compilation_error error_id, sexpr::node* s_expr, bool past_expr_location)
 {
     ast::node* error = ast.make_node(ast::node_error, s_expr);
 
@@ -100,9 +100,10 @@ error_annotation_builder emit_error(ast::tree& ast, ast::node* parent, compilati
         annotation->id = error_id;
         annotation->line = s_expr->line;
 
-        if (past_token_locaion)
+        if (past_expr_location)
         {
-            annotation->column = s_expr->column + static_cast<int>(strlen(s_expr->token));
+            annotation->line = s_expr->line_end;
+            annotation->column = s_expr->column_end;
         }
         else
         {

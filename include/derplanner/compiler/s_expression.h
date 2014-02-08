@@ -44,6 +44,8 @@ struct node
     node_type type;
     int line;
     int column;
+    int line_end;
+    int column_end;
     char* token;
     node* parent;
     node* first_child;

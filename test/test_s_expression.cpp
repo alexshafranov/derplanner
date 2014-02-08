@@ -127,6 +127,25 @@ namespace
         CHECK_EQUAL(2, n2->column);
     }
 
+    TEST(symbol_end_location)
+    {
+        tree s_exp;
+        char buffer[] = "(hello)";
+        s_exp.parse(buffer);
+        node* n = s_exp.root()->first_child->first_child;
+        CHECK_EQUAL(7, n->column_end);
+    }
+
+    TEST(list_end_location)
+    {
+        tree s_exp;
+        char buffer[] = "(hello\n(world\nhello (planner)))";
+        s_exp.parse(buffer);
+        node* n = s_exp.root()->first_child->first_child->next_sibling;
+        CHECK_EQUAL(3, n->line_end);
+        CHECK_EQUAL(16, n->column_end);
+    }
+
     TEST(multiple_top_level_lists)
     {
         tree s_exp;

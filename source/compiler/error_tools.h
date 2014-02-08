@@ -84,8 +84,8 @@ error_annotation_builder expect_condition(ast::tree& ast, sexpr::node* s_expr, b
 error_annotation_builder replace_with_error(ast::tree& ast, ast::node* node, compilation_error error_id);
 error_annotation_builder replace_with_error_if(bool condition, ast::tree& ast, ast::node* node, compilation_error error_id);
 
-error_annotation_builder emit_error(ast::tree& ast, compilation_error error_id, sexpr::node* s_expr, bool past_token_locaion=false);
-error_annotation_builder emit_error(ast::tree& ast, ast::node* parent, compilation_error error_id, sexpr::node* s_expr, bool past_token_locaion=false);
+error_annotation_builder emit_error(ast::tree& ast, compilation_error error_id, sexpr::node* s_expr, bool past_expr_location=false);
+error_annotation_builder emit_error(ast::tree& ast, ast::node* parent, compilation_error error_id, sexpr::node* s_expr, bool past_expr_location=false);
 
 }
 

@@ -148,6 +148,8 @@ namespace
         n->line = state.line;
         n->column = state.column;
         n->token = 0;
+        n->line_end = -1;
+        n->column_end = -1;
 
         state.parent = n;
 
@@ -163,6 +165,9 @@ namespace
             state.parent = 0;
             return 0;
         }
+
+        n->line_end = state.line;
+        n->column_end = state.column;
 
         state.parent = n->parent;
         return n;
@@ -181,6 +186,9 @@ namespace
         n->line = state.line;
         n->column = state.column;
         n->token = state.cursor;
+        n->line_end = state.line;
+        plnnrc_assert(state.null);
+        n->column_end = state.column + static_cast<int>(state.null - state.cursor);
         return n;
     }
 
