@@ -58,6 +58,43 @@ struct node
     void* annotation;
 };
 
+template <typename T>
+T* annotation(node* n)
+{
+    return static_cast<T*>(n->annotation);
+}
+
+class tree
+{
+public:
+    tree(int error_node_cache_size=8);
+    ~tree();
+
+    node* root() { return &_root; }
+    const node* root() const { return &_root; }
+
+    node* make_node(node_type type, sexpr::node* token=0);
+    node* clone_node(node* original);
+    node* clone_subtree(node* original);
+
+    id_table ws_atoms;
+    id_table ws_funcs;
+    id_table ws_types;
+    id_table methods;
+    id_table operators;
+    node_array type_tag_to_node;
+    node_array error_node_cache;
+
+private:
+    tree(const tree&);
+    const tree& operator=(const tree&);
+
+    pool::handle* _node_pool;
+    node _root;
+};
+
+// annotation types
+
 struct ws_type_ann
 {
     int type_tag;
@@ -85,12 +122,6 @@ struct method_ann
 {
     bool processed;
 };
-
-template <typename T>
-T* annotation(node* n)
-{
-    return static_cast<T*>(n->annotation);
-}
 
 inline bool is_logical_op(node_type type)
 {
@@ -131,35 +162,6 @@ inline bool is_effect_list(const node* n)
 {
     return is_effect_list(n->type);
 }
-
-class tree
-{
-public:
-    tree(int error_node_cache_size=8);
-    ~tree();
-
-    node* root() { return &_root; }
-    const node* root() const { return &_root; }
-
-    node* make_node(node_type type, sexpr::node* token=0);
-    node* clone_node(node* original);
-    node* clone_subtree(node* original);
-
-    id_table ws_atoms;
-    id_table ws_funcs;
-    id_table ws_types;
-    id_table methods;
-    id_table operators;
-    node_array type_tag_to_node;
-    node_array error_node_cache;
-
-private:
-    tree(const tree&);
-    const tree& operator=(const tree&);
-
-    pool::handle* _node_pool;
-    node _root;
-};
 
 }
 }
