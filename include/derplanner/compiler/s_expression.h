@@ -79,7 +79,7 @@ public:
     ~tree();
 
     parse_result parse(char* buffer);
-    inline node* root() const { return _root; }
+    node* root() const { return _root; }
 
 private:
     tree(const tree&);

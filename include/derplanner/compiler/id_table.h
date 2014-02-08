@@ -30,25 +30,7 @@ namespace ast
     struct node;
 }
 
-class id_table;
-
-class id_table_values
-{
-public:
-    id_table_values();
-    id_table_values(const id_table* table);
-    id_table_values(const id_table_values& values);
-    id_table_values& operator=(const id_table_values& values);
-
-    bool empty() const;
-    void pop();
-    ast::node* value() const;
-
-private:
-    uint32_t _slot;
-    const id_table* _table;
-};
-
+class id_table_values;
 struct id_table_entry;
 
 class id_table
@@ -80,6 +62,23 @@ private:
     uint32_t _capacity;
     uint32_t _mask;
     uint32_t _count;
+};
+
+class id_table_values
+{
+public:
+    id_table_values();
+    id_table_values(const id_table* table);
+    id_table_values(const id_table_values& values);
+    id_table_values& operator=(const id_table_values& values);
+
+    bool empty() const { return _slot == 0xffffffff; }
+    ast::node* value() const;
+    void pop();
+
+private:
+    uint32_t _slot;
+    const id_table* _table;
 };
 
 }

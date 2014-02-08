@@ -284,11 +284,6 @@ id_table_values& id_table_values::operator=(const id_table_values& values)
     return *this;
 }
 
-bool id_table_values::empty() const
-{
-    return _slot == 0xffffffff;
-}
-
 void id_table_values::pop()
 {
     if (!empty())
