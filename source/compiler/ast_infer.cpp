@@ -389,6 +389,8 @@ void seed_types(tree& ast)
 
         for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
         {
+            PLNNRC_SKIP_SUBTREE_WITH_ERRORS(branch);
+
             node* tasklist = branch->first_child->next_sibling;
 
             for (node* task = tasklist->first_child; task != 0; task = task->next_sibling)
