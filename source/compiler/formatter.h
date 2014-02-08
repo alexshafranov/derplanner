@@ -29,46 +29,6 @@ namespace plnnrc {
 
 bool is_valid_id(const char* symbol);
 
-class formatter;
-
-struct scope
-{
-    scope(formatter& output, bool end_with_empty_line=true);
-    ~scope();
-
-    formatter& output;
-    bool end_with_empty_line;
-
-    scope& operator=(const scope&);
-};
-
-struct class_scope
-{
-    class_scope(formatter& output);
-    ~class_scope();
-
-    formatter& output;
-
-    class_scope& operator=(const class_scope&);
-};
-
-struct indented
-{
-    indented(formatter& output);
-    ~indented();
-
-    formatter& output;
-
-    indented& operator=(const indented&);
-};
-
-class paste_func
-{
-public:
-    virtual ~paste_func() {}
-    virtual void operator()(formatter& output) = 0;
-};
-
 class formatter
 {
 public:
@@ -106,6 +66,44 @@ private:
     int _indent_level;
     const char* _tab;
     const char* _newline;
+};
+
+struct scope
+{
+    scope(formatter& output, bool end_with_empty_line=true);
+    ~scope();
+
+    formatter& output;
+    bool end_with_empty_line;
+
+    scope& operator=(const scope&);
+};
+
+struct class_scope
+{
+    class_scope(formatter& output);
+    ~class_scope();
+
+    formatter& output;
+
+    class_scope& operator=(const class_scope&);
+};
+
+struct indented
+{
+    indented(formatter& output);
+    ~indented();
+
+    formatter& output;
+
+    indented& operator=(const indented&);
+};
+
+class paste_func
+{
+public:
+    virtual ~paste_func() {}
+    virtual void operator()(formatter& output) = 0;
 };
 
 }

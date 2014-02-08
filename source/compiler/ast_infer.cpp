@@ -405,7 +405,7 @@ void seed_types(tree& ast)
                         {
                             seed_types(ast, argument);
                         }
-                    }                        
+                    }
                 }
             }
         }
