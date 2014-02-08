@@ -40,5 +40,5 @@ namespace
     TEST(test_11) { check_error("(:domain (t) (:method\n(:lazy ~)))", error_invalid_id, 2, 8); }
     TEST(test_12) { check_error("(:domain (t) (:method\n(m ~)))", error_invalid_id, 2, 4); }
     TEST(test_13) { check_error("(:domain (t) (:method\n(m)) (:method\n(m)))", error_redefinition, 3, 2); }
-    TEST(test_15) { check_error("(:domain (t) (:method\n(m) b))", error_expected_type, 2, 5); }
+    TEST(test_14) { check_error("(:domain (t) (:method\n(m) b))", error_expected_type, 2, 5); }
 }
