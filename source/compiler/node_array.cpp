@@ -54,22 +54,4 @@ bool node_array::init(unsigned max_size)
     return true;
 }
 
-const ast::node* node_array::operator[](unsigned index) const
-{
-    plnnrc_assert(index < _capacity);
-    return _nodes[index];
-}
-
-ast::node*& node_array::operator[](unsigned index)
-{
-    plnnrc_assert(index < _capacity);
-    return _nodes[index];
-}
-
-void node_array::append(ast::node* node)
-{
-    plnnrc_assert(_size < _capacity);
-    _nodes[_size++] = node;
-}
-
 }

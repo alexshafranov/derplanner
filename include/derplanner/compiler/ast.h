@@ -138,8 +138,8 @@ public:
     tree(int error_node_cache_size=8);
     ~tree();
 
-    inline node* root() { return &_root; }
-    inline const node* root() const { return &_root; }
+    node* root() { return &_root; }
+    const node* root() const { return &_root; }
 
     node* make_node(node_type type, sexpr::node* token=0);
     node* clone_node(node* original);

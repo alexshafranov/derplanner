@@ -21,6 +21,8 @@
 #ifndef DERPLANNER_COMPILER_NODE_ARRAY_
 #define DERPLANNER_COMPILER_NODE_ARRAY_
 
+#include "derplanner/compiler/assert.h"
+
 namespace plnnrc {
 
 namespace ast
@@ -41,8 +43,8 @@ public:
 
     void append(ast::node* node);
 
-    inline unsigned size() const { return _size; }
-    inline unsigned capacity() const { return _capacity; }
+    unsigned size() const { return _size; }
+    unsigned capacity() const { return _capacity; }
 
 private:
     node_array(const node_array&);
@@ -52,6 +54,24 @@ private:
     unsigned    _size;
     unsigned    _capacity;
 };
+
+inline const ast::node* node_array::operator[](unsigned index) const
+{
+    plnnrc_assert(index < _capacity);
+    return _nodes[index];
+}
+
+inline ast::node*& node_array::operator[](unsigned index)
+{
+    plnnrc_assert(index < _capacity);
+    return _nodes[index];
+}
+
+inline void node_array::append(ast::node* node)
+{
+    plnnrc_assert(_size < _capacity);
+    _nodes[_size++] = node;
+}
 
 }
 
