@@ -31,4 +31,12 @@ namespace
     TEST(test_2)  { check_error("(:domain test)", error_expected_type, 1, 10); }
     TEST(test_3)  { check_error("(:domain (test1 (test2)))", error_expected_type, 1, 17); }
     TEST(test_4)  { check_error("(:domain (~))", error_invalid_id, 1, 11); }
+    TEST(test_5)  { check_error("(:domain (t) x)", error_unexpected, 1, 14); }
+    TEST(test_6)  { check_error("(:domain (t) (:method))", error_expected_type, 1, 22); }
+    TEST(test_7)  { check_error("(:domain (t) (:method\n()))", error_expected_type, 2, 1); }
+    TEST(test_8)  { check_error("(:domain (t) (:method\n(())))", error_expected_type, 2, 1); }
+    TEST(test_9)  { check_error("(:domain (t) (:method\n(:lazy)))", error_expected_type, 2, 7); }
+    TEST(test_10) { check_error("(:domain (t) (:method\n(~)))", error_invalid_id, 2, 2); }
+    TEST(test_11) { check_error("(:domain (t) (:method\n(:lazy ~)))", error_invalid_id, 2, 8); }
+    TEST(test_12) { check_error("(:domain (t) (:method\n(m ~)))", error_invalid_id, 2, 4); }
 }

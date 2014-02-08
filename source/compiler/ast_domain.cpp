@@ -146,6 +146,8 @@ namespace
 
         for (node* p = atom->first_child; p != 0; p = p->next_sibling)
         {
+            PLNNRC_SKIP_ERROR_NODE(p);
+
             if (p->type != node_term_variable)
             {
                 replace_with_error(ast, p, error_expected_parameter);
