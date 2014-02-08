@@ -76,4 +76,6 @@ namespace
     TEST(test_13) { test_error("(:worldstate (t) (a) (a))", error_redefinition, 1, 23); }
     TEST(test_14) { test_error("(:worldstate (t) (:function))", error_expected_type, 1, 28); }
     TEST(test_15) { test_error("(:worldstate (t) (:function (f)))", error_expected_token, 1, 31); }
+    TEST(test_16) { test_error("(:worldstate (t) (:function (f)->))", error_expected_type, 1, 34); }
+    TEST(test_17) { test_error("(:worldstate (t) (:function (f)->(t)) (:function (f)->(t)))", error_redefinition, 1, 51); }
 }
