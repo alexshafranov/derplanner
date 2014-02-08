@@ -64,4 +64,6 @@ namespace
 
     TEST(test_1) { test_error("(:worldstate)", error_expected_type, 1, 13); }
     TEST(test_2) { test_error("(:worldstate test)", error_expected_type, 1, 14); }
+    TEST(test_3) { test_error("(:worldstate (test1 (test2)))", error_expected_type, 1, 21); }
+    TEST(test_5) { test_error("(:worldstate (~~~~~))", error_invalid_id, 1, 15); }
 }
