@@ -18,64 +18,29 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#include <string.h>
 #include <unittestpp.h>
-#include <derplanner/compiler/s_expression.h>
-#include <derplanner/compiler/ast.h>
-#include <derplanner/compiler/ast_build.h>
 #include <derplanner/compiler/errors.h>
+#include "test_errors.h"
 
 using namespace plnnrc;
+using namespace test;
 
 namespace
 {
-    struct buffer_context
-    {
-        buffer_context(size_t bytes)
-            : bytes(bytes)
-        {
-            data = new char[bytes];
-        }
-
-        ~buffer_context()
-        {
-            delete [] data;
-        }
-
-        size_t bytes;
-        char* data;
-    };
-
-    void test_error(const char* code, compilation_error error_id, int line, int column)
-    {
-        buffer_context buffer(strlen(code) + 1);
-        strncpy(buffer.data, code, buffer.bytes);
-        sexpr::tree expr;
-        expr.parse(buffer.data);
-        ast::tree tree;
-        ast::build_translation_unit(tree, expr.root());
-        CHECK(tree.error_node_cache.size());
-        ast::node* error_node = tree.error_node_cache[0];
-        ast::error_ann* error_ann = ast::annotation<ast::error_ann>(error_node);
-        CHECK_EQUAL(error_id, error_ann->id);
-        CHECK_EQUAL(line, error_ann->line);
-        CHECK_EQUAL(column, error_ann->column);
-    }
-
-    TEST(test_1)  { test_error("(:worldstate)", error_expected_type, 1, 13); }
-    TEST(test_2)  { test_error("(:worldstate test)", error_expected_type, 1, 14); }
-    TEST(test_3)  { test_error("(:worldstate (test1 (test2)))", error_expected_type, 1, 21); }
-    TEST(test_5)  { test_error("(:worldstate (~))", error_invalid_id, 1, 15); }
-    TEST(test_6)  { test_error("(:worldstate (t) a)", error_expected_type, 1, 18); }
-    TEST(test_7)  { test_error("(:worldstate (t) ())", error_expected_type, 1, 18); }
-    TEST(test_8)  { test_error("(:worldstate (t) (()))", error_expected_type, 1, 18); }
-    TEST(test_9)  { test_error("(:worldstate (t) (~))", error_invalid_id, 1, 19); }
-    TEST(test_10) { test_error("(:worldstate (t) (a x))", error_expected_type, 1, 21); }
-    TEST(test_11) { test_error("(:worldstate (t) (a ()))", error_expected_type, 1, 21); }
-    TEST(test_12) { test_error("(:worldstate (t) (a ()))", error_expected_type, 1, 21); }
-    TEST(test_13) { test_error("(:worldstate (t) (a) (a))", error_redefinition, 1, 23); }
-    TEST(test_14) { test_error("(:worldstate (t) (:function))", error_expected_type, 1, 28); }
-    TEST(test_15) { test_error("(:worldstate (t) (:function (f)))", error_expected_token, 1, 31); }
-    TEST(test_16) { test_error("(:worldstate (t) (:function (f)->))", error_expected_type, 1, 34); }
-    TEST(test_17) { test_error("(:worldstate (t) (:function (f)->(t)) (:function (f)->(t)))", error_redefinition, 1, 51); }
+    TEST(test_1)  { check_error("(:worldstate)", error_expected_type, 1, 13); }
+    TEST(test_2)  { check_error("(:worldstate test)", error_expected_type, 1, 14); }
+    TEST(test_3)  { check_error("(:worldstate (test1 (test2)))", error_expected_type, 1, 21); }
+    TEST(test_5)  { check_error("(:worldstate (~))", error_invalid_id, 1, 15); }
+    TEST(test_6)  { check_error("(:worldstate (t) a)", error_expected_type, 1, 18); }
+    TEST(test_7)  { check_error("(:worldstate (t) ())", error_expected_type, 1, 18); }
+    TEST(test_8)  { check_error("(:worldstate (t) (()))", error_expected_type, 1, 18); }
+    TEST(test_9)  { check_error("(:worldstate (t) (~))", error_invalid_id, 1, 19); }
+    TEST(test_10) { check_error("(:worldstate (t) (a x))", error_expected_type, 1, 21); }
+    TEST(test_11) { check_error("(:worldstate (t) (a ()))", error_expected_type, 1, 21); }
+    TEST(test_12) { check_error("(:worldstate (t) (a ()))", error_expected_type, 1, 21); }
+    TEST(test_13) { check_error("(:worldstate (t) (a) (a))", error_redefinition, 1, 23); }
+    TEST(test_14) { check_error("(:worldstate (t) (:function))", error_expected_type, 1, 28); }
+    TEST(test_15) { check_error("(:worldstate (t) (:function (f)))", error_expected_token, 1, 31); }
+    TEST(test_16) { check_error("(:worldstate (t) (:function (f)->))", error_expected_type, 1, 34); }
+    TEST(test_17) { check_error("(:worldstate (t) (:function (f)->(t)) (:function (f)->(t)))", error_redefinition, 1, 51); }
 }
