@@ -21,7 +21,7 @@
 #ifndef DERPLANNER_COMPILER_ASSERT_H_
 #define DERPLANNER_COMPILER_ASSERT_H_
 
-// if there's no extrenal plnnrc_assert provided
+// if external plnnrc_assert is not provided
 #ifndef plnnrc_assert
     #ifdef NDEBUG
         // http://cnicholson.net/2009/02/stupid-c-tricks-adventures-in-assert/
