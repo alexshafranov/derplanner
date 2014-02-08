@@ -420,6 +420,7 @@ namespace
         ast::tree tree;
         ast::build_worldstate(tree, expr.root()->first_child);
         ast::build_domain(tree, expr.root()->first_child->next_sibling);
+        ast::seed_types(tree);
         ast::infer_types(tree);
 
         const int type1 = 1;
