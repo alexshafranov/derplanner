@@ -27,26 +27,26 @@ using namespace test;
 
 namespace
 {
-    TEST(test_0)  { check_error("(:domain (t1))\n(:domain\n(t2))", error_multiple_definitions, 2, 1); }
-    TEST(test_1)  { check_error("(:domain)", error_expected_type, 1, 9); }
-    TEST(test_2)  { check_error("(:domain test)", error_expected_type, 1, 10); }
-    TEST(test_3)  { check_error("(:domain (test1 (test2)))", error_expected_type, 1, 17); }
-    TEST(test_4)  { check_error("(:domain (~))", error_invalid_id, 1, 11); }
-    TEST(test_5)  { check_error("(:domain (t) x)", error_unexpected, 1, 14); }
-    TEST(test_6)  { check_error("(:domain (t) (:method))", error_expected_type, 1, 22); }
-    TEST(test_7)  { check_error("(:domain (t) (:method\n()))", error_expected_type, 2, 1); }
-    TEST(test_8)  { check_error("(:domain (t) (:method\n(())))", error_expected_type, 2, 1); }
-    TEST(test_9)  { check_error("(:domain (t) (:method\n(:lazy)))", error_expected_type, 2, 7); }
-    TEST(test_10) { check_error("(:domain (t) (:method\n(~)))", error_invalid_id, 2, 2); }
-    TEST(test_11) { check_error("(:domain (t) (:method\n(:lazy ~)))", error_invalid_id, 2, 8); }
-    TEST(test_12) { check_error("(:domain (t) (:method\n(m ~)))", error_invalid_id, 2, 4); }
-    TEST(test_13) { check_error("(:domain (t) (:method\n(m)) (:method\n(m)))", error_redefinition, 3, 2); }
-    TEST(test_14) { check_error("(:domain (t) (:method\n(m) b))", error_expected_type, 2, 5); }
-    TEST(test_15) { check_error("(:domain (t) (:method\n(m) (:foreach b)))", error_expected_type, 2, 15); }
-    TEST(test_16) { check_error("(:domain (t) (:method\n(m) (:foreach ())))", error_expected_type, 2, 16); }
-    TEST(test_17) { check_error("(:domain (t) (:method\n(m) ()))", error_expected_type, 2, 6); }
-    TEST(test_18) { check_error("(:domain (t) (:method\n(m) (()) ()))", error_expected_type, 2, 6); }
-    TEST(test_19) { check_error("(:domain (t) (:method\n(m) (and x) ()))", error_expected_type, 2, 10); }
-    TEST(test_20) { check_error("(:domain (t) (:method\n(m) () (x)))", error_expected_type, 2, 9); }
-    TEST(test_21) { check_error("(:domain (t) (:operator))", error_expected_type, 1, 24); }
+    TEST(_0)  { check_error("(:domain (t1))\n(:domain\n(t2))", error_multiple_definitions, 2, 1); }
+    TEST(_1)  { check_error("(:domain)", error_expected_type, 1, 9); }
+    TEST(_2)  { check_error("(:domain test)", error_expected_type, 1, 10); }
+    TEST(_3)  { check_error("(:domain (test1 (test2)))", error_expected_type, 1, 17); }
+    TEST(_4)  { check_error("(:domain (~))", error_invalid_id, 1, 11); }
+    TEST(_5)  { check_error("(:domain (t) x)", error_unexpected, 1, 14); }
+    TEST(_6)  { check_error("(:domain (t) (:method))", error_expected_type, 1, 22); }
+    TEST(_7)  { check_error("(:domain (t) (:method\n()))", error_expected_type, 2, 1); }
+    TEST(_8)  { check_error("(:domain (t) (:method\n(())))", error_expected_type, 2, 1); }
+    TEST(_9)  { check_error("(:domain (t) (:method\n(:lazy)))", error_expected_type, 2, 7); }
+    TEST(_10) { check_error("(:domain (t) (:method\n(~)))", error_invalid_id, 2, 2); }
+    TEST(_11) { check_error("(:domain (t) (:method\n(:lazy ~)))", error_invalid_id, 2, 8); }
+    TEST(_12) { check_error("(:domain (t) (:method\n(m ~)))", error_invalid_id, 2, 4); }
+    TEST(_13) { check_error("(:domain (t) (:method\n(m)) (:method\n(m)))", error_redefinition, 3, 2); }
+    TEST(_14) { check_error("(:domain (t) (:method\n(m) b))", error_expected_type, 2, 5); }
+    TEST(_15) { check_error("(:domain (t) (:method\n(m) (:foreach b)))", error_expected_type, 2, 15); }
+    TEST(_16) { check_error("(:domain (t) (:method\n(m) (:foreach ())))", error_expected_type, 2, 16); }
+    TEST(_17) { check_error("(:domain (t) (:method\n(m) ()))", error_expected_type, 2, 6); }
+    TEST(_18) { check_error("(:domain (t) (:method\n(m) (()) ()))", error_expected_type, 2, 6); }
+    TEST(_19) { check_error("(:domain (t) (:method\n(m) (and x) ()))", error_expected_type, 2, 10); }
+    TEST(_20) { check_error("(:domain (t) (:method\n(m) () (x)))", error_expected_type, 2, 9); }
+    TEST(_21) { check_error("(:domain (t) (:operator))", error_expected_type, 1, 24); }
 }

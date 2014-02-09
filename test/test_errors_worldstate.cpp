@@ -27,21 +27,21 @@ using namespace test;
 
 namespace
 {
-    TEST(test_0)  { check_error("(:worldstate (t1))\n(:worldstate\n(t2))", error_multiple_definitions, 2, 1); }
-    TEST(test_1)  { check_error("(:worldstate)", error_expected_type, 1, 13); }
-    TEST(test_2)  { check_error("(:worldstate test)", error_expected_type, 1, 14); }
-    TEST(test_3)  { check_error("(:worldstate (test1 (test2)))", error_expected_type, 1, 21); }
-    TEST(test_4)  { check_error("(:worldstate (~))", error_invalid_id, 1, 15); }
-    TEST(test_5)  { check_error("(:worldstate (t) a)", error_expected_type, 1, 18); }
-    TEST(test_6)  { check_error("(:worldstate (t) ())", error_expected_type, 1, 18); }
-    TEST(test_7)  { check_error("(:worldstate (t) (()))", error_expected_type, 1, 18); }
-    TEST(test_8)  { check_error("(:worldstate (t) (~))", error_invalid_id, 1, 19); }
-    TEST(test_9)  { check_error("(:worldstate (t) (a x))", error_expected_type, 1, 21); }
-    TEST(test_10) { check_error("(:worldstate (t) (a ()))", error_expected_type, 1, 21); }
-    TEST(test_11) { check_error("(:worldstate (t) (a ()))", error_expected_type, 1, 21); }
-    TEST(test_12) { check_error("(:worldstate (t) (a) (a))", error_redefinition, 1, 23); }
-    TEST(test_13) { check_error("(:worldstate (t) (:function))", error_expected_type, 1, 28); }
-    TEST(test_14) { check_error("(:worldstate (t) (:function (f)))", error_expected_token, 1, 31); }
-    TEST(test_15) { check_error("(:worldstate (t) (:function (f)->))", error_expected_type, 1, 34); }
-    TEST(test_16) { check_error("(:worldstate (t) (:function (f)->(t)) (:function (f)->(t)))", error_redefinition, 1, 51); }
+    TEST(_0)  { check_error("(:worldstate (t1))\n(:worldstate\n(t2))", error_multiple_definitions, 2, 1); }
+    TEST(_1)  { check_error("(:worldstate)", error_expected_type, 1, 13); }
+    TEST(_2)  { check_error("(:worldstate test)", error_expected_type, 1, 14); }
+    TEST(_3)  { check_error("(:worldstate (test1 (test2)))", error_expected_type, 1, 21); }
+    TEST(_4)  { check_error("(:worldstate (~))", error_invalid_id, 1, 15); }
+    TEST(_5)  { check_error("(:worldstate (t) a)", error_expected_type, 1, 18); }
+    TEST(_6)  { check_error("(:worldstate (t) ())", error_expected_type, 1, 18); }
+    TEST(_7)  { check_error("(:worldstate (t) (()))", error_expected_type, 1, 18); }
+    TEST(_8)  { check_error("(:worldstate (t) (~))", error_invalid_id, 1, 19); }
+    TEST(_9)  { check_error("(:worldstate (t) (a x))", error_expected_type, 1, 21); }
+    TEST(_10) { check_error("(:worldstate (t) (a ()))", error_expected_type, 1, 21); }
+    TEST(_11) { check_error("(:worldstate (t) (a ()))", error_expected_type, 1, 21); }
+    TEST(_12) { check_error("(:worldstate (t) (a) (a))", error_redefinition, 1, 23); }
+    TEST(_13) { check_error("(:worldstate (t) (:function))", error_expected_type, 1, 28); }
+    TEST(_14) { check_error("(:worldstate (t) (:function (f)))", error_expected_token, 1, 31); }
+    TEST(_15) { check_error("(:worldstate (t) (:function (f)->))", error_expected_type, 1, 34); }
+    TEST(_16) { check_error("(:worldstate (t) (:function (f)->(t)) (:function (f)->(t)))", error_redefinition, 1, 51); }
 }
