@@ -47,4 +47,5 @@ namespace
     TEST(test_18) { check_error("(:domain (t) (:method\n(m) (()) ()))", error_expected_type, 2, 6); }
     TEST(test_19) { check_error("(:domain (t) (:method\n(m) (and x) ()))", error_expected_type, 2, 10); }
     TEST(test_20) { check_error("(:domain (t) (:method\n(m) () (x)))", error_expected_type, 2, 9); }
+    TEST(test_21) { check_error("(:domain (t) (:operator))", error_expected_type, 1, 24); }
 }
