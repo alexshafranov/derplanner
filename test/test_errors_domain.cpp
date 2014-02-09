@@ -27,6 +27,7 @@ using namespace test;
 
 namespace
 {
+    TEST(test_0)  { check_error("(:domain (t1))\n(:domain\n(t2))", error_multiple_definitions, 2, 1); }
     TEST(test_1)  { check_error("(:domain)", error_expected_type, 1, 9); }
     TEST(test_2)  { check_error("(:domain test)", error_expected_type, 1, 10); }
     TEST(test_3)  { check_error("(:domain (test1 (test2)))", error_expected_type, 1, 17); }

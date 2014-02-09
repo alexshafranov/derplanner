@@ -27,6 +27,7 @@ using namespace test;
 
 namespace
 {
+    TEST(test_0)  { check_error("(:worldstate (t1))\n(:worldstate\n(t2))", error_multiple_definitions, 2, 1); }
     TEST(test_1)  { check_error("(:worldstate)", error_expected_type, 1, 13); }
     TEST(test_2)  { check_error("(:worldstate test)", error_expected_type, 1, 14); }
     TEST(test_3)  { check_error("(:worldstate (test1 (test2)))", error_expected_type, 1, 21); }
