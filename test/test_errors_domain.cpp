@@ -43,4 +43,5 @@ namespace
     TEST(test_14) { check_error("(:domain (t) (:method\n(m) b))", error_expected_type, 2, 5); }
     TEST(test_15) { check_error("(:domain (t) (:method\n(m) (:foreach b)))", error_expected_type, 2, 15); }
     TEST(test_16) { check_error("(:domain (t) (:method\n(m) (:foreach ())))", error_expected_type, 2, 16); }
+    TEST(test_17) { check_error("(:domain (t) (:method\n(m) ()))", error_expected_type, 2, 6); }
 }
