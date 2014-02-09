@@ -29,4 +29,5 @@ namespace
 {
     TEST(_0) { check_error("(:domain (d) (:method (m x) (and\n(a x)) ()))", error_undefined, 2, 2); }
     TEST(_1) { check_error("(:worldstate (w) (a (t))) (:domain (d) (:method (m x) (a\n(f x)) ()))", error_undefined, 2, 2); }
+    TEST(_2) { check_error("(:domain (d) (:method (m\nx) () ()))", error_unable_to_infer_type, 2, 1); }
 }
