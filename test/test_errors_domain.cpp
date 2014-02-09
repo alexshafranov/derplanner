@@ -57,4 +57,5 @@ namespace
     TEST(_27) { check_error("(:domain (t) (:operator (o) (:add)\n(:add)))", error_multiple_definitions, 2, 1); }
     TEST(_28) { check_error("(:domain (t) (:operator (o) (:add\nx)))", error_expected_type, 2, 1); }
     TEST(_29) { check_error("(:domain (t) (:operator (o) (:delete\nx)))", error_expected_type, 2, 1); }
+    TEST(_30) { check_error("(:worldstate (w) (a (t))) (:domain (d) (:method (m) (a\n()) ()))", error_expected_type, 2, 1); }
 }
