@@ -44,4 +44,5 @@ namespace
     TEST(_14) { check_error("(:worldstate (t) (:function (f)))", error_expected_token, 1, 31); }
     TEST(_15) { check_error("(:worldstate (t) (:function (f)->))", error_expected_type, 1, 34); }
     TEST(_16) { check_error("(:worldstate (t) (:function (f)->(t)) (:function (f)->(t)))", error_redefinition, 1, 51); }
+    TEST(_17) { check_error("(:something-else)", error_unexpected, 1, 1); }
 }
