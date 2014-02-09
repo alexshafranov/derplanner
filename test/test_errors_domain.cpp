@@ -53,4 +53,6 @@ namespace
     TEST(_23) { check_error("(:domain (t) (:operator\n(~)))", error_invalid_id, 2, 2); }
     TEST(_24) { check_error("(:domain (t) (:operator\n(o)\n()))", error_unexpected, 3, 1); }
     TEST(_25) { check_error("(:domain (t) (:operator\n(o)) (:operator\n(o)))", error_redefinition, 3, 2); }
+    TEST(_26) { check_error("(:domain (t) (:operator (o) (:delete)\n(:delete)))", error_multiple_definitions, 2, 1); }
+    TEST(_27) { check_error("(:domain (t) (:operator (o) (:add)\n(:add)))", error_multiple_definitions, 2, 1); }
 }
