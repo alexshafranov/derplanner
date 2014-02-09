@@ -51,4 +51,5 @@ namespace
     TEST(_21) { check_error("(:domain (t) (:operator))", error_expected_type, 1, 24); }
     TEST(_22) { check_error("(:domain (t) (:operator\n()))", error_expected_type, 2, 1); }
     TEST(_23) { check_error("(:domain (t) (:operator\n(~)))", error_invalid_id, 2, 2); }
+    TEST(_24) { check_error("(:domain (t) (:operator\n(o)\n()))", error_unexpected, 3, 1); }
 }

@@ -391,6 +391,8 @@ node* build_operator(tree& ast, sexpr::node* s_expr)
             add_effects_expr = child;
             continue;
         }
+
+        emit_error(ast, operatr, error_unexpected, child);
     }
 
     PLNNRC_CHECK_NODE(delete_effects, ast.make_node(node_delete_list, delete_effects_expr));
