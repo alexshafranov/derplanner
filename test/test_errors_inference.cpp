@@ -27,12 +27,16 @@ using namespace test;
 
 namespace
 {
-    TEST(_0) { check_error("(:domain (d) (:method (m x) (and\n(a x)) ()))", error_undefined, 2, 2); }
-    TEST(_1) { check_error("(:worldstate (w) (a (t))) (:domain (d) (:method (m x) (a\n(f x)) ()))", error_undefined, 2, 2); }
-    TEST(_2) { check_error("(:domain (d) (:method (m\nx) () ()))", error_unable_to_infer_type, 2, 1); }
-    TEST(_3) { check_error("(:domain (d) (:method (m\nx) () ()))", error_unable_to_infer_type, 2, 1); }
-    TEST(_4) { check_error("(:worldstate (w) (a (t1) (t2))) (:domain (d) (:method (m)\n(a x y w) ()))", error_wrong_number_of_arguments, 2, 2); }
-    TEST(_5) { check_error("(:worldstate (w) (a (t1) (t2))) (:domain (d) (:method (m)\n(a x) ()))", error_wrong_number_of_arguments, 2, 2); }
-    TEST(_6) { check_error("(:worldstate (w) (:function (f (t1) (t2))->(b))) (:domain (d) (:method (m)\n(f x y w) ()))", error_wrong_number_of_arguments, 2, 2); }
-    TEST(_7) { check_error("(:worldstate (w) (:function (f (t1) (t2))->(b))) (:domain (d) (:method (m)\n(f x) ()))", error_wrong_number_of_arguments, 2, 2); }
+    TEST(_0)  { check_error("(:domain (d) (:method (m x) (and\n(a x)) ()))", error_undefined, 2, 2); }
+    TEST(_1)  { check_error("(:worldstate (w) (a (t))) (:domain (d) (:method (m x) (a\n(f x)) ()))", error_undefined, 2, 2); }
+    TEST(_2)  { check_error("(:domain (d) (:method (m\nx) () ()))", error_unable_to_infer_type, 2, 1); }
+    TEST(_3)  { check_error("(:domain (d) (:method (m\nx) () ()))", error_unable_to_infer_type, 2, 1); }
+    TEST(_4)  { check_error("(:worldstate (w) (a (t1) (t2))) (:domain (d) (:method (m)\n(a x y w) ()))", error_wrong_number_of_arguments, 2, 2); }
+    TEST(_5)  { check_error("(:worldstate (w) (a (t1) (t2))) (:domain (d) (:method (m)\n(a x) ()))", error_wrong_number_of_arguments, 2, 2); }
+    TEST(_6)  { check_error("(:worldstate (w) (:function (f (t1) (t2))->(b))) (:domain (d) (:method (m)\n(f x y w) ()))", error_wrong_number_of_arguments, 2, 2); }
+    TEST(_7)  { check_error("(:worldstate (w) (:function (f (t1) (t2))->(b))) (:domain (d) (:method (m)\n(f x) ()))", error_wrong_number_of_arguments, 2, 2); }
+    TEST(_8)  { check_error("(:worldstate (w) (a (t1)) (b (t2))) (:domain (d) (:method (m) ((a x)\n(b x)) ()))", error_type_mismatch, 2, 4); }
+    TEST(_9)  { check_error("(:worldstate (w) (a (t1)) (:function (f (t2))->(b))) (:domain (d) (:method (m) ((a x)\n(f x)) ()))", error_type_mismatch, 2, 4); }
+    TEST(_10) { check_error("(:worldstate (w) (a (t1)) (b (t2))) (:domain (d) (:method (m\nx) ((a x) (b x)) ()))", error_type_mismatch, 2, 12); }
+    TEST(_11) { check_error("(:worldstate (w) (a (t1)) (:function (f)->(t2))) (:domain (d) (:method (m) ((a\n(f))) ()))", error_type_mismatch, 2, 2); }
 }
