@@ -63,8 +63,8 @@ namespace
 
     std::string node_to_string(ast::node* node)
     {
-        #define PLNNRC_AST_NODE(NODE_ID) case ast::NODE_ID: return std::string(#NODE_ID);
-        #define PLNNRC_AST_NODE_WITH_TOKEN(NODE_ID)  case ast::NODE_ID: return std::string(#NODE_ID) + " " + to_string(node->s_expr);
+        #define PLNNRC_AST_NODE(NODE_ID) case ast::node_##NODE_ID: return std::string("node_" #NODE_ID);
+        #define PLNNRC_AST_NODE_WITH_TOKEN(NODE_ID)  case ast::node_##NODE_ID: return std::string("node_" #NODE_ID) + " " + to_string(node->s_expr);
 
         switch (node->type)
         {

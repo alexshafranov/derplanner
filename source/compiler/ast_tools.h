@@ -31,17 +31,17 @@ namespace ast {
 
 inline bool is_bound(node* var)
 {
-    plnnrc_assert(var->type == node_term_variable);
+    plnnrc_assert(is_term_variable(var));
     return annotation<term_ann>(var)->var_def != 0;
 }
 
 inline bool all_bound(node* atom)
 {
-    plnnrc_assert(is_atom(atom));
+    plnnrc_assert(is_generic_atom(atom));
 
     for (node* arg = atom->first_child; arg != 0; arg = arg->next_sibling)
     {
-        if (arg->type != node_term_variable)
+        if (!is_term_variable(arg))
         {
             continue;
         }
@@ -57,11 +57,11 @@ inline bool all_bound(node* atom)
 
 inline bool all_unbound(node* atom)
 {
-    plnnrc_assert(is_atom(atom));
+    plnnrc_assert(is_generic_atom(atom));
 
     for (node* arg = atom->first_child; arg != 0; arg = arg->next_sibling)
     {
-        if ((arg->type != node_term_variable) || is_bound(arg))
+        if (!is_term_variable(arg) || is_bound(arg))
         {
             return false;
         }
@@ -72,22 +72,22 @@ inline bool all_unbound(node* atom)
 
 inline node* definition(node* var)
 {
-    plnnrc_assert(var->type == node_term_variable);
+    plnnrc_assert(is_term_variable(var));
     return annotation<term_ann>(var)->var_def;
 }
 
 inline bool is_method_parameter(node* var)
 {
-    plnnrc_assert(var->type == node_term_variable);
+    plnnrc_assert(is_term_variable(var));
     plnnrc_assert(var->parent && var->parent->parent);
-    return var->parent->parent->type == node_method;
+    return is_method(var->parent->parent);
 }
 
 inline bool is_operator_parameter(node* var)
 {
-    plnnrc_assert(var->type == node_term_variable);
+    plnnrc_assert(is_term_variable(var));
     plnnrc_assert(var->parent && var->parent->parent);
-    return var->parent->parent->type == node_operator;
+    return is_operator(var->parent->parent);
 }
 
 inline bool is_parameter(node* var)
@@ -98,8 +98,7 @@ inline bool is_parameter(node* var)
 inline bool has_parameters(node* task)
 {
     node* atom = task->first_child;
-    plnnrc_assert(atom);
-    plnnrc_assert(atom->type == node_atom);
+    plnnrc_assert(atom && is_atom(atom));
     return atom->first_child != 0;
 }
 
@@ -119,7 +118,7 @@ inline node* first_parameter_usage(node* parameter, node* precondition)
 {
     for (node* var = precondition; var != 0; var = preorder_traversal_next(precondition, var))
     {
-        if (var->type == node_term_variable && parameter == definition(var))
+        if (is_term_variable(var) && parameter == definition(var))
         {
             return var;
         }
@@ -130,17 +129,17 @@ inline node* first_parameter_usage(node* parameter, node* precondition)
 
 inline bool is_lazy(node* atom)
 {
-    return (atom->type == node_atom) && annotation<atom_ann>(atom)->lazy;
+    return is_atom(atom) && annotation<atom_ann>(atom)->lazy;
 }
 
 inline bool is_operator(tree& ast, node* atom)
 {
-    return (atom->type == node_atom) && ast.operators.find(atom->s_expr->token);
+    return is_atom(atom) && ast.operators.find(atom->s_expr->token);
 }
 
 inline bool is_method(tree& ast, node* atom)
 {
-    return (atom->type == node_atom) && ast.methods.find(atom->s_expr->token);
+    return is_atom(atom) && ast.methods.find(atom->s_expr->token);
 }
 
 inline node* find_child(node* parent, node_type type)

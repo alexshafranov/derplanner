@@ -54,8 +54,7 @@ public:
 void generate_worldstate_reflectors(ast::tree& ast, ast::node* worldstate, formatter& output)
 {
     ast::node* worldstate_namespace = worldstate->first_child;
-    plnnrc_assert(worldstate_namespace);
-    plnnrc_assert(worldstate_namespace->type == ast::node_namespace);
+    plnnrc_assert(worldstate_namespace && ast::is_namespace(worldstate_namespace));
 
     paste_fully_qualified_namespace paste_world_namespace(worldstate_namespace);
 
@@ -70,7 +69,7 @@ void generate_worldstate_reflectors(ast::tree& ast, ast::node* worldstate, forma
 
             for (ast::node* atom = worldstate_namespace->next_sibling; atom != 0; atom = atom->next_sibling)
             {
-                if (atom->type != ast::node_atom)
+                if (!ast::is_atom(atom))
                 {
                     continue;
                 }
@@ -82,7 +81,7 @@ void generate_worldstate_reflectors(ast::tree& ast, ast::node* worldstate, forma
 
     for (ast::node* atom = worldstate_namespace->next_sibling; atom != 0; atom = atom->next_sibling)
     {
-        if (atom->type != ast::node_atom)
+        if (!ast::is_atom(atom))
         {
             continue;
         }
@@ -94,8 +93,7 @@ void generate_worldstate_reflectors(ast::tree& ast, ast::node* worldstate, forma
 void generate_domain_reflectors(ast::tree& ast, ast::node* domain, formatter& output)
 {
     ast::node* domain_namespace = domain->first_child;
-    plnnrc_assert(domain_namespace);
-    plnnrc_assert(domain_namespace->type == ast::node_namespace);
+    plnnrc_assert(domain_namespace && ast::is_namespace(domain_namespace));
 
     paste_fully_qualified_namespace paste_domain_namespace(domain_namespace);
 
@@ -113,7 +111,7 @@ void generate_domain_reflectors(ast::tree& ast, ast::node* domain, formatter& ou
 
     for (ast::node* method = domain->first_child; method != 0; method = method->next_sibling)
     {
-        if (method->type != ast::node_method)
+        if (!ast::is_method(method))
         {
             continue;
         }
@@ -162,8 +160,7 @@ void generate_atom_reflector(ast::tree& /*ast*/, ast::node* atom, paste_func* pa
 void generate_task_type_dispatcher(ast::tree& ast, ast::node* domain, formatter& output)
 {
     ast::node* domain_namespace = domain->first_child;
-    plnnrc_assert(domain_namespace);
-    plnnrc_assert(domain_namespace->type == ast::node_namespace);
+    plnnrc_assert(domain_namespace && ast::is_namespace(domain_namespace));
 
     paste_fully_qualified_namespace paste_namespace(domain_namespace);
 
@@ -180,7 +177,7 @@ void generate_task_type_dispatcher(ast::tree& ast, ast::node* domain, formatter&
 
                 for (ast::node* method = domain->first_child; method != 0; method = method->next_sibling)
                 {
-                    if (method->type != ast::node_method)
+                    if (!ast::is_method(method))
                     {
                         continue;
                     }

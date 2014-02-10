@@ -83,7 +83,7 @@ void generate_header_top(ast::tree& /*ast*/, const char* custom_header, formatte
 
 void generate_worldstate(ast::tree& /*ast*/, ast::node* worldstate, formatter& output)
 {
-    plnnrc_assert(worldstate && worldstate->type == ast::node_worldstate);
+    plnnrc_assert(worldstate && ast::is_worldstate(worldstate));
 
     output.writeln("enum atom_type");
     {
@@ -91,7 +91,7 @@ void generate_worldstate(ast::tree& /*ast*/, ast::node* worldstate, formatter& o
 
         for (ast::node* atom = worldstate->first_child->next_sibling; atom != 0; atom = atom->next_sibling)
         {
-            if (atom->type != ast::node_atom)
+            if (!ast::is_atom(atom))
             {
                 continue;
             }
@@ -112,7 +112,7 @@ void generate_worldstate(ast::tree& /*ast*/, ast::node* worldstate, formatter& o
 
         for (ast::node* function_def = worldstate->first_child->next_sibling; function_def != 0; function_def = function_def->next_sibling)
         {
-            if (function_def->type != ast::node_function)
+            if (!ast::is_function(function_def))
             {
                 continue;
             }
@@ -128,7 +128,7 @@ void generate_worldstate(ast::tree& /*ast*/, ast::node* worldstate, formatter& o
 
     for (ast::node* atom = worldstate->first_child->next_sibling; atom != 0; atom = atom->next_sibling)
     {
-        if (atom->type != ast::node_atom)
+        if (!ast::is_atom(atom))
         {
             continue;
         }
@@ -167,7 +167,7 @@ void generate_task_type_enum(ast::tree& ast, ast::node* domain, formatter& outpu
 
         for (ast::node* method = domain->first_child; method != 0; method = method->next_sibling)
         {
-            if (method->type != ast::node_method)
+            if (!ast::is_method(method))
             {
                 continue;
             }
@@ -198,7 +198,7 @@ void generate_param_structs(ast::tree& ast, ast::node* domain, formatter& output
 
     for (ast::node* method = domain->first_child; method != 0; method = method->next_sibling)
     {
-        if (method->type != ast::node_method)
+        if (!ast::is_method(method))
         {
             continue;
         }
@@ -257,7 +257,7 @@ void generate_forward_decls(ast::tree& ast, ast::node* domain, formatter& output
 {
     for (ast::node* method = domain->first_child; method != 0; method = method->next_sibling)
     {
-        if (method->type != ast::node_method)
+        if (!ast::is_method(method))
         {
             continue;
         }
@@ -269,7 +269,7 @@ void generate_forward_decls(ast::tree& ast, ast::node* domain, formatter& output
 
         for (ast::node* branch = method->first_child->next_sibling; branch != 0; branch = branch->next_sibling)
         {
-            plnnrc_assert(branch->type == ast::node_branch);
+            plnnrc_assert(ast::is_branch(branch));
             output.writeln("bool %i_branch_%d_expand(plnnr::method_instance*, plnnr::planner_state&, void*);", method_name, branch_index);
             ++branch_index;
         }

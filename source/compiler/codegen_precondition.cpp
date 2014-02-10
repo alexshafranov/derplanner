@@ -84,14 +84,14 @@ void generate_preconditions(ast::tree& ast, ast::node* domain, formatter& output
 
     for (ast::node* method = domain->first_child; method != 0; method = method->next_sibling)
     {
-        if (method->type != ast::node_method)
+        if (!ast::is_method(method))
         {
             continue;
         }
 
         for (ast::node* branch = method->first_child->next_sibling; branch != 0; branch = branch->next_sibling)
         {
-            plnnrc_assert(branch->type == ast::node_branch);
+            plnnrc_assert(ast::is_branch(branch));
 
             ast::node* precondition = branch->first_child;
 
@@ -115,7 +115,7 @@ void generate_precondition_state(ast::tree& ast, ast::node* root, unsigned branc
 
         for (ast::node* n = root; n != 0; n = preorder_traversal_next(root, n))
         {
-            if (n->type == ast::node_term_variable)
+            if (ast::is_term_variable(n))
             {
                 int var_index = ast::annotation<ast::term_ann>(n)->var_index;
 
@@ -131,7 +131,7 @@ void generate_precondition_state(ast::tree& ast, ast::node* root, unsigned branc
 
         for (ast::node* n = root; n != 0; n = preorder_traversal_next(root, n))
         {
-            if (n->type == ast::node_atom)
+            if (ast::is_atom(n))
             {
                 const char* id = n->s_expr->token;
                 output.writeln("%i_tuple* %i_%d;", id, id, ast::annotation<ast::atom_ann>(n)->index);
@@ -161,19 +161,18 @@ void generate_precondition_next(ast::tree& ast, ast::node* root, unsigned branch
 
 void generate_precondition_satisfier(ast::tree& ast, ast::node* root, formatter& output)
 {
-    plnnrc_assert(root->type == ast::node_op_or);
+    plnnrc_assert(ast::is_op_or(root));
 
     for (ast::node* child = root->first_child; child != 0; child = child->next_sibling)
     {
-        plnnrc_assert(child->type == ast::node_op_and);
-
+        plnnrc_assert(ast::is_op_and(child));
         generate_conjunctive_clause(ast, child, output);
     }
 }
 
 void generate_conjunctive_clause(ast::tree& ast, ast::node* root, formatter& output)
 {
-    plnnrc_assert(root->type == ast::node_op_and);
+    plnnrc_assert(ast::is_op_and(root));
 
     if (root->first_child)
     {
@@ -189,23 +188,23 @@ void generate_conjunctive_clause(ast::tree& ast, ast::node* root, formatter& out
 
 void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output)
 {
-    plnnrc_assert(root->type == ast::node_op_not || root->type == ast::node_term_call || is_atom(root));
+    plnnrc_assert(ast::is_op_not(root) || ast::is_term_call(root) || is_generic_atom(root));
 
     ast::node* atom = root;
 
-    if (root->type == ast::node_op_not)
+    if (ast::is_op_not(root))
     {
         atom = root->first_child;
     }
 
     // special case atoms
-    if (atom->type == ast::node_atom_eq)
+    if (ast::is_atom_eq(atom))
     {
         generate_literal_chain_atom_eq(ast, root, atom, output);
         return;
     }
 
-    if (atom->type == ast::node_term_call)
+    if (ast::is_term_call(atom))
     {
         generate_literal_chain_call_term(ast, root, atom, output);
         return;
@@ -214,7 +213,7 @@ void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output)
     const char* atom_id = atom->s_expr->token;
     int atom_index = ast::annotation<ast::atom_ann>(atom)->index;
 
-    if (root->type == ast::node_op_not && all_unbound(atom))
+    if (ast::is_op_not(root) && all_unbound(atom))
     {
         output.writeln("if (!tuple_list::head<%i_tuple>(world.atoms[atom_%i]))", atom_id, atom_id);
         {
@@ -230,7 +229,7 @@ void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output)
             }
         }
     }
-    else if (root->type == ast::node_op_not && all_bound(atom))
+    else if (ast::is_op_not(root) && all_bound(atom))
     {
         output.writeln("for (state.%i_%d = tuple_list::head<%i_tuple>(world.atoms[atom_%i]); state.%i_%d != 0; state.%i_%d = state.%i_%d->next)",
             atom_id, atom_index,
@@ -246,7 +245,7 @@ void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output)
 
             for (ast::node* term = atom->first_child; term != 0; term = term->next_sibling)
             {
-                if (term->type == ast::node_term_variable)
+                if (ast::is_term_variable(term))
                 {
                     int var_index = ast::annotation<ast::term_ann>(term)->var_index;
 
@@ -257,7 +256,7 @@ void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output)
                     }
                 }
 
-                if (term->type == ast::node_term_call)
+                if (ast::is_term_call(term))
                 {
                     paste_precondition_function_call paste(term, "state._");
 
@@ -300,7 +299,7 @@ void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output)
 
             const char* comparison_op = "!=";
 
-            if (root->type == ast::node_op_not)
+            if (ast::is_op_not(root))
             {
                 comparison_op = "==";
             }
@@ -309,7 +308,7 @@ void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output)
 
             for (ast::node* term = atom->first_child; term != 0; term = term->next_sibling)
             {
-                if (term->type == ast::node_term_variable && definition(term))
+                if (ast::is_term_variable(term) && definition(term))
                 {
                     int var_index = ast::annotation<ast::term_ann>(term)->var_index;
 
@@ -320,7 +319,7 @@ void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output)
                     }
                 }
 
-                if (term->type == ast::node_term_call)
+                if (ast::is_term_call(term))
                 {
                     paste_precondition_function_call paste(term, "state._");
 
@@ -338,7 +337,7 @@ void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output)
 
             for (ast::node* term = atom->first_child; term != 0; term = term->next_sibling)
             {
-                if (term->type == ast::node_term_variable && !definition(term))
+                if (ast::is_term_variable(term) && !definition(term))
                 {
                     int var_index = ast::annotation<ast::term_ann>(term)->var_index;
                     output.writeln("state._%d = state.%i_%d->_%d;", var_index, atom_id, atom_index, atom_param_index);
@@ -363,15 +362,15 @@ void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output)
 void generate_literal_chain_atom_eq(ast::tree& ast, ast::node* root, ast::node* atom, formatter& output)
 {
     ast::node* arg_0 = atom->first_child;
-    plnnrc_assert(arg_0 && arg_0->type == ast::node_term_variable);
+    plnnrc_assert(arg_0 && ast::is_term_variable(arg_0));
     ast::node* arg_1 = arg_0->next_sibling;
-    plnnrc_assert(arg_1 && arg_1->type == ast::node_term_variable && !arg_1->next_sibling);
+    plnnrc_assert(arg_1 && ast::is_term_variable(arg_1) && !arg_1->next_sibling);
 
     plnnrc_assert(definition(arg_0) && definition(arg_1));
 
     const char* comparison_op = "==";
 
-    if (root->type == ast::node_op_not)
+    if (ast::is_op_not(root))
     {
         comparison_op = "!=";
     }
@@ -398,7 +397,7 @@ void generate_literal_chain_call_term(ast::tree& ast, ast::node* root, ast::node
 {
     paste_precondition_function_call paste(atom, "state._");
 
-    output.writeln("if (%sworld.%p)", root->type == ast::node_op_not ? "!" : "", &paste);
+    output.writeln("if (%sworld.%p)", ast::is_op_not(root) ? "!" : "", &paste);
     {
         scope s(output, root->next_sibling != 0);
 

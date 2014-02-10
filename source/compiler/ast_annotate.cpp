@@ -31,7 +31,7 @@ void annotate_precondition(node* precondition)
 {
     for (node* n = precondition; n != 0; n = preorder_traversal_next(precondition, n))
     {
-        if (n->type == node_term_variable)
+        if (is_term_variable(n))
         {
             node* def = definition(n);
 
@@ -46,7 +46,7 @@ void annotate_precondition(node* precondition)
 
     for (node* n = precondition; n != 0; n = preorder_traversal_next(precondition, n))
     {
-        if (n->type == node_term_variable)
+        if (is_term_variable(n))
         {
             node* def = definition(n);
 
@@ -75,7 +75,7 @@ void annotate_precondition(node* precondition)
 
     for (node* n = precondition; n != 0; n = preorder_traversal_next(precondition, n))
     {
-        if (n->type == node_atom)
+        if (is_atom(n))
         {
             annotation<atom_ann>(n)->index = atom_index;
             ++atom_index;
@@ -104,7 +104,7 @@ void annotate(tree& ast)
 
         for (node* branch = method->first_child->next_sibling; branch != 0; branch = branch->next_sibling)
         {
-            plnnrc_assert(branch->type == node_branch);
+            plnnrc_assert(is_branch(branch));
             annotate_precondition(branch->first_child);
         }
     }

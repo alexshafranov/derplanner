@@ -103,7 +103,7 @@ node* convert_to_nnf(tree& ast, node* root)
 
     for (node* p = root; p != 0; p = preorder_traversal_next(r, p))
     {
-        if (p->type == node_op_not)
+        if (is_op_not(p))
         {
             node* c = p->first_child;
             plnnrc_assert(c != 0);
@@ -111,7 +111,7 @@ node* convert_to_nnf(tree& ast, node* root)
             if (is_logical_op(c))
             {
                 // eliminate double negation: (not (not x)) = (x)
-                if (c->type == node_op_not)
+                if (is_op_not(c))
                 {
                     node* x = c->first_child;
                     plnnrc_assert(x != 0);
@@ -135,7 +135,7 @@ node* convert_to_nnf(tree& ast, node* root)
                 // de-morgan's law: (not (or x y)) = (and (not x) (not y)); (not (and x y)) = (or (not x) (not y))
                 else
                 {
-                    p->type = (c->type == node_op_and) ? node_op_or : node_op_and;
+                    p->type = is_op_and(c) ? node_op_or : node_op_and;
                     node* after = c;
 
                     for (node* x = c->first_child; x != 0;)
@@ -167,7 +167,7 @@ void flatten(node* root)
 
     for (node* p = root; p != 0; p = preorder_traversal_next(root, p))
     {
-        if (is_logical_op(p) && p->type != node_op_not)
+        if (is_logical_op(p) && !is_op_not(p))
         {
             for (;;)
             {
@@ -212,14 +212,14 @@ namespace
     inline bool is_literal(node* root)
     {
         plnnrc_assert(root != 0);
-        return (root->type == node_op_not) || (root->type == node_term_call) || is_atom(root);
+        return is_op_not(root) || is_term_call(root) || is_generic_atom(root);
     }
 
     bool is_conjunction_of_literals(node* root)
     {
         plnnrc_assert(root != 0);
 
-        if (root->type != node_op_and)
+        if (!is_op_and(root))
         {
             return false;
         }
@@ -250,8 +250,7 @@ namespace
 
     bool distribute_and(tree& ast, node* node_and)
     {
-        plnnrc_assert(node_and != 0);
-        plnnrc_assert(node_and->type == node_op_and);
+        plnnrc_assert(node_and && is_op_and(node_and));
 
         node* node_or = find_first(node_and, node_op_or);
         plnnrc_assert(node_or != 0);
@@ -306,8 +305,7 @@ namespace
 
     node* convert_to_dnf_or(tree& ast, node* root)
     {
-        plnnrc_assert(root != 0);
-        plnnrc_assert(root->type == node_op_or);
+        plnnrc_assert(root && is_op_or(root));
 
         for (;;)
         {

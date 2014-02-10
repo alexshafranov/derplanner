@@ -61,7 +61,7 @@ void generate_task_name_function(ast::tree& ast, ast::node* domain, bool enabled
 
             for (ast::node* method = domain->first_child; method != 0; method = method->next_sibling)
             {
-                if (method->type != ast::node_method)
+                if (!ast::is_method(method))
                 {
                     continue;
                 }
@@ -95,7 +95,7 @@ void generate_atom_name_function(ast::tree& /*ast*/, ast::node* worldstate, bool
 
             for (ast::node* atom = worldstate->first_child->next_sibling; atom != 0; atom = atom->next_sibling)
             {
-                if (atom->type != ast::node_atom)
+                if (!ast::is_atom(atom))
                 {
                     continue;
                 }

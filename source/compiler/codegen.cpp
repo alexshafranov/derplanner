@@ -110,8 +110,7 @@ bool generate_header(ast::tree& ast, writer& writer, codegen_options options)
     if (worldstate)
     {
         ast::node* worldstate_namespace = worldstate->first_child;
-        plnnrc_assert(worldstate_namespace);
-        plnnrc_assert(worldstate_namespace->type == ast::node_namespace);
+        plnnrc_assert(worldstate_namespace && ast::is_namespace(worldstate_namespace));
 
         namespace_wrap wrap(worldstate_namespace, output);
         generate_worldstate(ast, worldstate, output);
@@ -120,8 +119,7 @@ bool generate_header(ast::tree& ast, writer& writer, codegen_options options)
     if (domain)
     {
         ast::node* domain_namespace = domain->first_child;
-        plnnrc_assert(domain_namespace);
-        plnnrc_assert(domain_namespace->type == ast::node_namespace);
+        plnnrc_assert(domain_namespace && ast::is_namespace(domain_namespace));
 
         namespace_wrap wrap(domain_namespace, output);
         generate_task_type_enum(ast, domain, output);
@@ -167,8 +165,7 @@ bool generate_source(ast::tree& ast, writer& writer, codegen_options options)
     if (worldstate)
     {
         ast::node* worldstate_namespace = worldstate->first_child;
-        plnnrc_assert(worldstate_namespace);
-        plnnrc_assert(worldstate_namespace->type == ast::node_namespace);
+        plnnrc_assert(worldstate_namespace && ast::is_namespace(worldstate_namespace));
 
         namespace_wrap wrap(worldstate_namespace, output, domain != 0);
         generate_atom_name_function(ast, worldstate, options.runtime_atom_names, output);
@@ -177,8 +174,7 @@ bool generate_source(ast::tree& ast, writer& writer, codegen_options options)
     if (domain)
     {
         ast::node* domain_namespace = domain->first_child;
-        plnnrc_assert(domain_namespace);
-        plnnrc_assert(domain_namespace->type == ast::node_namespace);
+        plnnrc_assert(domain_namespace && ast::is_namespace(domain_namespace));
 
         namespace_wrap wrap(domain_namespace, output, false);
         generate_task_name_function(ast, domain, options.runtime_task_names, output);

@@ -78,13 +78,13 @@ namespace
 
     void link_to_parameter(node* parameter, node* root)
     {
-        plnnrc_assert(parameter->type == node_term_variable);
+        plnnrc_assert(is_term_variable(parameter));
         const char* id = parameter->s_expr->token;
         plnnrc_assert(id);
 
         for (node* n = root; n != 0; n = preorder_traversal_next(root, n))
         {
-            if (n->type == node_term_variable)
+            if (is_term_variable(n))
             {
                 if (strcmp(n->s_expr->token, id) == 0)
                 {
@@ -96,13 +96,13 @@ namespace
 
     void link_to_variable(node* variable, node* root, node* first)
     {
-        plnnrc_assert(variable->type == node_term_variable);
+        plnnrc_assert(is_term_variable(variable));
         const char* id = variable->s_expr->token;
         plnnrc_assert(id);
 
         for (node* n = first; n != 0; n = preorder_traversal_next(root, n))
         {
-            if (n->type == node_term_variable && !annotation<term_ann>(n)->var_def)
+            if (is_term_variable(n) && !definition(n))
             {
                 if (strcmp(n->s_expr->token, id) == 0)
                 {
@@ -123,7 +123,7 @@ namespace
 
         for (node* n = precondition; n != 0; n = preorder_traversal_next(precondition, n))
         {
-            if (n->type == node_term_variable && !annotation<term_ann>(n)->var_def)
+            if (is_term_variable(n) && !definition(n))
             {
                 link_to_variable(n, precondition, preorder_traversal_next(precondition, n));
                 link_to_variable(n, tasklist, tasklist);
@@ -132,7 +132,7 @@ namespace
 
         for (node* n = tasklist; n != 0; n = preorder_traversal_next(tasklist, n))
         {
-            if (n->type == node_term_variable && !definition(n))
+            if (is_term_variable(n) && !definition(n))
             {
                 replace_with_error(ast, n, error_unbound_var) << n->s_expr;
             }
@@ -142,13 +142,13 @@ namespace
     void link_method_variables(tree& ast, node* method)
     {
         node* atom = method->first_child;
-        plnnrc_assert(atom && atom->type == node_atom);
+        plnnrc_assert(atom && is_atom(atom));
 
         for (node* p = atom->first_child; p != 0; p = p->next_sibling)
         {
             PLNNRC_SKIP_ERROR_NODE(p);
 
-            if (p->type != node_term_variable)
+            if (!is_term_variable(p))
             {
                 replace_with_error(ast, p, error_expected_parameter);
             }
@@ -168,14 +168,14 @@ namespace
     void link_operator_variables(node* operatr)
     {
         node* atom = operatr->first_child;
-        plnnrc_assert(atom && atom->type == node_atom);
+        plnnrc_assert(atom && is_atom(atom));
 
         for (node* effect_list = atom->next_sibling; effect_list != 0; effect_list = effect_list->next_sibling)
         {
             for (node* param = atom->first_child; param != 0; param = param->next_sibling)
             {
                 // stub operators can have call terms as "variables"
-                if (param->type == node_term_variable)
+                if (is_term_variable(param))
                 {
                     link_to_parameter(param, effect_list);
                 }
@@ -230,7 +230,7 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
     {
         node* method = methods.value();
         node* method_atom = method->first_child;
-        plnnrc_assert(method_atom && method_atom->type == node_atom);
+        plnnrc_assert(method_atom && is_atom(method_atom));
         (void)(method_atom);
 
         link_method_variables(ast, method);
@@ -240,7 +240,7 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
     {
         node* operatr = operators.value();
         node* operator_atom = operatr->first_child;
-        plnnrc_assert(operator_atom && operator_atom->type == node_atom);
+        plnnrc_assert(operator_atom && is_atom(operator_atom));
         (void)(operator_atom);
 
         link_operator_variables(operatr);
@@ -259,7 +259,7 @@ node* build_method(tree& ast, sexpr::node* s_expr)
     PLNNRC_CHECK_NODE(task_atom, build_atom(ast, task_atom_expr));
     append_child(method, task_atom);
 
-    if (task_atom->type != node_error)
+    if (!is_error(task_atom))
     {
         PLNNRC_RETURN(expect_valid_id(ast, task_atom->s_expr));
         PLNNRC_RETURN(expect_condition(ast, task_atom->s_expr, !ast.methods.find(task_atom->s_expr->token), error_redefinition)
@@ -362,7 +362,7 @@ node* build_operator(tree& ast, sexpr::node* s_expr)
     PLNNRC_CHECK_NODE(task_atom, build_atom(ast, task_atom_expr));
     append_child(operatr, task_atom);
 
-    if (task_atom->type != node_error)
+    if (!is_error(task_atom))
     {
         PLNNRC_RETURN(expect_valid_id(ast, task_atom->s_expr));
         PLNNRC_RETURN(expect_condition(ast, task_atom->s_expr, !ast.operators.find(task_atom->s_expr->token), error_redefinition)
@@ -447,7 +447,7 @@ bool build_operator_stubs(tree& ast)
     {
         node* method = methods.value();
         node* method_atom = method->first_child;
-        plnnrc_assert(method_atom && method_atom->type == node_atom);
+        plnnrc_assert(method_atom && is_atom(method_atom));
 
         for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
         {
@@ -461,7 +461,7 @@ bool build_operator_stubs(tree& ast)
             {
                 PLNNRC_SKIP_SUBTREE_WITH_ERRORS(task);
 
-                if (task->type == node_atom && !is_method(ast, task))
+                if (is_atom(task) && !is_method(ast, task))
                 {
                     if (ast.operators.find(task->s_expr->token))
                     {

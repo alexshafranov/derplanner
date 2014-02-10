@@ -39,7 +39,7 @@ namespace
         {
             PLNNRC_BREAK(replace_with_error_if(!ws_type, ast, root, error_wrong_number_of_arguments) << root->s_expr);
 
-            if (c->type == node_term_variable)
+            if (is_term_variable(c))
             {
                 type_tag(c, annotation<ws_type_ann>(ws_type)->type_tag);
 
@@ -56,7 +56,7 @@ namespace
                 }
             }
 
-            if (c->type == node_term_call)
+            if (is_term_call(c))
             {
                 node* ws_func = ast.ws_funcs.find(c->s_expr->token);
                 PLNNRC_CONTINUE(replace_with_error_if(!ws_func, ast, c, error_undefined) << c->s_expr);
@@ -110,7 +110,7 @@ namespace
 
                 for (node* var = precondition; var != 0; var = preorder_traversal_next(precondition, var))
                 {
-                    if (var->type == node_term_variable && is_bound(var) && (var->parent->type == node_atom || var->parent->type == node_term_call))
+                    if (is_term_variable(var) && is_bound(var) && (is_atom(var->parent) || is_term_call(var->parent)))
                     {
                         set_or_check_var_type(ast, var);
                     }
@@ -124,7 +124,7 @@ namespace
                     {
                         for (node* var = task->first_child; var != 0; var = var->next_sibling)
                         {
-                            if (var->type == node_term_variable)
+                            if (is_term_variable(var))
                             {
                                 set_or_check_var_type(ast, var);
                             }
@@ -134,11 +134,11 @@ namespace
                     {
                         for (node* call = task->first_child; call != 0; call = call->next_sibling)
                         {
-                            if (call->type == node_term_call)
+                            if (is_term_call(call))
                             {
                                 for (node* var = call->first_child; var != 0; var = var->next_sibling)
                                 {
-                                    if (var->type == node_term_variable)
+                                    if (is_term_variable(var))
                                     {
                                         set_or_check_var_type(ast, var);
                                     }
@@ -210,7 +210,7 @@ namespace
                         {
                             PLNNRC_BREAK(replace_with_error_if(!param, ast, task, error_wrong_number_of_arguments) << task->s_expr);
 
-                            if (arg->type == node_term_variable)
+                            if (is_term_variable(arg))
                             {
                                 plnnrc_assert(is_bound(arg));
                                 node* def = definition(arg);
@@ -230,7 +230,7 @@ namespace
                                 }
                             }
 
-                            if (arg->type == node_term_call)
+                            if (is_term_call(arg))
                             {
                                 node* ws_func = ast.ws_funcs.find(arg->s_expr->token);
                                 plnnrc_assert(ws_func);
@@ -284,7 +284,7 @@ namespace
             {
                 node* method = methods.value();
                 node* method_atom = method->first_child;
-                plnnrc_assert(method_atom && method_atom->type == node_atom);
+                plnnrc_assert(method_atom && is_atom(method_atom));
 
                 for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
                 {
@@ -293,7 +293,7 @@ namespace
 
                     for (node* var = precondition; var != 0; var = preorder_traversal_next(precondition, var))
                     {
-                        if (var->type == node_term_variable && is_bound(var) && var->parent->type == node_atom_eq)
+                        if (is_term_variable(var) && is_bound(var) && is_atom_eq(var->parent))
                         {
                             node* def = definition(var);
                             plnnrc_assert(type_tag(def));
@@ -310,14 +310,14 @@ void seed_types(tree& ast, node* root)
 {
     for (node* n = root; n != 0; n = preorder_traversal_next(root, n))
     {
-        if (n->type == node_atom)
+        if (is_atom(n))
         {
             node* ws_atom = ast.ws_atoms.find(n->s_expr->token);
             PLNNRC_CONTINUE(replace_with_error_if(!ws_atom, ast, n, error_undefined) << n->s_expr);
 
             node* ws_type = seed_parameter_types(ast, n, ws_atom->first_child);
 
-            if (n->type == node_error)
+            if (is_error(n))
             {
                 continue;
             }
@@ -325,14 +325,14 @@ void seed_types(tree& ast, node* root)
             PLNNRC_CONTINUE(replace_with_error_if(ws_type != 0, ast, n, error_wrong_number_of_arguments) << n->s_expr);
         }
 
-        if (n->type == node_term_call)
+        if (is_term_call(n))
         {
             node* ws_func = ast.ws_funcs.find(n->s_expr->token);
             PLNNRC_CONTINUE(replace_with_error_if(!ws_func, ast, n, error_undefined) << n->s_expr);
 
             node* ws_type = seed_parameter_types(ast, n, ws_func->first_child->first_child);
 
-            if (n->type == node_error)
+            if (is_error(n))
             {
                 continue;
             }
@@ -403,7 +403,7 @@ void seed_types(tree& ast)
                 {
                     for (node* argument = task->first_child; argument != 0; argument = argument->next_sibling)
                     {
-                        if (argument->type == node_term_call)
+                        if (is_term_call(argument))
                         {
                             seed_types(ast, argument);
                         }

@@ -75,7 +75,7 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
             PLNNRC_CHECK_NODE(atom, build_worldstate_atom(ast, func_atom_expr, type_tag));
             append_child(function_def, atom);
 
-            if (atom->type != node_error)
+            if (!is_error(atom))
             {
                 PLNNRC_CONTINUE(expect_condition(ast, atom->s_expr, !ast.ws_funcs.find(atom->s_expr->token), error_redefinition, worldstate)
                     << atom->s_expr
@@ -96,7 +96,7 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
         {
             PLNNRC_CHECK_NODE(atom, build_worldstate_atom(ast, c_expr, type_tag));
 
-            if (atom->type != node_error)
+            if (!is_error(atom))
             {
                 PLNNRC_CONTINUE(expect_condition(ast, atom->s_expr, !ast.ws_atoms.find(atom->s_expr->token), error_redefinition, worldstate)
                     << atom->s_expr

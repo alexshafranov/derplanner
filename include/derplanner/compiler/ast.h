@@ -42,7 +42,7 @@ enum node_type
 {
     node_none = 0,
 
-    #define PLNNRC_AST_NODE(NODE_ID) NODE_ID,
+    #define PLNNRC_AST_NODE(NODE_ID) node_##NODE_ID,
     #include "derplanner/compiler/ast_node_tags.inl"
     #undef PLNNRC_AST_NODE
 };
@@ -123,45 +123,32 @@ struct method_ann
     bool processed;
 };
 
-inline bool is_logical_op(node_type type)
-{
-    return type >= node_op_and && type <= node_op_not;
-}
+#define PLNNRC_AST_NODE_GROUP(GROUP_ID, FIRST_ID, LAST_ID)          \
+    inline bool is_##GROUP_ID(node_type type)                       \
+    {                                                               \
+        return type >= node_##FIRST_ID && type <= node_##LAST_ID;   \
+    }                                                               \
+                                                                    \
+    inline bool is_##GROUP_ID(const node* n)                        \
+    {                                                               \
+        return is_##GROUP_ID(n->type);                              \
+    }                                                               \
 
-inline bool is_logical_op(const node* n)
-{
-    return is_logical_op(n->type);
-}
+#define PLNNRC_AST_NODE(NODE_ID)                \
+    inline bool is_##NODE_ID(node_type type)    \
+    {                                           \
+        return type == node_##NODE_ID;          \
+    }                                           \
+                                                \
+    inline bool is_##NODE_ID(const node* n)     \
+    {                                           \
+        return is_##NODE_ID(n->type);           \
+    }                                           \
 
-inline bool is_term(node_type type)
-{
-    return type >= node_term_variable && type <= node_term_call;
-}
+#include "ast_node_tags.inl"
 
-inline bool is_term(const node* n)
-{
-    return is_term(n->type);
-}
-
-inline bool is_atom(node_type type)
-{
-    return type >= node_atom && type <= node_atom_eq;
-}
-
-inline bool is_atom(const node* n)
-{
-    return is_atom(n->type);
-}
-
-inline bool is_effect_list(node_type type)
-{
-    return type >= node_add_list && type <= node_delete_list;
-}
-
-inline bool is_effect_list(const node* n)
-{
-    return is_effect_list(n->type);
-}
+#undef PLNNRC_AST_NODE
+#undef PLNNRC_AST_NODE_GROUP
 
 }
 }

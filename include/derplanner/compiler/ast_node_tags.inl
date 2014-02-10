@@ -18,38 +18,52 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
+#ifndef PLNNRC_AST_NODE
+    #define PLNNRC_AST_NODE(NODE_ID)
+#endif
 
 #ifndef PLNNRC_AST_NODE_WITH_TOKEN
     #define PLNNRC_AST_NODE_WITH_TOKEN(NODE_ID) PLNNRC_AST_NODE(NODE_ID)
 #endif
 
-PLNNRC_AST_NODE(node_root)
-PLNNRC_AST_NODE(node_worldstate)
-PLNNRC_AST_NODE(node_function)
-PLNNRC_AST_NODE(node_domain)
-PLNNRC_AST_NODE(node_method)
-PLNNRC_AST_NODE(node_branch)
-PLNNRC_AST_NODE(node_operator)
-PLNNRC_AST_NODE(node_task_list)
-PLNNRC_AST_NODE(node_add_list)
-PLNNRC_AST_NODE(node_delete_list)
+#ifndef PLNNRC_AST_NODE_GROUP
+    #define PLNNRC_AST_NODE_GROUP(GROUP_ID, FIRST_ID, LAST_ID)
+#endif
 
-PLNNRC_AST_NODE(node_op_and)
-PLNNRC_AST_NODE(node_op_or)
-PLNNRC_AST_NODE(node_op_not)
+PLNNRC_AST_NODE(root)
+PLNNRC_AST_NODE(worldstate)
+PLNNRC_AST_NODE(function)
+PLNNRC_AST_NODE(domain)
+PLNNRC_AST_NODE(method)
+PLNNRC_AST_NODE(branch)
+PLNNRC_AST_NODE(operator)
+PLNNRC_AST_NODE(task_list)
 
-PLNNRC_AST_NODE_WITH_TOKEN(node_namespace)
+PLNNRC_AST_NODE(add_list)
+PLNNRC_AST_NODE(delete_list)
+PLNNRC_AST_NODE_GROUP(effect_list, add_list, delete_list)
 
-PLNNRC_AST_NODE_WITH_TOKEN(node_worldstate_type)
+PLNNRC_AST_NODE(op_and)
+PLNNRC_AST_NODE(op_or)
+PLNNRC_AST_NODE(op_not)
+PLNNRC_AST_NODE_GROUP(logical_op, op_and, op_not)
 
-PLNNRC_AST_NODE_WITH_TOKEN(node_atom)
-PLNNRC_AST_NODE_WITH_TOKEN(node_atom_eq)
+PLNNRC_AST_NODE_WITH_TOKEN(namespace)
 
-PLNNRC_AST_NODE_WITH_TOKEN(node_term_variable)
-PLNNRC_AST_NODE_WITH_TOKEN(node_term_int)
-PLNNRC_AST_NODE_WITH_TOKEN(node_term_float)
-PLNNRC_AST_NODE_WITH_TOKEN(node_term_call)
+PLNNRC_AST_NODE_WITH_TOKEN(worldstate_type)
 
-PLNNRC_AST_NODE_WITH_TOKEN(node_error)
+PLNNRC_AST_NODE_WITH_TOKEN(atom)
+PLNNRC_AST_NODE_WITH_TOKEN(atom_eq)
+PLNNRC_AST_NODE_GROUP(generic_atom, atom, atom_eq)
 
+PLNNRC_AST_NODE_WITH_TOKEN(term_variable)
+PLNNRC_AST_NODE_WITH_TOKEN(term_int)
+PLNNRC_AST_NODE_WITH_TOKEN(term_float)
+PLNNRC_AST_NODE_WITH_TOKEN(term_call)
+PLNNRC_AST_NODE_GROUP(term, term_variable, term_call)
+
+PLNNRC_AST_NODE_WITH_TOKEN(error)
+
+#undef PLNNRC_AST_NODE_GROUP
 #undef PLNNRC_AST_NODE_WITH_TOKEN
+#undef PLNNRC_AST_NODE

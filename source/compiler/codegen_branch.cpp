@@ -97,7 +97,7 @@ void generate_branch_expands(ast::tree& ast, ast::node* domain, formatter& outpu
 
     for (ast::node* method = domain->first_child; method != 0; method = method->next_sibling)
     {
-        if (method->type != ast::node_method)
+        if (!ast::is_method(method))
         {
             continue;
         }
@@ -109,14 +109,14 @@ void generate_branch_expands(ast::tree& ast, ast::node* domain, formatter& outpu
 
         for (ast::node* branch = method->first_child->next_sibling; branch != 0; branch = branch->next_sibling)
         {
-            plnnrc_assert(branch->type == ast::node_branch);
+            plnnrc_assert(ast::is_branch(branch));
 
             ast::branch_ann* ann = ast::annotation<ast::branch_ann>(branch);
 
             ast::node* precondition = branch->first_child;
             ast::node* tasklist = precondition->next_sibling;
 
-            plnnrc_assert(tasklist->type == ast::node_task_list);
+            plnnrc_assert(ast::is_task_list(tasklist));
 
             output.writeln("bool %i_branch_%d_expand(method_instance* method, planner_state& pstate, void* world)", method_name, branch_index);
             {
@@ -171,11 +171,11 @@ void generate_branch_expands(ast::tree& ast, ast::node* domain, formatter& outpu
                         {
                             scope s(output);
 
-                            if (task_atom->type == ast::node_add_list)
+                            if (ast::is_add_list(task_atom))
                             {
                                 generate_effects_add(task_atom, output);
                             }
-                            else if (task_atom->type == ast::node_delete_list)
+                            else if (ast::is_delete_list(task_atom))
                             {
                                 generate_effects_delete(task_atom, output);
                             }
@@ -295,7 +295,7 @@ void generate_effects_add(ast::node* effects, formatter& output)
 
         for (ast::node* arg = effect->first_child; arg != 0; arg = arg->next_sibling)
         {
-            if (arg->type == ast::node_term_variable)
+            if (ast::is_term_variable(arg))
             {
                 ast::node* def = definition(arg);
                 plnnrc_assert(def);
@@ -315,7 +315,7 @@ void generate_effects_add(ast::node* effects, formatter& output)
                 }
             }
 
-            if (arg->type == ast::node_term_call)
+            if (ast::is_term_call(arg))
             {
                 paste_function_call paste(arg);
                 output.writeln("tuple->_%d = wstate->%p;", param_index, &paste);
@@ -344,7 +344,7 @@ void generate_effects_delete(ast::node* effects, formatter& output)
 
             for (ast::node* arg = effect->first_child; arg != 0; arg = arg->next_sibling)
             {
-                if (arg->type == ast::node_term_variable)
+                if (ast::is_term_variable(arg))
                 {
                     ast::node* def = definition(arg);
                     plnnrc_assert(def);
@@ -364,7 +364,7 @@ void generate_effects_delete(ast::node* effects, formatter& output)
                     }
                 }
 
-                if (arg->type == ast::node_term_call)
+                if (ast::is_term_call(arg))
                 {
                     paste_function_call paste(arg);
                     output.writeln("if (tuple->_%d != wstate->%p)", param_index, &paste);
@@ -411,7 +411,7 @@ void generate_operator_task(ast::tree& ast, ast::node* method, ast::node* task_a
 
     for (ast::node* arg = task_atom->first_child; arg != 0; arg = arg->next_sibling)
     {
-        if (arg->type == ast::node_term_variable)
+        if (ast::is_term_variable(arg))
         {
             ast::node* def = definition(arg);
             plnnrc_assert(def);
@@ -427,7 +427,7 @@ void generate_operator_task(ast::tree& ast, ast::node* method, ast::node* task_a
             }
         }
 
-        if (arg->type == ast::node_term_call)
+        if (ast::is_term_call(arg))
         {
             paste_function_call paste(arg);
             output.writeln("a->_%d = wstate->%p;", param_index, &paste);
@@ -458,7 +458,7 @@ void generate_method_task(ast::tree& ast, ast::node* /*method*/, ast::node* task
 
     for (ast::node* arg = task_atom->first_child; arg != 0; arg = arg->next_sibling)
     {
-        if (arg->type == ast::node_term_variable)
+        if (ast::is_term_variable(arg))
         {
             ast::node* def = definition(arg);
             plnnrc_assert(def);
@@ -474,7 +474,7 @@ void generate_method_task(ast::tree& ast, ast::node* /*method*/, ast::node* task
             }
         }
 
-        if (arg->type == ast::node_term_call)
+        if (ast::is_term_call(arg))
         {
             paste_function_call paste(arg);
             output.writeln("a->_%d = wstate->%p;", param_index, &paste);
