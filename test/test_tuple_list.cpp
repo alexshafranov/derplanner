@@ -37,9 +37,9 @@ namespace
     {
         tuple_list::handle* list;
 
-        holder(size_t page_size=4096)
+        holder(size_t items_per_page=4096)
         {
-            list = tuple_list::create<tuple>(page_size);
+            list = tuple_list::create<tuple>(items_per_page);
         }
 
         ~holder()

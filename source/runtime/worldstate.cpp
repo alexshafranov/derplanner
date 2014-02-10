@@ -90,13 +90,13 @@ namespace
     }
 }
 
-handle* create(tuple_traits traits, size_t page_size)
+handle* create(tuple_traits traits, size_t items_per_page)
 {
-    size_t worstcase_size = sizeof(handle) + plnnr_alignof(handle) + sizeof(page) + plnnr_alignof(page);
-    plnnr_assert(page_size > worstcase_size);
-    (void)(worstcase_size);
+    size_t handle_size = sizeof(handle) + plnnr_alignof(handle);
+    size_t header_size = sizeof(page) + plnnr_alignof(page);
+    size_t page_size = header_size + items_per_page * traits.size + traits.alignment;
 
-    char* memory = static_cast<char*>(memory::allocate(page_size));
+    char* memory = static_cast<char*>(memory::allocate(handle_size + page_size));
 
     if (!memory)
     {

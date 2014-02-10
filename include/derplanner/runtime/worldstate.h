@@ -37,7 +37,7 @@ struct tuple_traits
 
 struct handle;
 
-handle* create(tuple_traits traits, size_t page_size);
+handle* create(tuple_traits traits, size_t items_per_page);
 
 void destroy(const handle* tuple_list);
 
@@ -52,14 +52,14 @@ void clear(handle* tuple_list);
 void* head(handle* tuple_list);
 
 template <typename T>
-inline handle* create(size_t page_size)
+inline handle* create(size_t items_per_page)
 {
     tuple_traits traits;
     traits.size = sizeof(T);
     traits.alignment = plnnr_alignof(T);
     traits.next_offset = offsetof(T, next);
     traits.prev_offset = offsetof(T, prev);
-    return create(traits, page_size);
+    return create(traits, items_per_page);
 }
 
 template <typename T>

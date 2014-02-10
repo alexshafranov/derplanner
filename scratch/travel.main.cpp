@@ -15,8 +15,8 @@ int main()
     travel::worldstate world_struct;
     memset(&world_struct, 0, sizeof(world_struct));
 
-    world_struct.atoms[atom_start] = tuple_list::create<start_tuple>(tuple_list_page);
-    world_struct.atoms[atom_finish] = tuple_list::create<finish_tuple>(tuple_list_page);
+    world_struct.atoms[atom_start] = tuple_list::create<start_tuple>(1);
+    world_struct.atoms[atom_finish] = tuple_list::create<finish_tuple>(1);
     world_struct.atoms[atom_short_distance] = tuple_list::create<short_distance_tuple>(tuple_list_page);
     world_struct.atoms[atom_long_distance] = tuple_list::create<long_distance_tuple>(tuple_list_page);
     world_struct.atoms[atom_airport] = tuple_list::create<airport_tuple>(tuple_list_page);
@@ -101,6 +101,8 @@ int main()
     {
         printf("plan not found.\n");
     }
+
+    printf("\n");
 
     for (plnnr::method_trace* trace = plnnr::bottom<plnnr::method_trace>(pstate.trace); trace != plnnr::top<plnnr::method_trace>(pstate.trace)+1; ++trace)
     {
