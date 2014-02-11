@@ -188,7 +188,7 @@ void generate_conjunctive_clause(ast::tree& ast, ast::node* root, formatter& out
 
 void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output)
 {
-    plnnrc_assert(ast::is_op_not(root) || ast::is_term_call(root) || is_generic_atom(root));
+    plnnrc_assert(ast::is_op_not(root) || ast::is_term_call(root) || is_atom(root) || is_comparison_op(root));
 
     ast::node* atom = root;
 
@@ -198,11 +198,11 @@ void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output)
     }
 
     // special case atoms
-    if (ast::is_atom_eq(atom))
-    {
-        generate_literal_chain_atom_eq(ast, root, atom, output);
-        return;
-    }
+    // if (ast::is_atom_eq(atom))
+    // {
+    //     generate_literal_chain_atom_eq(ast, root, atom, output);
+    //     return;
+    // }
 
     if (ast::is_term_call(atom))
     {

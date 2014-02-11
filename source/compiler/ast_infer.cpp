@@ -278,26 +278,30 @@ namespace
 
                 break;
             }
+        }
 
-            // propagate types for non atom vars in preconditions
-            for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+        // assign types to all other bound variables, once method parameter types are figured out
+        for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+        {
+            node* method = methods.value();
+            node* method_atom = method->first_child;
+
+            for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
             {
-                node* method = methods.value();
-                node* method_atom = method->first_child;
-                plnnrc_assert(method_atom && is_atom(method_atom));
+                node* precondition = branch->first_child;
 
-                for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
+                for (node* n = precondition; n != 0; n = preorder_traversal_next(precondition, n))
                 {
-                    node* precondition = branch->first_child;
-                    plnnrc_assert(precondition);
-
-                    for (node* var = precondition; var != 0; var = preorder_traversal_next(precondition, var))
+                    if (is_comparison_op(n))
                     {
-                        if (is_term_variable(var) && is_bound(var) && is_atom_eq(var->parent))
+                        for (node* var = n->first_child; var != 0; var = var->next_sibling)
                         {
-                            node* def = definition(var);
-                            plnnrc_assert(type_tag(def));
-                            type_tag(var, type_tag(def));
+                            if (is_term_variable(var))
+                            {
+                                node* def = definition(var);
+                                PLNNRC_SKIP_ERROR_NODE(def);
+                                type_tag(var, type_tag(def));
+                            }
                         }
                     }
                 }

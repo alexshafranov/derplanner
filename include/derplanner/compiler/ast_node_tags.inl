@@ -57,12 +57,8 @@ PLNNRC_AST_NODE(op_gt)
 PLNNRC_AST_NODE_GROUP(comparison_op, op_eq, op_gt)
 
 PLNNRC_AST_NODE_WITH_TOKEN(namespace)
-
 PLNNRC_AST_NODE_WITH_TOKEN(worldstate_type)
-
 PLNNRC_AST_NODE_WITH_TOKEN(atom)
-PLNNRC_AST_NODE_WITH_TOKEN(atom_eq)
-PLNNRC_AST_NODE_GROUP(generic_atom, atom, atom_eq)
 
 PLNNRC_AST_NODE_WITH_TOKEN(term_variable)
 PLNNRC_AST_NODE_WITH_TOKEN(term_int)

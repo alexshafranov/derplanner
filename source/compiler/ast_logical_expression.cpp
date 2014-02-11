@@ -255,7 +255,7 @@ namespace
     inline bool is_literal(node* root)
     {
         plnnrc_assert(root != 0);
-        return is_op_not(root) || is_term_call(root) || is_generic_atom(root) || is_comparison_op(root);
+        return is_op_not(root) || is_term_call(root) || is_atom(root) || is_comparison_op(root);
     }
 
     bool is_conjunction_of_literals(node* root)

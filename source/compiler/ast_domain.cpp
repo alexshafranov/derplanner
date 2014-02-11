@@ -136,9 +136,12 @@ namespace
             {
                 for (node* arg = n->first_child; arg != 0; arg = arg->next_sibling)
                 {
-                    if (is_term_variable(arg) && !is_bound(arg))
+                    if (is_term_variable(arg))
                     {
-                        replace_with_error(ast, arg, error_unbound_var) << arg->s_expr << (is_term_call(n) ? 1 : 2);
+                        if (!definition(arg) || is_error(definition(arg)))
+                        {
+                            replace_with_error(ast, arg, error_unbound_var) << arg->s_expr << (is_term_call(n) ? 1 : 2);
+                        }
                     }
                 }
             }
@@ -146,9 +149,12 @@ namespace
 
         for (node* n = tasklist; n != 0; n = preorder_traversal_next(tasklist, n))
         {
-            if (is_term_variable(n) && !definition(n))
+            if (is_term_variable(n))
             {
-                replace_with_error(ast, n, error_unbound_var) << n->s_expr << 0;
+                if (!definition(n) || is_error(definition(n)))
+                {
+                    replace_with_error(ast, n, error_unbound_var) << n->s_expr << 0;
+                }
             }
         }
     }

@@ -37,8 +37,6 @@ inline bool is_bound(node* var)
 
 inline bool all_bound(node* atom)
 {
-    plnnrc_assert(is_generic_atom(atom));
-
     for (node* arg = atom->first_child; arg != 0; arg = arg->next_sibling)
     {
         if (!is_term_variable(arg))
@@ -57,8 +55,6 @@ inline bool all_bound(node* atom)
 
 inline bool all_unbound(node* atom)
 {
-    plnnrc_assert(is_generic_atom(atom));
-
     for (node* arg = atom->first_child; arg != 0; arg = arg->next_sibling)
     {
         if (!is_term_variable(arg) || is_bound(arg))
