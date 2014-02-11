@@ -69,6 +69,19 @@ node* build_logical_op(tree& ast, sexpr::node* s_expr, node_type op_type)
     return root;
 }
 
+node* build_comparison_op(tree& ast, sexpr::node* s_expr, node_type op_type)
+{
+    PLNNRC_CHECK_NODE(root, ast.make_node(op_type, s_expr));
+
+    for (sexpr::node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
+    {
+        PLNNRC_CHECK_NODE(child, build_term(ast, c_expr));
+        append_child(root, child);
+    }
+
+    return root;
+}
+
 node* build_logical_expression_recursive(tree& ast, sexpr::node* s_expr)
 {
     PLNNRC_RETURN(expect_child_type(ast, s_expr, sexpr::node_symbol));
@@ -87,6 +100,36 @@ node* build_logical_expression_recursive(tree& ast, sexpr::node* s_expr)
     if (is_token(c_expr, token_not))
     {
         return build_logical_op(ast, s_expr, node_op_not);
+    }
+
+    if (is_token(c_expr, token_eq))
+    {
+        return build_comparison_op(ast, s_expr, node_op_eq);
+    }
+
+    if (is_token(c_expr, token_ne))
+    {
+        return build_comparison_op(ast, s_expr, node_op_ne);
+    }
+
+    if (is_token(c_expr, token_le))
+    {
+        return build_comparison_op(ast, s_expr, node_op_le);
+    }
+
+    if (is_token(c_expr, token_ge))
+    {
+        return build_comparison_op(ast, s_expr, node_op_ge);
+    }
+
+    if (is_token(c_expr, token_lt))
+    {
+        return build_comparison_op(ast, s_expr, node_op_lt);
+    }
+
+    if (is_token(c_expr, token_gt))
+    {
+        return build_comparison_op(ast, s_expr, node_op_gt);
     }
 
     if (ast.ws_funcs.find(c_expr->token))
@@ -212,7 +255,7 @@ namespace
     inline bool is_literal(node* root)
     {
         plnnrc_assert(root != 0);
-        return is_op_not(root) || is_term_call(root) || is_generic_atom(root);
+        return is_op_not(root) || is_term_call(root) || is_generic_atom(root) || is_comparison_op(root);
     }
 
     bool is_conjunction_of_literals(node* root)

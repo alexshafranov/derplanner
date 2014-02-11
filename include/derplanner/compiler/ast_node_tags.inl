@@ -48,6 +48,14 @@ PLNNRC_AST_NODE(op_or)
 PLNNRC_AST_NODE(op_not)
 PLNNRC_AST_NODE_GROUP(logical_op, op_and, op_not)
 
+PLNNRC_AST_NODE(op_eq)
+PLNNRC_AST_NODE(op_ne)
+PLNNRC_AST_NODE(op_le)
+PLNNRC_AST_NODE(op_ge)
+PLNNRC_AST_NODE(op_lt)
+PLNNRC_AST_NODE(op_gt)
+PLNNRC_AST_NODE_GROUP(comparison_op, op_eq, op_gt)
+
 PLNNRC_AST_NODE_WITH_TOKEN(namespace)
 
 PLNNRC_AST_NODE_WITH_TOKEN(worldstate_type)
