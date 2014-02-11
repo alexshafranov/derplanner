@@ -130,11 +130,25 @@ namespace
             }
         }
 
+        for (node* n = precondition; n != 0; n = preorder_traversal_next(precondition, n))
+        {
+            if (is_term_call(n) || is_comparison_op(n))
+            {
+                for (node* arg = n->first_child; arg != 0; arg = arg->next_sibling)
+                {
+                    if (is_term_variable(arg) && !is_bound(arg))
+                    {
+                        replace_with_error(ast, arg, error_unbound_var) << arg->s_expr << (is_term_call(n) ? 1 : 2);
+                    }
+                }
+            }
+        }
+
         for (node* n = tasklist; n != 0; n = preorder_traversal_next(tasklist, n))
         {
             if (is_term_variable(n) && !definition(n))
             {
-                replace_with_error(ast, n, error_unbound_var) << n->s_expr;
+                replace_with_error(ast, n, error_unbound_var) << n->s_expr << 0;
             }
         }
     }

@@ -60,4 +60,6 @@ namespace
     TEST(_30) { check_error("(:worldstate (w) (a (t))) (:domain (d) (:method (m) (a\n()) ()))", error_expected_type, 2, 1); }
     TEST(_31) { check_error("(:domain (d) (:method (m\n(x)) () ()))", error_expected_parameter, 2, 2); }
     TEST(_32) { check_error("(:domain (d) (:method (m) () ((!t\nx))))", error_unbound_var, 2, 1); }
+    TEST(_33) { check_error("(:worldstate (w) (:function (f (t))->(b))) (:domain (d) (:method (m)\n((f u)) ()))", error_unbound_var, 2, 5); }
+    TEST(_34) { check_error("(:domain (d) (:method (m)\n((== u u)) ()))", error_unbound_var, 2, 6); }
 }
