@@ -61,9 +61,9 @@ namespace
 
         for (sexpr::node* c = root->first_child; c != 0; c = c->next_sibling)
         {
-            if (c->type == sexpr::node_list)
+            if (sexpr::is_list(c))
             {
-                if (c->first_child && c->first_child->type == sexpr::node_symbol)
+                if (c->first_child && sexpr::is_symbol(c->first_child))
                 {
                     if (is_token(c->first_child, token))
                     {

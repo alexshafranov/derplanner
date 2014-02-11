@@ -33,7 +33,7 @@ namespace
     {
         std::string result;
 
-        if (root->type == node_list)
+        if (is_list(root))
         {
             result += "(";
 

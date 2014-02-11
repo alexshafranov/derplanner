@@ -91,6 +91,26 @@ private:
     node* _root;
 };
 
+inline bool is_list(const node* n)
+{
+    return n->type == node_list;
+}
+
+inline bool is_symbol(const node* n)
+{
+    return n->type == node_symbol;
+}
+
+inline bool is_int(const node* n)
+{
+    return n->type == node_int;
+}
+
+inline bool is_float(const node* n)
+{
+    return n->type == node_float;
+}
+
 }
 }
 

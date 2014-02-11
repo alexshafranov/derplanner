@@ -40,7 +40,7 @@ bool build_translation_unit(tree& ast, sexpr::node* s_expr)
 
     for (sexpr::node* c_expr = s_expr->first_child; c_expr != 0; c_expr = c_expr->next_sibling)
     {
-        if (c_expr->type == sexpr::node_list)
+        if (sexpr::is_list(c_expr))
         {
             if (is_token(c_expr->first_child, token_worldstate))
             {

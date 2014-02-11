@@ -37,7 +37,7 @@ namespace
     {
         std::string result;
 
-        if (root->type == sexpr::node_list)
+        if (sexpr::is_list(root))
         {
             result += "(";
 

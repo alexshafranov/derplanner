@@ -36,7 +36,7 @@ node* build_logical_expression(tree& ast, sexpr::node* s_expr)
     PLNNRC_CHECK_NODE(root, ast.make_node(node_op_and, s_expr));
 
     // s_expr is operator or atom
-    if (s_expr->first_child && s_expr->first_child->type == sexpr::node_symbol)
+    if (s_expr->first_child && sexpr::is_symbol(s_expr->first_child))
     {
         PLNNRC_CHECK_NODE(child, build_logical_expression_recursive(ast, s_expr));
         append_child(root, child);
