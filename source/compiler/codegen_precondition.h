@@ -36,7 +36,7 @@ void generate_precondition_satisfier(ast::tree& ast, ast::node* root, formatter&
 void generate_conjunctive_clause(ast::tree& ast, ast::node* root, formatter& output);
 void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output);
 void generate_literal_chain_call_term(ast::tree& ast, ast::node* root, ast::node* atom, formatter& output);
-void generate_literal_chain_atom_eq(ast::tree& ast, ast::node* root, ast::node* atom, formatter& output);
+void generate_literal_chain_comparison(ast::tree& ast, ast::node* root, ast::node* atom, formatter& output);
 
 }
 

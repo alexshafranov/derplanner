@@ -197,12 +197,11 @@ void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output)
         atom = root->first_child;
     }
 
-    // special case atoms
-    // if (ast::is_atom_eq(atom))
-    // {
-    //     generate_literal_chain_atom_eq(ast, root, atom, output);
-    //     return;
-    // }
+    if (ast::is_comparison_op(atom))
+    {
+        generate_literal_chain_comparison(ast, root, atom, output);
+        return;
+    }
 
     if (ast::is_term_call(atom))
     {
@@ -359,7 +358,7 @@ void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output)
     }
 }
 
-void generate_literal_chain_atom_eq(ast::tree& ast, ast::node* root, ast::node* atom, formatter& output)
+void generate_literal_chain_comparison(ast::tree& ast, ast::node* root, ast::node* atom, formatter& output)
 {
     ast::node* arg_0 = atom->first_child;
     plnnrc_assert(arg_0 && ast::is_term_variable(arg_0));
@@ -368,17 +367,20 @@ void generate_literal_chain_atom_eq(ast::tree& ast, ast::node* root, ast::node* 
 
     plnnrc_assert(definition(arg_0) && definition(arg_1));
 
-    const char* comparison_op = "==";
-
-    if (ast::is_op_not(root))
-    {
-        comparison_op = "!=";
-    }
+    const char* comparison_op = atom->s_expr->token;
 
     int var_index_0 = ast::annotation<ast::term_ann>(arg_0)->var_index;
     int var_index_1 = ast::annotation<ast::term_ann>(arg_1)->var_index;
 
-    output.writeln("if (state._%d %s state._%d)", var_index_0, comparison_op, var_index_1);
+    if (ast::is_op_not(root))
+    {
+        output.writeln("if (!(state._%d %s state._%d))", var_index_0, comparison_op, var_index_1);
+    }
+    else
+    {
+        output.writeln("if (state._%d %s state._%d)", var_index_0, comparison_op, var_index_1);
+    }
+
     {
         scope s(output, root->next_sibling != 0);
 

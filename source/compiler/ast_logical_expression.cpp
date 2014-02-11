@@ -71,7 +71,8 @@ node* build_logical_op(tree& ast, sexpr::node* s_expr, node_type op_type)
 
 node* build_comparison_op(tree& ast, sexpr::node* s_expr, node_type op_type)
 {
-    PLNNRC_CHECK_NODE(root, ast.make_node(op_type, s_expr));
+    sexpr::node* name_expr = s_expr->first_child;
+    PLNNRC_CHECK_NODE(root, ast.make_node(op_type, name_expr));
 
     for (sexpr::node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
     {

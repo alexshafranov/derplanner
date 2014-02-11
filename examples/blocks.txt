@@ -68,7 +68,7 @@
     )
 
     (:method (mark-block-term x)
-        ((on x y) (goal-on x z) (not (== y z)))
+        ((on x y) (goal-on x z) (!= y z))
         ((:add (need-to-move x)))
 
         ((on-table x) (goal-on x z))
@@ -80,7 +80,7 @@
         ((on x y) (goal-clear y))
         ((:add (need-to-move x)))
 
-        ((on x z) (goal-on y z) (not (== x y)))
+        ((on x z) (goal-on y z) (!= x y))
         ((:add (need-to-move x)))
 
         ((on x w) (need-to-move w))
