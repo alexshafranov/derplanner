@@ -84,8 +84,27 @@ struct error_node_comparator
     }
 };
 
+void print_help()
+{
+    printf(
+"Usage: derplannerc [options] <domain-file-path>\n"
+"Options:\n"
+"   --out, -o <dir>\n"
+"       Set the directory for generated files.\n"
+"       (default: current directory)\n"
+"\n"
+"   --custom-header, -c <header-name>\n"
+"       Custom header.\n"
+"\n"
+"   --help, -h\n"
+"       Print this help.\n"
+    );
+}
+
 int main(int argc, char** argv)
 {
+    print_help();
+
     const char* input_path = argv[1];
     const char* output_dir = argv[2];
     const char* output_name = argv[3];
