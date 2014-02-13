@@ -1,7 +1,16 @@
 language: cpp
 
+notifications:
+    email:
+        on_success: change
+        on_failure: always
+
 compiler:
     - gcc
+
 script:
     - ./premake5 gmake
-    - make
+    - make config=release_x64
+    - ./bin/x64/release/tests
+    - ./bin/x64/release/derplannerc --out scratch examples/travel.txt
+    - ./bin/x64/release/derplannerc --out scratch examples/blocks.txt
