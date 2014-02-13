@@ -98,8 +98,7 @@ void print_help()
 "       Custom header.\n"
 "\n"
 "   --help, -h\n"
-"       Print this help.\n"
-    );
+"       Print this help message and exit.\n");
 }
 
 bool parse_argument(const char* argument, std::string& name, std::string& value)
