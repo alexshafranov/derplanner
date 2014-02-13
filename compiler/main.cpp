@@ -21,6 +21,7 @@
 #include <string>
 #include <algorithm>
 #include <stdio.h>
+#include <string.h>
 
 #include <derplanner/compiler/io.h>
 #include <derplanner/compiler/memory.h>
@@ -86,7 +87,7 @@ struct error_node_comparator
 
 void print_help()
 {
-    printf(
+    fprintf(stderr,
 "Usage: derplannerc [options] <domain-file-path>\n"
 "Options:\n"
 "   --out, -o <dir>\n"
@@ -101,25 +102,162 @@ void print_help()
     );
 }
 
-int main(int argc, char** argv)
+bool parse_argument(const char* argument, std::string& name, std::string& value)
 {
-    print_help();
-
-    const char* input_path = argv[1];
-    const char* output_dir = argv[2];
-    const char* output_name = argv[3];
-
-    const char* custom_header = 0;
-
-    if (argc >= 5)
+    // [value]
+    if (argument[0] != '-')
     {
-        custom_header = argv[4];
+        value = std::string(argument);
+        return false;
     }
 
-    size_t input_size = file_size(input_path);
+    // [--long-option=value] or [--long-option value]
+    if (argument[1] == '-')
+    {
+        const char* begin = argument + 2;
+        const char* end = strchr(argument, '=');
+
+        if (end)
+        {
+            name = std::string(begin, end - begin);
+            value = std::string(end + 1);
+            return false;
+        }
+
+        name = std::string(begin);
+        return true;
+    }
+
+    // [-s value]
+    name = std::string(argument + 1);
+    return true;
+}
+
+std::string normalize(std::string path)
+{
+    for (size_t i = 0; i < path.length(); ++i)
+    {
+        if (path[i] == '\\')
+        {
+            path[i] = '/';
+        }
+    }
+
+    return path;
+}
+
+std::string get_output_name(std::string path)
+{
+    std::string::size_type s = path.rfind("/");
+
+    if (s != std::string::npos)
+    {
+        path = path.substr(s + 1);
+    }
+
+    std::string::size_type d = path.rfind(".");
+
+    if (d != std::string::npos)
+    {
+        path = path.substr(0, d);
+    }
+
+    return path;
+}
+
+int main(int argc, char** argv)
+{
+    std::string output_dir;
+    std::string custom_header;
+    std::string input_path;
+
+    for (int i = 1; i < argc; ++i)
+    {
+        const char* argument = argv[i];
+
+        if (!argument[0])
+        {
+            fprintf(stderr, "error: received empty cmdline argument!\n");
+            return 1;
+        }
+
+        std::string name;
+        std::string value;
+
+        bool expecting_value = parse_argument(argument, name, value);
+
+        if (expecting_value)
+        {
+            if (name == "h" || name == "help")
+            {
+                print_help();
+                return 1;
+            }
+
+            if (i + 1 >= argc || argv[i + 1][0] == '-')
+            {
+                fprintf(stderr, "error: missing value for flag: %s\n", name.c_str());
+                return 1;
+            }
+
+            value = std::string(argv[++i]);
+        }
+
+        if (!name.empty())
+        {
+            if (name == "out" || name == "o")
+            {
+                if (!output_dir.empty())
+                {
+                    fprintf(stderr, "error: multiple values for flag: %s\n", name.c_str());
+                    return 1;
+                }
+
+                output_dir = value;
+                continue;
+            }
+
+            if (name == "custom-header" || name == "c")
+            {
+                if (!custom_header.empty())
+                {
+                    fprintf(stderr, "error: multiple values for flag: %s\n", name.c_str());
+                    return 1;
+                }
+
+                custom_header = value;
+                continue;
+            }
+        }
+        else
+        {
+            if (!input_path.empty())
+            {
+                fprintf(stderr, "error: multiple inputs specified.\n");
+                return 1;
+            }
+
+            input_path = value;
+        }
+    }
+
+    if (input_path.empty())
+    {
+        fprintf(stderr, "error: no source file specified.\n");
+        return 1;
+    }
+
+    if (output_dir.empty())
+    {
+        output_dir = ".";
+    }
+
+    std::string output_name = get_output_name(normalize(input_path));
+
+    size_t input_size = file_size(input_path.c_str());
     buffer_context input_buffer(input_size+1);
     {
-        file_context ctx(input_path, "rb");
+        file_context ctx(input_path.c_str(), "rb");
         size_t rb = fread(input_buffer.data, sizeof(char), input_size, ctx.fd);
         (void)rb;
     }
@@ -132,7 +270,7 @@ int main(int argc, char** argv)
 
         if (result.status != sexpr::parse_ok)
         {
-            printf("error: %d:%d\n", result.line, result.column);
+            fprintf(stderr, "error: %d:%d\n", result.line, result.column);
             return 1;
         }
     }
@@ -158,8 +296,8 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    std::string header_file_name = std::string(output_name) + ".h";
-    std::string source_file_name = std::string(output_name) + ".cpp";
+    std::string header_file_name = output_name + ".h";
+    std::string source_file_name = output_name + ".cpp";
     std::string header_file_path = std::string(output_dir) + "/" + header_file_name;
     std::string source_file_path = std::string(output_dir) + "/" + source_file_name;
 
@@ -177,7 +315,16 @@ int main(int argc, char** argv)
     options.newline = "\n";
     options.include_guard = include_guard.c_str();
     options.header_file_name = header_file_name.c_str();
-    options.custom_header = custom_header;
+
+    if (!custom_header.empty())
+    {
+        options.custom_header = custom_header.c_str();
+    }
+    else
+    {
+        options.custom_header = 0;
+    }
+
     options.runtime_atom_names = true;
     options.runtime_task_names = true;
     options.enable_reflection = true;
@@ -187,7 +334,7 @@ int main(int argc, char** argv)
 
     if (header_writer.error() || source_writer.error())
     {
-        printf("i/o error occured.");
+        fprintf(stderr, "i/o error occured.");
         return 1;
     }
 
