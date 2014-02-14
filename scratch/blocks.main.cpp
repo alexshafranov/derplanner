@@ -76,11 +76,6 @@ int main()
 
     while (status == plan_in_progress)
     {
-        // printf("stack:\n");
-        // task_printf task_printer;
-        // plnnr::walk_stack_down<blocks::task_type>(pstate.top_method, task_printer);
-        // printf("===\n");
-
         status = find_plan_step(pstate, world.data());
     }
 
@@ -94,11 +89,6 @@ int main()
     else
     {
         printf("plan not found.\n");
-    }
-
-    for (plnnr::method_trace* trace = plnnr::bottom<plnnr::method_trace>(pstate.trace); trace != plnnr::top<plnnr::method_trace>(pstate.trace)+1; ++trace)
-    {
-        printf("%s, %d\n", blocks::task_name(static_cast<blocks::task_type>(trace->type)), trace->branch_index);
     }
 
     return 0;
