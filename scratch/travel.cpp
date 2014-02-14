@@ -69,9 +69,9 @@ bool next(p0_state& state, worldstate& world)
 // method travel [17:9]
 struct p1_state
 {
-	// x [17:26]
+	// x [17:25]
 	int _0;
-	// y [17:28]
+	// y [17:27]
 	int _1;
 	short_distance_tuple* short_distance_0;
 	int stage;
@@ -102,9 +102,9 @@ bool next(p1_state& state, worldstate& world)
 // method travel [20:9]
 struct p2_state
 {
-	// x [20:25]
+	// x [20:24]
 	int _0;
-	// y [20:27]
+	// y [20:26]
 	int _1;
 	long_distance_tuple* long_distance_0;
 	int stage;

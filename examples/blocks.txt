@@ -60,7 +60,7 @@
     )
 
     (:method (mark-block-recursive x)
-        ((on x w))
+        (on x w)
         ((mark-block-recursive w) (mark-block-term x))
 
         ()
@@ -109,7 +109,7 @@
     )
 
     (:method (move-block)
-        ((stack-on-block x y))
+        (stack-on-block x y)
         ((move-block1 x y) (move-block))
 
         ((put-on-table x) (on x y))
@@ -139,7 +139,7 @@
     )
 
     (:method (check3 x)
-        ((dont-move x))
+        (dont-move x)
         ()
 
         ((goal-on x y) (clear y) (dont-move y))
@@ -153,7 +153,7 @@
     )
 
     (:method (move-block1 x z)
-        ((on x y))
+        (on x y)
         ((!unstack x y) (!stack x z) (:add (dont-move x)) (:delete (need-to-move x) (stack-on-block x z)) (check x) (check2 y) (check3 y))
 
         ()

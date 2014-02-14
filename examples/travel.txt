@@ -14,10 +14,10 @@
     )
 
     (:method (travel x y)
-        ((short_distance x y))
+        (short_distance x y)
         ((!ride_taxi x y))
 
-        ((long_distance x y))
+        (long_distance x y)
         ((travel_by_air x y))
     )
 

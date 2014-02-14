@@ -150,9 +150,9 @@ bool next(p3_state& state, worldstate& world)
 // method mark-block-recursive [63:9]
 struct p4_state
 {
-	// x [63:14]
+	// x [63:13]
 	int _0;
-	// w [63:16]
+	// w [63:15]
 	int _1;
 	on_tuple* on_0;
 	int stage;
@@ -608,9 +608,9 @@ bool next(p16_state& state, worldstate& world)
 // method move-block [112:9]
 struct p17_state
 {
-	// x [112:26]
+	// x [112:25]
 	int _0;
-	// y [112:28]
+	// y [112:27]
 	int _1;
 	stack_on_block_tuple* stack_on_block_0;
 	int stage;
@@ -848,7 +848,7 @@ bool next(p24_state& state, worldstate& world)
 // method check3 [142:9]
 struct p25_state
 {
-	// x [142:21]
+	// x [142:20]
 	int _0;
 	dont_move_tuple* dont_move_0;
 	int stage;
@@ -963,9 +963,9 @@ bool next(p28_state& state, worldstate& world)
 // method move-block1 [156:9]
 struct p29_state
 {
-	// x [156:14]
+	// x [156:13]
 	int _0;
-	// y [156:16]
+	// y [156:15]
 	int _1;
 	on_tuple* on_0;
 	int stage;
