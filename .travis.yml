@@ -9,4 +9,6 @@ script:
     - ./bin/x64/release/tests
     - ./bin/x64/release/derplannerc --out scratch examples/travel.txt
     - ./bin/x64/release/derplannerc --out scratch examples/blocks.txt
-    - cd ./scratch && ./compile.sh && ./travel && ./blocks
+    - cd ./scratch && ./compile.sh
+    - ./scratch/travel
+    - ./scratch/blocks
