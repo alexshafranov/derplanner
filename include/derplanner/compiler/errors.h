@@ -39,7 +39,7 @@ enum compilation_error
 class location
 {
 public:
-    location(int line, int column)
+    location(int line=-1, int column=-1)
         : line(line)
         , column(column)
     {
