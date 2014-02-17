@@ -26,15 +26,8 @@
 
 namespace plnnrc {
 
-namespace sexpr
-{
-    struct node;
-}
-
-namespace pool
-{
-    struct handle;
-}
+namespace sexpr { struct node; }
+namespace pool { struct handle; }
 
 namespace ast {
 

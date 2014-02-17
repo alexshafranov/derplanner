@@ -25,10 +25,7 @@
 
 namespace plnnrc {
 
-namespace ast
-{
-    struct node;
-}
+namespace ast { struct node; }
 
 class id_table_values;
 struct id_table_entry;

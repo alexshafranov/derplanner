@@ -23,10 +23,7 @@
 
 namespace plnnrc {
 
-namespace pool
-{
-    struct handle;
-}
+namespace pool { struct handle; }
 
 namespace sexpr {
 
