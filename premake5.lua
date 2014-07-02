@@ -29,22 +29,18 @@ solution "derplanner"
 
     project "derplanner-compiler"
         kind "StaticLib"
-        flags { "FatalWarnings", "NoExceptions" }
-        warnings "Extra"
+        flags { "NoExceptions" }
         files { "source/compiler/*.cpp" }
         includedirs { "include" }
 
     project "derplanner-runtime"
         kind "StaticLib"
-        flags { "FatalWarnings", "NoExceptions" }
-        warnings "Extra"
+        flags { "NoExceptions" }
         files { "source/runtime/*.cpp" }
         includedirs { "include" }
 
     project "derplannerc"
         kind "ConsoleApp"
-        flags { "FatalWarnings" }
-        warnings "Extra"
         files { "compiler/*.cpp" }
         includedirs { "include" }
         links { "derplanner-compiler" }
@@ -54,8 +50,6 @@ solution "derplanner"
 
     project "deps-unittestpp"
         kind "StaticLib"
-        flags { "FatalWarnings" }
-        warnings "Extra"
         files { "deps/unittestpp/src/*.cpp" }
         configuration { "linux or macosx" }
             files { "deps/unittestpp/src/Posix/*.cpp" }
@@ -67,8 +61,6 @@ solution "derplanner"
 
     project "tests"
         kind "ConsoleApp"
-        flags { "FatalWarnings" }
-        warnings "Extra"
         files { "test/*.cpp" }
         includedirs { "deps/unittestpp", "include", "source" }
         links { "deps-unittestpp", "derplanner-compiler", "derplanner-runtime" }
