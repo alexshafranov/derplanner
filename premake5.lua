@@ -75,3 +75,15 @@ solution "derplanner"
         configuration { "vs*" }
             defines { "_CRT_SECURE_NO_WARNINGS" }
         configuration {}
+
+    project "example-travel"
+        kind "ConsoleApp"
+        files { "examples/travel.main.cpp", "examples/travel.cpp" }
+        includedirs { "include" }
+        links { "derplanner-runtime" }
+
+    project "example-blocks"
+        kind "ConsoleApp"
+        files { "examples/travel.main.cpp", "examples/blocks.cpp" }
+        includedirs { "include" }
+        links { "derplanner-runtime" }
