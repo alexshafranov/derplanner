@@ -5,10 +5,10 @@ compiler:
 
 script:
     - ./premake5 gmake
+    - make config=release_x64 derplannerc
+    - ./bin/x64/release/derplannerc --out examples examples/travel.txt
+    - ./bin/x64/release/derplannerc --out examples examples/blocks.txt
     - make config=release_x64
     - ./bin/x64/release/tests
-    - ./bin/x64/release/derplannerc --out scratch examples/travel.txt
-    - ./bin/x64/release/derplannerc --out scratch examples/blocks.txt
-    - cd ./scratch && ./compile.sh
-    - ./travel
-    - ./blocks
+    - ./bin/x64/release/example-travel
+    - ./bin/x64/release/example-blocks
