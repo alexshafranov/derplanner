@@ -66,16 +66,10 @@ int main()
 
     find_plan_init(pstate, travel::task_root, travel::root_branch_0_expand);
 
-    find_plan_status status;
-
-    while (true)
+    find_plan_status status = plan_in_progress;
+    while (status == plan_in_progress)
     {
         status = find_plan_step(pstate, world.data());
-
-        if (status != plan_in_progress)
-        {
-            break;
-        }
     }
 
     if (status == plan_found)

@@ -72,8 +72,7 @@ int main()
 
     find_plan_init(pstate, blocks::task_solve, blocks::solve_branch_0_expand);
 
-    find_plan_status status =  find_plan_step(pstate, world.data());
-
+    find_plan_status status =  plan_in_progress;
     while (status == plan_in_progress)
     {
         status = find_plan_step(pstate, world.data());

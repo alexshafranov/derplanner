@@ -30,7 +30,7 @@ struct atom_printf;
 struct world_printf
 {
     template <typename T>
-    void atom_list(int atom_type, const char* name, T* head)
+    void atom_list(int /*atom_type*/, const char* name, T* head)
     {
         printf("(%s ", name);
 
@@ -74,7 +74,7 @@ struct atom_printf
     {
     }
 
-    void atom_begin(int atom_type, const char* name, int element_count)
+    void atom_begin(int /*atom_type*/, const char* /*name*/, int element_count)
     {
         total_elements = element_count;
         printf("(");
@@ -92,7 +92,7 @@ struct atom_printf
         }
     }
 
-    void atom_end(int atom_type, const char* name, int element_count)
+    void atom_end(int /*atom_type*/, const char* /*name*/, int /*element_count*/)
     {
         printf(")");
     }
@@ -103,13 +103,13 @@ struct atom_printf
 
 struct task_printf
 {
-    void task(int task_type, const char* task_name)
+    void task(int /*task_type*/, const char* task_name)
     {
         printf("(%s)\n", task_name);
     }
 
     template <typename A>
-    void task(int task_type, const char* task_name, const A* args)
+    void task(int /*task_type*/, const char* task_name, const A* args)
     {
         printf("(%s ", task_name);
         atom_printf atom_visitor;
