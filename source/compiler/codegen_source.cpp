@@ -28,7 +28,7 @@ namespace plnnrc {
 
 void generate_source_top(const char* header_file_name, formatter& output)
 {
-    output.writeln("#include <derplanner/runtime/runtime.h>");
+    output.writeln("#include \"derplanner/runtime/runtime.h\"");
     output.writeln("#include \"%s\"", header_file_name);
     output.newline();
 
@@ -37,6 +37,12 @@ void generate_source_top(const char* header_file_name, formatter& output)
 
     output.writeln("#ifdef __GNUC__");
     output.writeln("#pragma GCC diagnostic ignored \"-Wunused-variable\"");
+    output.writeln("#endif");
+    output.newline();
+
+    output.writeln("#ifdef _MSC_VER");
+    output.writeln("#pragma warning(disable: 4100) // unreferenced formal parameter");
+    output.writeln("#pragma warning(disable: 4189) // local variable is initialized but not referenced");
     output.writeln("#endif");
     output.newline();
 
