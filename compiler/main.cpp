@@ -36,6 +36,7 @@ using namespace plnnrc;
 struct buffer_context
 {
     buffer_context(size_t bytes)
+        : data(0)
     {
         data = static_cast<char*>(memory::allocate(bytes));
     }
@@ -51,13 +52,17 @@ struct buffer_context
 struct file_context
 {
     file_context(const char* path, const char* mode)
+        : fd(0)
     {
         fd = fopen(path, mode);
     }
 
     ~file_context()
     {
-        fclose(fd);
+        if (fd != 0)
+        {
+            fclose(fd);
+        }
     }
 
     FILE* fd;
@@ -244,6 +249,16 @@ int main(int argc, char** argv)
     {
         fprintf(stderr, "error: no source file specified.\n");
         return 1;
+    }
+
+    {
+        file_context ctx(input_path.c_str(), "rb");
+
+        if (!ctx.fd)
+        {
+            fprintf(stderr, "error: can't open input file: '%s'.\n", input_path.c_str());
+            return 1;
+        }
     }
 
     if (output_dir.empty())
