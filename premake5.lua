@@ -76,6 +76,6 @@ solution "derplanner"
 
     project "example-blocks"
         kind "ConsoleApp"
-        files { "examples/travel.main.cpp", "examples/blocks.cpp" }
+        files { "examples/blocks.main.cpp", "examples/blocks.cpp" }
         includedirs { "include" }
         links { "derplanner-runtime" }
