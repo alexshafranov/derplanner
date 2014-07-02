@@ -1,9 +1,20 @@
-#include <derplanner/runtime/runtime.h>
+#include "derplanner/runtime/runtime.h"
 #include "travel.h"
 
 using namespace plnnr;
 
+#ifdef __GNUC__
 #pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
+
+#ifdef _MSC_VER
+#pragma warning(disable: 4100) // unreferenced formal parameter
+#pragma warning(disable: 4189) // local variable is initialized but not referenced
+#endif
+
+#define PLNNR_COROUTINE_BEGIN(state) switch ((state).stage) { case 0:
+#define PLNNR_COROUTINE_YIELD(state) (state).stage = __LINE__; return true; case __LINE__:;
+#define PLNNR_COROUTINE_END() } return false
 
 namespace travel {
 

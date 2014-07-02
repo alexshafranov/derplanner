@@ -191,8 +191,8 @@ T* push_arguments(planner_state& pstate, method_instance* method)
     T* arguments = push<T>(pstate.methods);
     size_t method_offset = pstate.methods->offset(method);
     size_t arguments_offset = pstate.methods->offset(arguments);
-    method->arguments = arguments_offset - method_offset;
-    method->size = pstate.methods->top_offset() - method_offset;
+    method->arguments = uint32_t(arguments_offset - method_offset);
+    method->size = uint32_t(pstate.methods->top_offset() - method_offset);
     return arguments;
 }
 
@@ -203,8 +203,8 @@ T* push_precondition(planner_state& pstate, method_instance* method)
     precondition->stage = 0;
     size_t method_offset = pstate.methods->offset(method);
     size_t precondition_offset = pstate.methods->offset(precondition);
-    method->precondition = precondition_offset - method_offset;
-    method->size = pstate.methods->top_offset() - method_offset;
+    method->precondition = uint32_t(precondition_offset - method_offset);
+    method->size = uint32_t(pstate.methods->top_offset() - method_offset);
     return precondition;
 }
 
