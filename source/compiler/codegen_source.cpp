@@ -36,6 +36,7 @@ void generate_source_top(const char* header_file_name, formatter& output)
     output.newline();
 
     output.writeln("#ifdef __GNUC__");
+    output.writeln("#pragma GCC diagnostic ignored \"-Wunused-parameter\"");
     output.writeln("#pragma GCC diagnostic ignored \"-Wunused-variable\"");
     output.writeln("#endif");
     output.newline();

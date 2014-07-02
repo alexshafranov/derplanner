@@ -4,6 +4,7 @@
 using namespace plnnr;
 
 #ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #endif
 
