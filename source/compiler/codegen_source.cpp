@@ -35,7 +35,14 @@ void generate_source_top(const char* header_file_name, formatter& output)
     output.writeln("using namespace plnnr;");
     output.newline();
 
+    output.writeln("#ifdef __GNUC__");
     output.writeln("#pragma GCC diagnostic ignored \"-Wunused-variable\"");
+    output.writeln("#endif");
+    output.newline();
+
+    output.writeln("#define PLNNR_COROUTINE_BEGIN(state) switch ((state).stage) { case 0:");
+    output.writeln("#define PLNNR_COROUTINE_YIELD(state) (state).stage = __LINE__; return true; case __LINE__:;");
+    output.writeln("#define PLNNR_COROUTINE_END() } return false");
     output.newline();
 }
 
