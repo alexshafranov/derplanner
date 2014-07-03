@@ -48,7 +48,7 @@ void generate_source_top(const char* header_file_name, formatter& output)
     output.newline();
 
     output.writeln("#define PLNNR_COROUTINE_BEGIN(state) switch ((state).stage) { case 0:");
-    output.writeln("#define PLNNR_COROUTINE_YIELD(state) (state).stage = __LINE__; return true; case __LINE__:;");
+    output.writeln("#define PLNNR_COROUTINE_YIELD(state, label) (state).stage = label; return true; case label:;");
     output.writeln("#define PLNNR_COROUTINE_END() } return false");
     output.newline();
 }

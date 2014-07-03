@@ -32,11 +32,11 @@ void generate_preconditions(ast::tree& ast, ast::node* domain, formatter& output
 void generate_precondition_state(ast::tree& ast, ast::node* root, unsigned branch_index, formatter& output);
 void generate_precondition_next(ast::tree& ast, ast::node* root, unsigned branch_index, formatter& output);
 
-void generate_precondition_satisfier(ast::tree& ast, ast::node* root, formatter& output);
-void generate_conjunctive_clause(ast::tree& ast, ast::node* root, formatter& output);
-void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output);
-void generate_literal_chain_call_term(ast::tree& ast, ast::node* root, ast::node* atom, formatter& output);
-void generate_literal_chain_comparison(ast::tree& ast, ast::node* root, ast::node* atom, formatter& output);
+void generate_precondition_satisfier(ast::tree& ast, ast::node* root, formatter& output, int yield_label);
+void generate_conjunctive_clause(ast::tree& ast, ast::node* root, formatter& output, int yield_label);
+void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output, int yield_label);
+void generate_literal_chain_call_term(ast::tree& ast, ast::node* root, ast::node* atom, formatter& output, int yield_label);
+void generate_literal_chain_comparison(ast::tree& ast, ast::node* root, ast::node* atom, formatter& output, int yield_label);
 
 }
 

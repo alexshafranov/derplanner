@@ -14,7 +14,7 @@ using namespace plnnr;
 #endif
 
 #define PLNNR_COROUTINE_BEGIN(state) switch ((state).stage) { case 0:
-#define PLNNR_COROUTINE_YIELD(state) (state).stage = __LINE__; return true; case __LINE__:;
+#define PLNNR_COROUTINE_YIELD(state, label) (state).stage = label; return true; case label:;
 #define PLNNR_COROUTINE_END() } return false
 
 namespace blocks {
@@ -75,7 +75,7 @@ bool next(p0_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	PLNNR_COROUTINE_YIELD(state);
+	PLNNR_COROUTINE_YIELD(state, 1);
 
 	PLNNR_COROUTINE_END();
 }
@@ -97,7 +97,7 @@ bool next(p1_state& state, worldstate& world)
 	{
 		state._0 = state.block_0->_0;
 
-		PLNNR_COROUTINE_YIELD(state);
+		PLNNR_COROUTINE_YIELD(state, 1);
 	}
 
 	PLNNR_COROUTINE_END();
@@ -137,7 +137,7 @@ bool next(p2_state& state, worldstate& world)
 
 		if (state.need_to_move_1 == 0)
 		{
-			PLNNR_COROUTINE_YIELD(state);
+			PLNNR_COROUTINE_YIELD(state, 2);
 		}
 	}
 
@@ -154,7 +154,7 @@ bool next(p3_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	PLNNR_COROUTINE_YIELD(state);
+	PLNNR_COROUTINE_YIELD(state, 1);
 
 	PLNNR_COROUTINE_END();
 }
@@ -183,7 +183,7 @@ bool next(p4_state& state, worldstate& world)
 
 		state._1 = state.on_0->_1;
 
-		PLNNR_COROUTINE_YIELD(state);
+		PLNNR_COROUTINE_YIELD(state, 1);
 	}
 
 	PLNNR_COROUTINE_END();
@@ -199,7 +199,7 @@ bool next(p5_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	PLNNR_COROUTINE_YIELD(state);
+	PLNNR_COROUTINE_YIELD(state, 1);
 
 	PLNNR_COROUTINE_END();
 }
@@ -242,7 +242,7 @@ bool next(p6_state& state, worldstate& world)
 
 			if (state._1 != state._2)
 			{
-				PLNNR_COROUTINE_YIELD(state);
+				PLNNR_COROUTINE_YIELD(state, 3);
 			}
 		}
 	}
@@ -282,7 +282,7 @@ bool next(p7_state& state, worldstate& world)
 
 			state._1 = state.goal_on_1->_1;
 
-			PLNNR_COROUTINE_YIELD(state);
+			PLNNR_COROUTINE_YIELD(state, 2);
 		}
 	}
 
@@ -321,7 +321,7 @@ bool next(p8_state& state, worldstate& world)
 				continue;
 			}
 
-			PLNNR_COROUTINE_YIELD(state);
+			PLNNR_COROUTINE_YIELD(state, 2);
 		}
 	}
 
@@ -360,7 +360,7 @@ bool next(p9_state& state, worldstate& world)
 				continue;
 			}
 
-			PLNNR_COROUTINE_YIELD(state);
+			PLNNR_COROUTINE_YIELD(state, 2);
 		}
 	}
 
@@ -405,7 +405,7 @@ bool next(p10_state& state, worldstate& world)
 
 			if (state._0 != state._2)
 			{
-				PLNNR_COROUTINE_YIELD(state);
+				PLNNR_COROUTINE_YIELD(state, 3);
 			}
 		}
 	}
@@ -445,7 +445,7 @@ bool next(p11_state& state, worldstate& world)
 				continue;
 			}
 
-			PLNNR_COROUTINE_YIELD(state);
+			PLNNR_COROUTINE_YIELD(state, 2);
 		}
 	}
 
@@ -462,7 +462,7 @@ bool next(p12_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	PLNNR_COROUTINE_YIELD(state);
+	PLNNR_COROUTINE_YIELD(state, 1);
 
 	PLNNR_COROUTINE_END();
 }
@@ -492,7 +492,7 @@ bool next(p13_state& state, worldstate& world)
 				continue;
 			}
 
-			PLNNR_COROUTINE_YIELD(state);
+			PLNNR_COROUTINE_YIELD(state, 2);
 		}
 	}
 
@@ -530,7 +530,7 @@ bool next(p14_state& state, worldstate& world)
 
 		if (state.put_on_table_1 == 0)
 		{
-			PLNNR_COROUTINE_YIELD(state);
+			PLNNR_COROUTINE_YIELD(state, 2);
 		}
 	}
 
@@ -593,7 +593,7 @@ bool next(p15_state& state, worldstate& world)
 						continue;
 					}
 
-					PLNNR_COROUTINE_YIELD(state);
+					PLNNR_COROUTINE_YIELD(state, 4);
 				}
 			}
 		}
@@ -612,7 +612,7 @@ bool next(p16_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	PLNNR_COROUTINE_YIELD(state);
+	PLNNR_COROUTINE_YIELD(state, 1);
 
 	PLNNR_COROUTINE_END();
 }
@@ -638,7 +638,7 @@ bool next(p17_state& state, worldstate& world)
 
 		state._1 = state.stack_on_block_0->_1;
 
-		PLNNR_COROUTINE_YIELD(state);
+		PLNNR_COROUTINE_YIELD(state, 1);
 	}
 
 	PLNNR_COROUTINE_END();
@@ -673,7 +673,7 @@ bool next(p18_state& state, worldstate& world)
 
 			state._1 = state.on_1->_1;
 
-			PLNNR_COROUTINE_YIELD(state);
+			PLNNR_COROUTINE_YIELD(state, 2);
 		}
 	}
 
@@ -717,7 +717,7 @@ bool next(p19_state& state, worldstate& world)
 
 				state._1 = state.on_2->_1;
 
-				PLNNR_COROUTINE_YIELD(state);
+				PLNNR_COROUTINE_YIELD(state, 3);
 			}
 		}
 	}
@@ -735,7 +735,7 @@ bool next(p20_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	PLNNR_COROUTINE_YIELD(state);
+	PLNNR_COROUTINE_YIELD(state, 1);
 
 	PLNNR_COROUTINE_END();
 }
@@ -772,7 +772,7 @@ bool next(p21_state& state, worldstate& world)
 				continue;
 			}
 
-			PLNNR_COROUTINE_YIELD(state);
+			PLNNR_COROUTINE_YIELD(state, 2);
 		}
 	}
 
@@ -789,7 +789,7 @@ bool next(p22_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	PLNNR_COROUTINE_YIELD(state);
+	PLNNR_COROUTINE_YIELD(state, 1);
 
 	PLNNR_COROUTINE_END();
 }
@@ -834,7 +834,7 @@ bool next(p23_state& state, worldstate& world)
 					continue;
 				}
 
-				PLNNR_COROUTINE_YIELD(state);
+				PLNNR_COROUTINE_YIELD(state, 3);
 			}
 		}
 	}
@@ -852,7 +852,7 @@ bool next(p24_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	PLNNR_COROUTINE_YIELD(state);
+	PLNNR_COROUTINE_YIELD(state, 1);
 
 	PLNNR_COROUTINE_END();
 }
@@ -877,7 +877,7 @@ bool next(p25_state& state, worldstate& world)
 			continue;
 		}
 
-		PLNNR_COROUTINE_YIELD(state);
+		PLNNR_COROUTINE_YIELD(state, 1);
 	}
 
 	PLNNR_COROUTINE_END();
@@ -923,7 +923,7 @@ bool next(p26_state& state, worldstate& world)
 					continue;
 				}
 
-				PLNNR_COROUTINE_YIELD(state);
+				PLNNR_COROUTINE_YIELD(state, 3);
 			}
 		}
 	}
@@ -951,7 +951,7 @@ bool next(p27_state& state, worldstate& world)
 			continue;
 		}
 
-		PLNNR_COROUTINE_YIELD(state);
+		PLNNR_COROUTINE_YIELD(state, 1);
 	}
 
 	PLNNR_COROUTINE_END();
@@ -967,7 +967,7 @@ bool next(p28_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	PLNNR_COROUTINE_YIELD(state);
+	PLNNR_COROUTINE_YIELD(state, 1);
 
 	PLNNR_COROUTINE_END();
 }
@@ -996,7 +996,7 @@ bool next(p29_state& state, worldstate& world)
 
 		state._1 = state.on_0->_1;
 
-		PLNNR_COROUTINE_YIELD(state);
+		PLNNR_COROUTINE_YIELD(state, 1);
 	}
 
 	PLNNR_COROUTINE_END();
@@ -1012,7 +1012,7 @@ bool next(p30_state& state, worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
-	PLNNR_COROUTINE_YIELD(state);
+	PLNNR_COROUTINE_YIELD(state, 1);
 
 	PLNNR_COROUTINE_END();
 }
@@ -1032,7 +1032,7 @@ bool solve_branch_0_expand(method_instance* method, planner_state& pstate, void*
 			method_instance* t = push_method(pstate, task_mark_all_blocks, mark_all_blocks_branch_0_expand);
 		}
 
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 
 		if (method->flags & method_flags_failed)
 		{
@@ -1043,7 +1043,7 @@ bool solve_branch_0_expand(method_instance* method, planner_state& pstate, void*
 			method_instance* t = push_method(pstate, task_find_all_movable, find_all_movable_branch_0_expand);
 		}
 
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 2);
 
 		if (method->flags & method_flags_failed)
 		{
@@ -1055,7 +1055,7 @@ bool solve_branch_0_expand(method_instance* method, planner_state& pstate, void*
 		}
 
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 3);
 	}
 
 	PLNNR_COROUTINE_END();
@@ -1078,13 +1078,13 @@ bool mark_all_blocks_branch_0_expand(method_instance* method, planner_state& pst
 			a->_0 = precondition->_0;
 		}
 
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 	}
 
 	if (precondition->stage > 0)
 	{
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 2);
 	}
 
 	PLNNR_COROUTINE_END();
@@ -1110,7 +1110,7 @@ bool mark_block_branch_0_expand(method_instance* method, planner_state& pstate, 
 		}
 
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 	}
 
 	return expand_next_branch(pstate, mark_block_branch_1_expand, world);
@@ -1130,7 +1130,7 @@ bool mark_block_branch_1_expand(method_instance* method, planner_state& pstate, 
 	while (next(*precondition, *wstate))
 	{
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 	}
 
 	PLNNR_COROUTINE_END();
@@ -1155,7 +1155,7 @@ bool mark_block_recursive_branch_0_expand(method_instance* method, planner_state
 			a->_0 = precondition->_1;
 		}
 
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 
 		if (method->flags & method_flags_failed)
 		{
@@ -1169,7 +1169,7 @@ bool mark_block_recursive_branch_0_expand(method_instance* method, planner_state
 		}
 
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 2);
 	}
 
 	return expand_next_branch(pstate, mark_block_recursive_branch_1_expand, world);
@@ -1195,7 +1195,7 @@ bool mark_block_recursive_branch_1_expand(method_instance* method, planner_state
 		}
 
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 	}
 
 	PLNNR_COROUTINE_END();
@@ -1226,7 +1226,7 @@ bool mark_block_term_branch_0_expand(method_instance* method, planner_state& pst
 		}
 
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 	}
 
 	return expand_next_branch(pstate, mark_block_term_branch_1_expand, world);
@@ -1258,7 +1258,7 @@ bool mark_block_term_branch_1_expand(method_instance* method, planner_state& pst
 		}
 
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 	}
 
 	return expand_next_branch(pstate, mark_block_term_branch_2_expand, world);
@@ -1290,7 +1290,7 @@ bool mark_block_term_branch_2_expand(method_instance* method, planner_state& pst
 		}
 
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 	}
 
 	return expand_next_branch(pstate, mark_block_term_branch_3_expand, world);
@@ -1322,7 +1322,7 @@ bool mark_block_term_branch_3_expand(method_instance* method, planner_state& pst
 		}
 
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 	}
 
 	return expand_next_branch(pstate, mark_block_term_branch_4_expand, world);
@@ -1354,7 +1354,7 @@ bool mark_block_term_branch_4_expand(method_instance* method, planner_state& pst
 		}
 
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 	}
 
 	return expand_next_branch(pstate, mark_block_term_branch_5_expand, world);
@@ -1386,7 +1386,7 @@ bool mark_block_term_branch_5_expand(method_instance* method, planner_state& pst
 		}
 
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 	}
 
 	return expand_next_branch(pstate, mark_block_term_branch_6_expand, world);
@@ -1417,7 +1417,7 @@ bool mark_block_term_branch_6_expand(method_instance* method, planner_state& pst
 		}
 
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 	}
 
 	PLNNR_COROUTINE_END();
@@ -1440,13 +1440,13 @@ bool find_all_movable_branch_0_expand(method_instance* method, planner_state& ps
 			a->_0 = precondition->_0;
 		}
 
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 	}
 
 	if (precondition->stage > 0)
 	{
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 2);
 	}
 
 	PLNNR_COROUTINE_END();
@@ -1477,7 +1477,7 @@ bool mark_move_type_branch_0_expand(method_instance* method, planner_state& psta
 		}
 
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 	}
 
 	return expand_next_branch(pstate, mark_move_type_branch_1_expand, world);
@@ -1510,7 +1510,7 @@ bool mark_move_type_branch_1_expand(method_instance* method, planner_state& psta
 		}
 
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 	}
 
 	return expand_next_branch(pstate, mark_move_type_branch_2_expand, world);
@@ -1530,7 +1530,7 @@ bool mark_move_type_branch_2_expand(method_instance* method, planner_state& psta
 	while (next(*precondition, *wstate))
 	{
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 	}
 
 	PLNNR_COROUTINE_END();
@@ -1554,7 +1554,7 @@ bool move_block_branch_0_expand(method_instance* method, planner_state& pstate, 
 			a->_1 = precondition->_1;
 		}
 
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 
 		if (method->flags & method_flags_failed)
 		{
@@ -1566,7 +1566,7 @@ bool move_block_branch_0_expand(method_instance* method, planner_state& pstate, 
 		}
 
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 2);
 	}
 
 	return expand_next_branch(pstate, move_block_branch_1_expand, world);
@@ -1646,7 +1646,7 @@ bool move_block_branch_1_expand(method_instance* method, planner_state& pstate, 
 			}
 		}
 
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 
 		{
 			task_instance* t = push_task(pstate, task_putdown, 0);
@@ -1688,7 +1688,7 @@ bool move_block_branch_1_expand(method_instance* method, planner_state& pstate, 
 			}
 		}
 
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 2);
 
 		{
 			{
@@ -1741,7 +1741,7 @@ bool move_block_branch_1_expand(method_instance* method, planner_state& pstate, 
 			a->_0 = precondition->_0;
 		}
 
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 3);
 
 		if (method->flags & method_flags_failed)
 		{
@@ -1754,7 +1754,7 @@ bool move_block_branch_1_expand(method_instance* method, planner_state& pstate, 
 			a->_0 = precondition->_1;
 		}
 
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 4);
 
 		if (method->flags & method_flags_failed)
 		{
@@ -1767,7 +1767,7 @@ bool move_block_branch_1_expand(method_instance* method, planner_state& pstate, 
 			a->_0 = precondition->_1;
 		}
 
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 5);
 
 		if (method->flags & method_flags_failed)
 		{
@@ -1779,7 +1779,7 @@ bool move_block_branch_1_expand(method_instance* method, planner_state& pstate, 
 		}
 
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 6);
 	}
 
 	return expand_next_branch(pstate, move_block_branch_2_expand, world);
@@ -1859,7 +1859,7 @@ bool move_block_branch_2_expand(method_instance* method, planner_state& pstate, 
 			}
 		}
 
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 
 		{
 			task_instance* t = push_task(pstate, task_putdown, 0);
@@ -1901,7 +1901,7 @@ bool move_block_branch_2_expand(method_instance* method, planner_state& pstate, 
 			}
 		}
 
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 2);
 
 		{
 			method_instance* t = push_method(pstate, task_check2, check2_branch_0_expand);
@@ -1909,7 +1909,7 @@ bool move_block_branch_2_expand(method_instance* method, planner_state& pstate, 
 			a->_0 = precondition->_1;
 		}
 
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 3);
 
 		if (method->flags & method_flags_failed)
 		{
@@ -1922,7 +1922,7 @@ bool move_block_branch_2_expand(method_instance* method, planner_state& pstate, 
 			a->_0 = precondition->_1;
 		}
 
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 4);
 
 		if (method->flags & method_flags_failed)
 		{
@@ -1934,7 +1934,7 @@ bool move_block_branch_2_expand(method_instance* method, planner_state& pstate, 
 		}
 
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 5);
 	}
 
 	return expand_next_branch(pstate, move_block_branch_3_expand, world);
@@ -1953,7 +1953,7 @@ bool move_block_branch_3_expand(method_instance* method, planner_state& pstate, 
 	while (next(*precondition, *wstate))
 	{
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 	}
 
 	PLNNR_COROUTINE_END();
@@ -1985,7 +1985,7 @@ bool check_branch_0_expand(method_instance* method, planner_state& pstate, void*
 		}
 
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 	}
 
 	return expand_next_branch(pstate, check_branch_1_expand, world);
@@ -2005,7 +2005,7 @@ bool check_branch_1_expand(method_instance* method, planner_state& pstate, void*
 	while (next(*precondition, *wstate))
 	{
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 	}
 
 	PLNNR_COROUTINE_END();
@@ -2037,7 +2037,7 @@ bool check2_branch_0_expand(method_instance* method, planner_state& pstate, void
 		}
 
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 	}
 
 	return expand_next_branch(pstate, check2_branch_1_expand, world);
@@ -2057,7 +2057,7 @@ bool check2_branch_1_expand(method_instance* method, planner_state& pstate, void
 	while (next(*precondition, *wstate))
 	{
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 	}
 
 	PLNNR_COROUTINE_END();
@@ -2077,7 +2077,7 @@ bool check3_branch_0_expand(method_instance* method, planner_state& pstate, void
 	while (next(*precondition, *wstate))
 	{
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 	}
 
 	return expand_next_branch(pstate, check3_branch_1_expand, world);
@@ -2110,7 +2110,7 @@ bool check3_branch_1_expand(method_instance* method, planner_state& pstate, void
 		}
 
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 	}
 
 	return expand_next_branch(pstate, check3_branch_2_expand, world);
@@ -2142,7 +2142,7 @@ bool check3_branch_2_expand(method_instance* method, planner_state& pstate, void
 		}
 
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 	}
 
 	return expand_next_branch(pstate, check3_branch_3_expand, world);
@@ -2162,7 +2162,7 @@ bool check3_branch_3_expand(method_instance* method, planner_state& pstate, void
 	while (next(*precondition, *wstate))
 	{
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 	}
 
 	PLNNR_COROUTINE_END();
@@ -2243,7 +2243,7 @@ bool move_block1_branch_0_expand(method_instance* method, planner_state& pstate,
 			}
 		}
 
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 
 		{
 			task_instance* t = push_task(pstate, task_stack, 0);
@@ -2303,7 +2303,7 @@ bool move_block1_branch_0_expand(method_instance* method, planner_state& pstate,
 			}
 		}
 
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 2);
 
 		{
 			{
@@ -2361,7 +2361,7 @@ bool move_block1_branch_0_expand(method_instance* method, planner_state& pstate,
 			a->_0 = method_args->_0;
 		}
 
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 3);
 
 		if (method->flags & method_flags_failed)
 		{
@@ -2374,7 +2374,7 @@ bool move_block1_branch_0_expand(method_instance* method, planner_state& pstate,
 			a->_0 = precondition->_1;
 		}
 
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 4);
 
 		if (method->flags & method_flags_failed)
 		{
@@ -2388,7 +2388,7 @@ bool move_block1_branch_0_expand(method_instance* method, planner_state& pstate,
 		}
 
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 5);
 	}
 
 	return expand_next_branch(pstate, move_block1_branch_1_expand, world);
@@ -2454,7 +2454,7 @@ bool move_block1_branch_1_expand(method_instance* method, planner_state& pstate,
 			}
 		}
 
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 
 		{
 			task_instance* t = push_task(pstate, task_stack, 0);
@@ -2514,7 +2514,7 @@ bool move_block1_branch_1_expand(method_instance* method, planner_state& pstate,
 			}
 		}
 
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 2);
 
 		{
 			{
@@ -2573,7 +2573,7 @@ bool move_block1_branch_1_expand(method_instance* method, planner_state& pstate,
 		}
 
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 3);
 	}
 
 	PLNNR_COROUTINE_END();

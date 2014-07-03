@@ -14,7 +14,7 @@ using namespace plnnr;
 #endif
 
 #define PLNNR_COROUTINE_BEGIN(state) switch ((state).stage) { case 0:
-#define PLNNR_COROUTINE_YIELD(state) (state).stage = __LINE__; return true; case __LINE__:;
+#define PLNNR_COROUTINE_YIELD(state, label) (state).stage = label; return true; case label:;
 #define PLNNR_COROUTINE_END() } return false
 
 namespace travel {
@@ -71,7 +71,7 @@ bool next(p0_state& state, worldstate& world)
 		{
 			state._1 = state.finish_1->_0;
 
-			PLNNR_COROUTINE_YIELD(state);
+			PLNNR_COROUTINE_YIELD(state, 2);
 		}
 	}
 
@@ -105,7 +105,7 @@ bool next(p1_state& state, worldstate& world)
 			continue;
 		}
 
-		PLNNR_COROUTINE_YIELD(state);
+		PLNNR_COROUTINE_YIELD(state, 1);
 	}
 
 	PLNNR_COROUTINE_END();
@@ -138,7 +138,7 @@ bool next(p2_state& state, worldstate& world)
 			continue;
 		}
 
-		PLNNR_COROUTINE_YIELD(state);
+		PLNNR_COROUTINE_YIELD(state, 1);
 	}
 
 	PLNNR_COROUTINE_END();
@@ -182,7 +182,7 @@ bool next(p3_state& state, worldstate& world)
 
 			state._3 = state.airport_1->_1;
 
-			PLNNR_COROUTINE_YIELD(state);
+			PLNNR_COROUTINE_YIELD(state, 2);
 		}
 	}
 
@@ -208,7 +208,7 @@ bool root_branch_0_expand(method_instance* method, planner_state& pstate, void* 
 		}
 
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 	}
 
 	PLNNR_COROUTINE_END();
@@ -236,7 +236,7 @@ bool travel_branch_0_expand(method_instance* method, planner_state& pstate, void
 		}
 
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 	}
 
 	return expand_next_branch(pstate, travel_branch_1_expand, world);
@@ -265,7 +265,7 @@ bool travel_branch_1_expand(method_instance* method, planner_state& pstate, void
 		}
 
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 	}
 
 	PLNNR_COROUTINE_END();
@@ -292,7 +292,7 @@ bool travel_by_air_branch_0_expand(method_instance* method, planner_state& pstat
 			a->_1 = precondition->_1;
 		}
 
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 1);
 
 		if (method->flags & method_flags_failed)
 		{
@@ -306,7 +306,7 @@ bool travel_by_air_branch_0_expand(method_instance* method, planner_state& pstat
 			a->_1 = precondition->_3;
 		}
 
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 2);
 
 		{
 			method_instance* t = push_method(pstate, task_travel, travel_branch_0_expand);
@@ -316,7 +316,7 @@ bool travel_by_air_branch_0_expand(method_instance* method, planner_state& pstat
 		}
 
 		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method);
+		PLNNR_COROUTINE_YIELD(*method, 3);
 	}
 
 	PLNNR_COROUTINE_END();

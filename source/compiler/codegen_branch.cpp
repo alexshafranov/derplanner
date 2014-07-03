@@ -122,6 +122,8 @@ void generate_branch_expands(ast::tree& ast, ast::node* domain, formatter& outpu
             {
                 scope s(output);
 
+                int yield_label = 1;
+
                 output.writeln("p%d_state* precondition = plnnr::precondition<p%d_state>(method);", precondition_index, precondition_index);
 
                 if (has_parameters(method))
@@ -163,7 +165,7 @@ void generate_branch_expands(ast::tree& ast, ast::node* domain, formatter& outpu
                             output.writeln("method->flags |= method_flags_expanded;");
                         }
 
-                        output.writeln("PLNNR_COROUTINE_YIELD(*method);");
+                        output.writeln("PLNNR_COROUTINE_YIELD(*method, %d);", yield_label++);
                     }
 
                     for (ast::node* task_atom = tasklist->first_child; task_atom != 0; task_atom = task_atom->next_sibling)
@@ -205,7 +207,7 @@ void generate_branch_expands(ast::tree& ast, ast::node* domain, formatter& outpu
 
                         if (is_last(task_atom) || !is_effect_list(task_atom))
                         {
-                            output.writeln("PLNNR_COROUTINE_YIELD(*method);");
+                            output.writeln("PLNNR_COROUTINE_YIELD(*method, %d);", yield_label++);
 
                             if (!is_last(task_atom))
                             {
@@ -230,7 +232,7 @@ void generate_branch_expands(ast::tree& ast, ast::node* domain, formatter& outpu
                     {
                         scope s(output);
                         output.writeln("method->flags |= method_flags_expanded;");
-                        output.writeln("PLNNR_COROUTINE_YIELD(*method);");
+                        output.writeln("PLNNR_COROUTINE_YIELD(*method, %d);", yield_label++);
                     }
                 }
 

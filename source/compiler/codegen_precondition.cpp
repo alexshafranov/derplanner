@@ -153,40 +153,40 @@ void generate_precondition_next(ast::tree& ast, ast::node* root, unsigned branch
         output.writeln("PLNNR_COROUTINE_BEGIN(state);");
         output.newline();
 
-        generate_precondition_satisfier(ast, root, output);
+        generate_precondition_satisfier(ast, root, output, 1);
 
         output.writeln("PLNNR_COROUTINE_END();");
     }
 }
 
-void generate_precondition_satisfier(ast::tree& ast, ast::node* root, formatter& output)
+void generate_precondition_satisfier(ast::tree& ast, ast::node* root, formatter& output, int yield_label)
 {
     plnnrc_assert(ast::is_op_or(root));
 
     for (ast::node* child = root->first_child; child != 0; child = child->next_sibling)
     {
         plnnrc_assert(ast::is_op_and(child));
-        generate_conjunctive_clause(ast, child, output);
+        generate_conjunctive_clause(ast, child, output, yield_label);
     }
 }
 
-void generate_conjunctive_clause(ast::tree& ast, ast::node* root, formatter& output)
+void generate_conjunctive_clause(ast::tree& ast, ast::node* root, formatter& output, int yield_label)
 {
     plnnrc_assert(ast::is_op_and(root));
 
     if (root->first_child)
     {
-        generate_literal_chain(ast, root->first_child, output);
+        generate_literal_chain(ast, root->first_child, output, yield_label);
     }
     else
     {
         // the formula is trivial: (or (and))
-        output.writeln("PLNNR_COROUTINE_YIELD(state);");
+        output.writeln("PLNNR_COROUTINE_YIELD(state, %d);", yield_label);
         output.newline();
     }
 }
 
-void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output)
+void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output, int yield_label)
 {
     plnnrc_assert(ast::is_op_not(root) || ast::is_term_call(root) || is_atom(root) || is_comparison_op(root));
 
@@ -199,13 +199,13 @@ void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output)
 
     if (ast::is_comparison_op(atom))
     {
-        generate_literal_chain_comparison(ast, root, atom, output);
+        generate_literal_chain_comparison(ast, root, atom, output, yield_label);
         return;
     }
 
     if (ast::is_term_call(atom))
     {
-        generate_literal_chain_call_term(ast, root, atom, output);
+        generate_literal_chain_call_term(ast, root, atom, output, yield_label);
         return;
     }
 
@@ -220,11 +220,11 @@ void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output)
 
             if (root->next_sibling)
             {
-                generate_literal_chain(ast, root->next_sibling, output);
+                generate_literal_chain(ast, root->next_sibling, output, yield_label + 1);
             }
             else
             {
-                output.writeln("PLNNR_COROUTINE_YIELD(state);");
+                output.writeln("PLNNR_COROUTINE_YIELD(state, %d);", yield_label);
             }
         }
     }
@@ -276,11 +276,11 @@ void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output)
 
             if (root->next_sibling)
             {
-                generate_literal_chain(ast, root->next_sibling, output);
+                generate_literal_chain(ast, root->next_sibling, output, yield_label + 1);
             }
             else
             {
-                output.writeln("PLNNR_COROUTINE_YIELD(state);");
+                output.writeln("PLNNR_COROUTINE_YIELD(state, %d);", yield_label);
             }
         }
     }
@@ -348,17 +348,17 @@ void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output)
 
             if (root->next_sibling)
             {
-                generate_literal_chain(ast, root->next_sibling, output);
+                generate_literal_chain(ast, root->next_sibling, output, yield_label + 1);
             }
             else
             {
-                output.writeln("PLNNR_COROUTINE_YIELD(state);");
+                output.writeln("PLNNR_COROUTINE_YIELD(state, %d);", yield_label);
             }
         }
     }
 }
 
-void generate_literal_chain_comparison(ast::tree& ast, ast::node* root, ast::node* atom, formatter& output)
+void generate_literal_chain_comparison(ast::tree& ast, ast::node* root, ast::node* atom, formatter& output, int yield_label)
 {
     ast::node* arg_0 = atom->first_child;
     plnnrc_assert(arg_0 && ast::is_term_variable(arg_0));
@@ -386,16 +386,16 @@ void generate_literal_chain_comparison(ast::tree& ast, ast::node* root, ast::nod
 
         if (root->next_sibling)
         {
-            generate_literal_chain(ast, root->next_sibling, output);
+            generate_literal_chain(ast, root->next_sibling, output, yield_label);
         }
         else
         {
-            output.writeln("PLNNR_COROUTINE_YIELD(state);");
+            output.writeln("PLNNR_COROUTINE_YIELD(state, %d);", yield_label);
         }
     }
 }
 
-void generate_literal_chain_call_term(ast::tree& ast, ast::node* root, ast::node* atom, formatter& output)
+void generate_literal_chain_call_term(ast::tree& ast, ast::node* root, ast::node* atom, formatter& output, int yield_label)
 {
     paste_precondition_function_call paste(atom, "state._");
 
@@ -405,11 +405,11 @@ void generate_literal_chain_call_term(ast::tree& ast, ast::node* root, ast::node
 
         if (root->next_sibling)
         {
-            generate_literal_chain(ast, root->next_sibling, output);
+            generate_literal_chain(ast, root->next_sibling, output, yield_label);
         }
         else
         {
-            output.writeln("PLNNR_COROUTINE_YIELD(state);");
+            output.writeln("PLNNR_COROUTINE_YIELD(state, %d);", yield_label);
         }
     }
 }
