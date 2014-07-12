@@ -27,30 +27,30 @@
 
 namespace plnnrc {
 
-class paste_function_call : public paste_func
+class Paste_Function_Call : public Paste_Func
 {
 public:
-    ast::node* function_call;
+    ast::Node* function_call;
 
-    paste_function_call(ast::node* function_call)
+    Paste_Function_Call(ast::Node* function_call)
         : function_call(function_call)
     {
     }
 
-    virtual void operator()(formatter& output)
+    virtual void operator()(Formatter& output)
     {
         output.put_id(function_call->s_expr->token);
         output.put_char('(');
 
-        for (ast::node* argument = function_call->first_child; argument != 0; argument = argument->next_sibling)
+        for (ast::Node* argument = function_call->first_child; argument != 0; argument = argument->next_sibling)
         {
             switch (argument->type)
             {
             case ast::node_term_variable:
                 {
-                    ast::node* def = definition(argument);
+                    ast::Node* def = definition(argument);
                     plnnrc_assert(def);
-                    int var_index = ast::annotation<ast::term_ann>(def)->var_index;
+                    int var_index = ast::annotation<ast::Term_Ann>(def)->var_index;
 
                     if (is_operator_parameter(def))
                     {
@@ -71,7 +71,7 @@ public:
                 break;
             case ast::node_term_call:
                 {
-                    paste_function_call paste(argument);
+                    Paste_Function_Call paste(argument);
                     output.put_str("wstate->");
                     paste(output);
                 }
@@ -91,36 +91,36 @@ public:
     }
 };
 
-void generate_branch_expands(ast::tree& ast, ast::node* domain, formatter& output)
+void generate_branch_expands(ast::Tree& ast, ast::Node* domain, Formatter& output)
 {
     unsigned precondition_index = 0;
 
-    for (ast::node* method = domain->first_child; method != 0; method = method->next_sibling)
+    for (ast::Node* method = domain->first_child; method != 0; method = method->next_sibling)
     {
         if (!ast::is_method(method))
         {
             continue;
         }
 
-        ast::node* atom = method->first_child;
+        ast::Node* atom = method->first_child;
         const char* method_name = atom->s_expr->token;
 
         unsigned branch_index = 0;
 
-        for (ast::node* branch = method->first_child->next_sibling; branch != 0; branch = branch->next_sibling)
+        for (ast::Node* branch = method->first_child->next_sibling; branch != 0; branch = branch->next_sibling)
         {
             plnnrc_assert(ast::is_branch(branch));
 
-            ast::branch_ann* ann = ast::annotation<ast::branch_ann>(branch);
+            ast::Branch_Ann* ann = ast::annotation<ast::Branch_Ann>(branch);
 
-            ast::node* precondition = branch->first_child;
-            ast::node* tasklist = precondition->next_sibling;
+            ast::Node* precondition = branch->first_child;
+            ast::Node* tasklist = precondition->next_sibling;
 
             plnnrc_assert(ast::is_task_list(tasklist));
 
-            output.writeln("bool %i_branch_%d_expand(method_instance* method, planner_state& pstate, void* world)", method_name, branch_index);
+            output.writeln("bool %i_branch_%d_expand(Method_Instance* method, Planner_State& pstate, void* world)", method_name, branch_index);
             {
-                scope s(output);
+                Scope s(output);
 
                 int yield_label = 1;
 
@@ -131,7 +131,7 @@ void generate_branch_expands(ast::tree& ast, ast::node* domain, formatter& outpu
                     output.writeln("%i_args* method_args = plnnr::arguments<%i_args>(method);", method_name, method_name);
                 }
 
-                output.writeln("worldstate* wstate = static_cast<worldstate*>(world);");
+                output.writeln("Worldstate* wstate = static_cast<Worldstate*>(world);");
 
                 output.newline();
                 output.writeln("PLNNR_COROUTINE_BEGIN(*method);");
@@ -139,14 +139,14 @@ void generate_branch_expands(ast::tree& ast, ast::node* domain, formatter& outpu
 
                 output.writeln("precondition = push_precondition<p%d_state>(pstate, method);", precondition_index);
 
-                for (ast::node* param = atom->first_child; param != 0; param = param->next_sibling)
+                for (ast::Node* param = atom->first_child; param != 0; param = param->next_sibling)
                 {
-                    ast::node* var = first_parameter_usage(param, precondition);
+                    ast::Node* var = first_parameter_usage(param, precondition);
 
                     if (var)
                     {
-                        int param_index = ast::annotation<ast::term_ann>(param)->var_index;
-                        int var_index = ast::annotation<ast::term_ann>(var)->var_index;
+                        int param_index = ast::annotation<ast::Term_Ann>(param)->var_index;
+                        int var_index = ast::annotation<ast::Term_Ann>(var)->var_index;
 
                         output.writeln("precondition->_%d = method_args->_%d;", var_index, param_index);
                     }
@@ -156,7 +156,7 @@ void generate_branch_expands(ast::tree& ast, ast::node* domain, formatter& outpu
 
                 output.writeln("while (next(*precondition, *wstate))");
                 {
-                    scope s(output);
+                    Scope s(output);
 
                     if (!tasklist->first_child)
                     {
@@ -168,10 +168,10 @@ void generate_branch_expands(ast::tree& ast, ast::node* domain, formatter& outpu
                         output.writeln("PLNNR_COROUTINE_YIELD(*method, %d);", yield_label++);
                     }
 
-                    for (ast::node* task_atom = tasklist->first_child; task_atom != 0; task_atom = task_atom->next_sibling)
+                    for (ast::Node* task_atom = tasklist->first_child; task_atom != 0; task_atom = task_atom->next_sibling)
                     {
                         {
-                            scope s(output);
+                            Scope s(output);
 
                             if (ast::is_add_list(task_atom))
                             {
@@ -217,7 +217,7 @@ void generate_branch_expands(ast::tree& ast, ast::node* domain, formatter& outpu
                                 {
                                     output.writeln("if (method->flags & method_flags_failed)");
                                     {
-                                        scope s(output, true);
+                                        Scope s(output, true);
                                         output.writeln("continue;");
                                     }
                                 }
@@ -230,7 +230,7 @@ void generate_branch_expands(ast::tree& ast, ast::node* domain, formatter& outpu
                 {
                     output.writeln("if (precondition->stage > 0)");
                     {
-                        scope s(output);
+                        Scope s(output);
                         output.writeln("method->flags |= method_flags_expanded;");
                         output.writeln("PLNNR_COROUTINE_YIELD(*method, %d);", yield_label++);
                     }
@@ -250,13 +250,13 @@ void generate_branch_expands(ast::tree& ast, ast::node* domain, formatter& outpu
     }
 }
 
-void generate_operator_effects(ast::tree& ast, ast::node* /*method*/, ast::node* task_atom, formatter& output)
+void generate_operator_effects(ast::Tree& ast, ast::Node* /*method*/, ast::Node* task_atom, Formatter& output)
 {
-    ast::node* operatr = ast.operators.find(task_atom->s_expr->token);
+    ast::Node* operatr = ast.operators.find(task_atom->s_expr->token);
     plnnrc_assert(operatr);
 
-    ast::node* effects_delete = operatr->first_child->next_sibling;
-    ast::node* effects_add = effects_delete->next_sibling;
+    ast::Node* effects_delete = operatr->first_child->next_sibling;
+    ast::Node* effects_add = effects_delete->next_sibling;
     plnnrc_assert(effects_delete && effects_add);
 
     if (effects_delete->first_child)
@@ -282,26 +282,26 @@ void generate_operator_effects(ast::tree& ast, ast::node* /*method*/, ast::node*
     }
 }
 
-void generate_effects_add(ast::node* effects, formatter& output)
+void generate_effects_add(ast::Node* effects, Formatter& output)
 {
-    for (ast::node* effect = effects->first_child; effect != 0; effect = effect->next_sibling)
+    for (ast::Node* effect = effects->first_child; effect != 0; effect = effect->next_sibling)
     {
-        scope s(output, !is_last(effect));
+        Scope s(output, !is_last(effect));
 
         const char* atom_id = effect->s_expr->token;
 
-        output.writeln("tuple_list::handle* list = wstate->atoms[atom_%i];", atom_id, atom_id);
+        output.writeln("tuple_list::Handle* list = wstate->atoms[atom_%i];", atom_id, atom_id);
         output.writeln("%i_tuple* tuple = tuple_list::append<%i_tuple>(list);", atom_id, atom_id);
 
         int param_index = 0;
 
-        for (ast::node* arg = effect->first_child; arg != 0; arg = arg->next_sibling)
+        for (ast::Node* arg = effect->first_child; arg != 0; arg = arg->next_sibling)
         {
             if (ast::is_term_variable(arg))
             {
-                ast::node* def = definition(arg);
+                ast::Node* def = definition(arg);
                 plnnrc_assert(def);
-                int var_index = ast::annotation<ast::term_ann>(def)->var_index;
+                int var_index = ast::annotation<ast::Term_Ann>(def)->var_index;
 
                 if (is_operator_parameter(def))
                 {
@@ -319,38 +319,38 @@ void generate_effects_add(ast::node* effects, formatter& output)
 
             if (ast::is_term_call(arg))
             {
-                paste_function_call paste(arg);
+                Paste_Function_Call paste(arg);
                 output.writeln("tuple->_%d = wstate->%p;", param_index, &paste);
             }
 
             ++param_index;
         }
 
-        output.writeln("operator_effect* effect = push<operator_effect>(pstate.journal);");
+        output.writeln("Operator_Effect* effect = push<Operator_Effect>(pstate.journal);");
         output.writeln("effect->tuple = tuple;");
         output.writeln("effect->list = list;");
     }
 }
 
-void generate_effects_delete(ast::node* effects, formatter& output)
+void generate_effects_delete(ast::Node* effects, Formatter& output)
 {
-    for (ast::node* effect = effects->first_child; effect != 0; effect = effect->next_sibling)
+    for (ast::Node* effect = effects->first_child; effect != 0; effect = effect->next_sibling)
     {
         const char* atom_id = effect->s_expr->token;
 
         output.writeln("for (%i_tuple* tuple = tuple_list::head<%i_tuple>(wstate->atoms[atom_%i]); tuple != 0; tuple = tuple->next)", atom_id, atom_id, atom_id);
         {
-            scope s(output, !is_last(effect));
+            Scope s(output, !is_last(effect));
 
             int param_index = 0;
 
-            for (ast::node* arg = effect->first_child; arg != 0; arg = arg->next_sibling)
+            for (ast::Node* arg = effect->first_child; arg != 0; arg = arg->next_sibling)
             {
                 if (ast::is_term_variable(arg))
                 {
-                    ast::node* def = definition(arg);
+                    ast::Node* def = definition(arg);
                     plnnrc_assert(def);
-                    int var_index = ast::annotation<ast::term_ann>(def)->var_index;
+                    int var_index = ast::annotation<ast::Term_Ann>(def)->var_index;
 
                     if (is_operator_parameter(def))
                     {
@@ -368,20 +368,20 @@ void generate_effects_delete(ast::node* effects, formatter& output)
 
                 if (ast::is_term_call(arg))
                 {
-                    paste_function_call paste(arg);
+                    Paste_Function_Call paste(arg);
                     output.writeln("if (tuple->_%d != wstate->%p)", param_index, &paste);
                 }
 
                 {
-                    scope s(output);
+                    Scope s(output);
                     output.writeln("continue;");
                 }
 
                 ++param_index;
             }
 
-            output.writeln("tuple_list::handle* list = wstate->atoms[atom_%i];", atom_id, atom_id);
-            output.writeln("operator_effect* effect = push<operator_effect>(pstate.journal);");
+            output.writeln("tuple_list::Handle* list = wstate->atoms[atom_%i];", atom_id, atom_id);
+            output.writeln("Operator_Effect* effect = push<Operator_Effect>(pstate.journal);");
             output.writeln("effect->tuple = tuple;");
             output.writeln("effect->list = list;");
             output.writeln("tuple_list::detach(list, tuple);");
@@ -391,17 +391,17 @@ void generate_effects_delete(ast::node* effects, formatter& output)
     }
 }
 
-void generate_operator_task(ast::tree& ast, ast::node* method, ast::node* task_atom, formatter& output)
+void generate_operator_task(ast::Tree& ast, ast::Node* method, ast::Node* task_atom, Formatter& output)
 {
     plnnrc_assert(is_lazy(task_atom) || is_operator(ast, task_atom));
 
     if (is_lazy(task_atom))
     {
-        output.writeln("task_instance* t = push_task(pstate, task_%i, %i_branch_0_expand);", task_atom->s_expr->token, task_atom->s_expr->token);
+        output.writeln("Task_Instance* t = push_task(pstate, task_%i, %i_branch_0_expand);", task_atom->s_expr->token, task_atom->s_expr->token);
     }
     else
     {
-        output.writeln("task_instance* t = push_task(pstate, task_%i, 0);", task_atom->s_expr->token);
+        output.writeln("Task_Instance* t = push_task(pstate, task_%i, 0);", task_atom->s_expr->token);
     }
 
     if (task_atom->first_child)
@@ -411,13 +411,13 @@ void generate_operator_task(ast::tree& ast, ast::node* method, ast::node* task_a
 
     int param_index = 0;
 
-    for (ast::node* arg = task_atom->first_child; arg != 0; arg = arg->next_sibling)
+    for (ast::Node* arg = task_atom->first_child; arg != 0; arg = arg->next_sibling)
     {
         if (ast::is_term_variable(arg))
         {
-            ast::node* def = definition(arg);
+            ast::Node* def = definition(arg);
             plnnrc_assert(def);
-            int var_index = ast::annotation<ast::term_ann>(def)->var_index;
+            int var_index = ast::annotation<ast::Term_Ann>(def)->var_index;
 
             if (is_parameter(def))
             {
@@ -431,7 +431,7 @@ void generate_operator_task(ast::tree& ast, ast::node* method, ast::node* task_a
 
         if (ast::is_term_call(arg))
         {
-            paste_function_call paste(arg);
+            Paste_Function_Call paste(arg);
             output.writeln("a->_%d = wstate->%p;", param_index, &paste);
         }
 
@@ -444,12 +444,12 @@ void generate_operator_task(ast::tree& ast, ast::node* method, ast::node* task_a
     }
 }
 
-void generate_method_task(ast::tree& ast, ast::node* /*method*/, ast::node* task_atom, formatter& output)
+void generate_method_task(ast::Tree& ast, ast::Node* /*method*/, ast::Node* task_atom, Formatter& output)
 {
     plnnrc_assert(is_method(ast, task_atom));
     (void)(ast);
 
-    output.writeln("method_instance* t = push_method(pstate, task_%i, %i_branch_0_expand);", task_atom->s_expr->token, task_atom->s_expr->token);
+    output.writeln("Method_Instance* t = push_method(pstate, task_%i, %i_branch_0_expand);", task_atom->s_expr->token, task_atom->s_expr->token);
 
     if (task_atom->first_child)
     {
@@ -458,13 +458,13 @@ void generate_method_task(ast::tree& ast, ast::node* /*method*/, ast::node* task
 
     int param_index = 0;
 
-    for (ast::node* arg = task_atom->first_child; arg != 0; arg = arg->next_sibling)
+    for (ast::Node* arg = task_atom->first_child; arg != 0; arg = arg->next_sibling)
     {
         if (ast::is_term_variable(arg))
         {
-            ast::node* def = definition(arg);
+            ast::Node* def = definition(arg);
             plnnrc_assert(def);
-            int var_index = ast::annotation<ast::term_ann>(def)->var_index;
+            int var_index = ast::annotation<ast::Term_Ann>(def)->var_index;
 
             if (is_parameter(def))
             {
@@ -478,7 +478,7 @@ void generate_method_task(ast::tree& ast, ast::node* /*method*/, ast::node* task
 
         if (ast::is_term_call(arg))
         {
-            paste_function_call paste(arg);
+            Paste_Function_Call paste(arg);
             output.writeln("a->_%d = wstate->%p;", param_index, &paste);
         }
 

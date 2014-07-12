@@ -25,7 +25,7 @@
 
 namespace test
 {
-    void check_error(const char* code, plnnrc::compilation_error error_id, int line, int column);
+    void check_error(const char* code, plnnrc::Compilation_Error error_id, int line, int column);
 }
 
 #endif

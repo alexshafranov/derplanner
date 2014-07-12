@@ -25,10 +25,10 @@
 
 namespace
 {
-    class buffer_writer : public plnnrc::writer
+    class Buffer_Writer : public plnnrc::Writer
     {
     public:
-        buffer_writer(size_t size)
+        Buffer_Writer(size_t size)
             : buffer(0)
             , top(0)
         {
@@ -36,7 +36,7 @@ namespace
             memset(buffer, 0, size);
         }
 
-        ~buffer_writer()
+        ~Buffer_Writer()
         {
             delete [] buffer;
         }
@@ -63,8 +63,8 @@ namespace
 
     TEST(format_integer)
     {
-        buffer_writer writer(1024);
-        plnnrc::formatter formatter(writer);
+        Buffer_Writer writer(1024);
+        plnnrc::Formatter formatter(writer);
         formatter.init(1);
         formatter.writeln("%d", 16384);
         formatter.flush();
@@ -73,8 +73,8 @@ namespace
 
     TEST(format_string_and_number)
     {
-        buffer_writer writer(1024);
-        plnnrc::formatter formatter(writer);
+        Buffer_Writer writer(1024);
+        plnnrc::Formatter formatter(writer);
         formatter.init(1);
         formatter.writeln("%s+%d", "hello", 128);
         formatter.flush();
@@ -89,8 +89,8 @@ namespace
         }
 
         {
-            buffer_writer writer(1024);
-            plnnrc::formatter formatter(writer);
+            Buffer_Writer writer(1024);
+            plnnrc::Formatter formatter(writer);
             formatter.init(1);
             formatter.writeln("%i", "abcd0123");
             formatter.flush();
@@ -98,8 +98,8 @@ namespace
         }
 
         {
-            buffer_writer writer(1024);
-            plnnrc::formatter formatter(writer);
+            Buffer_Writer writer(1024);
+            plnnrc::Formatter formatter(writer);
             formatter.init(1);
             formatter.writeln("%i", "!ax-by?");
             formatter.flush();
@@ -107,8 +107,8 @@ namespace
         }
 
         {
-            buffer_writer writer(1024);
-            plnnrc::formatter formatter(writer);
+            Buffer_Writer writer(1024);
+            plnnrc::Formatter formatter(writer);
             formatter.init(1);
             formatter.writeln("%i", "!?23a!?");
             formatter.flush();
@@ -118,19 +118,19 @@ namespace
 
     TEST(paste_functor)
     {
-        class paste_hello : public plnnrc::paste_func
+        class Paste_Hello : public plnnrc::Paste_Func
         {
         public:
-            virtual void operator()(plnnrc::formatter& output)
+            virtual void operator()(plnnrc::Formatter& output)
             {
                 output.put_str("hello");
             }
         };
 
-        buffer_writer writer(1024);
-        plnnrc::formatter formatter(writer);
+        Buffer_Writer writer(1024);
+        plnnrc::Formatter formatter(writer);
         formatter.init(1);
-        paste_hello paste;
+        Paste_Hello paste;
         formatter.writeln("%p", &paste);
         formatter.flush();
         CHECK_EQUAL("hello\n", writer.buffer);

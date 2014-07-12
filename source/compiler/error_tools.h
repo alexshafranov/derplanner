@@ -28,12 +28,12 @@
 
 #define PLNNRC_CHECK(EXPR) do { if (!(EXPR)) return 0; } while ((void)(__LINE__==-1), false)
 
-#define PLNNRC_CHECK_NODE(NODE, ALLOC_EXPR) ::plnnrc::ast::node* NODE = (ALLOC_EXPR); PLNNRC_CHECK(NODE)
+#define PLNNRC_CHECK_NODE(NODE, ALLOC_EXPR) ::plnnrc::ast::Node* NODE = (ALLOC_EXPR); PLNNRC_CHECK(NODE)
 
 #define PLNNRC_RETURN(EXPECT_EXPR)                          \
     do                                                      \
     {                                                       \
-        ::plnnrc::ast::node* error_node = (EXPECT_EXPR);    \
+        ::plnnrc::ast::Node* error_node = (EXPECT_EXPR);    \
         if (error_node) return error_node;                  \
     }                                                       \
     while ((void)(__LINE__==-1), false)                     \
@@ -45,47 +45,47 @@
 
 namespace plnnrc {
 
-namespace ast { class tree; }
-namespace ast { struct node; }
+namespace ast { class Tree; }
+namespace ast { struct Node; }
 
-class error_annotation_builder
+class Error_Annotation_Builder
 {
 public:
-    error_annotation_builder(ast::node* node)
-        : _node(node)
+    Error_Annotation_Builder(ast::Node* Node)
+        : _node(Node)
     {
     }
 
-    operator ast::node*() const { return _node; }
+    operator ast::Node*() const { return _node; }
 
-    void add_argument(sexpr::node* arg);
-    void add_argument(const location& arg);
+    void add_argument(sexpr::Node* arg);
+    void add_argument(const Location& arg);
     void add_argument(const char* arg);
     void add_argument(int arg);
 
 private:
-    ast::node* _node;
+    ast::Node* _node;
 };
 
 template <typename T>
-error_annotation_builder operator<<(error_annotation_builder builder, const T& t)
+Error_Annotation_Builder operator<<(Error_Annotation_Builder builder, const T& t)
 {
     builder.add_argument(t);
     return builder;
 }
 
-error_annotation_builder expect_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_type expected, ast::node* parent=0);
-error_annotation_builder expect_child_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_type expected, ast::node* parent=0);
-error_annotation_builder expect_next_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_type expected, ast::node* parent=0);
-error_annotation_builder expect_next_token(ast::tree& ast, sexpr::node* s_expr, str_ref expected, ast::node* parent=0);
-error_annotation_builder expect_valid_id(ast::tree& ast, sexpr::node* s_expr, ast::node* parent=0);
-error_annotation_builder expect_condition(ast::tree& ast, sexpr::node* s_expr, bool condition, compilation_error error_id, ast::node* parent=0);
+Error_Annotation_Builder expect_type(ast::Tree& ast, sexpr::Node* s_expr, sexpr::Node_Type expected, ast::Node* parent=0);
+Error_Annotation_Builder expect_child_type(ast::Tree& ast, sexpr::Node* s_expr, sexpr::Node_Type expected, ast::Node* parent=0);
+Error_Annotation_Builder expect_next_type(ast::Tree& ast, sexpr::Node* s_expr, sexpr::Node_Type expected, ast::Node* parent=0);
+Error_Annotation_Builder expect_next_token(ast::Tree& ast, sexpr::Node* s_expr, Str_Ref expected, ast::Node* parent=0);
+Error_Annotation_Builder expect_valid_id(ast::Tree& ast, sexpr::Node* s_expr, ast::Node* parent=0);
+Error_Annotation_Builder expect_condition(ast::Tree& ast, sexpr::Node* s_expr, bool condition, Compilation_Error error_id, ast::Node* parent=0);
 
-error_annotation_builder replace_with_error(ast::tree& ast, ast::node* node, compilation_error error_id);
-error_annotation_builder replace_with_error_if(bool condition, ast::tree& ast, ast::node* node, compilation_error error_id);
+Error_Annotation_Builder replace_with_error(ast::Tree& ast, ast::Node* Node, Compilation_Error error_id);
+Error_Annotation_Builder replace_with_error_if(bool condition, ast::Tree& ast, ast::Node* Node, Compilation_Error error_id);
 
-error_annotation_builder emit_error(ast::tree& ast, compilation_error error_id, sexpr::node* s_expr, bool past_expr_location=false);
-error_annotation_builder emit_error(ast::tree& ast, ast::node* parent, compilation_error error_id, sexpr::node* s_expr, bool past_expr_location=false);
+Error_Annotation_Builder emit_error(ast::Tree& ast, Compilation_Error error_id, sexpr::Node* s_expr, bool past_expr_location=false);
+Error_Annotation_Builder emit_error(ast::Tree& ast, ast::Node* parent, Compilation_Error error_id, sexpr::Node* s_expr, bool past_expr_location=false);
 
 }
 

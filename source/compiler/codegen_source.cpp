@@ -26,7 +26,7 @@
 
 namespace plnnrc {
 
-void generate_source_top(const char* header_file_name, formatter& output)
+void generate_source_top(const char* header_file_name, Formatter& output)
 {
     output.writeln("#include \"derplanner/runtime/runtime.h\"");
     output.writeln("#include \"%s\"", header_file_name);
@@ -53,34 +53,34 @@ void generate_source_top(const char* header_file_name, formatter& output)
     output.newline();
 }
 
-void generate_task_name_function(ast::tree& ast, ast::node* domain, bool enabled, formatter& output)
+void generate_task_name_function(ast::Tree& ast, ast::Node* domain, bool enabled, Formatter& output)
 {
     if (!enabled)
     {
-        output.writeln("const char* task_name(task_type type) { return \"<none>\"; }");
+        output.writeln("const char* task_name(Task_Type type) { return \"<none>\"; }");
         output.newline();
     }
     else
     {
         output.writeln("static const char* task_type_to_name[] =");
         {
-            class_scope s(output);
+            Class_Scope s(output);
 
-            for (id_table_values operators = ast.operators.values(); !operators.empty(); operators.pop())
+            for (Id_Table_Values operators = ast.operators.values(); !operators.empty(); operators.pop())
             {
-                ast::node* operatr = operators.value();
-                ast::node* operator_atom = operatr->first_child;
+                ast::Node* operatr = operators.value();
+                ast::Node* operator_atom = operatr->first_child;
                 output.writeln("\"%s\",", operator_atom->s_expr->token);
             }
 
-            for (ast::node* method = domain->first_child; method != 0; method = method->next_sibling)
+            for (ast::Node* method = domain->first_child; method != 0; method = method->next_sibling)
             {
                 if (!ast::is_method(method))
                 {
                     continue;
                 }
 
-                ast::node* method_atom = method->first_child;
+                ast::Node* method_atom = method->first_child;
                 plnnrc_assert(method_atom);
 
                 output.writeln("\"%s\",", method_atom->s_expr->token);
@@ -89,25 +89,25 @@ void generate_task_name_function(ast::tree& ast, ast::node* domain, bool enabled
             output.writeln("\"<none>\",");
         }
 
-        output.writeln("const char* task_name(task_type type) { return task_type_to_name[type]; }");
+        output.writeln("const char* task_name(Task_Type type) { return task_type_to_name[type]; }");
         output.newline();
     }
 }
 
-void generate_atom_name_function(ast::tree& /*ast*/, ast::node* worldstate, bool enabled, formatter& output)
+void generate_atom_name_function(ast::Tree& /*ast*/, ast::Node* worldstate, bool enabled, Formatter& output)
 {
     if (!enabled)
     {
-        output.writeln("const char* atom_name(atom_type type) { return \"<none>\"; }");
+        output.writeln("const char* atom_name(Atom_Type type) { return \"<none>\"; }");
         output.newline();
     }
     else
     {
         output.writeln("static const char* atom_type_to_name[] =");
         {
-            class_scope s(output);
+            Class_Scope s(output);
 
-            for (ast::node* atom = worldstate->first_child->next_sibling; atom != 0; atom = atom->next_sibling)
+            for (ast::Node* atom = worldstate->first_child->next_sibling; atom != 0; atom = atom->next_sibling)
             {
                 if (!ast::is_atom(atom))
                 {
@@ -120,7 +120,7 @@ void generate_atom_name_function(ast::tree& /*ast*/, ast::node* worldstate, bool
             output.writeln("\"<none>\",");
         }
 
-        output.writeln("const char* atom_name(atom_type type) { return atom_type_to_name[type]; }");
+        output.writeln("const char* atom_name(Atom_Type type) { return atom_type_to_name[type]; }");
         output.newline();
     }
 }

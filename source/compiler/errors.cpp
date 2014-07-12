@@ -29,7 +29,7 @@ namespace plnnrc {
 
 namespace
 {
-    const char* error_format_string(compilation_error id)
+    const char* error_format_string(Compilation_Error id)
     {
         switch (id)
         {
@@ -42,20 +42,20 @@ namespace
     }
 }
 
-location::location(sexpr::node* s_expr)
+Location::Location(sexpr::Node* s_expr)
     : line(s_expr->line)
     , column(s_expr->column)
 {
 }
 
-location::location(ast::node* node)
+Location::Location(ast::Node* Node)
     : line(0)
     , column(0)
 {
-    if (node && node->s_expr)
+    if (Node && Node->s_expr)
     {
-        line = node->s_expr->line;
-        column = node->s_expr->column;
+        line = Node->s_expr->line;
+        column = Node->s_expr->column;
     }
 }
 
@@ -78,9 +78,9 @@ namespace
 
 namespace ast {
 
-void format_error(error_ann* annotation, writer& stream)
+void format_error(Error_Ann* annotation, Writer& stream)
 {
-    formatter output(stream);
+    Formatter output(stream);
     output.init(2048);
 
     const char* format = error_format_string(annotation->id);
@@ -101,20 +101,20 @@ void format_error(error_ann* annotation, writer& stream)
             plnnrc_assert(isdigit(digit));
             int slot = digit - '0';
             plnnrc_assert(slot < annotation->argument_count);
-            error_argument_type arg_type = annotation->argument_type[slot];
+            Error_Argument_Type arg_type = annotation->argument_type[slot];
             plnnrc_assert(arg_type != error_argument_none);
 
             switch (arg_type)
             {
             case error_argument_node_token:
                 {
-                    sexpr::node* s_expr = annotation->argument_node[slot];
+                    sexpr::Node* s_expr = annotation->argument_node[slot];
                     output.put_str(s_expr->token);
                 }
                 break;
             case error_argument_node_location:
                 {
-                    location arg = annotation->argument_location[slot];
+                    Location arg = annotation->argument_location[slot];
                     output.put_char('[');
                     output.put_int(arg.line);
                     output.put_char(':');

@@ -25,18 +25,18 @@
 
 namespace plnnrc {
 
-class writer
+class Writer
 {
 public:
-    virtual ~writer() {}
+    virtual ~Writer() {}
     virtual size_t write(const void* data, size_t size) = 0;
     virtual bool error() = 0;
 };
 
-class stdio_file_writer : public writer
+class Stdio_File_Writer : public Writer
 {
 public:
-    stdio_file_writer(void* file_object);
+    Stdio_File_Writer(void* file_object);
     virtual size_t write(const void* data, size_t size);
     virtual bool error() { return _error; }
 

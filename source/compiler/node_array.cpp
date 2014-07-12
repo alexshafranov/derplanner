@@ -24,21 +24,21 @@
 
 namespace plnnrc {
 
-node_array::node_array()
+Node_Array::Node_Array()
     : _nodes(0)
     , _size(0)
     , _capacity(0)
 {
 }
 
-node_array::~node_array()
+Node_Array::~Node_Array()
 {
     memory::deallocate(_nodes);
 }
 
-bool node_array::init(unsigned max_size)
+bool Node_Array::init(unsigned max_size)
 {
-    ast::node** nodes = static_cast<ast::node**>(memory::allocate(sizeof(_nodes[0])*max_size));
+    ast::Node** nodes = static_cast<ast::Node**>(memory::allocate(sizeof(_nodes[0])*max_size));
 
     if (!nodes)
     {

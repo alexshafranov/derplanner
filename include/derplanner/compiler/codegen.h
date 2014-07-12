@@ -23,10 +23,10 @@
 
 namespace plnnrc {
 
-namespace ast { class tree; }
-class writer;
+namespace ast { class Tree; }
+class Writer;
 
-struct codegen_options
+struct Codegen_Options
 {
     const char* tab;
     const char* newline;
@@ -38,8 +38,8 @@ struct codegen_options
     bool enable_reflection;
 };
 
-bool generate_header(ast::tree& ast, writer& output, codegen_options options);
-bool generate_source(ast::tree& ast, writer& output, codegen_options options);
+bool generate_header(ast::Tree& ast, Writer& output, Codegen_Options options);
+bool generate_source(ast::Tree& ast, Writer& output, Codegen_Options options);
 
 }
 

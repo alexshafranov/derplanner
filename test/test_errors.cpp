@@ -30,15 +30,15 @@ using namespace plnnrc;
 
 namespace test
 {
-    struct buffer_context
+    struct Buffer_Context
     {
-        buffer_context(size_t bytes)
+        Buffer_Context(size_t bytes)
             : bytes(bytes)
         {
             data = new char[bytes];
         }
 
-        ~buffer_context()
+        ~Buffer_Context()
         {
             delete [] data;
         }
@@ -47,19 +47,19 @@ namespace test
         char* data;
     };
 
-    void check_error(const char* code, compilation_error error_id, int line, int column)
+    void check_error(const char* code, Compilation_Error error_id, int line, int column)
     {
-        buffer_context buffer(strlen(code) + 1);
+        Buffer_Context buffer(strlen(code) + 1);
         strncpy(buffer.data, code, buffer.bytes);
-        sexpr::tree expr;
+        sexpr::Tree expr;
         expr.parse(buffer.data);
-        ast::tree tree;
+        ast::Tree tree;
         ast::build_translation_unit(tree, expr.root());
         CHECK(tree.error_node_cache.size());
-        ast::node* error_node = tree.error_node_cache[0];
-        ast::error_ann* error_ann = ast::annotation<ast::error_ann>(error_node);
-        CHECK_EQUAL(error_id, error_ann->id);
-        CHECK_EQUAL(line, error_ann->line);
-        CHECK_EQUAL(column, error_ann->column);
+        ast::Node* error_node = tree.error_node_cache[0];
+        ast::Error_Ann* ann = ast::annotation<ast::Error_Ann>(error_node);
+        CHECK_EQUAL(error_id, ann->id);
+        CHECK_EQUAL(line, ann->line);
+        CHECK_EQUAL(column, ann->column);
     }
 }

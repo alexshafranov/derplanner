@@ -25,57 +25,57 @@
 
 namespace plnnrc {
 
-namespace ast { struct node; }
+namespace ast { struct Node; }
 
-class id_table_values;
-struct id_table_entry;
+class Id_Table_Values;
+struct Id_Table_Entry;
 
-class id_table
+class Id_Table
 {
 public:
-    id_table();
-    ~id_table();
+    Id_Table();
+    ~Id_Table();
 
     bool init(uint32_t max_count);
 
-    bool insert(const char* key, ast::node* value);
-    ast::node* find(const char* key) const;
+    bool insert(const char* key, ast::Node* value);
+    ast::Node* find(const char* key) const;
 
     uint32_t count() const { return _count; }
 
-    id_table_values values() const;
+    Id_Table_Values values() const;
 
 private:
-    friend class id_table_values;
+    friend class Id_Table_Values;
 
-    id_table(const id_table&);
-    const id_table& operator=(const id_table&);
+    Id_Table(const Id_Table&);
+    const Id_Table& operator=(const Id_Table&);
 
     bool _allocate(uint32_t new_capacity);
     bool _grow();
-    void _insert(uint32_t hash_code, const char* key, ast::node* value);
+    void _insert(uint32_t hash_code, const char* key, ast::Node* value);
 
-    id_table_entry* _buffer;
+    Id_Table_Entry* _buffer;
     uint32_t _capacity;
     uint32_t _mask;
     uint32_t _count;
 };
 
-class id_table_values
+class Id_Table_Values
 {
 public:
-    id_table_values();
-    id_table_values(const id_table* table);
-    id_table_values(const id_table_values& values);
-    id_table_values& operator=(const id_table_values& values);
+    Id_Table_Values();
+    Id_Table_Values(const Id_Table* table);
+    Id_Table_Values(const Id_Table_Values& values);
+    Id_Table_Values& operator=(const Id_Table_Values& values);
 
     bool empty() const { return _slot == 0xffffffff; }
-    ast::node* value() const;
+    ast::Node* value() const;
     void pop();
 
 private:
     uint32_t _slot;
-    const id_table* _table;
+    const Id_Table* _table;
 };
 
 }

@@ -27,94 +27,94 @@
 namespace plnnrc {
 namespace ast {
 
-void annotate_precondition(node* precondition)
+void annotate_precondition(Node* precondition)
 {
-    for (node* n = precondition; n != 0; n = preorder_traversal_next(precondition, n))
+    for (Node* n = precondition; n != 0; n = preorder_traversal_next(precondition, n))
     {
         if (is_term_variable(n))
         {
-            node* def = definition(n);
+            Node* def = definition(n);
 
             if (def)
             {
-                annotation<term_ann>(def)->var_index = -1;
+                annotation<Term_Ann>(def)->var_index = -1;
             }
         }
     }
 
     int var_index = 0;
 
-    for (node* n = precondition; n != 0; n = preorder_traversal_next(precondition, n))
+    for (Node* n = precondition; n != 0; n = preorder_traversal_next(precondition, n))
     {
         if (is_term_variable(n))
         {
-            node* def = definition(n);
+            Node* def = definition(n);
 
-            if (!def || annotation<term_ann>(def)->var_index == -1)
+            if (!def || annotation<Term_Ann>(def)->var_index == -1)
             {
                 if (def)
                 {
-                    annotation<term_ann>(def)->var_index = var_index;
-                    annotation<term_ann>(n)->var_index = var_index;
+                    annotation<Term_Ann>(def)->var_index = var_index;
+                    annotation<Term_Ann>(n)->var_index = var_index;
                 }
                 else
                 {
-                    annotation<term_ann>(n)->var_index = var_index;
+                    annotation<Term_Ann>(n)->var_index = var_index;
                 }
 
                 ++var_index;
             }
             else
             {
-                annotation<term_ann>(n)->var_index = annotation<term_ann>(def)->var_index;
+                annotation<Term_Ann>(n)->var_index = annotation<Term_Ann>(def)->var_index;
             }
         }
     }
 
     int atom_index = 0;
 
-    for (node* n = precondition; n != 0; n = preorder_traversal_next(precondition, n))
+    for (Node* n = precondition; n != 0; n = preorder_traversal_next(precondition, n))
     {
         if (is_atom(n))
         {
-            annotation<atom_ann>(n)->index = atom_index;
+            annotation<Atom_Ann>(n)->index = atom_index;
             ++atom_index;
         }
     }
 }
 
-void annotate_params(node* task)
+void annotate_params(Node* task)
 {
-    node* atom = task->first_child;
+    Node* atom = task->first_child;
 
     int param_index = 0;
 
-    for (node* param = atom->first_child; param != 0; param = param->next_sibling)
+    for (Node* param = atom->first_child; param != 0; param = param->next_sibling)
     {
-        annotation<term_ann>(param)->var_index = param_index;
+        annotation<Term_Ann>(param)->var_index = param_index;
         ++param_index;
     }
 }
 
-void annotate(tree& ast)
+void annotate(Tree& ast)
 {
-    for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+    for (Id_Table_Values methods = ast.methods.values(); !methods.empty(); methods.pop())
     {
-        node* method = methods.value();
+        Node* method = methods.value();
 
-        for (node* branch = method->first_child->next_sibling; branch != 0; branch = branch->next_sibling)
+        for (Node* branch = method->first_child->next_sibling; branch != 0; branch = branch->next_sibling)
         {
             plnnrc_assert(is_branch(branch));
             annotate_precondition(branch->first_child);
         }
     }
 
-    for (id_table_values operators = ast.operators.values(); !operators.empty(); operators.pop())
+    for (Id_Table_Values operators = ast.operators.values(); !operators.empty(); operators.pop())
     {
         annotate_params(operators.value());
     }
 
-    for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+    for (Id_Table_Values methods = ast.methods.values(); !methods.empty(); methods.pop())
     {
         annotate_params(methods.value());
     }

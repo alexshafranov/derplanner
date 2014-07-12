@@ -27,11 +27,11 @@
 
 namespace plnnrc {
 
-void error_annotation_builder::add_argument(sexpr::node* arg)
+void Error_Annotation_Builder::add_argument(sexpr::Node* arg)
 {
     if (_node)
     {
-        ast::error_ann* ann = ast::annotation<ast::error_ann>(_node);
+        ast::Error_Ann* ann = ast::annotation<ast::Error_Ann>(_node);
         plnnrc_assert(ann->argument_count < ast::max_error_args);
         ann->argument_type[ann->argument_count] = ast::error_argument_node_token;
         ann->argument_node[ann->argument_count] = arg;
@@ -39,11 +39,11 @@ void error_annotation_builder::add_argument(sexpr::node* arg)
     }
 }
 
-void error_annotation_builder::add_argument(const location& arg)
+void Error_Annotation_Builder::add_argument(const Location& arg)
 {
     if (_node)
     {
-        ast::error_ann* ann = ast::annotation<ast::error_ann>(_node);
+        ast::Error_Ann* ann = ast::annotation<ast::Error_Ann>(_node);
         plnnrc_assert(ann->argument_count < ast::max_error_args);
         ann->argument_type[ann->argument_count] = ast::error_argument_node_location;
         ann->argument_location[ann->argument_count++] = arg;
@@ -51,11 +51,11 @@ void error_annotation_builder::add_argument(const location& arg)
     }
 }
 
-void error_annotation_builder::add_argument(const char* arg)
+void Error_Annotation_Builder::add_argument(const char* arg)
 {
     if (_node)
     {
-        ast::error_ann* ann = ast::annotation<ast::error_ann>(_node);
+        ast::Error_Ann* ann = ast::annotation<ast::Error_Ann>(_node);
         plnnrc_assert(ann->argument_count < ast::max_error_args);
         ann->argument_type[ann->argument_count] = ast::error_argument_node_string;
         ann->argument_string[ann->argument_count++] = arg;
@@ -63,11 +63,11 @@ void error_annotation_builder::add_argument(const char* arg)
     }
 }
 
-void error_annotation_builder::add_argument(int arg)
+void Error_Annotation_Builder::add_argument(int arg)
 {
     if (_node)
     {
-        ast::error_ann* ann = ast::annotation<ast::error_ann>(_node);
+        ast::Error_Ann* ann = ast::annotation<ast::Error_Ann>(_node);
         plnnrc_assert(ann->argument_count < ast::max_error_args);
         ann->argument_type[ann->argument_count] = ast::error_argument_selection;
         ann->argument_selection[ann->argument_count++] = arg;
@@ -75,14 +75,14 @@ void error_annotation_builder::add_argument(int arg)
     }
 }
 
-error_annotation_builder emit_error(ast::tree& ast, compilation_error error_id, sexpr::node* s_expr, bool past_expr_location)
+Error_Annotation_Builder emit_error(ast::Tree& ast, Compilation_Error error_id, sexpr::Node* s_expr, bool past_expr_location)
 {
     return emit_error(ast, 0, error_id, s_expr, past_expr_location);
 }
 
-error_annotation_builder emit_error(ast::tree& ast, ast::node* parent, compilation_error error_id, sexpr::node* s_expr, bool past_expr_location)
+Error_Annotation_Builder emit_error(ast::Tree& ast, ast::Node* parent, Compilation_Error error_id, sexpr::Node* s_expr, bool past_expr_location)
 {
-    ast::node* error = ast.make_node(ast::node_error, s_expr);
+    ast::Node* error = ast.make_node(ast::node_error, s_expr);
 
     if (error)
     {
@@ -96,7 +96,7 @@ error_annotation_builder emit_error(ast::tree& ast, ast::node* parent, compilati
             ast.error_node_cache.append(error);
         }
 
-        ast::error_ann* annotation = ast::annotation<ast::error_ann>(error);
+        ast::Error_Ann* annotation = ast::annotation<ast::Error_Ann>(error);
         annotation->id = error_id;
         annotation->line = s_expr->line;
 
@@ -111,10 +111,10 @@ error_annotation_builder emit_error(ast::tree& ast, ast::node* parent, compilati
         }
     }
 
-    return error_annotation_builder(error);
+    return Error_Annotation_Builder(error);
 }
 
-error_annotation_builder expect_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_type expected, ast::node* parent)
+Error_Annotation_Builder expect_type(ast::Tree& ast, sexpr::Node* s_expr, sexpr::Node_Type expected, ast::Node* parent)
 {
     if (s_expr->type != expected)
     {
@@ -124,7 +124,7 @@ error_annotation_builder expect_type(ast::tree& ast, sexpr::node* s_expr, sexpr:
     return 0;
 }
 
-error_annotation_builder expect_child_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_type expected, ast::node* parent)
+Error_Annotation_Builder expect_child_type(ast::Tree& ast, sexpr::Node* s_expr, sexpr::Node_Type expected, ast::Node* parent)
 {
     if (!s_expr->first_child)
     {
@@ -139,7 +139,7 @@ error_annotation_builder expect_child_type(ast::tree& ast, sexpr::node* s_expr, 
     return 0;
 }
 
-error_annotation_builder expect_next_type(ast::tree& ast, sexpr::node* s_expr, sexpr::node_type expected, ast::node* parent)
+Error_Annotation_Builder expect_next_type(ast::Tree& ast, sexpr::Node* s_expr, sexpr::Node_Type expected, ast::Node* parent)
 {
     if (!s_expr->next_sibling)
     {
@@ -154,7 +154,7 @@ error_annotation_builder expect_next_type(ast::tree& ast, sexpr::node* s_expr, s
     return 0;
 }
 
-error_annotation_builder expect_next_token(ast::tree& ast, sexpr::node* s_expr, str_ref expected, ast::node* parent)
+Error_Annotation_Builder expect_next_token(ast::Tree& ast, sexpr::Node* s_expr, Str_Ref expected, ast::Node* parent)
 {
     if (!s_expr->next_sibling)
     {
@@ -169,7 +169,7 @@ error_annotation_builder expect_next_token(ast::tree& ast, sexpr::node* s_expr, 
     return 0;
 }
 
-error_annotation_builder expect_valid_id(ast::tree& ast, sexpr::node* s_expr, ast::node* parent)
+Error_Annotation_Builder expect_valid_id(ast::Tree& ast, sexpr::Node* s_expr, ast::Node* parent)
 {
     plnnrc_assert(s_expr);
 
@@ -181,7 +181,7 @@ error_annotation_builder expect_valid_id(ast::tree& ast, sexpr::node* s_expr, as
     return 0;
 }
 
-error_annotation_builder expect_condition(ast::tree& ast, sexpr::node* s_expr, bool condition, compilation_error error_id, ast::node* parent)
+Error_Annotation_Builder expect_condition(ast::Tree& ast, sexpr::Node* s_expr, bool condition, Compilation_Error error_id, ast::Node* parent)
 {
     if (!condition)
     {
@@ -191,21 +191,21 @@ error_annotation_builder expect_condition(ast::tree& ast, sexpr::node* s_expr, b
     return 0;
 }
 
-error_annotation_builder replace_with_error(ast::tree& ast, ast::node* node, compilation_error error_id)
+Error_Annotation_Builder replace_with_error(ast::Tree& ast, ast::Node* Node, Compilation_Error error_id)
 {
-    ast::node* error_node = emit_error(ast, error_id, node->s_expr);
+    ast::Node* error_node = emit_error(ast, error_id, Node->s_expr);
 
-    node->type = error_node->type;
-    node->annotation = error_node->annotation;
+    Node->type = error_node->type;
+    Node->annotation = error_node->annotation;
 
-    return error_annotation_builder(node);
+    return Error_Annotation_Builder(Node);
 }
 
-error_annotation_builder replace_with_error_if(bool condition, ast::tree& ast, ast::node* node, compilation_error error_id)
+Error_Annotation_Builder replace_with_error_if(bool condition, ast::Tree& ast, ast::Node* Node, Compilation_Error error_id)
 {
     if (condition)
     {
-        return replace_with_error(ast, node, error_id);
+        return replace_with_error(ast, Node, error_id);
     }
 
     return 0;

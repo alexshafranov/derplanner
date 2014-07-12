@@ -27,19 +27,19 @@
 
 namespace plnnrc {
 
-class paste_fully_qualified_namespace : public paste_func
+class Paste_Fully_Qualified_Namespace : public Paste_Func
 {
 public:
-    ast::node* namespace_node;
+    ast::Node* namespace_node;
 
-    paste_fully_qualified_namespace(ast::node* namespace_node)
+    Paste_Fully_Qualified_Namespace(ast::Node* namespace_node)
         : namespace_node(namespace_node)
     {
     }
 
-    virtual void operator()(formatter& output)
+    virtual void operator()(Formatter& output)
     {
-        for (sexpr::node* name_expr = namespace_node->s_expr->first_child; name_expr != 0; name_expr = name_expr->next_sibling)
+        for (sexpr::Node* name_expr = namespace_node->s_expr->first_child; name_expr != 0; name_expr = name_expr->next_sibling)
         {
             output.put_id(name_expr->token);
 
@@ -51,23 +51,23 @@ public:
     }
 };
 
-void generate_worldstate_reflectors(ast::tree& ast, ast::node* worldstate, formatter& output)
+void generate_worldstate_reflectors(ast::Tree& ast, ast::Node* worldstate, Formatter& output)
 {
-    ast::node* worldstate_namespace = worldstate->first_child;
+    ast::Node* worldstate_namespace = worldstate->first_child;
     plnnrc_assert(worldstate_namespace && ast::is_namespace(worldstate_namespace));
 
-    paste_fully_qualified_namespace paste_world_namespace(worldstate_namespace);
+    Paste_Fully_Qualified_Namespace paste_world_namespace(worldstate_namespace);
 
     output.writeln("template <typename V>");
-    output.writeln("struct generated_type_reflector<%p::worldstate, V>", &paste_world_namespace);
+    output.writeln("struct Generated_Type_Reflector<%p::Worldstate, V>", &paste_world_namespace);
     {
-        class_scope s(output);
+        Class_Scope s(output);
 
-        output.writeln("void operator()(const %p::worldstate& world, V& visitor)", &paste_world_namespace);
+        output.writeln("void operator()(const %p::Worldstate& world, V& visitor)", &paste_world_namespace);
         {
-            scope s(output, false);
+            Scope s(output, false);
 
-            for (ast::node* atom = worldstate_namespace->next_sibling; atom != 0; atom = atom->next_sibling)
+            for (ast::Node* atom = worldstate_namespace->next_sibling; atom != 0; atom = atom->next_sibling)
             {
                 if (!ast::is_atom(atom))
                 {
@@ -79,7 +79,7 @@ void generate_worldstate_reflectors(ast::tree& ast, ast::node* worldstate, forma
         }
     }
 
-    for (ast::node* atom = worldstate_namespace->next_sibling; atom != 0; atom = atom->next_sibling)
+    for (ast::Node* atom = worldstate_namespace->next_sibling; atom != 0; atom = atom->next_sibling)
     {
         if (!ast::is_atom(atom))
         {
@@ -90,16 +90,16 @@ void generate_worldstate_reflectors(ast::tree& ast, ast::node* worldstate, forma
     }
 }
 
-void generate_domain_reflectors(ast::tree& ast, ast::node* domain, formatter& output)
+void generate_domain_reflectors(ast::Tree& ast, ast::Node* domain, Formatter& output)
 {
-    ast::node* domain_namespace = domain->first_child;
+    ast::Node* domain_namespace = domain->first_child;
     plnnrc_assert(domain_namespace && ast::is_namespace(domain_namespace));
 
-    paste_fully_qualified_namespace paste_domain_namespace(domain_namespace);
+    Paste_Fully_Qualified_Namespace paste_domain_namespace(domain_namespace);
 
-    for (id_table_values operators = ast.operators.values(); !operators.empty(); operators.pop())
+    for (Id_Table_Values operators = ast.operators.values(); !operators.empty(); operators.pop())
     {
-        ast::node* atom = operators.value()->first_child;
+        ast::Node* atom = operators.value()->first_child;
 
         if (!atom->first_child)
         {
@@ -109,14 +109,14 @@ void generate_domain_reflectors(ast::tree& ast, ast::node* domain, formatter& ou
         generate_atom_reflector(ast, atom, &paste_domain_namespace, "task_name", "args", "task", output);
     }
 
-    for (ast::node* method = domain->first_child; method != 0; method = method->next_sibling)
+    for (ast::Node* method = domain->first_child; method != 0; method = method->next_sibling)
     {
         if (!ast::is_method(method))
         {
             continue;
         }
 
-        ast::node* atom = method->first_child;
+        ast::Node* atom = method->first_child;
 
         if (!atom->first_child)
         {
@@ -127,20 +127,20 @@ void generate_domain_reflectors(ast::tree& ast, ast::node* domain, formatter& ou
     }
 }
 
-void generate_atom_reflector(ast::tree& /*ast*/, ast::node* atom, paste_func* paste_namespace, const char* name_function, const char* tuple_struct_postfix, const char* tuple_id_prefix, formatter& output)
+void generate_atom_reflector(ast::Tree& /*ast*/, ast::Node* atom, Paste_Func* paste_namespace, const char* name_function, const char* tuple_struct_postfix, const char* tuple_id_prefix, Formatter& output)
 {
     output.writeln("template <typename V>");
-    output.writeln("struct generated_type_reflector<%p::%i_%s, V>", paste_namespace, atom->s_expr->token, tuple_struct_postfix);
+    output.writeln("struct Generated_Type_Reflector<%p::%i_%s, V>", paste_namespace, atom->s_expr->token, tuple_struct_postfix);
     {
-        class_scope s(output);
+        Class_Scope s(output);
 
         output.writeln("void operator()(const %p::%i_%s& tuple, V& visitor)", paste_namespace, atom->s_expr->token, tuple_struct_postfix);
         {
-            scope s(output, false);
+            Scope s(output, false);
 
             int param_count = 0;
 
-            for (ast::node* child = atom->first_child; child != 0; child = child->next_sibling)
+            for (ast::Node* child = atom->first_child; child != 0; child = child->next_sibling)
             {
                 param_count++;
             }
@@ -157,37 +157,37 @@ void generate_atom_reflector(ast::tree& /*ast*/, ast::node* atom, paste_func* pa
     }
 }
 
-void generate_task_type_dispatcher(ast::tree& ast, ast::node* domain, formatter& output)
+void generate_task_type_dispatcher(ast::Tree& ast, ast::Node* domain, Formatter& output)
 {
-    ast::node* domain_namespace = domain->first_child;
+    ast::Node* domain_namespace = domain->first_child;
     plnnrc_assert(domain_namespace && ast::is_namespace(domain_namespace));
 
-    paste_fully_qualified_namespace paste_namespace(domain_namespace);
+    Paste_Fully_Qualified_Namespace paste_namespace(domain_namespace);
 
     output.writeln("template <typename V>");
-    output.writeln("struct task_type_dispatcher<%p::task_type, V>", &paste_namespace);
+    output.writeln("struct Task_Type_Dispatcher<%p::Task_Type, V>", &paste_namespace);
     {
-        class_scope s(output);
-        output.writeln("void operator()(const %p::task_type& task_type, void* args, V& visitor)", &paste_namespace);
+        Class_Scope s(output);
+        output.writeln("void operator()(const %p::Task_Type& task_type, void* args, V& visitor)", &paste_namespace);
         {
-            scope s(output, false);
+            Scope s(output, false);
             output.writeln("switch (task_type)");
             {
-                scope s(output, false);
+                Scope s(output, false);
 
-                for (ast::node* method = domain->first_child; method != 0; method = method->next_sibling)
+                for (ast::Node* method = domain->first_child; method != 0; method = method->next_sibling)
                 {
                     if (!ast::is_method(method))
                     {
                         continue;
                     }
 
-                    ast::node* method_atom = method->first_child;
+                    ast::Node* method_atom = method->first_child;
                     plnnrc_assert(method_atom);
 
                     output.writeln("case %p::task_%i:", &paste_namespace, method_atom->s_expr->token);
                     {
-                        indented s(output);
+                        Indented s(output);
 
                         const char* atom_id = method_atom->s_expr->token;
 
@@ -204,14 +204,14 @@ void generate_task_type_dispatcher(ast::tree& ast, ast::node* domain, formatter&
                     }
                 }
 
-                for (id_table_values operators = ast.operators.values(); !operators.empty(); operators.pop())
+                for (Id_Table_Values operators = ast.operators.values(); !operators.empty(); operators.pop())
                 {
-                    ast::node* operatr = operators.value();
-                    ast::node* operator_atom = operatr->first_child;
+                    ast::Node* operatr = operators.value();
+                    ast::Node* operator_atom = operatr->first_child;
 
                     output.writeln("case %p::task_%i:", &paste_namespace, operator_atom->s_expr->token);
                     {
-                        indented s(output);
+                        Indented s(output);
 
                         const char* atom_id = operator_atom->s_expr->token;
 
@@ -230,7 +230,7 @@ void generate_task_type_dispatcher(ast::tree& ast, ast::node* domain, formatter&
 
                 output.writeln("default:");
                 {
-                    indented s(output);
+                    Indented s(output);
                     output.writeln("plnnr_assert(false);");
                     output.writeln("break;");
                 }

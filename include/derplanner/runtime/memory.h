@@ -27,10 +27,10 @@
 namespace plnnr {
 namespace memory {
 
-typedef void* (*alloc_func) (size_t size);
-typedef void (*dealloc_func)(void* ptr);
+typedef void* (*Alloc_Func) (size_t size);
+typedef void (*Dealloc_Func)(void* ptr);
 
-void set_custom(alloc_func a, dealloc_func f);
+void set_custom(Alloc_Func a, Dealloc_Func f);
 
 void* allocate(size_t);
 void deallocate(void*);

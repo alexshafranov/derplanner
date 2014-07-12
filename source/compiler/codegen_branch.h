@@ -23,17 +23,17 @@
 
 namespace plnnrc {
 
-namespace ast { struct node; }
-namespace ast { class tree; }
-class formatter;
+namespace ast { struct Node; }
+namespace ast { class Tree; }
+class Formatter;
 
-void generate_branch_expands(ast::tree& ast, ast::node* domain, formatter& output);
+void generate_branch_expands(ast::Tree& ast, ast::Node* domain, Formatter& output);
 
-void generate_operator_effects(ast::tree& ast, ast::node* method, ast::node* task_atom, formatter& output);
-void generate_effects_add(ast::node* effects, formatter& output);
-void generate_effects_delete(ast::node* effects, formatter& output);
-void generate_operator_task(ast::tree& ast, ast::node* method, ast::node* task_atom, formatter& output);
-void generate_method_task(ast::tree& ast, ast::node* method, ast::node* task_atom, formatter& output);
+void generate_operator_effects(ast::Tree& ast, ast::Node* method, ast::Node* task_atom, Formatter& output);
+void generate_effects_add(ast::Node* effects, Formatter& output);
+void generate_effects_delete(ast::Node* effects, Formatter& output);
+void generate_operator_task(ast::Tree& ast, ast::Node* method, ast::Node* task_atom, Formatter& output);
+void generate_method_task(ast::Tree& ast, ast::Node* method, ast::Node* task_atom, Formatter& output);
 
 }
 

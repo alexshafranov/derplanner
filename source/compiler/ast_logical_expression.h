@@ -23,20 +23,20 @@
 
 namespace plnnrc {
 
-namespace sexpr { struct node; }
-namespace ast { struct node; }
-namespace ast { class  tree; }
+namespace sexpr { struct Node; }
+namespace ast { struct Node; }
+namespace ast { class  Tree; }
 
 namespace ast {
 
-node* build_logical_expression(tree& ast, sexpr::node* s_expr);
-node* build_logical_expression_recursive(tree& ast, sexpr::node* s_expr);
-node* build_logical_op(tree& ast, sexpr::node* s_expr, node_type op_type);
-node* build_comparison_op(tree& ast, sexpr::node* s_expr, node_type op_type);
+Node* build_logical_expression(Tree& ast, sexpr::Node* s_expr);
+Node* build_logical_expression_recursive(Tree& ast, sexpr::Node* s_expr);
+Node* build_logical_op(Tree& ast, sexpr::Node* s_expr, Node_Type op_type);
+Node* build_comparison_op(Tree& ast, sexpr::Node* s_expr, Node_Type op_type);
 
-void flatten(node* root);
-node* convert_to_nnf(tree& ast, node* root);
-node* convert_to_dnf(tree& ast, node* root);
+void flatten(Node* root);
+Node* convert_to_nnf(Tree& ast, Node* root);
+Node* convert_to_dnf(Tree& ast, Node* root);
 
 }
 }

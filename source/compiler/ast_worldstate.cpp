@@ -30,12 +30,12 @@
 namespace plnnrc {
 namespace ast {
 
-node* build_worldstate(tree& ast, sexpr::node* s_expr)
+Node* build_worldstate(Tree& ast, sexpr::Node* s_expr)
 {
     PLNNRC_CHECK_NODE(worldstate, ast.make_node(node_worldstate, s_expr));
 
     PLNNRC_RETURN(expect_next_type(ast, s_expr->first_child, sexpr::node_list));
-    sexpr::node* name_list_expr = s_expr->first_child->next_sibling;
+    sexpr::Node* name_list_expr = s_expr->first_child->next_sibling;
 
     PLNNRC_CHECK_NODE(worldstate_namespace, build_namespace(ast, name_list_expr));
     append_child(worldstate, worldstate_namespace);
@@ -43,7 +43,7 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
     unsigned total_atom_count = 0;
     unsigned total_func_count = 0;
 
-    for (sexpr::node* c_expr = name_list_expr->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
+    for (sexpr::Node* c_expr = name_list_expr->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
     {
         if (is_token(c_expr->first_child, token_function))
         {
@@ -61,7 +61,7 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
 
     int type_tag = 1;
 
-    for (sexpr::node* c_expr = name_list_expr->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
+    for (sexpr::Node* c_expr = name_list_expr->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
     {
         PLNNRC_CONTINUE(expect_type(ast, c_expr, sexpr::node_list, worldstate));
         PLNNRC_CONTINUE(expect_child_type(ast, c_expr, sexpr::node_symbol, worldstate));
@@ -71,7 +71,7 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
             PLNNRC_CHECK_NODE(function_def, ast.make_node(node_function, c_expr));
             PLNNRC_CONTINUE(expect_next_type(ast, c_expr->first_child, sexpr::node_list, worldstate));
 
-            sexpr::node* func_atom_expr = c_expr->first_child->next_sibling;
+            sexpr::Node* func_atom_expr = c_expr->first_child->next_sibling;
             PLNNRC_CHECK_NODE(atom, build_worldstate_atom(ast, func_atom_expr, type_tag));
             append_child(function_def, atom);
 
@@ -79,13 +79,13 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
             {
                 PLNNRC_CONTINUE(expect_condition(ast, atom->s_expr, !ast.ws_funcs.find(atom->s_expr->token), error_redefinition, worldstate)
                     << atom->s_expr
-                    << location(ast.ws_funcs.find(atom->s_expr->token)));
+                    << Location(ast.ws_funcs.find(atom->s_expr->token)));
                 ast.ws_funcs.insert(atom->s_expr->token, function_def);
             }
 
             PLNNRC_CONTINUE(expect_next_token(ast, func_atom_expr, token_return, worldstate));
             PLNNRC_CONTINUE(expect_next_type(ast, func_atom_expr->next_sibling, sexpr::node_list, worldstate));
-            sexpr::node* return_type_expr = func_atom_expr->next_sibling->next_sibling;
+            sexpr::Node* return_type_expr = func_atom_expr->next_sibling->next_sibling;
 
             PLNNRC_CHECK_NODE(return_type, build_worldstate_type(ast, return_type_expr, type_tag));
             append_child(function_def, return_type);
@@ -100,7 +100,7 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
             {
                 PLNNRC_CONTINUE(expect_condition(ast, atom->s_expr, !ast.ws_atoms.find(atom->s_expr->token), error_redefinition, worldstate)
                     << atom->s_expr
-                    << location(ast.ws_atoms.find(atom->s_expr->token)));
+                    << Location(ast.ws_atoms.find(atom->s_expr->token)));
                 ast.ws_atoms.insert(atom->s_expr->token, atom);
             }
 
@@ -112,10 +112,10 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
 
     ast.type_tag_to_node[0] = 0;
 
-    for (id_table_values types = ast.ws_types.values(); !types.empty(); types.pop())
+    for (Id_Table_Values types = ast.ws_types.values(); !types.empty(); types.pop())
     {
-        node* ws_type = types.value();
-        int type_tag = annotation<ws_type_ann>(ws_type)->type_tag;
+        Node* ws_type = types.value();
+        int type_tag = annotation<WS_Type_Ann>(ws_type)->type_tag;
         ast.type_tag_to_node[type_tag] = ws_type;
     }
 
@@ -124,12 +124,12 @@ node* build_worldstate(tree& ast, sexpr::node* s_expr)
     return worldstate;
 }
 
-node* build_worldstate_atom(tree& ast, sexpr::node* s_expr, int& type_tag)
+Node* build_worldstate_atom(Tree& ast, sexpr::Node* s_expr, int& type_tag)
 {
     PLNNRC_RETURN(expect_valid_id(ast, s_expr->first_child));
     PLNNRC_CHECK_NODE(atom, ast.make_node(node_atom, s_expr->first_child));
 
-    for (sexpr::node* t_expr = s_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
+    for (sexpr::Node* t_expr = s_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
     {
         PLNNRC_RETURN(expect_type(ast, t_expr, sexpr::node_list));
         PLNNRC_CHECK_NODE(type_node, build_worldstate_type(ast, t_expr, type_tag));
@@ -139,11 +139,11 @@ node* build_worldstate_atom(tree& ast, sexpr::node* s_expr, int& type_tag)
     return atom;
 }
 
-node* build_worldstate_type(tree& ast, sexpr::node* s_expr, int& type_tag)
+Node* build_worldstate_type(Tree& ast, sexpr::Node* s_expr, int& type_tag)
 {
     PLNNRC_RETURN(expect_child_type(ast, s_expr, sexpr::node_symbol));
 
-    for (sexpr::node* c_expr = s_expr->first_child; c_expr != 0; c_expr = c_expr->next_sibling)
+    for (sexpr::Node* c_expr = s_expr->first_child; c_expr != 0; c_expr = c_expr->next_sibling)
     {
         PLNNRC_RETURN(expect_type(ast, c_expr, sexpr::node_symbol));
     }
@@ -152,17 +152,17 @@ node* build_worldstate_type(tree& ast, sexpr::node* s_expr, int& type_tag)
 
     PLNNRC_CHECK_NODE(type, ast.make_node(node_worldstate_type, s_expr));
 
-    node* type_proto = ast.ws_types.find(s_expr->first_child->token);
+    Node* type_proto = ast.ws_types.find(s_expr->first_child->token);
 
     if (!type_proto)
     {
-        annotation<ws_type_ann>(type)->type_tag = type_tag;
+        annotation<WS_Type_Ann>(type)->type_tag = type_tag;
         PLNNRC_CHECK(ast.ws_types.insert(s_expr->first_child->token, type));
         type_tag++;
     }
     else
     {
-        annotation<ws_type_ann>(type)->type_tag = annotation<ws_type_ann>(type_proto)->type_tag;
+        annotation<WS_Type_Ann>(type)->type_tag = annotation<WS_Type_Ann>(type_proto)->type_tag;
     }
 
     return type;

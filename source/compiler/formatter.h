@@ -29,11 +29,11 @@ namespace plnnrc {
 
 bool is_valid_id(const char* symbol);
 
-class formatter
+class Formatter
 {
 public:
-    formatter(writer& output, const char* tab="\t", const char* newline="\n");
-    ~formatter();
+    Formatter(Writer& output, const char* tab="\t", const char* newline="\n");
+    ~Formatter();
 
     bool init(size_t buffer_size);
 
@@ -53,12 +53,12 @@ public:
     void flush();
 
 private:
-    formatter(const formatter&);
-    const formatter& operator=(const formatter&);
+    Formatter(const Formatter&);
+    const Formatter& operator=(const Formatter&);
 
     void _write(const char* format, va_list args);
 
-    writer& _output;
+    Writer& _output;
     char* _buffer;
     char* _buffer_top;
     char* _buffer_end;
@@ -68,42 +68,42 @@ private:
     const char* _newline;
 };
 
-struct scope
+struct Scope
 {
-    scope(formatter& output, bool end_with_empty_line=true);
-    ~scope();
+    Scope(Formatter& output, bool end_with_empty_line=true);
+    ~Scope();
 
-    formatter& output;
+    Formatter& output;
     bool end_with_empty_line;
 
-    scope& operator=(const scope&);
+    Scope& operator=(const Scope&);
 };
 
-struct class_scope
+struct Class_Scope
 {
-    class_scope(formatter& output);
-    ~class_scope();
+    Class_Scope(Formatter& output);
+    ~Class_Scope();
 
-    formatter& output;
+    Formatter& output;
 
-    class_scope& operator=(const class_scope&);
+    Class_Scope& operator=(const Class_Scope&);
 };
 
-struct indented
+struct Indented
 {
-    indented(formatter& output);
-    ~indented();
+    Indented(Formatter& output);
+    ~Indented();
 
-    formatter& output;
+    Formatter& output;
 
-    indented& operator=(const indented&);
+    Indented& operator=(const Indented&);
 };
 
-class paste_func
+class Paste_Func
 {
 public:
-    virtual ~paste_func() {}
-    virtual void operator()(formatter& output) = 0;
+    virtual ~Paste_Func() {}
+    virtual void operator()(Formatter& output) = 0;
 };
 
 }

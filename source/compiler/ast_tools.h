@@ -29,15 +29,15 @@
 namespace plnnrc {
 namespace ast {
 
-inline bool is_bound(node* var)
+inline bool is_bound(Node* var)
 {
     plnnrc_assert(is_term_variable(var));
-    return annotation<term_ann>(var)->var_def != 0;
+    return annotation<Term_Ann>(var)->var_def != 0;
 }
 
-inline bool all_bound(node* atom)
+inline bool all_bound(Node* atom)
 {
-    for (node* arg = atom->first_child; arg != 0; arg = arg->next_sibling)
+    for (Node* arg = atom->first_child; arg != 0; arg = arg->next_sibling)
     {
         if (!is_term_variable(arg))
         {
@@ -53,9 +53,9 @@ inline bool all_bound(node* atom)
     return true;
 }
 
-inline bool all_unbound(node* atom)
+inline bool all_unbound(Node* atom)
 {
-    for (node* arg = atom->first_child; arg != 0; arg = arg->next_sibling)
+    for (Node* arg = atom->first_child; arg != 0; arg = arg->next_sibling)
     {
         if (!is_term_variable(arg) || is_bound(arg))
         {
@@ -66,53 +66,53 @@ inline bool all_unbound(node* atom)
     return true;
 }
 
-inline node* definition(node* var)
+inline Node* definition(Node* var)
 {
     plnnrc_assert(is_term_variable(var));
-    return annotation<term_ann>(var)->var_def;
+    return annotation<Term_Ann>(var)->var_def;
 }
 
-inline bool is_method_parameter(node* var)
+inline bool is_method_parameter(Node* var)
 {
     plnnrc_assert(is_term_variable(var));
     plnnrc_assert(var->parent && var->parent->parent);
     return is_method(var->parent->parent);
 }
 
-inline bool is_operator_parameter(node* var)
+inline bool is_operator_parameter(Node* var)
 {
     plnnrc_assert(is_term_variable(var));
     plnnrc_assert(var->parent && var->parent->parent);
     return is_operator(var->parent->parent);
 }
 
-inline bool is_parameter(node* var)
+inline bool is_parameter(Node* var)
 {
     return is_method_parameter(var) || is_operator_parameter(var);
 }
 
-inline bool has_parameters(node* task)
+inline bool has_parameters(Node* task)
 {
-    node* atom = task->first_child;
+    Node* atom = task->first_child;
     plnnrc_assert(atom && is_atom(atom));
     return atom->first_child != 0;
 }
 
-inline int type_tag(node* node)
+inline int type_tag(Node* Node)
 {
-    plnnrc_assert(is_term(node));
-    return annotation<term_ann>(node)->type_tag;
+    plnnrc_assert(is_term(Node));
+    return annotation<Term_Ann>(Node)->type_tag;
 }
 
-inline void type_tag(node* node, int new_type_tag)
+inline void type_tag(Node* Node, int new_type_tag)
 {
-    plnnrc_assert(is_term(node));
-    annotation<term_ann>(node)->type_tag = new_type_tag;
+    plnnrc_assert(is_term(Node));
+    annotation<Term_Ann>(Node)->type_tag = new_type_tag;
 }
 
-inline node* first_parameter_usage(node* parameter, node* precondition)
+inline Node* first_parameter_usage(Node* parameter, Node* precondition)
 {
-    for (node* var = precondition; var != 0; var = preorder_traversal_next(precondition, var))
+    for (Node* var = precondition; var != 0; var = preorder_traversal_next(precondition, var))
     {
         if (is_term_variable(var) && parameter == definition(var))
         {
@@ -123,24 +123,24 @@ inline node* first_parameter_usage(node* parameter, node* precondition)
     return 0;
 }
 
-inline bool is_lazy(node* atom)
+inline bool is_lazy(Node* atom)
 {
-    return is_atom(atom) && annotation<atom_ann>(atom)->lazy;
+    return is_atom(atom) && annotation<Atom_Ann>(atom)->lazy;
 }
 
-inline bool is_operator(tree& ast, node* atom)
+inline bool is_operator(Tree& ast, Node* atom)
 {
     return is_atom(atom) && ast.operators.find(atom->s_expr->token);
 }
 
-inline bool is_method(tree& ast, node* atom)
+inline bool is_method(Tree& ast, Node* atom)
 {
     return is_atom(atom) && ast.methods.find(atom->s_expr->token);
 }
 
-inline node* find_child(node* parent, node_type type)
+inline Node* find_child(Node* parent, Node_Type type)
 {
-    for (node* child = parent->first_child; child != 0; child = child->next_sibling)
+    for (Node* child = parent->first_child; child != 0; child = child->next_sibling)
     {
         if (child->type == type)
         {
@@ -151,9 +151,9 @@ inline node* find_child(node* parent, node_type type)
     return 0;
 }
 
-inline node* find_descendant(node* parent, node_type type)
+inline Node* find_descendant(Node* parent, Node_Type type)
 {
-    for (node* n = parent; n != 0; n = preorder_traversal_next(parent, n))
+    for (Node* n = parent; n != 0; n = preorder_traversal_next(parent, n))
     {
         if (n->type == type)
         {

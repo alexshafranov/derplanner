@@ -23,11 +23,11 @@
 
 namespace plnnrc {
 
-class writer;
-namespace sexpr { struct node; }
-namespace ast { struct node; }
+class Writer;
+namespace sexpr { struct Node; }
+namespace ast { struct Node; }
 
-enum compilation_error
+enum Compilation_Error
 {
     error_none = 0,
 
@@ -36,26 +36,26 @@ enum compilation_error
     #undef PLNNRC_ERROR
 };
 
-class location
+class Location
 {
 public:
-    location(int line=-1, int column=-1)
+    Location(int line=-1, int column=-1)
         : line(line)
         , column(column)
     {
     }
 
-    location(sexpr::node* s_expr);
+    Location(sexpr::Node* s_expr);
 
-    location(ast::node* node);
+    Location(ast::Node* Node);
 
-    location(const location& other)
+    Location(const Location& other)
         : line(other.line)
         , column(other.column)
     {
     }
 
-    location& operator=(const location& other)
+    Location& operator=(const Location& other)
     {
         line = other.line;
         column = other.column;
@@ -68,7 +68,7 @@ public:
 
 namespace ast {
 
-enum error_argument_type
+enum Error_Argument_Type
 {
     error_argument_none = 0,
     error_argument_node_token,
@@ -79,20 +79,20 @@ enum error_argument_type
 
 enum { max_error_args = 4 };
 
-struct error_ann
+struct Error_Ann
 {
-    compilation_error id;
+    Compilation_Error id;
     int line;
     int column;
     int argument_count;
-    error_argument_type argument_type[max_error_args];
-    sexpr::node* argument_node[max_error_args];
-    location argument_location[max_error_args];
+    Error_Argument_Type argument_type[max_error_args];
+    sexpr::Node* argument_node[max_error_args];
+    Location argument_location[max_error_args];
     const char* argument_string[max_error_args];
     int argument_selection[max_error_args];
 };
 
-void format_error(error_ann* annotation, writer& stream);
+void format_error(Error_Ann* annotation, Writer& stream);
 
 }
 }

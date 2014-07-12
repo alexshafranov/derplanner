@@ -28,37 +28,37 @@
 
 namespace plnnrc {
 
-class paste_precondition_function_call : public paste_func
+class Paste_Precondition_Function_Call : public Paste_Func
 {
 public:
-    ast::node* function_call;
+    ast::Node* function_call;
     const char* var_prefix;
 
-    paste_precondition_function_call(ast::node* function_call, const char* var_prefix)
+    Paste_Precondition_Function_Call(ast::Node* function_call, const char* var_prefix)
         : function_call(function_call)
         , var_prefix(var_prefix)
     {
     }
 
-    virtual void operator()(formatter& output)
+    virtual void operator()(Formatter& output)
     {
         output.put_id(function_call->s_expr->token);
         output.put_char('(');
 
-        for (ast::node* argument = function_call->first_child; argument != 0; argument = argument->next_sibling)
+        for (ast::Node* argument = function_call->first_child; argument != 0; argument = argument->next_sibling)
         {
             switch (argument->type)
             {
             case ast::node_term_variable:
                 {
-                    int var_index = ast::annotation<ast::term_ann>(argument)->var_index;
+                    int var_index = ast::annotation<ast::Term_Ann>(argument)->var_index;
                     output.put_str(var_prefix);
                     output.put_int(var_index);
                 }
                 break;
             case ast::node_term_call:
                 {
-                    paste_precondition_function_call paste(argument, var_prefix);
+                    Paste_Precondition_Function_Call paste(argument, var_prefix);
                     output.put_str("world.");
                     paste(output);
                 }
@@ -78,22 +78,22 @@ public:
     }
 };
 
-void generate_preconditions(ast::tree& ast, ast::node* domain, formatter& output)
+void generate_preconditions(ast::Tree& ast, ast::Node* domain, Formatter& output)
 {
     unsigned branch_index = 0;
 
-    for (ast::node* method = domain->first_child; method != 0; method = method->next_sibling)
+    for (ast::Node* method = domain->first_child; method != 0; method = method->next_sibling)
     {
         if (!ast::is_method(method))
         {
             continue;
         }
 
-        for (ast::node* branch = method->first_child->next_sibling; branch != 0; branch = branch->next_sibling)
+        for (ast::Node* branch = method->first_child->next_sibling; branch != 0; branch = branch->next_sibling)
         {
             plnnrc_assert(ast::is_branch(branch));
 
-            ast::node* precondition = branch->first_child;
+            ast::Node* precondition = branch->first_child;
 
             generate_precondition_state(ast, precondition, branch_index, output);
             generate_precondition_next(ast, precondition, branch_index, output);
@@ -103,25 +103,25 @@ void generate_preconditions(ast::tree& ast, ast::node* domain, formatter& output
     }
 }
 
-void generate_precondition_state(ast::tree& ast, ast::node* root, unsigned branch_index, formatter& output)
+void generate_precondition_state(ast::Tree& ast, ast::Node* root, unsigned branch_index, Formatter& output)
 {
     output.writeln("// method %s [%d:%d]", root->parent->parent->first_child->s_expr->token, root->s_expr->line, root->s_expr->column);
 
     output.writeln("struct p%d_state", branch_index);
     {
-        class_scope s(output);
+        Class_Scope s(output);
 
         int last_var_index = -1;
 
-        for (ast::node* n = root; n != 0; n = preorder_traversal_next(root, n))
+        for (ast::Node* n = root; n != 0; n = preorder_traversal_next(root, n))
         {
             if (ast::is_term_variable(n))
             {
-                int var_index = ast::annotation<ast::term_ann>(n)->var_index;
+                int var_index = ast::annotation<ast::Term_Ann>(n)->var_index;
 
                 if (var_index > last_var_index)
                 {
-                    ast::node* ws_type = ast.type_tag_to_node[ast::type_tag(n)];
+                    ast::Node* ws_type = ast.type_tag_to_node[ast::type_tag(n)];
                     output.writeln("// %s [%d:%d]", n->s_expr->token, n->s_expr->line, n->s_expr->column);
                     output.writeln("%s _%d;", ws_type->s_expr->first_child->token, var_index);
                     last_var_index = var_index;
@@ -129,12 +129,12 @@ void generate_precondition_state(ast::tree& ast, ast::node* root, unsigned branc
             }
         }
 
-        for (ast::node* n = root; n != 0; n = preorder_traversal_next(root, n))
+        for (ast::Node* n = root; n != 0; n = preorder_traversal_next(root, n))
         {
             if (ast::is_atom(n))
             {
                 const char* id = n->s_expr->token;
-                output.writeln("%i_tuple* %i_%d;", id, id, ast::annotation<ast::atom_ann>(n)->index);
+                output.writeln("%i_tuple* %i_%d;", id, id, ast::annotation<ast::Atom_Ann>(n)->index);
             }
         }
 
@@ -142,13 +142,13 @@ void generate_precondition_state(ast::tree& ast, ast::node* root, unsigned branc
     }
 }
 
-void generate_precondition_next(ast::tree& ast, ast::node* root, unsigned branch_index, formatter& output)
+void generate_precondition_next(ast::Tree& ast, ast::Node* root, unsigned branch_index, Formatter& output)
 {
     plnnrc_assert(is_logical_op(root));
 
-    output.writeln("bool next(p%d_state& state, worldstate& world)", branch_index);
+    output.writeln("bool next(p%d_state& state, Worldstate& world)", branch_index);
     {
-        scope s(output);
+        Scope s(output);
 
         output.writeln("PLNNR_COROUTINE_BEGIN(state);");
         output.newline();
@@ -159,18 +159,18 @@ void generate_precondition_next(ast::tree& ast, ast::node* root, unsigned branch
     }
 }
 
-void generate_precondition_satisfier(ast::tree& ast, ast::node* root, formatter& output, int yield_label)
+void generate_precondition_satisfier(ast::Tree& ast, ast::Node* root, Formatter& output, int yield_label)
 {
     plnnrc_assert(ast::is_op_or(root));
 
-    for (ast::node* child = root->first_child; child != 0; child = child->next_sibling)
+    for (ast::Node* child = root->first_child; child != 0; child = child->next_sibling)
     {
         plnnrc_assert(ast::is_op_and(child));
         generate_conjunctive_clause(ast, child, output, yield_label);
     }
 }
 
-void generate_conjunctive_clause(ast::tree& ast, ast::node* root, formatter& output, int yield_label)
+void generate_conjunctive_clause(ast::Tree& ast, ast::Node* root, Formatter& output, int yield_label)
 {
     plnnrc_assert(ast::is_op_and(root));
 
@@ -186,11 +186,11 @@ void generate_conjunctive_clause(ast::tree& ast, ast::node* root, formatter& out
     }
 }
 
-void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output, int yield_label)
+void generate_literal_chain(ast::Tree& ast, ast::Node* root, Formatter& output, int yield_label)
 {
     plnnrc_assert(ast::is_op_not(root) || ast::is_term_call(root) || is_atom(root) || is_comparison_op(root));
 
-    ast::node* atom = root;
+    ast::Node* atom = root;
 
     if (ast::is_op_not(root))
     {
@@ -210,13 +210,13 @@ void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output, 
     }
 
     const char* atom_id = atom->s_expr->token;
-    int atom_index = ast::annotation<ast::atom_ann>(atom)->index;
+    int atom_index = ast::annotation<ast::Atom_Ann>(atom)->index;
 
     if (ast::is_op_not(root) && all_unbound(atom))
     {
         output.writeln("if (!tuple_list::head<%i_tuple>(world.atoms[atom_%i]))", atom_id, atom_id);
         {
-            scope s(output);
+            Scope s(output);
 
             if (root->next_sibling)
             {
@@ -238,30 +238,30 @@ void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output, 
             atom_id, atom_index,
             atom_id, atom_index);
         {
-            scope s(output);
+            Scope s(output);
 
             int atom_param_index = 0;
 
-            for (ast::node* term = atom->first_child; term != 0; term = term->next_sibling)
+            for (ast::Node* term = atom->first_child; term != 0; term = term->next_sibling)
             {
                 if (ast::is_term_variable(term))
                 {
-                    int var_index = ast::annotation<ast::term_ann>(term)->var_index;
+                    int var_index = ast::annotation<ast::Term_Ann>(term)->var_index;
 
                     output.writeln("if (state.%i_%d->_%d == state._%d)", atom_id, atom_index, atom_param_index, var_index);
                     {
-                        scope s(output, !is_last(term));
+                        Scope s(output, !is_last(term));
                         output.writeln("break;");
                     }
                 }
 
                 if (ast::is_term_call(term))
                 {
-                    paste_precondition_function_call paste(term, "state._");
+                    Paste_Precondition_Function_Call paste(term, "state._");
 
                     output.writeln("if (state.%i_%d->_%d == world.%p)", atom_id, atom_index, atom_param_index, &paste);
                     {
-                        scope s(output, !is_last(term));
+                        Scope s(output, !is_last(term));
                         output.writeln("break;");
                     }
                 }
@@ -272,7 +272,7 @@ void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output, 
 
         output.writeln("if (state.%i_%d == 0)", atom_id, atom_index);
         {
-            scope s(output, is_first(root));
+            Scope s(output, is_first(root));
 
             if (root->next_sibling)
             {
@@ -294,7 +294,7 @@ void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output, 
             atom_id, atom_index,
             atom_id, atom_index);
         {
-            scope s(output, is_first(root));
+            Scope s(output, is_first(root));
 
             const char* comparison_op = "!=";
 
@@ -305,26 +305,26 @@ void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output, 
 
             int atom_param_index = 0;
 
-            for (ast::node* term = atom->first_child; term != 0; term = term->next_sibling)
+            for (ast::Node* term = atom->first_child; term != 0; term = term->next_sibling)
             {
                 if (ast::is_term_variable(term) && definition(term))
                 {
-                    int var_index = ast::annotation<ast::term_ann>(term)->var_index;
+                    int var_index = ast::annotation<ast::Term_Ann>(term)->var_index;
 
                     output.writeln("if (state.%i_%d->_%d %s state._%d)", atom_id, atom_index, atom_param_index, comparison_op, var_index);
                     {
-                        scope s(output);
+                        Scope s(output);
                         output.writeln("continue;");
                     }
                 }
 
                 if (ast::is_term_call(term))
                 {
-                    paste_precondition_function_call paste(term, "state._");
+                    Paste_Precondition_Function_Call paste(term, "state._");
 
                     output.writeln("if (state.%i_%d->_%d %s world.%p)", atom_id, atom_index, atom_param_index, comparison_op, &paste);
                     {
-                        scope s(output);
+                        Scope s(output);
                         output.writeln("continue;");
                     }
                 }
@@ -334,11 +334,11 @@ void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output, 
 
             atom_param_index = 0;
 
-            for (ast::node* term = atom->first_child; term != 0; term = term->next_sibling)
+            for (ast::Node* term = atom->first_child; term != 0; term = term->next_sibling)
             {
                 if (ast::is_term_variable(term) && !definition(term))
                 {
-                    int var_index = ast::annotation<ast::term_ann>(term)->var_index;
+                    int var_index = ast::annotation<ast::Term_Ann>(term)->var_index;
                     output.writeln("state._%d = state.%i_%d->_%d;", var_index, atom_id, atom_index, atom_param_index);
                     output.newline();
                 }
@@ -358,19 +358,19 @@ void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output, 
     }
 }
 
-void generate_literal_chain_comparison(ast::tree& ast, ast::node* root, ast::node* atom, formatter& output, int yield_label)
+void generate_literal_chain_comparison(ast::Tree& ast, ast::Node* root, ast::Node* atom, Formatter& output, int yield_label)
 {
-    ast::node* arg_0 = atom->first_child;
+    ast::Node* arg_0 = atom->first_child;
     plnnrc_assert(arg_0 && ast::is_term_variable(arg_0));
-    ast::node* arg_1 = arg_0->next_sibling;
+    ast::Node* arg_1 = arg_0->next_sibling;
     plnnrc_assert(arg_1 && ast::is_term_variable(arg_1) && !arg_1->next_sibling);
 
     plnnrc_assert(definition(arg_0) && definition(arg_1));
 
     const char* comparison_op = atom->s_expr->token;
 
-    int var_index_0 = ast::annotation<ast::term_ann>(arg_0)->var_index;
-    int var_index_1 = ast::annotation<ast::term_ann>(arg_1)->var_index;
+    int var_index_0 = ast::annotation<ast::Term_Ann>(arg_0)->var_index;
+    int var_index_1 = ast::annotation<ast::Term_Ann>(arg_1)->var_index;
 
     if (ast::is_op_not(root))
     {
@@ -382,7 +382,7 @@ void generate_literal_chain_comparison(ast::tree& ast, ast::node* root, ast::nod
     }
 
     {
-        scope s(output, root->next_sibling != 0);
+        Scope s(output, root->next_sibling != 0);
 
         if (root->next_sibling)
         {
@@ -395,13 +395,13 @@ void generate_literal_chain_comparison(ast::tree& ast, ast::node* root, ast::nod
     }
 }
 
-void generate_literal_chain_call_term(ast::tree& ast, ast::node* root, ast::node* atom, formatter& output, int yield_label)
+void generate_literal_chain_call_term(ast::Tree& ast, ast::Node* root, ast::Node* atom, Formatter& output, int yield_label)
 {
-    paste_precondition_function_call paste(atom, "state._");
+    Paste_Precondition_Function_Call paste(atom, "state._");
 
     output.writeln("if (%sworld.%p)", ast::is_op_not(root) ? "!" : "", &paste);
     {
-        scope s(output, root->next_sibling != 0);
+        Scope s(output, root->next_sibling != 0);
 
         if (root->next_sibling)
         {

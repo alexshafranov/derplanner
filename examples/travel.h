@@ -7,19 +7,19 @@ namespace plnnr
 {
 	namespace tuple_list
 	{
-		struct handle;
+		struct Handle;
 	}
 }
 
 namespace plnnr
 {
-	struct planner_state;
-	struct method_instance;
+	struct Planner_State;
+	struct Method_Instance;
 }
 
 namespace travel {
 
-enum atom_type
+enum Atom_Type
 {
 	atom_start,
 	atom_finish,
@@ -29,11 +29,11 @@ enum atom_type
 	atom_count,
 };
 
-const char* atom_name(atom_type type);
+const char* atom_name(Atom_Type type);
 
-struct worldstate
+struct Worldstate
 {
-	plnnr::tuple_list::handle* atoms[atom_count];
+	plnnr::tuple_list::Handle* atoms[atom_count];
 };
 
 struct start_tuple
@@ -83,7 +83,7 @@ struct airport_tuple
 
 namespace travel {
 
-enum task_type
+enum Task_Type
 {
 	task_ride_taxi,
 	task_fly,
@@ -96,7 +96,7 @@ enum task_type
 static const int operator_count = 2;
 static const int method_count = 3;
 
-const char* task_name(task_type type);
+const char* task_name(Task_Type type);
 
 struct ride_taxi_args
 {
@@ -150,19 +150,19 @@ inline bool operator==(const travel_by_air_args& a, const travel_by_air_args& b)
 		a._1 == b._1 ;
 }
 
-bool root_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool travel_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool travel_branch_1_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool travel_by_air_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool root_branch_0_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool travel_branch_0_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool travel_branch_1_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool travel_by_air_branch_0_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
 
 }
 
 namespace plnnr {
 
 template <typename V>
-struct generated_type_reflector<travel::worldstate, V>
+struct Generated_Type_Reflector<travel::Worldstate, V>
 {
-	void operator()(const travel::worldstate& world, V& visitor)
+	void operator()(const travel::Worldstate& world, V& visitor)
 	{
 		PLNNR_GENCODE_VISIT_ATOM_LIST(travel, atom_start, start_tuple, visitor);
 		PLNNR_GENCODE_VISIT_ATOM_LIST(travel, atom_finish, finish_tuple, visitor);
@@ -173,7 +173,7 @@ struct generated_type_reflector<travel::worldstate, V>
 };
 
 template <typename V>
-struct generated_type_reflector<travel::start_tuple, V>
+struct Generated_Type_Reflector<travel::start_tuple, V>
 {
 	void operator()(const travel::start_tuple& tuple, V& visitor)
 	{
@@ -184,7 +184,7 @@ struct generated_type_reflector<travel::start_tuple, V>
 };
 
 template <typename V>
-struct generated_type_reflector<travel::finish_tuple, V>
+struct Generated_Type_Reflector<travel::finish_tuple, V>
 {
 	void operator()(const travel::finish_tuple& tuple, V& visitor)
 	{
@@ -195,7 +195,7 @@ struct generated_type_reflector<travel::finish_tuple, V>
 };
 
 template <typename V>
-struct generated_type_reflector<travel::short_distance_tuple, V>
+struct Generated_Type_Reflector<travel::short_distance_tuple, V>
 {
 	void operator()(const travel::short_distance_tuple& tuple, V& visitor)
 	{
@@ -207,7 +207,7 @@ struct generated_type_reflector<travel::short_distance_tuple, V>
 };
 
 template <typename V>
-struct generated_type_reflector<travel::long_distance_tuple, V>
+struct Generated_Type_Reflector<travel::long_distance_tuple, V>
 {
 	void operator()(const travel::long_distance_tuple& tuple, V& visitor)
 	{
@@ -219,7 +219,7 @@ struct generated_type_reflector<travel::long_distance_tuple, V>
 };
 
 template <typename V>
-struct generated_type_reflector<travel::airport_tuple, V>
+struct Generated_Type_Reflector<travel::airport_tuple, V>
 {
 	void operator()(const travel::airport_tuple& tuple, V& visitor)
 	{
@@ -231,7 +231,7 @@ struct generated_type_reflector<travel::airport_tuple, V>
 };
 
 template <typename V>
-struct generated_type_reflector<travel::ride_taxi_args, V>
+struct Generated_Type_Reflector<travel::ride_taxi_args, V>
 {
 	void operator()(const travel::ride_taxi_args& tuple, V& visitor)
 	{
@@ -243,7 +243,7 @@ struct generated_type_reflector<travel::ride_taxi_args, V>
 };
 
 template <typename V>
-struct generated_type_reflector<travel::fly_args, V>
+struct Generated_Type_Reflector<travel::fly_args, V>
 {
 	void operator()(const travel::fly_args& tuple, V& visitor)
 	{
@@ -255,7 +255,7 @@ struct generated_type_reflector<travel::fly_args, V>
 };
 
 template <typename V>
-struct generated_type_reflector<travel::travel_args, V>
+struct Generated_Type_Reflector<travel::travel_args, V>
 {
 	void operator()(const travel::travel_args& tuple, V& visitor)
 	{
@@ -267,7 +267,7 @@ struct generated_type_reflector<travel::travel_args, V>
 };
 
 template <typename V>
-struct generated_type_reflector<travel::travel_by_air_args, V>
+struct Generated_Type_Reflector<travel::travel_by_air_args, V>
 {
 	void operator()(const travel::travel_by_air_args& tuple, V& visitor)
 	{
@@ -279,9 +279,9 @@ struct generated_type_reflector<travel::travel_by_air_args, V>
 };
 
 template <typename V>
-struct task_type_dispatcher<travel::task_type, V>
+struct Task_Type_Dispatcher<travel::Task_Type, V>
 {
-	void operator()(const travel::task_type& task_type, void* args, V& visitor)
+	void operator()(const travel::Task_Type& task_type, void* args, V& visitor)
 	{
 		switch (task_type)
 		{

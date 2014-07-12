@@ -79,10 +79,10 @@ namespace
 
     TEST(insert_and_find)
     {
-        plnnrc::id_table table;
+        plnnrc::Id_Table table;
         table.init(num_keys);
 
-        plnnrc::ast::node nodes[num_keys];
+        plnnrc::ast::Node nodes[num_keys];
 
         for (unsigned i = 0; i < num_keys; ++i)
         {
@@ -91,7 +91,7 @@ namespace
 
         for (unsigned i = 0; i < num_keys; ++i)
         {
-            plnnrc::ast::node* actual = table.find(keys[i]);
+            plnnrc::ast::Node* actual = table.find(keys[i]);
             CHECK(actual == &nodes[i]);
         }
 
@@ -100,10 +100,10 @@ namespace
 
     TEST(lookup_non_existing_keys)
     {
-        plnnrc::id_table table;
+        plnnrc::Id_Table table;
         table.init(num_keys);
 
-        plnnrc::ast::node nodes[num_keys];
+        plnnrc::ast::Node nodes[num_keys];
 
         for (unsigned i = 0; i < num_keys / 2; ++i)
         {
@@ -112,25 +112,25 @@ namespace
 
         for (unsigned i = num_keys / 2; i < num_keys; ++i)
         {
-            plnnrc::ast::node* actual = table.find(keys[i]);
+            plnnrc::ast::Node* actual = table.find(keys[i]);
             CHECK(!actual);
         }
     }
 
     TEST(insert_twice)
     {
-        plnnrc::id_table table;
+        plnnrc::Id_Table table;
         table.init(1);
 
-        plnnrc::ast::node value1;
-        plnnrc::ast::node value2;
+        plnnrc::ast::Node value1;
+        plnnrc::ast::Node value2;
 
         const char* key = "the_key";
 
         table.insert(key, &value1);
         table.insert(key, &value2);
 
-        plnnrc::ast::node* actual = table.find(key);
+        plnnrc::ast::Node* actual = table.find(key);
 
         CHECK_EQUAL(&value2, actual);
         CHECK_EQUAL(1u, table.count());
@@ -138,12 +138,12 @@ namespace
 
     TEST(value_iteration)
     {
-        plnnrc::id_table table;
+        plnnrc::Id_Table table;
         table.init(3);
 
-        plnnrc::ast::node value1;
-        plnnrc::ast::node value2;
-        plnnrc::ast::node value3;
+        plnnrc::ast::Node value1;
+        plnnrc::ast::Node value2;
+        plnnrc::ast::Node value3;
 
         CHECK(table.values().empty());
 
@@ -151,9 +151,9 @@ namespace
         table.insert("key2", &value2);
         table.insert("key3", &value3);
 
-        plnnrc::id_table_values values = table.values();
+        plnnrc::Id_Table_Values values = table.values();
 
-        plnnrc::ast::node* v;
+        plnnrc::ast::Node* v;
 
         CHECK(!values.empty());
         v = values.value();
@@ -175,13 +175,13 @@ namespace
 
     TEST(table_grows)
     {
-        plnnrc::id_table table;
+        plnnrc::Id_Table table;
 
         // allocate for 2 elems initially
         table.init(2);
 
         // but insert much more
-        plnnrc::ast::node nodes[num_keys];
+        plnnrc::ast::Node nodes[num_keys];
 
         for (unsigned i = 0; i < num_keys; ++i)
         {
@@ -190,7 +190,7 @@ namespace
 
         for (unsigned i = 0; i < num_keys; ++i)
         {
-            plnnrc::ast::node* actual = table.find(keys[i]);
+            plnnrc::ast::Node* actual = table.find(keys[i]);
             CHECK(actual == &nodes[i]);
         }
 

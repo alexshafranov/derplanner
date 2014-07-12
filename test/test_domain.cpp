@@ -33,7 +33,7 @@ using namespace plnnrc;
 
 namespace
 {
-    std::string to_string(sexpr::node* root)
+    std::string to_string(sexpr::Node* root)
     {
         std::string result;
 
@@ -41,7 +41,7 @@ namespace
         {
             result += "(";
 
-            for (sexpr::node* n = root->first_child; n != 0; n = n->next_sibling)
+            for (sexpr::Node* n = root->first_child; n != 0; n = n->next_sibling)
             {
                 result += to_string(n);
 
@@ -61,12 +61,12 @@ namespace
         return result;
     }
 
-    std::string node_to_string(ast::node* node)
+    std::string node_to_string(ast::Node* Node)
     {
         #define PLNNRC_AST_NODE(NODE_ID) case ast::node_##NODE_ID: return std::string("node_" #NODE_ID);
-        #define PLNNRC_AST_NODE_WITH_TOKEN(NODE_ID)  case ast::node_##NODE_ID: return std::string("node_" #NODE_ID) + " " + to_string(node->s_expr);
+        #define PLNNRC_AST_NODE_WITH_TOKEN(NODE_ID)  case ast::node_##NODE_ID: return std::string("node_" #NODE_ID) + " " + to_string(Node->s_expr);
 
-        switch (node->type)
+        switch (Node->type)
         {
         #include <derplanner/compiler/ast_node_tags.inl>
         default:
@@ -78,7 +78,7 @@ namespace
         #undef PLNNRC_AST_NODE
     }
 
-    std::string to_string(ast::node* root, int level=0)
+    std::string to_string(ast::Node* root, int level=0)
     {
         std::string result;
 
@@ -89,7 +89,7 @@ namespace
 
         result += node_to_string(root);
 
-        for (ast::node* child = root->first_child; child != 0; child = child->next_sibling)
+        for (ast::Node* child = root->first_child; child != 0; child = child->next_sibling)
         {
             result += "\n" + to_string(child, level+1);
         }
@@ -100,10 +100,10 @@ namespace
     TEST(empty_domain)
     {
         char buffer[] = "(:domain (test))";
-        sexpr::tree expr;
+        sexpr::Tree expr;
         expr.parse(buffer);
-        ast::tree tree;
-        ast::node* actual = ast::build_domain(tree, expr.root()->first_child);
+        ast::Tree tree;
+        ast::Node* actual = ast::build_domain(tree, expr.root()->first_child);
         CHECK(actual);
         CHECK(!actual->first_child->next_sibling);
     }
@@ -118,10 +118,10 @@ namespace
 "    )                            "
 ")                                ";
 
-        sexpr::tree expr;
+        sexpr::Tree expr;
         expr.parse(buffer);
-        ast::tree tree;
-        ast::node* actual_tree = ast::build_domain(tree, expr.root()->first_child);
+        ast::Tree tree;
+        ast::Node* actual_tree = ast::build_domain(tree, expr.root()->first_child);
         CHECK(actual_tree);
         std::string actual_str = to_string(actual_tree);
 
@@ -160,10 +160,10 @@ namespace
 "   )                                   "
 ")                                      ";
 
-        sexpr::tree expr;
+        sexpr::Tree expr;
         expr.parse(buffer);
-        ast::tree tree;
-        ast::node* actual_tree = ast::build_domain(tree, expr.root()->first_child);
+        ast::Tree tree;
+        ast::Node* actual_tree = ast::build_domain(tree, expr.root()->first_child);
         CHECK(actual_tree);
         std::string actual_str = to_string(actual_tree);
 
@@ -213,13 +213,13 @@ namespace
 "   )                                   "
 ")                                      ";
 
-        sexpr::tree expr;
+        sexpr::Tree expr;
         expr.parse(buffer);
-        ast::tree tree;
-        ast::node* actual_tree = ast::build_domain(tree, expr.root()->first_child);
+        ast::Tree tree;
+        ast::Node* actual_tree = ast::build_domain(tree, expr.root()->first_child);
         CHECK(actual_tree);
 
-        ast::node* declared_operator = tree.operators.find("!declared");
+        ast::Node* declared_operator = tree.operators.find("!declared");
         CHECK(declared_operator);
 
         const char* expected_declared = \
@@ -236,7 +236,7 @@ namespace
 
         CHECK_EQUAL(expected_declared, to_string(declared_operator).c_str());
 
-        ast::node* stub_operator = tree.operators.find("!stub");
+        ast::Node* stub_operator = tree.operators.find("!stub");
         CHECK(stub_operator);
 
         const char* expected_stub = \
@@ -257,15 +257,15 @@ namespace
 "    (:method (m2 ?z ?w))         "
 ")                                ";
 
-        sexpr::tree expr;
+        sexpr::Tree expr;
         expr.parse(buffer);
-        ast::tree tree;
+        ast::Tree tree;
 
-        ast::node* root = ast::build_domain(tree, expr.root()->first_child);
+        ast::Node* root = ast::build_domain(tree, expr.root()->first_child);
         CHECK(root);
 
-        ast::node* m1 = root->first_child->next_sibling;
-        ast::node* m2 = m1->next_sibling;
+        ast::Node* m1 = root->first_child->next_sibling;
+        ast::Node* m2 = m1->next_sibling;
 
         CHECK_EQUAL(2u, tree.methods.count());
         CHECK_EQUAL(m1, tree.methods.find("m1"));
@@ -280,10 +280,10 @@ namespace
 "    (atomy (const char *)) "
 ")                          ";
 
-        sexpr::tree expr;
+        sexpr::Tree expr;
         expr.parse(buffer);
-        ast::tree tree;
-        ast::node* actual_tree = ast::build_worldstate(tree, expr.root()->first_child);
+        ast::Tree tree;
+        ast::Node* actual_tree = ast::build_worldstate(tree, expr.root()->first_child);
         CHECK(actual_tree);
         std::string actual_str = to_string(actual_tree);
 
@@ -306,11 +306,11 @@ namespace
 "   (:function (function_name (int) (double)) -> (int)) "
 ")                                                      ";
 
-        sexpr::tree expr;
+        sexpr::Tree expr;
         expr.parse(buffer);
 
-        ast::tree tree;
-        ast::node* actual_tree = ast::build_worldstate(tree, expr.root()->first_child);
+        ast::Tree tree;
+        ast::Node* actual_tree = ast::build_worldstate(tree, expr.root()->first_child);
         CHECK(actual_tree);
         std::string actual_str = to_string(actual_tree);
 
@@ -327,10 +327,10 @@ namespace
 
         CHECK_EQUAL(2u, tree.ws_types.count());
 
-        ast::node* ws_type_int = tree.ws_types.find("int");
+        ast::Node* ws_type_int = tree.ws_types.find("int");
         CHECK(ws_type_int);
 
-        ast::node* ws_type_double = tree.ws_types.find("double");
+        ast::Node* ws_type_double = tree.ws_types.find("double");
         CHECK(ws_type_double);
 
         CHECK_EQUAL(0u, tree.ws_atoms.count());
@@ -345,16 +345,16 @@ namespace
 "    (atomy (double))       "
 ")                          ";
 
-        sexpr::tree expr;
+        sexpr::Tree expr;
         expr.parse(buffer);
-        ast::tree tree;
-        ast::node* root = ast::build_worldstate(tree, expr.root()->first_child);
+        ast::Tree Tree;
+        ast::Node* root = ast::build_worldstate(Tree, expr.root()->first_child);
 
-        ast::node* atomx = root->first_child->next_sibling;
-        ast::node* atomy = atomx->next_sibling;
+        ast::Node* atomx = root->first_child->next_sibling;
+        ast::Node* atomy = atomx->next_sibling;
 
-        CHECK_EQUAL(atomx, tree.ws_atoms.find("atomx"));
-        CHECK_EQUAL(atomy, tree.ws_atoms.find("atomy"));
+        CHECK_EQUAL(atomx, Tree.ws_atoms.find("atomx"));
+        CHECK_EQUAL(atomy, Tree.ws_atoms.find("atomy"));
     }
 
     TEST(worldstate_type_table)
@@ -365,29 +365,29 @@ namespace
 "    (atomy (double))       "
 ")                          ";
 
-        sexpr::tree expr;
+        sexpr::Tree expr;
         expr.parse(buffer);
-        ast::tree tree;
-        ast::node* root = ast::build_worldstate(tree, expr.root()->first_child);
+        ast::Tree tree;
+        ast::Node* root = ast::build_worldstate(tree, expr.root()->first_child);
 
-        ast::node* atomx = root->first_child->next_sibling;
-        ast::node* atomy = atomx->next_sibling;
+        ast::Node* atomx = root->first_child->next_sibling;
+        ast::Node* atomy = atomx->next_sibling;
 
-        ast::node* atomx_arg1 = atomx->first_child;
-        ast::node* atomx_arg2 = atomx->first_child->next_sibling;
-        ast::node* atomy_arg1 = atomy->first_child;
+        ast::Node* atomx_arg1 = atomx->first_child;
+        ast::Node* atomx_arg2 = atomx->first_child->next_sibling;
+        ast::Node* atomy_arg1 = atomy->first_child;
 
-        int atomx_arg1_type_tag = ast::annotation<ast::ws_type_ann>(atomx_arg1)->type_tag;
-        int atomx_arg2_type_tag = ast::annotation<ast::ws_type_ann>(atomx_arg2)->type_tag;
-        int atomy_arg1_type_tag = ast::annotation<ast::ws_type_ann>(atomy_arg1)->type_tag;
+        int atomx_arg1_type_tag = ast::annotation<ast::WS_Type_Ann>(atomx_arg1)->type_tag;
+        int atomx_arg2_type_tag = ast::annotation<ast::WS_Type_Ann>(atomx_arg2)->type_tag;
+        int atomy_arg1_type_tag = ast::annotation<ast::WS_Type_Ann>(atomy_arg1)->type_tag;
 
         CHECK(atomx_arg1_type_tag == atomx_arg2_type_tag);
         CHECK(atomx_arg1_type_tag != atomy_arg1_type_tag);
 
-        ast::node* ws_type_int = tree.ws_types.find("int");
+        ast::Node* ws_type_int = tree.ws_types.find("int");
         CHECK(ws_type_int);
 
-        ast::node* ws_type_double = tree.ws_types.find("double");
+        ast::Node* ws_type_double = tree.ws_types.find("double");
         CHECK(ws_type_double);
 
         CHECK(atomx_arg1 == ws_type_int || atomx_arg2 == ws_type_int);
@@ -415,31 +415,31 @@ namespace
 "   )                           "
 ")                              ";
 
-        sexpr::tree expr;
+        sexpr::Tree expr;
         expr.parse(buffer);
-        ast::tree tree;
-        ast::build_worldstate(tree, expr.root()->first_child);
-        ast::build_domain(tree, expr.root()->first_child->next_sibling);
-        ast::seed_types(tree);
-        ast::infer_types(tree);
+        ast::Tree Tree;
+        ast::build_worldstate(Tree, expr.root()->first_child);
+        ast::build_domain(Tree, expr.root()->first_child->next_sibling);
+        ast::seed_types(Tree);
+        ast::infer_types(Tree);
 
         const int type1 = 1;
         const int type2 = 2;
         const int type3 = 3;
 
-        ast::node* m1_atom = tree.methods.find("m1")->first_child;
-        ast::node* m2_atom = tree.methods.find("m2")->first_child;
+        ast::Node* m1_atom = Tree.methods.find("m1")->first_child;
+        ast::Node* m2_atom = Tree.methods.find("m2")->first_child;
 
-        ast::node* m1_u = m1_atom->first_child;
-        ast::node* m1_v = m1_atom->first_child->next_sibling;
+        ast::Node* m1_u = m1_atom->first_child;
+        ast::Node* m1_v = m1_atom->first_child->next_sibling;
 
-        ast::node* m2_u = m2_atom->first_child;
-        ast::node* m2_v = m2_atom->first_child->next_sibling;
+        ast::Node* m2_u = m2_atom->first_child;
+        ast::Node* m2_v = m2_atom->first_child->next_sibling;
 
-        CHECK_EQUAL(type1, ast::annotation<ast::term_ann>(m1_u)->type_tag);
-        CHECK_EQUAL(type3, ast::annotation<ast::term_ann>(m1_v)->type_tag);
+        CHECK_EQUAL(type1, ast::annotation<ast::Term_Ann>(m1_u)->type_tag);
+        CHECK_EQUAL(type3, ast::annotation<ast::Term_Ann>(m1_v)->type_tag);
 
-        CHECK_EQUAL(type1, ast::annotation<ast::term_ann>(m2_u)->type_tag);
-        CHECK_EQUAL(type2, ast::annotation<ast::term_ann>(m2_v)->type_tag);
+        CHECK_EQUAL(type1, ast::annotation<ast::Term_Ann>(m2_u)->type_tag);
+        CHECK_EQUAL(type2, ast::annotation<ast::Term_Ann>(m2_v)->type_tag);
     }
 }

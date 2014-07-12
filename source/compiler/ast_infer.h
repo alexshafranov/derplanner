@@ -23,16 +23,16 @@
 
 namespace plnnrc {
 
-namespace ast { struct node; }
-namespace ast { class tree; }
+namespace ast { struct Node; }
+namespace ast { class Tree; }
 
 namespace ast {
 
-void infer_types(tree& ast);
+void infer_types(Tree& ast);
 
-void seed_types(tree& ast);
-void seed_types(tree& ast, node* root);
-bool has_untyped_params(node* method_atom);
+void seed_types(Tree& ast);
+void seed_types(Tree& ast, Node* root);
+bool has_untyped_params(Node* method_atom);
 
 }
 }

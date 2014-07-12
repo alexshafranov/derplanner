@@ -25,23 +25,23 @@
 namespace plnnrc {
 namespace pool {
 
-struct page
+struct Page
 {
-    page* prev;
+    Page* prev;
     char* memory;
     char* top;
     char  data[1];
 };
 
-struct handle
+struct Handle
 {
-    page* head;
+    Page* head;
     size_t page_size;
 };
 
-handle* create(size_t page_size)
+Handle* create(size_t page_size)
 {
-    size_t worstcase_size = sizeof(handle) + plnnrc_alignof(handle) + sizeof(page) + plnnrc_alignof(page);
+    size_t worstcase_size = sizeof(Handle) + plnnrc_alignof(Handle) + sizeof(Page) + plnnrc_alignof(Page);
     plnnrc_assert(page_size > worstcase_size);
     (void)(worstcase_size);
 
@@ -52,8 +52,8 @@ handle* create(size_t page_size)
         return 0;
     }
 
-    handle* pool = memory::align<handle>(memory);
-    page* head = memory::align<page>(pool + 1);
+    Handle* pool = memory::align<Handle>(memory);
+    Page* head = memory::align<Page>(pool + 1);
 
     head->prev = 0;
     head->memory = memory;
@@ -65,9 +65,9 @@ handle* create(size_t page_size)
     return pool;
 }
 
-void* allocate(handle* pool, size_t bytes, size_t alignment)
+void* allocate(Handle* pool, size_t bytes, size_t alignment)
 {
-    page* p = pool->head;
+    Page* p = pool->head;
 
     char* top = static_cast<char*>(memory::align(p->top, alignment));
 
@@ -80,7 +80,7 @@ void* allocate(handle* pool, size_t bytes, size_t alignment)
             return 0;
         }
 
-        p = memory::align<page>(memory);
+        p = memory::align<Page>(memory);
         p->prev = pool->head;
         p->memory = memory;
         p->top = p->data;
@@ -95,11 +95,11 @@ void* allocate(handle* pool, size_t bytes, size_t alignment)
     return top;
 }
 
-void destroy(const handle* pool)
+void destroy(const Handle* pool)
 {
-    for (page* p = pool->head; p != 0;)
+    for (Page* p = pool->head; p != 0;)
     {
-        page* n = p->prev;
+        Page* n = p->prev;
         memory::deallocate(p->memory);
         p = n;
     }

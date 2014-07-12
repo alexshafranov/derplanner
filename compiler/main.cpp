@@ -33,15 +33,15 @@
 
 using namespace plnnrc;
 
-struct buffer_context
+struct Buffer_Context
 {
-    buffer_context(size_t bytes)
+    Buffer_Context(size_t bytes)
         : data(0)
     {
         data = static_cast<char*>(memory::allocate(bytes));
     }
 
-    ~buffer_context()
+    ~Buffer_Context()
     {
         memory::deallocate(data);
     }
@@ -49,15 +49,15 @@ struct buffer_context
     char* data;
 };
 
-struct file_context
+struct File_Context
 {
-    file_context(const char* path, const char* mode)
+    File_Context(const char* path, const char* mode)
         : fd(0)
     {
         fd = fopen(path, mode);
     }
 
-    ~file_context()
+    ~File_Context()
     {
         if (fd != 0)
         {
@@ -70,16 +70,16 @@ struct file_context
 
 size_t file_size(const char* path)
 {
-    file_context ctx(path, "rb");
+    File_Context ctx(path, "rb");
     fseek(ctx.fd, 0, SEEK_END);
     size_t input_size = ftell(ctx.fd);
     fseek(ctx.fd, 0, SEEK_SET);
     return input_size;
 }
 
-struct error_node_comparator
+struct Error_Node_Comparator
 {
-    bool operator()(const ast::node* a, const ast::node* b)
+    bool operator()(const ast::Node* a, const ast::Node* b)
     {
         if (a->s_expr->line == b->s_expr->line)
         {
@@ -252,7 +252,7 @@ int main(int argc, char** argv)
     }
 
     {
-        file_context ctx(input_path.c_str(), "rb");
+        File_Context ctx(input_path.c_str(), "rb");
 
         if (!ctx.fd)
         {
@@ -269,18 +269,18 @@ int main(int argc, char** argv)
     std::string output_name = get_output_name(normalize(input_path));
 
     size_t input_size = file_size(input_path.c_str());
-    buffer_context input_buffer(input_size+1);
+    Buffer_Context input_buffer(input_size+1);
     {
-        file_context ctx(input_path.c_str(), "rb");
+        File_Context ctx(input_path.c_str(), "rb");
         size_t rb = fread(input_buffer.data, sizeof(char), input_size, ctx.fd);
         (void)rb;
     }
 
     input_buffer.data[input_size] = 0;
 
-    sexpr::tree expr;
+    sexpr::Tree expr;
     {
-        sexpr::parse_result result = expr.parse(input_buffer.data);
+        sexpr::Parse_Result result = expr.parse(input_buffer.data);
 
         if (result.status != sexpr::parse_ok)
         {
@@ -289,7 +289,7 @@ int main(int argc, char** argv)
         }
     }
 
-    ast::tree tree;
+    ast::Tree tree;
     ast::build_translation_unit(tree, expr.root());
 
     if (tree.error_node_cache.size() > 0)
@@ -297,13 +297,13 @@ int main(int argc, char** argv)
         std::stable_sort(
             &tree.error_node_cache[0],
             &tree.error_node_cache[0] + tree.error_node_cache.size(),
-            error_node_comparator());
+            Error_Node_Comparator());
 
         for (unsigned i = 0; i < tree.error_node_cache.size(); ++i)
         {
-            stdio_file_writer writer(stderr);
-            ast::node* error = tree.error_node_cache[i];
-            ast::error_ann* error_annotation = ast::annotation<ast::error_ann>(error);
+            Stdio_File_Writer writer(stderr);
+            ast::Node* error = tree.error_node_cache[i];
+            ast::Error_Ann* error_annotation = ast::annotation<ast::Error_Ann>(error);
             format_error(error_annotation, writer);
         }
 
@@ -315,16 +315,16 @@ int main(int argc, char** argv)
     std::string header_file_path = std::string(output_dir) + "/" + header_file_name;
     std::string source_file_path = std::string(output_dir) + "/" + source_file_name;
 
-    file_context header_file(header_file_path.c_str(), "wt");
-    file_context source_file(source_file_path.c_str(), "wt");
+    File_Context header_file(header_file_path.c_str(), "wt");
+    File_Context source_file(source_file_path.c_str(), "wt");
 
-    stdio_file_writer header_writer(header_file.fd);
-    stdio_file_writer source_writer(source_file.fd);
+    Stdio_File_Writer header_writer(header_file.fd);
+    Stdio_File_Writer source_writer(source_file.fd);
 
     std::string include_guard(output_name);
     include_guard += "_H_";
 
-    codegen_options options;
+    Codegen_Options options;
     options.tab = "\t";
     options.newline = "\n";
     options.include_guard = include_guard.c_str();

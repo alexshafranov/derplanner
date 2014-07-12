@@ -29,11 +29,11 @@
 
 namespace plnnr {
 
-class stack
+class Stack
 {
 public:
-    stack(size_t capacity);
-    ~stack();
+    Stack(size_t capacity);
+    ~Stack();
 
     void* push(size_t size, size_t alignment);
 
@@ -51,8 +51,8 @@ public:
     bool empty() const { return _top == _buffer; }
 
 private:
-    stack(const stack&);
-    const stack& operator=(const stack&);
+    Stack(const Stack&);
+    const Stack& operator=(const Stack&);
 
     size_t _capacity;
     char* _buffer;
@@ -60,43 +60,43 @@ private:
 };
 
 template <typename T>
-T* push(stack* s)
+T* push(Stack* s)
 {
     return static_cast<T*>(s->push(sizeof(T), plnnr_alignof(T)));
 }
 
 template <typename T>
-void push(stack* s, const T& value)
+void push(Stack* s, const T& value)
 {
     T* d = push<T>(s);
     *d = value;
 }
 
 template <typename T>
-T* bottom(stack* s)
+T* bottom(Stack* s)
 {
     return memory::align<T>(s->buffer());
 }
 
 template <typename T>
-T* top(stack* s)
+T* top(Stack* s)
 {
     return memory::align<T>(s->top()) - 1;
 }
 
-struct planner_state;
-struct method_instance;
+struct Planner_State;
+struct Method_Instance;
 
-typedef bool (*expand_func)(method_instance*, planner_state&, void*);
+typedef bool (*Expand_Func)(Method_Instance*, Planner_State&, void*);
 
-enum method_flags
+enum Method_Flags
 {
     method_flags_none       = 0x0,
     method_flags_expanded   = 0x1,
     method_flags_failed     = 0x2,
 };
 
-struct method_instance
+struct Method_Instance
 {
     uint8_t             flags;
     uint16_t            expanding_branch;
@@ -108,77 +108,77 @@ struct method_instance
     uint32_t            trace_rewind;
     uint32_t            stage;
     int32_t             type;
-    expand_func         expand;
-    method_instance*    prev;
+    Expand_Func         expand;
+    Method_Instance*    prev;
 };
 
-inline void* arguments(method_instance* method)
+inline void* arguments(Method_Instance* method)
 {
     return memory::offset(method, method->arguments);
 }
 
-inline void* precondition(method_instance* method)
+inline void* precondition(Method_Instance* method)
 {
     return memory::offset(method, method->precondition);
 }
 
-inline void* end(method_instance* method)
+inline void* end(Method_Instance* method)
 {
     return memory::offset(method, method->size);
 }
 
 template <typename T>
-T* arguments(method_instance* method)
+T* arguments(Method_Instance* method)
 {
     return static_cast<T*>(arguments(method));
 }
 
 template <typename T>
-T* precondition(method_instance* method)
+T* precondition(Method_Instance* method)
 {
     return static_cast<T*>(precondition(method));
 }
 
-struct task_instance
+struct Task_Instance
 {
     uint16_t        args_align;
     uint32_t        args_size;
     int32_t         type;
-    expand_func     expand;
-    task_instance*  prev;
-    task_instance*  next;
+    Expand_Func     expand;
+    Task_Instance*  prev;
+    Task_Instance*  next;
 };
 
-inline void* arguments(task_instance* task)
+inline void* arguments(Task_Instance* task)
 {
     return task->args_size > 0 ? memory::align(task + 1, task->args_align) : 0;
 }
 
-struct operator_effect
+struct Operator_Effect
 {
-    tuple_list::handle* list;
+    tuple_list::Handle* list;
     void* tuple;
 };
 
-struct method_trace
+struct Method_Trace
 {
     int32_t type;
     uint16_t branch_index;
 };
 
-struct planner_state
+struct Planner_State
 {
-    method_instance* top_method;
-    task_instance* top_task;
-    stack* methods;
-    stack* tasks;
-    stack* journal;
-    stack* trace;
+    Method_Instance* top_method;
+    Task_Instance* top_task;
+    Stack* methods;
+    Stack* tasks;
+    Stack* journal;
+    Stack* trace;
 };
 
-void reset(planner_state& pstate);
+void reset(Planner_State& pstate);
 
-enum find_plan_status
+enum Find_Plan_Status
 {
     plan_not_found = 0,
     plan_in_progress,
@@ -186,7 +186,7 @@ enum find_plan_status
 };
 
 template <typename T>
-T* push_arguments(planner_state& pstate, method_instance* method)
+T* push_arguments(Planner_State& pstate, Method_Instance* method)
 {
     T* arguments = push<T>(pstate.methods);
     size_t method_offset = pstate.methods->offset(method);
@@ -197,7 +197,7 @@ T* push_arguments(planner_state& pstate, method_instance* method)
 }
 
 template <typename T>
-T* push_precondition(planner_state& pstate, method_instance* method)
+T* push_precondition(Planner_State& pstate, Method_Instance* method)
 {
     T* precondition = push<T>(pstate.methods);
     precondition->stage = 0;
@@ -209,7 +209,7 @@ T* push_precondition(planner_state& pstate, method_instance* method)
 }
 
 template <typename T>
-T* push_arguments(planner_state& pstate, task_instance* task)
+T* push_arguments(Planner_State& pstate, Task_Instance* task)
 {
     T* arguments = push<T>(pstate.tasks);
     task->args_align = plnnr_alignof(T);
@@ -217,23 +217,23 @@ T* push_arguments(planner_state& pstate, task_instance* task)
     return arguments;
 }
 
-method_instance* push_method(planner_state& pstate, int task_type, expand_func expand);
+Method_Instance* push_method(Planner_State& pstate, int task_type, Expand_Func expand);
 
-task_instance* push_task(planner_state& pstate, int task_type, expand_func expand);
-task_instance* push_task(planner_state& pstate, task_instance* task);
+Task_Instance* push_task(Planner_State& pstate, int task_type, Expand_Func expand);
+Task_Instance* push_task(Planner_State& pstate, Task_Instance* task);
 
-method_instance* rewind_top_method(planner_state& pstate, bool rewind_tasks);
-bool expand_next_branch(planner_state& pstate, expand_func expand, void* worldstate);
+Method_Instance* rewind_top_method(Planner_State& pstate, bool rewind_tasks);
+bool expand_next_branch(Planner_State& pstate, Expand_Func expand, void* Worldstate);
 
-void undo_effects(stack* journal);
-method_instance* copy_method(method_instance* method, stack* destination);
+void undo_effects(Stack* journal);
+Method_Instance* copy_method(Method_Instance* method, Stack* destination);
 
-bool find_plan(planner_state& pstate, int root_method_type, expand_func root_method, void* worldstate);
+bool find_plan(Planner_State& pstate, int root_method_type, Expand_Func root_method, void* Worldstate);
 
-void find_plan_init(planner_state& pstate, int root_method_type, expand_func root_method);
-void find_plan_init(planner_state& pstate, task_instance* composite_task);
+void find_plan_init(Planner_State& pstate, int root_method_type, Expand_Func root_method);
+void find_plan_init(Planner_State& pstate, Task_Instance* composite_task);
 
-find_plan_status find_plan_step(planner_state& pstate, void* worldstate);
+Find_Plan_Status find_plan_step(Planner_State& pstate, void* Worldstate);
 
 }
 

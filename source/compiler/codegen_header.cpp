@@ -28,19 +28,19 @@
 
 namespace plnnrc {
 
-class paste_function_parameters : public paste_func
+class Paste_Function_Parameters : public Paste_Func
 {
 public:
-    ast::node* function_atom;
+    ast::Node* function_atom;
 
-    paste_function_parameters(ast::node* function_atom)
+    Paste_Function_Parameters(ast::Node* function_atom)
         : function_atom(function_atom)
     {
     }
 
-    virtual void operator()(formatter& output)
+    virtual void operator()(Formatter& output)
     {
-        for (ast::node* worldstate_type = function_atom->first_child; worldstate_type != 0; worldstate_type = worldstate_type->next_sibling)
+        for (ast::Node* worldstate_type = function_atom->first_child; worldstate_type != 0; worldstate_type = worldstate_type->next_sibling)
         {
             output.put_str(worldstate_type->s_expr->first_child->token);
 
@@ -52,7 +52,7 @@ public:
     }
 };
 
-void generate_header_top(ast::tree& /*ast*/, const char* custom_header, formatter& output)
+void generate_header_top(ast::Tree& /*ast*/, const char* custom_header, Formatter& output)
 {
     output.writeln("#include <derplanner/runtime/interface.h>");
     output.newline();
@@ -65,31 +65,31 @@ void generate_header_top(ast::tree& /*ast*/, const char* custom_header, formatte
 
     output.writeln("namespace plnnr");
     {
-        scope s(output);
+        Scope s(output);
         output.writeln("namespace tuple_list");
         {
-            scope s(output, false);
-            output.writeln("struct handle;");
+            Scope s(output, false);
+            output.writeln("struct Handle;");
         }
     }
 
     output.writeln("namespace plnnr");
     {
-        scope s(output);
-        output.writeln("struct planner_state;");
-        output.writeln("struct method_instance;");
+        Scope s(output);
+        output.writeln("struct Planner_State;");
+        output.writeln("struct Method_Instance;");
     }
 }
 
-void generate_worldstate(ast::tree& /*ast*/, ast::node* worldstate, formatter& output)
+void generate_worldstate(ast::Tree& /*ast*/, ast::Node* worldstate, Formatter& output)
 {
     plnnrc_assert(worldstate && ast::is_worldstate(worldstate));
 
-    output.writeln("enum atom_type");
+    output.writeln("enum Atom_Type");
     {
-        class_scope s(output);
+        Class_Scope s(output);
 
-        for (ast::node* atom = worldstate->first_child->next_sibling; atom != 0; atom = atom->next_sibling)
+        for (ast::Node* atom = worldstate->first_child->next_sibling; atom != 0; atom = atom->next_sibling)
         {
             if (!ast::is_atom(atom))
             {
@@ -102,31 +102,31 @@ void generate_worldstate(ast::tree& /*ast*/, ast::node* worldstate, formatter& o
         output.writeln("atom_count,");
     }
 
-    output.writeln("const char* atom_name(atom_type type);");
+    output.writeln("const char* atom_name(Atom_Type type);");
     output.newline();
 
-    output.writeln("struct worldstate");
+    output.writeln("struct Worldstate");
     {
-        class_scope s(output);
-        output.writeln("plnnr::tuple_list::handle* atoms[atom_count];");
+        Class_Scope s(output);
+        output.writeln("plnnr::tuple_list::Handle* atoms[atom_count];");
 
-        for (ast::node* function_def = worldstate->first_child->next_sibling; function_def != 0; function_def = function_def->next_sibling)
+        for (ast::Node* function_def = worldstate->first_child->next_sibling; function_def != 0; function_def = function_def->next_sibling)
         {
             if (!ast::is_function(function_def))
             {
                 continue;
             }
 
-            ast::node* function_atom = function_def->first_child;
-            ast::node* return_type = function_atom->next_sibling;
+            ast::Node* function_atom = function_def->first_child;
+            ast::Node* return_type = function_atom->next_sibling;
 
-            paste_function_parameters paste(function_atom);
+            Paste_Function_Parameters paste(function_atom);
 
             output.writeln("%s (*%i)(%p);", return_type->s_expr->first_child->token, function_atom->s_expr->token, &paste);
         }
     }
 
-    for (ast::node* atom = worldstate->first_child->next_sibling; atom != 0; atom = atom->next_sibling)
+    for (ast::Node* atom = worldstate->first_child->next_sibling; atom != 0; atom = atom->next_sibling)
     {
         if (!ast::is_atom(atom))
         {
@@ -135,11 +135,11 @@ void generate_worldstate(ast::tree& /*ast*/, ast::node* worldstate, formatter& o
 
         output.writeln("struct %i_tuple", atom->s_expr->token);
         {
-            class_scope s(output);
+            Class_Scope s(output);
 
             unsigned param_index = 0;
 
-            for (ast::node* param = atom->first_child; param != 0; param = param->next_sibling)
+            for (ast::Node* param = atom->first_child; param != 0; param = param->next_sibling)
             {
                 output.writeln("%s _%d;", param->s_expr->first_child->token, param_index++);
             }
@@ -151,28 +151,28 @@ void generate_worldstate(ast::tree& /*ast*/, ast::node* worldstate, formatter& o
     }
 }
 
-void generate_task_type_enum(ast::tree& ast, ast::node* domain, formatter& output)
+void generate_task_type_enum(ast::Tree& ast, ast::Node* domain, Formatter& output)
 {
-    output.writeln("enum task_type");
+    output.writeln("enum Task_Type");
     {
-        class_scope s(output);
+        Class_Scope s(output);
 
-        for (id_table_values operators = ast.operators.values(); !operators.empty(); operators.pop())
+        for (Id_Table_Values operators = ast.operators.values(); !operators.empty(); operators.pop())
         {
-            ast::node* operatr = operators.value();
-            ast::node* operator_atom = operatr->first_child;
+            ast::Node* operatr = operators.value();
+            ast::Node* operator_atom = operatr->first_child;
 
             output.writeln("task_%i,", operator_atom->s_expr->token);
         }
 
-        for (ast::node* method = domain->first_child; method != 0; method = method->next_sibling)
+        for (ast::Node* method = domain->first_child; method != 0; method = method->next_sibling)
         {
             if (!ast::is_method(method))
             {
                 continue;
             }
 
-            ast::node* method_atom = method->first_child;
+            ast::Node* method_atom = method->first_child;
             plnnrc_assert(method_atom);
 
             output.writeln("task_%i,", method_atom->s_expr->token);
@@ -185,18 +185,18 @@ void generate_task_type_enum(ast::tree& ast, ast::node* domain, formatter& outpu
     output.writeln("static const int method_count = %d;", ast.methods.count());
     output.newline();
 
-    output.writeln("const char* task_name(task_type type);");
+    output.writeln("const char* task_name(Task_Type type);");
     output.newline();
 }
 
-void generate_param_structs(ast::tree& ast, ast::node* domain, formatter& output)
+void generate_param_structs(ast::Tree& ast, ast::Node* domain, Formatter& output)
 {
-    for (id_table_values operators = ast.operators.values(); !operators.empty(); operators.pop())
+    for (Id_Table_Values operators = ast.operators.values(); !operators.empty(); operators.pop())
     {
         generate_param_struct(ast, operators.value(), output);
     }
 
-    for (ast::node* method = domain->first_child; method != 0; method = method->next_sibling)
+    for (ast::Node* method = domain->first_child; method != 0; method = method->next_sibling)
     {
         if (!ast::is_method(method))
         {
@@ -207,9 +207,9 @@ void generate_param_structs(ast::tree& ast, ast::node* domain, formatter& output
     }
 }
 
-void generate_param_struct(ast::tree& ast, ast::node* task, formatter& output)
+void generate_param_struct(ast::Tree& ast, ast::Node* task, Formatter& output)
 {
-    ast::node* atom = task->first_child;
+    ast::Node* atom = task->first_child;
 
     if (!atom->first_child)
     {
@@ -218,25 +218,25 @@ void generate_param_struct(ast::tree& ast, ast::node* task, formatter& output)
 
     output.writeln("struct %i_args", atom->s_expr->token);
     {
-        class_scope s(output);
+        Class_Scope s(output);
 
-        for (ast::node* param = atom->first_child; param != 0; param = param->next_sibling)
+        for (ast::Node* param = atom->first_child; param != 0; param = param->next_sibling)
         {
-            ast::node* ws_type = ast.type_tag_to_node[type_tag(param)];
-            output.writeln("%s _%d;", ws_type->s_expr->first_child->token, ast::annotation<ast::term_ann>(param)->var_index);
+            ast::Node* ws_type = ast.type_tag_to_node[type_tag(param)];
+            output.writeln("%s _%d;", ws_type->s_expr->first_child->token, ast::annotation<ast::Term_Ann>(param)->var_index);
         }
     }
 
     output.writeln("inline bool operator==(const %i_args& a, const %i_args& b)", atom->s_expr->token, atom->s_expr->token);
     {
-        scope s(output, true);
+        Scope s(output, true);
         int param_index = 0;
 
         output.writeln("return \\");
         {
-            indented s(output);
+            Indented s(output);
 
-            for (ast::node* param = atom->first_child; param != 0; param = param->next_sibling)
+            for (ast::Node* param = atom->first_child; param != 0; param = param->next_sibling)
             {
                 if (!is_last(param))
                 {
@@ -253,24 +253,24 @@ void generate_param_struct(ast::tree& ast, ast::node* task, formatter& output)
     }
 }
 
-void generate_forward_decls(ast::tree& ast, ast::node* domain, formatter& output)
+void generate_forward_decls(ast::Tree& ast, ast::Node* domain, Formatter& output)
 {
-    for (ast::node* method = domain->first_child; method != 0; method = method->next_sibling)
+    for (ast::Node* method = domain->first_child; method != 0; method = method->next_sibling)
     {
         if (!ast::is_method(method))
         {
             continue;
         }
 
-        ast::node* atom = method->first_child;
+        ast::Node* atom = method->first_child;
         const char* method_name = atom->s_expr->token;
 
         unsigned branch_index = 0;
 
-        for (ast::node* branch = method->first_child->next_sibling; branch != 0; branch = branch->next_sibling)
+        for (ast::Node* branch = method->first_child->next_sibling; branch != 0; branch = branch->next_sibling)
         {
             plnnrc_assert(ast::is_branch(branch));
-            output.writeln("bool %i_branch_%d_expand(plnnr::method_instance*, plnnr::planner_state&, void*);", method_name, branch_index);
+            output.writeln("bool %i_branch_%d_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);", method_name, branch_index);
             ++branch_index;
         }
     }

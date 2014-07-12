@@ -26,10 +26,10 @@
 
 namespace plnnr {
 
-class worldstate
+class Worldstate
 {
 public:
-    worldstate(void* data);
+    Worldstate(void* data);
 
     template <typename T>
     void append(const T& tuple);
@@ -41,7 +41,7 @@ private:
 };
 
 template <typename R, typename V>
-struct generated_type_reflector
+struct Generated_Type_Reflector
 {
     void operator()(const R& /*reflected*/, V& /*visitor*/)
     {
@@ -50,7 +50,7 @@ struct generated_type_reflector
 };
 
 template <typename T, typename V>
-struct task_type_dispatcher
+struct Task_Type_Dispatcher
 {
     void operator()(const T& /*task_type*/, void* /*args*/, V& /*visitor*/)
     {
@@ -61,15 +61,15 @@ struct task_type_dispatcher
 template <typename T, typename V>
 void reflect(const T& generated_type, V& visitor)
 {
-    generated_type_reflector<T, V> reflector;
+    Generated_Type_Reflector<T, V> reflector;
     reflector(generated_type, visitor);
 }
 
 template <typename T, typename I, typename V>
-void dispatch(I* task_instance, V& visitor)
+void dispatch(I* Task_Instance, V& visitor)
 {
-    task_type_dispatcher<T, V> dispatcher;
-    dispatcher(static_cast<T>(task_instance->type), arguments(task_instance), visitor);
+    Task_Type_Dispatcher<T, V> dispatcher;
+    dispatcher(static_cast<T>(Task_Instance->type), arguments(Task_Instance), visitor);
 }
 
 template <typename T, typename I, typename V>
@@ -88,40 +88,6 @@ void walk_stack_up(I* top_task, V& visitor)
     {
         dispatch<T>(task, visitor);
     }
-}
-
-template <typename I>
-struct task_compare
-{
-    I* task_a;
-    bool result;
-
-    void task(int task_type, const char* /*task_name*/)
-    {
-        result = (task_a->type == task_type);
-    }
-
-    template <typename A>
-    void task(int task_type, const char* /*task_name*/, const A* args)
-    {
-        result = (task_a->type == task_type);
-
-        if (result)
-        {
-            const A* task_args = static_cast<const A*>(arguments(task_a));
-            result = (*(task_args) == *(args));
-        }
-    }
-};
-
-template <typename T, typename I>
-bool compare(I* a, I* b)
-{
-    task_compare<I> comparator;
-    comparator.task_a = a;
-    comparator.result = false;
-    dispatch<T>(b, comparator);
-    return comparator.result;
 }
 
 }

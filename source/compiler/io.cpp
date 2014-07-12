@@ -24,13 +24,13 @@
 namespace plnnrc
 {
 
-stdio_file_writer::stdio_file_writer(void* file_object)
+Stdio_File_Writer::Stdio_File_Writer(void* file_object)
     : _file_object(file_object)
     , _error(false)
 {
 }
 
-size_t stdio_file_writer::write(const void* data, size_t size)
+size_t Stdio_File_Writer::write(const void* data, size_t size)
 {
     size_t result = fwrite(data, 1, size, static_cast<FILE*>(_file_object));
 

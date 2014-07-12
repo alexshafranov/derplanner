@@ -26,20 +26,20 @@
 
 namespace plnnrc
 {
-    struct str_ref
+    struct Str_Ref
     {
         const char* str;
         size_t len;
     };
 
-    inline bool is_token(::plnnrc::sexpr::node* s_expr, ::plnnrc::str_ref token)
+    inline bool is_token(::plnnrc::sexpr::Node* s_expr, ::plnnrc::Str_Ref token)
     {
         return s_expr && s_expr->token && strncmp(s_expr->token, token.str, token.len) == 0;
     }
 }
 
-#define PLNNRC_DECLARE_TOKEN(NAME, STR) extern const ::plnnrc::str_ref NAME
-#define PLNNRC_DEFINE_TOKEN(NAME, STR) const ::plnnrc::str_ref NAME = { STR, sizeof(STR) }
+#define PLNNRC_DECLARE_TOKEN(NAME, STR) extern const ::plnnrc::Str_Ref NAME
+#define PLNNRC_DEFINE_TOKEN(NAME, STR) const ::plnnrc::Str_Ref NAME = { STR, sizeof(STR) }
 
 namespace plnnrc {
 

@@ -25,9 +25,9 @@
 
 namespace plnnr {
 
-struct atom_printf;
+struct Atom_Printf;
 
-struct world_printf
+struct World_Printf
 {
     template <typename T>
     void atom_list(int /*atom_type*/, const char* name, T* head)
@@ -36,7 +36,7 @@ struct world_printf
 
         for (T* tuple = head; tuple != 0; tuple = tuple->next)
         {
-            atom_printf atom_visitor;
+            Atom_Printf atom_visitor;
             plnnr::reflect(*tuple, atom_visitor);
 
             if (tuple->next)
@@ -66,9 +66,9 @@ struct print_atom_element<int>
     }
 };
 
-struct atom_printf
+struct Atom_Printf
 {
-    atom_printf()
+    Atom_Printf()
         : current_element(0)
         , total_elements(0)
     {
@@ -112,7 +112,7 @@ struct task_printf
     void task(int /*task_type*/, const char* task_name, const A* args)
     {
         printf("(%s ", task_name);
-        atom_printf atom_visitor;
+        Atom_Printf atom_visitor;
         plnnr::reflect(*args, atom_visitor);
         printf(")\n");
     }

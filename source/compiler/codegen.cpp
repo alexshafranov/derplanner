@@ -35,14 +35,14 @@
 
 namespace plnnrc {
 
-struct namespace_wrap
+struct Namespace_Wrap
 {
-    namespace_wrap(ast::node* namespace_node, formatter& output, bool end_with_empty_line=true)
+    Namespace_Wrap(ast::Node* namespace_node, Formatter& output, bool end_with_empty_line=true)
         : namespace_node(namespace_node)
         , output(output)
         , end_with_empty_line(end_with_empty_line)
     {
-        for (sexpr::node* name_expr = namespace_node->s_expr->first_child; name_expr != 0; name_expr = name_expr->next_sibling)
+        for (sexpr::Node* name_expr = namespace_node->s_expr->first_child; name_expr != 0; name_expr = name_expr->next_sibling)
         {
             output.writeln("namespace %i {", name_expr->token);
 
@@ -53,7 +53,7 @@ struct namespace_wrap
         }
     }
 
-    namespace_wrap(const char* namespace_id, formatter& output, bool end_with_empty_line=true)
+    Namespace_Wrap(const char* namespace_id, Formatter& output, bool end_with_empty_line=true)
         : namespace_node(0)
         , output(output)
         , end_with_empty_line(end_with_empty_line)
@@ -62,11 +62,11 @@ struct namespace_wrap
         output.newline();
     }
 
-    ~namespace_wrap()
+    ~Namespace_Wrap()
     {
         if (namespace_node)
         {
-            for (sexpr::node* name_expr = namespace_node->s_expr->first_child; name_expr != 0; name_expr = name_expr->next_sibling)
+            for (sexpr::Node* name_expr = namespace_node->s_expr->first_child; name_expr != 0; name_expr = name_expr->next_sibling)
             {
                 output.writeln("}");
             }
@@ -82,24 +82,24 @@ struct namespace_wrap
         }
     }
 
-    ast::node* namespace_node;
-    formatter& output;
+    ast::Node* namespace_node;
+    Formatter& output;
     bool end_with_empty_line;
 
-    namespace_wrap& operator=(const namespace_wrap&);
+    Namespace_Wrap& operator=(const Namespace_Wrap&);
 };
 
-bool generate_header(ast::tree& ast, writer& writer, codegen_options options)
+bool generate_header(ast::Tree& ast, Writer& writer, Codegen_Options options)
 {
-    formatter output(writer, options.tab, options.newline);
+    Formatter output(writer, options.tab, options.newline);
 
     if (!output.init(DERPLANNER_CODEGEN_OUTPUT_BUFFER_SIZE))
     {
         return false;
     }
 
-    ast::node* worldstate = find_child(ast.root(), ast::node_worldstate);
-    ast::node* domain = find_child(ast.root(), ast::node_domain);
+    ast::Node* worldstate = find_child(ast.root(), ast::node_worldstate);
+    ast::Node* domain = find_child(ast.root(), ast::node_domain);
  
     output.writeln("#ifndef %s", options.include_guard);
     output.writeln("#define %s", options.include_guard);
@@ -109,19 +109,19 @@ bool generate_header(ast::tree& ast, writer& writer, codegen_options options)
 
     if (worldstate)
     {
-        ast::node* worldstate_namespace = worldstate->first_child;
+        ast::Node* worldstate_namespace = worldstate->first_child;
         plnnrc_assert(worldstate_namespace && ast::is_namespace(worldstate_namespace));
 
-        namespace_wrap wrap(worldstate_namespace, output);
+        Namespace_Wrap wrap(worldstate_namespace, output);
         generate_worldstate(ast, worldstate, output);
     }
 
     if (domain)
     {
-        ast::node* domain_namespace = domain->first_child;
+        ast::Node* domain_namespace = domain->first_child;
         plnnrc_assert(domain_namespace && ast::is_namespace(domain_namespace));
 
-        namespace_wrap wrap(domain_namespace, output);
+        Namespace_Wrap wrap(domain_namespace, output);
         generate_task_type_enum(ast, domain, output);
         generate_param_structs(ast, domain, output);
         generate_forward_decls(ast, domain, output);
@@ -129,7 +129,7 @@ bool generate_header(ast::tree& ast, writer& writer, codegen_options options)
 
     if (options.enable_reflection)
     {
-        namespace_wrap wrap("plnnr", output);
+        Namespace_Wrap wrap("plnnr", output);
 
         if (worldstate)
         {
@@ -148,9 +148,9 @@ bool generate_header(ast::tree& ast, writer& writer, codegen_options options)
     return true;
 }
 
-bool generate_source(ast::tree& ast, writer& writer, codegen_options options)
+bool generate_source(ast::Tree& ast, Writer& writer, Codegen_Options options)
 {
-    formatter output(writer, options.tab, options.newline);
+    Formatter output(writer, options.tab, options.newline);
 
     if (!output.init(DERPLANNER_CODEGEN_OUTPUT_BUFFER_SIZE))
     {
@@ -159,24 +159,24 @@ bool generate_source(ast::tree& ast, writer& writer, codegen_options options)
 
     generate_source_top(options.header_file_name, output);
 
-    ast::node* worldstate = find_child(ast.root(), ast::node_worldstate);
-    ast::node* domain = find_child(ast.root(), ast::node_domain);
+    ast::Node* worldstate = find_child(ast.root(), ast::node_worldstate);
+    ast::Node* domain = find_child(ast.root(), ast::node_domain);
 
     if (worldstate)
     {
-        ast::node* worldstate_namespace = worldstate->first_child;
+        ast::Node* worldstate_namespace = worldstate->first_child;
         plnnrc_assert(worldstate_namespace && ast::is_namespace(worldstate_namespace));
 
-        namespace_wrap wrap(worldstate_namespace, output, domain != 0);
+        Namespace_Wrap wrap(worldstate_namespace, output, domain != 0);
         generate_atom_name_function(ast, worldstate, options.runtime_atom_names, output);
     }
 
     if (domain)
     {
-        ast::node* domain_namespace = domain->first_child;
+        ast::Node* domain_namespace = domain->first_child;
         plnnrc_assert(domain_namespace && ast::is_namespace(domain_namespace));
 
-        namespace_wrap wrap(domain_namespace, output, false);
+        Namespace_Wrap wrap(domain_namespace, output, false);
         generate_task_name_function(ast, domain, options.runtime_task_names, output);
         generate_preconditions(ast, domain, output);
         generate_branch_expands(ast, domain, output);

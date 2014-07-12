@@ -22,7 +22,7 @@
 
 namespace plnnr {
 
-worldstate::worldstate(void* data)
+Worldstate::Worldstate(void* data)
     : _data(data)
 {
 }

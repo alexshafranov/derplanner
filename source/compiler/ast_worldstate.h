@@ -23,15 +23,15 @@
 
 namespace plnnrc {
 
-namespace sexpr { struct node; }
-namespace ast { struct node; }
-namespace ast { class tree; }
+namespace sexpr { struct Node; }
+namespace ast { struct Node; }
+namespace ast { class Tree; }
 
 namespace ast {
 
-node* build_worldstate(tree& ast, sexpr::node* s_expr);
-node* build_worldstate_atom(tree& ast, sexpr::node* s_expr, int& type_tag);
-node* build_worldstate_type(tree& ast, sexpr::node* s_expr, int& type_tag);
+Node* build_worldstate(Tree& ast, sexpr::Node* s_expr);
+Node* build_worldstate_atom(Tree& ast, sexpr::Node* s_expr, int& type_tag);
+Node* build_worldstate_type(Tree& ast, sexpr::Node* s_expr, int& type_tag);
 
 }
 }

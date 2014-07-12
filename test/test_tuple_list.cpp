@@ -25,21 +25,21 @@ using namespace plnnr;
 
 namespace
 {
-    struct tuple
+    struct Tuple
     {
         int data;
         void* parent;
-        tuple* next;
-        tuple* prev;
+        Tuple* next;
+        Tuple* prev;
     };
 
     struct holder
     {
-        tuple_list::handle* list;
+        tuple_list::Handle* list;
 
         holder(size_t items_per_page=4096)
         {
-            list = tuple_list::create<tuple>(items_per_page);
+            list = tuple_list::create<Tuple>(items_per_page);
         }
 
         ~holder()
@@ -54,16 +54,16 @@ namespace
 
         for (int i = 0; i < 10; ++i)
         {
-            tuple* new_tuple = tuple_list::append<tuple>(h.list);
+            Tuple* new_tuple = tuple_list::append<Tuple>(h.list);
             CHECK(new_tuple);
             new_tuple->data = i;
         }
 
         int count = 0;
 
-        tuple* head = tuple_list::head<tuple>(h.list);
+        Tuple* head = tuple_list::head<Tuple>(h.list);
 
-        for (tuple* t = head; t != 0; t = t->next, ++count)
+        for (Tuple* t = head; t != 0; t = t->next, ++count)
         {
             CHECK_EQUAL(count, t->data);
         }
@@ -80,16 +80,16 @@ namespace
         // add items
         for (int i = 0; i < (int)(sizeof(journal)/sizeof(journal[0])); ++i)
         {
-            tuple* new_tuple = tuple_list::append<tuple>(h.list);
+            Tuple* new_tuple = tuple_list::append<Tuple>(h.list);
             new_tuple->data = i;
         }
 
         int count = 0;
 
         // detach all except the first one
-        for (tuple* t = tuple_list::head<tuple>(h.list); t != 0;)
+        for (Tuple* t = tuple_list::head<Tuple>(h.list); t != 0;)
         {
-            tuple* next = t->next;
+            Tuple* next = t->next;
             tuple_list::detach(h.list, t);
             journal[count++] = t;
             t = next;
@@ -104,17 +104,17 @@ namespace
         // check undo
         count = 0;
 
-        tuple* head = tuple_list::head<tuple>(h.list);
+        Tuple* head = tuple_list::head<Tuple>(h.list);
         CHECK(head != 0);
 
-        for (tuple* t = head; t != 0; t = t->next, ++count)
+        for (Tuple* t = head; t != 0; t = t->next, ++count)
         {
             CHECK_EQUAL(count, t->data);
         }
 
         CHECK_EQUAL(sizeof(journal)/sizeof(journal[0]), (size_t)count);
 
-        for (tuple* tail = head; ; tail = tail->next)
+        for (Tuple* tail = head; ; tail = tail->next)
         {
             if (!tail->next)
             {
@@ -135,14 +135,14 @@ namespace
         // add items.
         for (int i = 0; i < 10; ++i)
         {
-            tuple* new_tuple = tuple_list::append<tuple>(h.list);
+            Tuple* new_tuple = tuple_list::append<Tuple>(h.list);
             new_tuple->data = i;
         }
 
         // add 10 more items.
         for (int i = 0; i < 10; ++i)
         {
-            tuple* new_tuple = tuple_list::append<tuple>(h.list);
+            Tuple* new_tuple = tuple_list::append<Tuple>(h.list);
             new_tuple->data = 10 + i;
             journal[i] = new_tuple;
         }
@@ -152,7 +152,7 @@ namespace
         {
             int index = rand_index[i];
 
-            for (tuple* t = tuple_list::head<tuple>(h.list); t != 0; t = t->next)
+            for (Tuple* t = tuple_list::head<Tuple>(h.list); t != 0; t = t->next)
             {
                 if (index == t->data)
                 {
@@ -172,17 +172,17 @@ namespace
         // check undo
         int count = 0;
 
-        tuple* head = tuple_list::head<tuple>(h.list);
+        Tuple* head = tuple_list::head<Tuple>(h.list);
         CHECK(head != 0);
 
-        for (tuple* t = head; t != 0; t = t->next, ++count)
+        for (Tuple* t = head; t != 0; t = t->next, ++count)
         {
             CHECK_EQUAL(count, t->data);
         }
 
         CHECK_EQUAL(10, count);
 
-        for (tuple* tail = head; ; tail = tail->next)
+        for (Tuple* tail = head; ; tail = tail->next)
         {
             if (!tail->next)
             {
@@ -203,7 +203,7 @@ namespace
         // add items.
         for (int i = 0; i < 10; ++i)
         {
-            tuple* new_tuple = tuple_list::append<tuple>(h.list);
+            Tuple* new_tuple = tuple_list::append<Tuple>(h.list);
             new_tuple->data = i;
         }
 
@@ -214,11 +214,11 @@ namespace
 
             if (i % 2 == 0)
             {
-                for (tuple* t = tuple_list::head<tuple>(h.list); t != 0; t = t->next)
+                for (Tuple* t = tuple_list::head<Tuple>(h.list); t != 0; t = t->next)
                 {
                     if (index == t->data)
                     {
-                        tuple* new_tuple = tuple_list::append<tuple>(h.list);
+                        Tuple* new_tuple = tuple_list::append<Tuple>(h.list);
                         new_tuple->data = 10 + i;
                         journal[i] = new_tuple;
                         break;
@@ -227,7 +227,7 @@ namespace
             }
             else
             {
-                for (tuple* t = tuple_list::head<tuple>(h.list); t != 0; t = t->next)
+                for (Tuple* t = tuple_list::head<Tuple>(h.list); t != 0; t = t->next)
                 {
                     if (index == t->data)
                     {
@@ -248,17 +248,17 @@ namespace
         // check undo
         int count = 0;
 
-        tuple* head = tuple_list::head<tuple>(h.list);
+        Tuple* head = tuple_list::head<Tuple>(h.list);
         CHECK(head != 0);
 
-        for (tuple* t = head; t != 0; t = t->next, ++count)
+        for (Tuple* t = head; t != 0; t = t->next, ++count)
         {
             CHECK_EQUAL(count, t->data);
         }
 
         CHECK_EQUAL(10, count);
 
-        for (tuple* tail = head; ; tail = tail->next)
+        for (Tuple* tail = head; ; tail = tail->next)
         {
             if (!tail->next)
             {

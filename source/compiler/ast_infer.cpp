@@ -31,19 +31,19 @@ namespace ast {
 
 namespace
 {
-    node* seed_parameter_types(tree& ast, node* root, node* argument_type)
+    Node* seed_parameter_types(Tree& ast, Node* root, Node* argument_type)
     {
-        node* ws_type = argument_type;
+        Node* ws_type = argument_type;
 
-        for (node* c = root->first_child; c != 0; c = c->next_sibling, ws_type = ws_type->next_sibling)
+        for (Node* c = root->first_child; c != 0; c = c->next_sibling, ws_type = ws_type->next_sibling)
         {
             PLNNRC_BREAK(replace_with_error_if(!ws_type, ast, root, error_wrong_number_of_arguments) << root->s_expr);
 
             if (is_term_variable(c))
             {
-                type_tag(c, annotation<ws_type_ann>(ws_type)->type_tag);
+                type_tag(c, annotation<WS_Type_Ann>(ws_type)->type_tag);
 
-                node* def = definition(c);
+                Node* def = definition(c);
 
                 if (def && type_tag(def))
                 {
@@ -58,11 +58,11 @@ namespace
 
             if (is_term_call(c))
             {
-                node* ws_func = ast.ws_funcs.find(c->s_expr->token);
+                Node* ws_func = ast.ws_funcs.find(c->s_expr->token);
                 PLNNRC_CONTINUE(replace_with_error_if(!ws_func, ast, c, error_undefined) << c->s_expr);
-                node* ws_return_type = ws_func->first_child->next_sibling;
-                int ws_type_tag = annotation<ws_type_ann>(ws_type)->type_tag;
-                int ws_return_type_tag = annotation<ws_type_ann>(ws_return_type)->type_tag;
+                Node* ws_return_type = ws_func->first_child->next_sibling;
+                int ws_type_tag = annotation<WS_Type_Ann>(ws_type)->type_tag;
+                int ws_return_type_tag = annotation<WS_Type_Ann>(ws_return_type)->type_tag;
                 PLNNRC_CONTINUE(replace_with_error_if(ws_type_tag != ws_return_type_tag, ast, c, error_type_mismatch)
                     << ws_type->s_expr->first_child
                     << ws_return_type->s_expr->first_child);
@@ -72,9 +72,9 @@ namespace
         return ws_type;
     }
 
-    void set_or_check_var_type(tree& ast, node* var)
+    void set_or_check_var_type(Tree& ast, Node* var)
     {
-        node* def = definition(var);
+        Node* def = definition(var);
 
         if (is_parameter(def))
         {
@@ -96,19 +96,19 @@ namespace
         }
     }
 
-    void propagate_types_up(tree& ast)
+    void propagate_types_up(Tree& ast)
     {
         // for each precondition and for each effect and function call in task list propagate variable types to their definitions
-        for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+        for (Id_Table_Values methods = ast.methods.values(); !methods.empty(); methods.pop())
         {
-            node* method = methods.value();
-            node* method_atom = method->first_child;
+            Node* method = methods.value();
+            Node* method_atom = method->first_child;
 
-            for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
+            for (Node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
             {
-                node* precondition = branch->first_child;
+                Node* precondition = branch->first_child;
 
-                for (node* var = precondition; var != 0; var = preorder_traversal_next(precondition, var))
+                for (Node* var = precondition; var != 0; var = preorder_traversal_next(precondition, var))
                 {
                     if (is_term_variable(var) && is_bound(var) && (is_atom(var->parent) || is_term_call(var->parent)))
                     {
@@ -116,13 +116,13 @@ namespace
                     }
                 }
 
-                node* tasklist = precondition->next_sibling;
+                Node* tasklist = precondition->next_sibling;
 
-                for (node* task = tasklist->first_child; task != 0; task = task->next_sibling)
+                for (Node* task = tasklist->first_child; task != 0; task = task->next_sibling)
                 {
                     if (is_effect_list(task))
                     {
-                        for (node* var = task->first_child; var != 0; var = var->next_sibling)
+                        for (Node* var = task->first_child; var != 0; var = var->next_sibling)
                         {
                             if (is_term_variable(var))
                             {
@@ -132,11 +132,11 @@ namespace
                     }
                     else
                     {
-                        for (node* call = task->first_child; call != 0; call = call->next_sibling)
+                        for (Node* call = task->first_child; call != 0; call = call->next_sibling)
                         {
                             if (is_term_call(call))
                             {
-                                for (node* var = call->first_child; var != 0; var = var->next_sibling)
+                                for (Node* var = call->first_child; var != 0; var = var->next_sibling)
                                 {
                                     if (is_term_variable(var))
                                     {
@@ -151,7 +151,7 @@ namespace
         }
     }
 
-    void propagate_types_down(tree& ast)
+    void propagate_types_down(Tree& ast)
     {
         // for each task in a task list propagate variable and function return types
         // down to undefined argument types of operators and methods
@@ -164,12 +164,12 @@ namespace
 
             int num_methods_processed = 0;
 
-            for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+            for (Id_Table_Values methods = ast.methods.values(); !methods.empty(); methods.pop())
             {
-                node* method = methods.value();
-                node* method_atom = method->first_child;
+                Node* method = methods.value();
+                Node* method_atom = method->first_child;
 
-                method_ann* ann = annotation<method_ann>(method);
+                Method_Ann* ann = annotation<Method_Ann>(method);
 
                 if (ann->processed)
                 {
@@ -182,18 +182,18 @@ namespace
                     continue;
                 }
 
-                for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
+                for (Node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
                 {
-                    node* tasklist = branch->first_child->next_sibling;
+                    Node* tasklist = branch->first_child->next_sibling;
 
-                    for (node* task = tasklist->first_child; task != 0; task = task->next_sibling)
+                    for (Node* task = tasklist->first_child; task != 0; task = task->next_sibling)
                     {
                         if (is_effect_list(task))
                         {
                             continue;
                         }
 
-                        node* callee = ast.methods.find(task->s_expr->token);
+                        Node* callee = ast.methods.find(task->s_expr->token);
 
                         if (!callee)
                         {
@@ -202,18 +202,18 @@ namespace
 
                         plnnrc_assert(callee);
 
-                        node* callee_atom = callee->first_child;
+                        Node* callee_atom = callee->first_child;
 
-                        node* param = callee_atom->first_child;
+                        Node* param = callee_atom->first_child;
 
-                        for (node* arg = task->first_child; arg != 0; arg = arg->next_sibling, param = param->next_sibling)
+                        for (Node* arg = task->first_child; arg != 0; arg = arg->next_sibling, param = param->next_sibling)
                         {
                             PLNNRC_BREAK(replace_with_error_if(!param, ast, task, error_wrong_number_of_arguments) << task->s_expr);
 
                             if (is_term_variable(arg))
                             {
                                 plnnrc_assert(is_bound(arg));
-                                node* def = definition(arg);
+                                Node* def = definition(arg);
 
                                 PLNNRC_CONTINUE(replace_with_error_if(!type_tag(def), ast, arg, error_unable_to_infer_type) << arg->s_expr);
 
@@ -232,19 +232,19 @@ namespace
 
                             if (is_term_call(arg))
                             {
-                                node* ws_func = ast.ws_funcs.find(arg->s_expr->token);
+                                Node* ws_func = ast.ws_funcs.find(arg->s_expr->token);
                                 plnnrc_assert(ws_func);
-                                node* ws_return_type = ws_func->first_child->next_sibling;
+                                Node* ws_return_type = ws_func->first_child->next_sibling;
                                 plnnrc_assert(ws_return_type);
 
                                 if (!type_tag(param))
                                 {
-                                    type_tag(param, annotation<ws_type_ann>(ws_return_type)->type_tag);
+                                    type_tag(param, annotation<WS_Type_Ann>(ws_return_type)->type_tag);
                                 }
                                 else
                                 {
                                     // check types match
-                                    replace_with_error_if(type_tag(param) != annotation<ws_type_ann>(ws_return_type)->type_tag, ast, arg, error_type_mismatch)
+                                    replace_with_error_if(type_tag(param) != annotation<WS_Type_Ann>(ws_return_type)->type_tag, ast, arg, error_type_mismatch)
                                         << ast.type_tag_to_node[type_tag(param)]->s_expr->first_child
                                         << ws_return_type->s_expr->first_child;
                                 }
@@ -262,12 +262,12 @@ namespace
             if (num_methods_processed == 0)
             {
                 // unable to infer some method parameters.
-                for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+                for (Id_Table_Values methods = ast.methods.values(); !methods.empty(); methods.pop())
                 {
-                    node* method = methods.value();
-                    node* method_atom = method->first_child;
+                    Node* method = methods.value();
+                    Node* method_atom = method->first_child;
 
-                    for (node* param = method_atom->first_child; param != 0; param = param->next_sibling)
+                    for (Node* param = method_atom->first_child; param != 0; param = param->next_sibling)
                     {
                         if (!type_tag(param))
                         {
@@ -281,24 +281,24 @@ namespace
         }
 
         // assign types to all other bound variables, once method parameter types are figured out
-        for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+        for (Id_Table_Values methods = ast.methods.values(); !methods.empty(); methods.pop())
         {
-            node* method = methods.value();
-            node* method_atom = method->first_child;
+            Node* method = methods.value();
+            Node* method_atom = method->first_child;
 
-            for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
+            for (Node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
             {
-                node* precondition = branch->first_child;
+                Node* precondition = branch->first_child;
 
-                for (node* n = precondition; n != 0; n = preorder_traversal_next(precondition, n))
+                for (Node* n = precondition; n != 0; n = preorder_traversal_next(precondition, n))
                 {
                     if (is_comparison_op(n))
                     {
-                        for (node* var = n->first_child; var != 0; var = var->next_sibling)
+                        for (Node* var = n->first_child; var != 0; var = var->next_sibling)
                         {
                             if (is_term_variable(var))
                             {
-                                node* def = definition(var);
+                                Node* def = definition(var);
                                 PLNNRC_SKIP_ERROR_NODE(def);
                                 type_tag(var, type_tag(def));
                             }
@@ -310,16 +310,16 @@ namespace
     }
 }
 
-void seed_types(tree& ast, node* root)
+void seed_types(Tree& ast, Node* root)
 {
-    for (node* n = root; n != 0; n = preorder_traversal_next(root, n))
+    for (Node* n = root; n != 0; n = preorder_traversal_next(root, n))
     {
         if (is_atom(n))
         {
-            node* ws_atom = ast.ws_atoms.find(n->s_expr->token);
+            Node* ws_atom = ast.ws_atoms.find(n->s_expr->token);
             PLNNRC_CONTINUE(replace_with_error_if(!ws_atom, ast, n, error_undefined) << n->s_expr);
 
-            node* ws_type = seed_parameter_types(ast, n, ws_atom->first_child);
+            Node* ws_type = seed_parameter_types(ast, n, ws_atom->first_child);
 
             if (is_error(n))
             {
@@ -331,10 +331,10 @@ void seed_types(tree& ast, node* root)
 
         if (is_term_call(n))
         {
-            node* ws_func = ast.ws_funcs.find(n->s_expr->token);
+            Node* ws_func = ast.ws_funcs.find(n->s_expr->token);
             PLNNRC_CONTINUE(replace_with_error_if(!ws_func, ast, n, error_undefined) << n->s_expr);
 
-            node* ws_type = seed_parameter_types(ast, n, ws_func->first_child->first_child);
+            Node* ws_type = seed_parameter_types(ast, n, ws_func->first_child->first_child);
 
             if (is_error(n))
             {
@@ -346,9 +346,9 @@ void seed_types(tree& ast, node* root)
     }
 }
 
-bool has_untyped_params(node* method_atom)
+bool has_untyped_params(Node* method_atom)
 {
-    for (node* param = method_atom->first_child; param != 0; param = param->next_sibling)
+    for (Node* param = method_atom->first_child; param != 0; param = param->next_sibling)
     {
         if (!type_tag(param))
         {
@@ -359,45 +359,45 @@ bool has_untyped_params(node* method_atom)
     return false;
 }
 
-void seed_types(tree& ast)
+void seed_types(Tree& ast)
 {
     // for each precondition assign types to variables based on worldstate's atoms and function parameter types.
-    for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+    for (Id_Table_Values methods = ast.methods.values(); !methods.empty(); methods.pop())
     {
-        node* method = methods.value();
-        node* method_atom = method->first_child;
+        Node* method = methods.value();
+        Node* method_atom = method->first_child;
 
-        for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
+        for (Node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
         {
             seed_types(ast, branch->first_child);
         }
     }
 
     // for each operator effect set variable types based on worldstate's atom parameter types.
-    for (id_table_values operators = ast.operators.values(); !operators.empty(); operators.pop())
+    for (Id_Table_Values operators = ast.operators.values(); !operators.empty(); operators.pop())
     {
-        node* operatr = operators.value();
-        node* operator_atom = operatr->first_child;
+        Node* operatr = operators.value();
+        Node* operator_atom = operatr->first_child;
 
-        for (node* effect_list = operator_atom->next_sibling; effect_list != 0; effect_list = effect_list->next_sibling)
+        for (Node* effect_list = operator_atom->next_sibling; effect_list != 0; effect_list = effect_list->next_sibling)
         {
             seed_types(ast, effect_list);
         }
     }
 
     // for each effect in task list and each call term in task list
-    for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+    for (Id_Table_Values methods = ast.methods.values(); !methods.empty(); methods.pop())
     {
-        node* method = methods.value();
-        node* method_atom = method->first_child;
+        Node* method = methods.value();
+        Node* method_atom = method->first_child;
 
-        for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
+        for (Node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
         {
             PLNNRC_SKIP_SUBTREE_WITH_ERRORS(branch);
 
-            node* tasklist = branch->first_child->next_sibling;
+            Node* tasklist = branch->first_child->next_sibling;
 
-            for (node* task = tasklist->first_child; task != 0; task = task->next_sibling)
+            for (Node* task = tasklist->first_child; task != 0; task = task->next_sibling)
             {
                 if (is_effect_list(task))
                 {
@@ -405,7 +405,7 @@ void seed_types(tree& ast)
                 }
                 else
                 {
-                    for (node* argument = task->first_child; argument != 0; argument = argument->next_sibling)
+                    for (Node* argument = task->first_child; argument != 0; argument = argument->next_sibling)
                     {
                         if (is_term_call(argument))
                         {
@@ -418,7 +418,7 @@ void seed_types(tree& ast)
     }
 }
 
-void infer_types(tree& ast)
+void infer_types(Tree& ast)
 {
     propagate_types_up(ast);
 

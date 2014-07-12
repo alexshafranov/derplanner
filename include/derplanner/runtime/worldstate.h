@@ -35,24 +35,24 @@ struct tuple_traits
     size_t prev_offset;
 };
 
-struct handle;
+struct Handle;
 
-handle* create(tuple_traits traits, size_t items_per_page);
+Handle* create(tuple_traits traits, size_t items_per_page);
 
-void destroy(const handle* tuple_list);
+void destroy(const Handle* tuple_list);
 
-void* append(handle* tuple_list);
+void* append(Handle* tuple_list);
 
-void detach(handle* tuple_list, void* tuple);
+void detach(Handle* tuple_list, void* tuple);
 
-void undo(handle* tuple_list, void* tuple);
+void undo(Handle* tuple_list, void* tuple);
 
-void clear(handle* tuple_list);
+void clear(Handle* tuple_list);
 
-void* head(handle* tuple_list);
+void* head(Handle* tuple_list);
 
 template <typename T>
-inline handle* create(size_t items_per_page)
+inline Handle* create(size_t items_per_page)
 {
     tuple_traits traits;
     traits.size = sizeof(T);
@@ -63,13 +63,13 @@ inline handle* create(size_t items_per_page)
 }
 
 template <typename T>
-inline T* append(handle* tuple_list)
+inline T* append(Handle* tuple_list)
 {
     return static_cast<T*>(append(tuple_list));
 }
 
 template <typename T>
-inline T* head(handle* tuple_list)
+inline T* head(Handle* tuple_list)
 {
     return static_cast<T*>(head(tuple_list));
 }

@@ -7,19 +7,19 @@ namespace plnnr
 {
 	namespace tuple_list
 	{
-		struct handle;
+		struct Handle;
 	}
 }
 
 namespace plnnr
 {
-	struct planner_state;
-	struct method_instance;
+	struct Planner_State;
+	struct Method_Instance;
 }
 
 namespace blocks {
 
-enum atom_type
+enum Atom_Type
 {
 	atom_block,
 	atom_on_table,
@@ -36,11 +36,11 @@ enum atom_type
 	atom_count,
 };
 
-const char* atom_name(atom_type type);
+const char* atom_name(Atom_Type type);
 
-struct worldstate
+struct Worldstate
 {
-	plnnr::tuple_list::handle* atoms[atom_count];
+	plnnr::tuple_list::Handle* atoms[atom_count];
 };
 
 struct block_tuple
@@ -146,7 +146,7 @@ struct stack_on_block_tuple
 
 namespace blocks {
 
-enum task_type
+enum Task_Type
 {
 	task_putdown,
 	task_unstack,
@@ -170,7 +170,7 @@ enum task_type
 static const int operator_count = 4;
 static const int method_count = 12;
 
-const char* task_name(task_type type);
+const char* task_name(Task_Type type);
 
 struct putdown_args
 {
@@ -310,46 +310,46 @@ inline bool operator==(const move_block1_args& a, const move_block1_args& b)
 		a._1 == b._1 ;
 }
 
-bool solve_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool mark_all_blocks_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool mark_block_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool mark_block_branch_1_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool mark_block_recursive_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool mark_block_recursive_branch_1_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool mark_block_term_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool mark_block_term_branch_1_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool mark_block_term_branch_2_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool mark_block_term_branch_3_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool mark_block_term_branch_4_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool mark_block_term_branch_5_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool mark_block_term_branch_6_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool find_all_movable_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool mark_move_type_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool mark_move_type_branch_1_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool mark_move_type_branch_2_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool move_block_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool move_block_branch_1_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool move_block_branch_2_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool move_block_branch_3_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool check_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool check_branch_1_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool check2_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool check2_branch_1_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool check3_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool check3_branch_1_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool check3_branch_2_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool check3_branch_3_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool move_block1_branch_0_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
-bool move_block1_branch_1_expand(plnnr::method_instance*, plnnr::planner_state&, void*);
+bool solve_branch_0_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool mark_all_blocks_branch_0_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool mark_block_branch_0_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool mark_block_branch_1_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool mark_block_recursive_branch_0_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool mark_block_recursive_branch_1_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool mark_block_term_branch_0_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool mark_block_term_branch_1_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool mark_block_term_branch_2_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool mark_block_term_branch_3_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool mark_block_term_branch_4_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool mark_block_term_branch_5_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool mark_block_term_branch_6_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool find_all_movable_branch_0_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool mark_move_type_branch_0_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool mark_move_type_branch_1_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool mark_move_type_branch_2_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool move_block_branch_0_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool move_block_branch_1_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool move_block_branch_2_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool move_block_branch_3_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool check_branch_0_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool check_branch_1_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool check2_branch_0_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool check2_branch_1_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool check3_branch_0_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool check3_branch_1_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool check3_branch_2_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool check3_branch_3_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool move_block1_branch_0_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
+bool move_block1_branch_1_expand(plnnr::Method_Instance*, plnnr::Planner_State&, void*);
 
 }
 
 namespace plnnr {
 
 template <typename V>
-struct generated_type_reflector<blocks::worldstate, V>
+struct Generated_Type_Reflector<blocks::Worldstate, V>
 {
-	void operator()(const blocks::worldstate& world, V& visitor)
+	void operator()(const blocks::Worldstate& world, V& visitor)
 	{
 		PLNNR_GENCODE_VISIT_ATOM_LIST(blocks, atom_block, block_tuple, visitor);
 		PLNNR_GENCODE_VISIT_ATOM_LIST(blocks, atom_on_table, on_table_tuple, visitor);
@@ -367,7 +367,7 @@ struct generated_type_reflector<blocks::worldstate, V>
 };
 
 template <typename V>
-struct generated_type_reflector<blocks::block_tuple, V>
+struct Generated_Type_Reflector<blocks::block_tuple, V>
 {
 	void operator()(const blocks::block_tuple& tuple, V& visitor)
 	{
@@ -378,7 +378,7 @@ struct generated_type_reflector<blocks::block_tuple, V>
 };
 
 template <typename V>
-struct generated_type_reflector<blocks::on_table_tuple, V>
+struct Generated_Type_Reflector<blocks::on_table_tuple, V>
 {
 	void operator()(const blocks::on_table_tuple& tuple, V& visitor)
 	{
@@ -389,7 +389,7 @@ struct generated_type_reflector<blocks::on_table_tuple, V>
 };
 
 template <typename V>
-struct generated_type_reflector<blocks::on_tuple, V>
+struct Generated_Type_Reflector<blocks::on_tuple, V>
 {
 	void operator()(const blocks::on_tuple& tuple, V& visitor)
 	{
@@ -401,7 +401,7 @@ struct generated_type_reflector<blocks::on_tuple, V>
 };
 
 template <typename V>
-struct generated_type_reflector<blocks::clear_tuple, V>
+struct Generated_Type_Reflector<blocks::clear_tuple, V>
 {
 	void operator()(const blocks::clear_tuple& tuple, V& visitor)
 	{
@@ -412,7 +412,7 @@ struct generated_type_reflector<blocks::clear_tuple, V>
 };
 
 template <typename V>
-struct generated_type_reflector<blocks::goal_on_table_tuple, V>
+struct Generated_Type_Reflector<blocks::goal_on_table_tuple, V>
 {
 	void operator()(const blocks::goal_on_table_tuple& tuple, V& visitor)
 	{
@@ -423,7 +423,7 @@ struct generated_type_reflector<blocks::goal_on_table_tuple, V>
 };
 
 template <typename V>
-struct generated_type_reflector<blocks::goal_on_tuple, V>
+struct Generated_Type_Reflector<blocks::goal_on_tuple, V>
 {
 	void operator()(const blocks::goal_on_tuple& tuple, V& visitor)
 	{
@@ -435,7 +435,7 @@ struct generated_type_reflector<blocks::goal_on_tuple, V>
 };
 
 template <typename V>
-struct generated_type_reflector<blocks::goal_clear_tuple, V>
+struct Generated_Type_Reflector<blocks::goal_clear_tuple, V>
 {
 	void operator()(const blocks::goal_clear_tuple& tuple, V& visitor)
 	{
@@ -446,7 +446,7 @@ struct generated_type_reflector<blocks::goal_clear_tuple, V>
 };
 
 template <typename V>
-struct generated_type_reflector<blocks::holding_tuple, V>
+struct Generated_Type_Reflector<blocks::holding_tuple, V>
 {
 	void operator()(const blocks::holding_tuple& tuple, V& visitor)
 	{
@@ -457,7 +457,7 @@ struct generated_type_reflector<blocks::holding_tuple, V>
 };
 
 template <typename V>
-struct generated_type_reflector<blocks::dont_move_tuple, V>
+struct Generated_Type_Reflector<blocks::dont_move_tuple, V>
 {
 	void operator()(const blocks::dont_move_tuple& tuple, V& visitor)
 	{
@@ -468,7 +468,7 @@ struct generated_type_reflector<blocks::dont_move_tuple, V>
 };
 
 template <typename V>
-struct generated_type_reflector<blocks::need_to_move_tuple, V>
+struct Generated_Type_Reflector<blocks::need_to_move_tuple, V>
 {
 	void operator()(const blocks::need_to_move_tuple& tuple, V& visitor)
 	{
@@ -479,7 +479,7 @@ struct generated_type_reflector<blocks::need_to_move_tuple, V>
 };
 
 template <typename V>
-struct generated_type_reflector<blocks::put_on_table_tuple, V>
+struct Generated_Type_Reflector<blocks::put_on_table_tuple, V>
 {
 	void operator()(const blocks::put_on_table_tuple& tuple, V& visitor)
 	{
@@ -490,7 +490,7 @@ struct generated_type_reflector<blocks::put_on_table_tuple, V>
 };
 
 template <typename V>
-struct generated_type_reflector<blocks::stack_on_block_tuple, V>
+struct Generated_Type_Reflector<blocks::stack_on_block_tuple, V>
 {
 	void operator()(const blocks::stack_on_block_tuple& tuple, V& visitor)
 	{
@@ -502,7 +502,7 @@ struct generated_type_reflector<blocks::stack_on_block_tuple, V>
 };
 
 template <typename V>
-struct generated_type_reflector<blocks::putdown_args, V>
+struct Generated_Type_Reflector<blocks::putdown_args, V>
 {
 	void operator()(const blocks::putdown_args& tuple, V& visitor)
 	{
@@ -513,7 +513,7 @@ struct generated_type_reflector<blocks::putdown_args, V>
 };
 
 template <typename V>
-struct generated_type_reflector<blocks::unstack_args, V>
+struct Generated_Type_Reflector<blocks::unstack_args, V>
 {
 	void operator()(const blocks::unstack_args& tuple, V& visitor)
 	{
@@ -525,7 +525,7 @@ struct generated_type_reflector<blocks::unstack_args, V>
 };
 
 template <typename V>
-struct generated_type_reflector<blocks::pickup_args, V>
+struct Generated_Type_Reflector<blocks::pickup_args, V>
 {
 	void operator()(const blocks::pickup_args& tuple, V& visitor)
 	{
@@ -536,7 +536,7 @@ struct generated_type_reflector<blocks::pickup_args, V>
 };
 
 template <typename V>
-struct generated_type_reflector<blocks::stack_args, V>
+struct Generated_Type_Reflector<blocks::stack_args, V>
 {
 	void operator()(const blocks::stack_args& tuple, V& visitor)
 	{
@@ -548,7 +548,7 @@ struct generated_type_reflector<blocks::stack_args, V>
 };
 
 template <typename V>
-struct generated_type_reflector<blocks::mark_block_args, V>
+struct Generated_Type_Reflector<blocks::mark_block_args, V>
 {
 	void operator()(const blocks::mark_block_args& tuple, V& visitor)
 	{
@@ -559,7 +559,7 @@ struct generated_type_reflector<blocks::mark_block_args, V>
 };
 
 template <typename V>
-struct generated_type_reflector<blocks::mark_block_recursive_args, V>
+struct Generated_Type_Reflector<blocks::mark_block_recursive_args, V>
 {
 	void operator()(const blocks::mark_block_recursive_args& tuple, V& visitor)
 	{
@@ -570,7 +570,7 @@ struct generated_type_reflector<blocks::mark_block_recursive_args, V>
 };
 
 template <typename V>
-struct generated_type_reflector<blocks::mark_block_term_args, V>
+struct Generated_Type_Reflector<blocks::mark_block_term_args, V>
 {
 	void operator()(const blocks::mark_block_term_args& tuple, V& visitor)
 	{
@@ -581,7 +581,7 @@ struct generated_type_reflector<blocks::mark_block_term_args, V>
 };
 
 template <typename V>
-struct generated_type_reflector<blocks::mark_move_type_args, V>
+struct Generated_Type_Reflector<blocks::mark_move_type_args, V>
 {
 	void operator()(const blocks::mark_move_type_args& tuple, V& visitor)
 	{
@@ -592,7 +592,7 @@ struct generated_type_reflector<blocks::mark_move_type_args, V>
 };
 
 template <typename V>
-struct generated_type_reflector<blocks::check_args, V>
+struct Generated_Type_Reflector<blocks::check_args, V>
 {
 	void operator()(const blocks::check_args& tuple, V& visitor)
 	{
@@ -603,7 +603,7 @@ struct generated_type_reflector<blocks::check_args, V>
 };
 
 template <typename V>
-struct generated_type_reflector<blocks::check2_args, V>
+struct Generated_Type_Reflector<blocks::check2_args, V>
 {
 	void operator()(const blocks::check2_args& tuple, V& visitor)
 	{
@@ -614,7 +614,7 @@ struct generated_type_reflector<blocks::check2_args, V>
 };
 
 template <typename V>
-struct generated_type_reflector<blocks::check3_args, V>
+struct Generated_Type_Reflector<blocks::check3_args, V>
 {
 	void operator()(const blocks::check3_args& tuple, V& visitor)
 	{
@@ -625,7 +625,7 @@ struct generated_type_reflector<blocks::check3_args, V>
 };
 
 template <typename V>
-struct generated_type_reflector<blocks::move_block1_args, V>
+struct Generated_Type_Reflector<blocks::move_block1_args, V>
 {
 	void operator()(const blocks::move_block1_args& tuple, V& visitor)
 	{
@@ -637,9 +637,9 @@ struct generated_type_reflector<blocks::move_block1_args, V>
 };
 
 template <typename V>
-struct task_type_dispatcher<blocks::task_type, V>
+struct Task_Type_Dispatcher<blocks::Task_Type, V>
 {
-	void operator()(const blocks::task_type& task_type, void* args, V& visitor)
+	void operator()(const blocks::Task_Type& task_type, void* args, V& visitor)
 	{
 		switch (task_type)
 		{

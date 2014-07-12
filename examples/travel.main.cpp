@@ -12,7 +12,7 @@ int main()
 {
     const size_t tuple_list_page = 1024;
 
-    travel::worldstate world_struct;
+    travel::Worldstate world_struct;
     memset(&world_struct, 0, sizeof(world_struct));
 
     world_struct.atoms[atom_start] = tuple_list::create<start_tuple>(1);
@@ -21,7 +21,7 @@ int main()
     world_struct.atoms[atom_long_distance] = tuple_list::create<long_distance_tuple>(tuple_list_page);
     world_struct.atoms[atom_airport] = tuple_list::create<airport_tuple>(tuple_list_page);
 
-    plnnr::worldstate world(&world_struct);
+    plnnr::Worldstate world(&world_struct);
 
     const int spb = 0;
     const int led = 1;
@@ -48,15 +48,15 @@ int main()
     world.append(atom<airport_tuple>(spb, led));
     world.append(atom<airport_tuple>(msc, svo));
 
-    world_printf printer;
+    World_Printf printer;
     plnnr::reflect(world_struct, printer);
 
-    plnnr::stack methods(32768);
-    plnnr::stack tasks(32768);
-    plnnr::stack jstack(32768);
-    plnnr::stack trace(32768);
+    plnnr::Stack methods(32768);
+    plnnr::Stack tasks(32768);
+    plnnr::Stack jstack(32768);
+    plnnr::Stack trace(32768);
 
-    planner_state pstate;
+    Planner_State pstate;
     pstate.top_method = 0;
     pstate.top_task = 0;
     pstate.methods = &methods;
@@ -66,7 +66,7 @@ int main()
 
     find_plan_init(pstate, travel::task_root, travel::root_branch_0_expand);
 
-    find_plan_status status = plan_in_progress;
+    Find_Plan_Status status = plan_in_progress;
     while (status == plan_in_progress)
     {
         status = find_plan_step(pstate, world.data());
@@ -75,9 +75,9 @@ int main()
     if (status == plan_found)
     {
         printf("\nplan found:\n\n");
-        task_instance* task = bottom<task_instance>(pstate.tasks);
+        Task_Instance* task = bottom<Task_Instance>(pstate.tasks);
         task_printf task_printer;
-        plnnr::walk_stack_up<travel::task_type>(task, task_printer);
+        plnnr::walk_stack_up<travel::Task_Type>(task, task_printer);
     }
     else
     {

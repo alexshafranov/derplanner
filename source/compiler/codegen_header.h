@@ -23,16 +23,16 @@
 
 namespace plnnrc {
 
-namespace ast { struct node; }
-namespace ast { class tree; }
-class formatter;
+namespace ast { struct Node; }
+namespace ast { class Tree; }
+class Formatter;
 
-void generate_header_top(ast::tree& ast, const char* custom_header, formatter& output);
-void generate_worldstate(ast::tree& ast, ast::node* worldstate, formatter& output);
-void generate_task_type_enum(ast::tree& ast, ast::node* domain, formatter& output);
-void generate_param_structs(ast::tree& ast, ast::node* domain, formatter& output);
-void generate_param_struct(ast::tree& ast, ast::node* task, formatter& output);
-void generate_forward_decls(ast::tree& ast, ast::node* domain, formatter& output);
+void generate_header_top(ast::Tree& ast, const char* custom_header, Formatter& output);
+void generate_worldstate(ast::Tree& ast, ast::Node* worldstate, Formatter& output);
+void generate_task_type_enum(ast::Tree& ast, ast::Node* domain, Formatter& output);
+void generate_param_structs(ast::Tree& ast, ast::Node* domain, Formatter& output);
+void generate_param_struct(ast::Tree& ast, ast::Node* task, Formatter& output);
+void generate_forward_decls(ast::Tree& ast, ast::Node* domain, Formatter& output);
 
 }
 

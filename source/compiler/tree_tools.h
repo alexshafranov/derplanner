@@ -25,20 +25,20 @@
 
 namespace plnnrc {
 
-template <typename node>
-bool is_first(const node* child)
+template <typename Node>
+bool is_first(const Node* child)
 {
     return child == child->parent->first_child;
 }
 
-template <typename node>
-bool is_last(const node* child)
+template <typename Node>
+bool is_last(const Node* child)
 {
     return child == child->parent->first_child->prev_sibling_cyclic;
 }
 
-template <typename node>
-void append_child(node* parent, node* child)
+template <typename Node>
+void append_child(Node* parent, Node* child)
 {
     plnnrc_assert(parent != 0);
     plnnrc_assert(child != 0);
@@ -47,11 +47,11 @@ void append_child(node* parent, node* child)
     child->prev_sibling_cyclic = 0;
     child->next_sibling = 0;
 
-    node* first_child = parent->first_child;
+    Node* first_child = parent->first_child;
 
     if (first_child)
     {
-        node* last_child = first_child->prev_sibling_cyclic;
+        Node* last_child = first_child->prev_sibling_cyclic;
         plnnrc_assert(last_child != 0);
         last_child->next_sibling = child;
         child->prev_sibling_cyclic = last_child;
@@ -64,8 +64,8 @@ void append_child(node* parent, node* child)
     }
 }
 
-template <typename node>
-void prepend_child(node* parent, node* child)
+template <typename Node>
+void prepend_child(Node* parent, Node* child)
 {
     plnnrc_assert(parent != 0);
     plnnrc_assert(child != 0);
@@ -82,16 +82,16 @@ void prepend_child(node* parent, node* child)
     parent->first_child = child;
 }
 
-template <typename node>
-void insert_child(node* after, node* child)
+template <typename Node>
+void insert_child(Node* after, Node* child)
 {
     plnnrc_assert(after != 0);
     plnnrc_assert(child != 0);
     plnnrc_assert(after->parent != 0);
 
-    node* l = after;
-    node* r = after->next_sibling;
-    node* p = after->parent;
+    Node* l = after;
+    Node* r = after->next_sibling;
+    Node* p = after->parent;
 
     l->next_sibling = child;
 
@@ -109,14 +109,14 @@ void insert_child(node* after, node* child)
     child->parent = p;
 }
 
-template <typename node>
-void detach_node(node* n)
+template <typename Node>
+void detach_node(Node* n)
 {
     plnnrc_assert(n != 0);
 
-    node* p = n->parent;
-    node* n_next = n->next_sibling;
-    node* n_prev = n->prev_sibling_cyclic;
+    Node* p = n->parent;
+    Node* n_next = n->next_sibling;
+    Node* n_prev = n->prev_sibling_cyclic;
 
     plnnrc_assert(p != 0);
     plnnrc_assert(n_prev != 0);
@@ -144,10 +144,10 @@ void detach_node(node* n)
     n->prev_sibling_cyclic = 0;
 }
 
-template <typename node>
-node* preorder_traversal_next(const node* root, node* current)
+template <typename Node>
+Node* preorder_traversal_next(const Node* root, Node* current)
 {
-    node* n = current;
+    Node* n = current;
 
     if (n->first_child)
     {

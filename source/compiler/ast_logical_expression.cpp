@@ -31,7 +31,7 @@
 namespace plnnrc {
 namespace ast {
 
-node* build_logical_expression(tree& ast, sexpr::node* s_expr)
+Node* build_logical_expression(Tree& ast, sexpr::Node* s_expr)
 {
     PLNNRC_CHECK_NODE(root, ast.make_node(node_op_and, s_expr));
 
@@ -44,7 +44,7 @@ node* build_logical_expression(tree& ast, sexpr::node* s_expr)
     // list of operators (i.e. s_expr is 'and' by default)
     else
     {
-        for (sexpr::node* c_expr = s_expr->first_child; c_expr != 0; c_expr = c_expr->next_sibling)
+        for (sexpr::Node* c_expr = s_expr->first_child; c_expr != 0; c_expr = c_expr->next_sibling)
         {
             PLNNRC_CONTINUE(expect_type(ast, c_expr, sexpr::node_list, root));
             PLNNRC_CHECK_NODE(child, build_logical_expression_recursive(ast, c_expr));
@@ -55,11 +55,11 @@ node* build_logical_expression(tree& ast, sexpr::node* s_expr)
     return root;
 }
 
-node* build_logical_op(tree& ast, sexpr::node* s_expr, node_type op_type)
+Node* build_logical_op(Tree& ast, sexpr::Node* s_expr, Node_Type op_type)
 {
     PLNNRC_CHECK_NODE(root, ast.make_node(op_type, s_expr));
 
-    for (sexpr::node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
+    for (sexpr::Node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
     {
         PLNNRC_CONTINUE(expect_type(ast, c_expr, sexpr::node_list, root));
         PLNNRC_CHECK_NODE(child, build_logical_expression_recursive(ast, c_expr));
@@ -69,12 +69,12 @@ node* build_logical_op(tree& ast, sexpr::node* s_expr, node_type op_type)
     return root;
 }
 
-node* build_comparison_op(tree& ast, sexpr::node* s_expr, node_type op_type)
+Node* build_comparison_op(Tree& ast, sexpr::Node* s_expr, Node_Type op_type)
 {
-    sexpr::node* name_expr = s_expr->first_child;
+    sexpr::Node* name_expr = s_expr->first_child;
     PLNNRC_CHECK_NODE(root, ast.make_node(op_type, name_expr));
 
-    for (sexpr::node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
+    for (sexpr::Node* c_expr = s_expr->first_child->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
     {
         PLNNRC_CHECK_NODE(child, build_term(ast, c_expr));
         append_child(root, child);
@@ -83,10 +83,10 @@ node* build_comparison_op(tree& ast, sexpr::node* s_expr, node_type op_type)
     return root;
 }
 
-node* build_logical_expression_recursive(tree& ast, sexpr::node* s_expr)
+Node* build_logical_expression_recursive(Tree& ast, sexpr::Node* s_expr)
 {
     PLNNRC_RETURN(expect_child_type(ast, s_expr, sexpr::node_symbol));
-    sexpr::node* c_expr = s_expr->first_child;
+    sexpr::Node* c_expr = s_expr->first_child;
 
     if (is_token(c_expr, token_and))
     {
@@ -141,15 +141,15 @@ node* build_logical_expression_recursive(tree& ast, sexpr::node* s_expr)
     return build_atom(ast, s_expr);
 }
 
-node* convert_to_nnf(tree& ast, node* root)
+Node* convert_to_nnf(Tree& ast, Node* root)
 {
-    node* r = root;
+    Node* r = root;
 
-    for (node* p = root; p != 0; p = preorder_traversal_next(r, p))
+    for (Node* p = root; p != 0; p = preorder_traversal_next(r, p))
     {
         if (is_op_not(p))
         {
-            node* c = p->first_child;
+            Node* c = p->first_child;
             plnnrc_assert(c != 0);
 
             if (is_logical_op(c))
@@ -157,7 +157,7 @@ node* convert_to_nnf(tree& ast, node* root)
                 // eliminate double negation: (not (not x)) = (x)
                 if (is_op_not(c))
                 {
-                    node* x = c->first_child;
+                    Node* x = c->first_child;
                     plnnrc_assert(x != 0);
                     detach_node(x);
 
@@ -180,11 +180,11 @@ node* convert_to_nnf(tree& ast, node* root)
                 else
                 {
                     p->type = is_op_and(c) ? node_op_or : node_op_and;
-                    node* after = c;
+                    Node* after = c;
 
-                    for (node* x = c->first_child; x != 0;)
+                    for (Node* x = c->first_child; x != 0;)
                     {
-                        node* next_x = x->next_sibling;
+                        Node* next_x = x->next_sibling;
 
                         detach_node(x);
 
@@ -205,11 +205,11 @@ node* convert_to_nnf(tree& ast, node* root)
     return r;
 }
 
-void flatten(node* root)
+void flatten(Node* root)
 {
     plnnrc_assert(root != 0);
 
-    for (node* p = root; p != 0; p = preorder_traversal_next(root, p))
+    for (Node* p = root; p != 0; p = preorder_traversal_next(root, p))
     {
         if (is_logical_op(p) && !is_op_not(p))
         {
@@ -217,18 +217,18 @@ void flatten(node* root)
             {
                 bool collapsed = false;
 
-                for (node* n = p->first_child; n != 0;)
+                for (Node* n = p->first_child; n != 0;)
                 {
-                    node* next_n = n->next_sibling;
+                    Node* next_n = n->next_sibling;
 
                     // collapse: (and x (and y) z) -> (and x y z); (or x (or y) z) -> (or x y z)
                     if (n->type == p->type)
                     {
-                        node* after = n;
+                        Node* after = n;
 
-                        for (node* c = n->first_child; c != 0;)
+                        for (Node* c = n->first_child; c != 0;)
                         {
-                            node* next_c = c->next_sibling;
+                            Node* next_c = c->next_sibling;
                             detach_node(c);
                             insert_child(after, c);
                             after = c;
@@ -253,13 +253,13 @@ void flatten(node* root)
 
 namespace
 {
-    inline bool is_literal(node* root)
+    inline bool is_literal(Node* root)
     {
         plnnrc_assert(root != 0);
         return is_op_not(root) || is_term_call(root) || is_atom(root) || is_comparison_op(root);
     }
 
-    bool is_conjunction_of_literals(node* root)
+    bool is_conjunction_of_literals(Node* root)
     {
         plnnrc_assert(root != 0);
 
@@ -268,7 +268,7 @@ namespace
             return false;
         }
 
-        for (node* n = root->first_child; n != 0; n = n->next_sibling)
+        for (Node* n = root->first_child; n != 0; n = n->next_sibling)
         {
             if (!is_literal(n))
             {
@@ -279,9 +279,9 @@ namespace
         return true;
     }
 
-    inline node* find_first(node* root, node_type type)
+    inline Node* find_first(Node* root, Node_Type type)
     {
-        for (node* n = root->first_child; n != 0; n = n->next_sibling)
+        for (Node* n = root->first_child; n != 0; n = n->next_sibling)
         {
             if (n->type == type)
             {
@@ -292,32 +292,32 @@ namespace
         return 0;
     }
 
-    bool distribute_and(tree& ast, node* node_and)
+    bool distribute_and(Tree& ast, Node* node_and)
     {
         plnnrc_assert(node_and && is_op_and(node_and));
 
-        node* node_or = find_first(node_and, node_op_or);
+        Node* node_or = find_first(node_and, node_op_or);
         plnnrc_assert(node_or != 0);
 
-        node* after = node_and;
+        Node* after = node_and;
 
-        for (node* or_child = node_or->first_child; or_child != 0;)
+        for (Node* or_child = node_or->first_child; or_child != 0;)
         {
-            node* next_or_child = or_child->next_sibling;
-            node* new_and = ast.make_node(node_op_and);
+            Node* next_or_child = or_child->next_sibling;
+            Node* new_and = ast.make_node(node_op_and);
 
             if (!new_and)
             {
                 return false;
             }
 
-            for (node* and_child = node_and->first_child; and_child != 0;)
+            for (Node* and_child = node_and->first_child; and_child != 0;)
             {
-                node* next_and_child = and_child->next_sibling;
+                Node* next_and_child = and_child->next_sibling;
 
                 if (and_child != node_or)
                 {
-                    node* and_child_clone = ast.clone_subtree(and_child);
+                    Node* and_child_clone = ast.clone_subtree(and_child);
 
                     if (!and_child_clone)
                     {
@@ -347,7 +347,7 @@ namespace
         return true;
     }
 
-    node* convert_to_dnf_or(tree& ast, node* root)
+    Node* convert_to_dnf_or(Tree& ast, Node* root)
     {
         plnnrc_assert(root && is_op_or(root));
 
@@ -355,9 +355,9 @@ namespace
         {
             bool done = true;
 
-            for (node* n = root->first_child; n != 0;)
+            for (Node* n = root->first_child; n != 0;)
             {
-                node* next_n = n->next_sibling;
+                Node* next_n = n->next_sibling;
 
                 if (!is_literal(n) && !is_conjunction_of_literals(n))
                 {
@@ -379,7 +379,7 @@ namespace
     }
 }
 
-node* convert_to_dnf(tree& ast, node* root)
+Node* convert_to_dnf(Tree& ast, Node* root)
 {
     plnnrc_assert(root);
 

@@ -35,62 +35,62 @@ namespace
 {
     const size_t node_page_size = DERPLANNER_AST_MEMPAGE_SIZE;
 
-    struct annotation_trait
+    struct Annotation_Trait
     {
         size_t size;
         size_t alignment;
     };
 
-    annotation_trait type_annotation_trait(node_type type)
+    Annotation_Trait type_annotation_trait(Node_Type type)
     {
-        annotation_trait result = {0, 0};
+        Annotation_Trait result = {0, 0};
 
         if (is_term(type))
         {
-            result.size = sizeof(term_ann);
-            result.alignment = plnnrc_alignof(term_ann);
+            result.size = sizeof(Term_Ann);
+            result.alignment = plnnrc_alignof(Term_Ann);
             return result;
         }
 
         if (type == node_worldstate_type)
         {
-            result.size = sizeof(ws_type_ann);
-            result.alignment = plnnrc_alignof(ws_type_ann);
+            result.size = sizeof(WS_Type_Ann);
+            result.alignment = plnnrc_alignof(WS_Type_Ann);
             return result;
         }
 
         if (type == node_atom)
         {
-            result.size = sizeof(atom_ann);
-            result.alignment = plnnrc_alignof(atom_ann);
+            result.size = sizeof(Atom_Ann);
+            result.alignment = plnnrc_alignof(Atom_Ann);
             return result;
         }
 
         if (type == node_branch)
         {
-            result.size = sizeof(branch_ann);
-            result.alignment = plnnrc_alignof(branch_ann);
+            result.size = sizeof(Branch_Ann);
+            result.alignment = plnnrc_alignof(Branch_Ann);
             return result;
         }
 
         if (type == node_method)
         {
-            result.size = sizeof(method_ann);
-            result.alignment = plnnrc_alignof(method_ann);
+            result.size = sizeof(Method_Ann);
+            result.alignment = plnnrc_alignof(Method_Ann);
             return result;
         }
 
         if (type == node_error)
         {
-            result.size = sizeof(error_ann);
-            result.alignment = plnnrc_alignof(error_ann);
+            result.size = sizeof(Error_Ann);
+            result.alignment = plnnrc_alignof(Error_Ann);
         }
 
         return result;
     }
 }
 
-tree::tree(int error_node_cache_size)
+Tree::Tree(int error_node_cache_size)
     : _node_pool(0)
 {
     memset(&_root, 0, sizeof(_root));
@@ -98,7 +98,7 @@ tree::tree(int error_node_cache_size)
     error_node_cache.init(error_node_cache_size);
 }
 
-tree::~tree()
+Tree::~Tree()
 {
     if (_node_pool)
     {
@@ -106,11 +106,11 @@ tree::~tree()
     }
 }
 
-node* tree::make_node(node_type type, sexpr::node* token)
+Node* Tree::make_node(Node_Type type, sexpr::Node* token)
 {
     if (!_node_pool)
     {
-        pool::handle* pool = pool::create(node_page_size);
+        pool::Handle* pool = pool::create(node_page_size);
 
         if (!pool)
         {
@@ -120,7 +120,7 @@ node* tree::make_node(node_type type, sexpr::node* token)
         _node_pool = pool;
     }
 
-    node* n = static_cast<node*>(pool::allocate(_node_pool, sizeof(node), plnnrc_alignof(node)));
+    Node* n = static_cast<Node*>(pool::allocate(_node_pool, sizeof(Node), plnnrc_alignof(Node)));
 
     if (n)
     {
@@ -132,7 +132,7 @@ node* tree::make_node(node_type type, sexpr::node* token)
         n->prev_sibling_cyclic = 0;
         n->annotation = 0;
 
-        annotation_trait t = type_annotation_trait(type);
+        Annotation_Trait t = type_annotation_trait(type);
 
         if (t.size > 0)
         {
@@ -150,10 +150,10 @@ node* tree::make_node(node_type type, sexpr::node* token)
     return n;
 }
 
-node* tree::clone_node(node* original)
+Node* Tree::clone_node(Node* original)
 {
     plnnrc_assert(original != 0);
-    node* n = make_node(original->type, original->s_expr);
+    Node* n = make_node(original->type, original->s_expr);
 
     if (n && n->annotation)
     {
@@ -163,20 +163,20 @@ node* tree::clone_node(node* original)
     return n;
 }
 
-node* tree::clone_subtree(node* original)
+Node* Tree::clone_subtree(Node* original)
 {
     plnnrc_assert(original != 0);
 
-    node* clone = clone_node(original);
+    Node* clone = clone_node(original);
 
     if (!clone)
     {
         return 0;
     }
 
-    for (node* child_original = original->first_child; child_original != 0; child_original = child_original->next_sibling)
+    for (Node* child_original = original->first_child; child_original != 0; child_original = child_original->next_sibling)
     {
-        node* child_clone = clone_subtree(child_original);
+        Node* child_clone = clone_subtree(child_original);
 
         if (!child_clone)
         {

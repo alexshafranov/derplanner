@@ -25,49 +25,49 @@
 
 namespace plnnrc {
 
-namespace ast { struct node; }
+namespace ast { struct Node; }
 
-class node_array
+class Node_Array
 {
 public:
-    node_array();
-    ~node_array();
+    Node_Array();
+    ~Node_Array();
 
     bool init(unsigned max_size);
 
-    const ast::node* operator[](unsigned index) const;
-    ast::node*& operator[](unsigned index);
+    const ast::Node* operator[](unsigned index) const;
+    ast::Node*& operator[](unsigned index);
 
-    void append(ast::node* node);
+    void append(ast::Node* Node);
 
     unsigned size() const { return _size; }
     unsigned capacity() const { return _capacity; }
 
 private:
-    node_array(const node_array&);
-    const node_array& operator=(const node_array&);
+    Node_Array(const Node_Array&);
+    const Node_Array& operator=(const Node_Array&);
 
-    ast::node** _nodes;
+    ast::Node** _nodes;
     unsigned    _size;
     unsigned    _capacity;
 };
 
-inline const ast::node* node_array::operator[](unsigned index) const
+inline const ast::Node* Node_Array::operator[](unsigned index) const
 {
     plnnrc_assert(index < _capacity);
     return _nodes[index];
 }
 
-inline ast::node*& node_array::operator[](unsigned index)
+inline ast::Node*& Node_Array::operator[](unsigned index)
 {
     plnnrc_assert(index < _capacity);
     return _nodes[index];
 }
 
-inline void node_array::append(ast::node* node)
+inline void Node_Array::append(ast::Node* Node)
 {
     plnnrc_assert(_size < _capacity);
-    _nodes[_size++] = node;
+    _nodes[_size++] = Node;
 }
 
 }

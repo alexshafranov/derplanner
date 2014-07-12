@@ -29,7 +29,7 @@ static const char* atom_type_to_name[] =
 	"<none>",
 };
 
-const char* atom_name(atom_type type) { return atom_type_to_name[type]; }
+const char* atom_name(Atom_Type type) { return atom_type_to_name[type]; }
 
 }
 
@@ -45,7 +45,7 @@ static const char* task_type_to_name[] =
 	"<none>",
 };
 
-const char* task_name(task_type type) { return task_type_to_name[type]; }
+const char* task_name(Task_Type type) { return task_type_to_name[type]; }
 
 // method root [12:9]
 struct p0_state
@@ -59,7 +59,7 @@ struct p0_state
 	int stage;
 };
 
-bool next(p0_state& state, worldstate& world)
+bool next(p0_state& state, Worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
@@ -89,7 +89,7 @@ struct p1_state
 	int stage;
 };
 
-bool next(p1_state& state, worldstate& world)
+bool next(p1_state& state, Worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
@@ -122,7 +122,7 @@ struct p2_state
 	int stage;
 };
 
-bool next(p2_state& state, worldstate& world)
+bool next(p2_state& state, Worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
@@ -160,7 +160,7 @@ struct p3_state
 	int stage;
 };
 
-bool next(p3_state& state, worldstate& world)
+bool next(p3_state& state, Worldstate& world)
 {
 	PLNNR_COROUTINE_BEGIN(state);
 
@@ -189,10 +189,10 @@ bool next(p3_state& state, worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
-bool root_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
+bool root_branch_0_expand(Method_Instance* method, Planner_State& pstate, void* world)
 {
 	p0_state* precondition = plnnr::precondition<p0_state>(method);
-	worldstate* wstate = static_cast<worldstate*>(world);
+	Worldstate* wstate = static_cast<Worldstate*>(world);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
@@ -201,7 +201,7 @@ bool root_branch_0_expand(method_instance* method, planner_state& pstate, void* 
 	while (next(*precondition, *wstate))
 	{
 		{
-			method_instance* t = push_method(pstate, task_travel, travel_branch_0_expand);
+			Method_Instance* t = push_method(pstate, task_travel, travel_branch_0_expand);
 			travel_args* a = push_arguments<travel_args>(pstate, t);
 			a->_0 = precondition->_0;
 			a->_1 = precondition->_1;
@@ -214,11 +214,11 @@ bool root_branch_0_expand(method_instance* method, planner_state& pstate, void* 
 	PLNNR_COROUTINE_END();
 }
 
-bool travel_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
+bool travel_branch_0_expand(Method_Instance* method, Planner_State& pstate, void* world)
 {
 	p1_state* precondition = plnnr::precondition<p1_state>(method);
 	travel_args* method_args = plnnr::arguments<travel_args>(method);
-	worldstate* wstate = static_cast<worldstate*>(world);
+	Worldstate* wstate = static_cast<Worldstate*>(world);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
@@ -229,7 +229,7 @@ bool travel_branch_0_expand(method_instance* method, planner_state& pstate, void
 	while (next(*precondition, *wstate))
 	{
 		{
-			task_instance* t = push_task(pstate, task_ride_taxi, 0);
+			Task_Instance* t = push_task(pstate, task_ride_taxi, 0);
 			ride_taxi_args* a = push_arguments<ride_taxi_args>(pstate, t);
 			a->_0 = method_args->_0;
 			a->_1 = method_args->_1;
@@ -243,11 +243,11 @@ bool travel_branch_0_expand(method_instance* method, planner_state& pstate, void
 	PLNNR_COROUTINE_END();
 }
 
-bool travel_branch_1_expand(method_instance* method, planner_state& pstate, void* world)
+bool travel_branch_1_expand(Method_Instance* method, Planner_State& pstate, void* world)
 {
 	p2_state* precondition = plnnr::precondition<p2_state>(method);
 	travel_args* method_args = plnnr::arguments<travel_args>(method);
-	worldstate* wstate = static_cast<worldstate*>(world);
+	Worldstate* wstate = static_cast<Worldstate*>(world);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
@@ -258,7 +258,7 @@ bool travel_branch_1_expand(method_instance* method, planner_state& pstate, void
 	while (next(*precondition, *wstate))
 	{
 		{
-			method_instance* t = push_method(pstate, task_travel_by_air, travel_by_air_branch_0_expand);
+			Method_Instance* t = push_method(pstate, task_travel_by_air, travel_by_air_branch_0_expand);
 			travel_by_air_args* a = push_arguments<travel_by_air_args>(pstate, t);
 			a->_0 = method_args->_0;
 			a->_1 = method_args->_1;
@@ -271,11 +271,11 @@ bool travel_branch_1_expand(method_instance* method, planner_state& pstate, void
 	PLNNR_COROUTINE_END();
 }
 
-bool travel_by_air_branch_0_expand(method_instance* method, planner_state& pstate, void* world)
+bool travel_by_air_branch_0_expand(Method_Instance* method, Planner_State& pstate, void* world)
 {
 	p3_state* precondition = plnnr::precondition<p3_state>(method);
 	travel_by_air_args* method_args = plnnr::arguments<travel_by_air_args>(method);
-	worldstate* wstate = static_cast<worldstate*>(world);
+	Worldstate* wstate = static_cast<Worldstate*>(world);
 
 	PLNNR_COROUTINE_BEGIN(*method);
 
@@ -286,7 +286,7 @@ bool travel_by_air_branch_0_expand(method_instance* method, planner_state& pstat
 	while (next(*precondition, *wstate))
 	{
 		{
-			method_instance* t = push_method(pstate, task_travel, travel_branch_0_expand);
+			Method_Instance* t = push_method(pstate, task_travel, travel_branch_0_expand);
 			travel_args* a = push_arguments<travel_args>(pstate, t);
 			a->_0 = method_args->_0;
 			a->_1 = precondition->_1;
@@ -300,7 +300,7 @@ bool travel_by_air_branch_0_expand(method_instance* method, planner_state& pstat
 		}
 
 		{
-			task_instance* t = push_task(pstate, task_fly, 0);
+			Task_Instance* t = push_task(pstate, task_fly, 0);
 			fly_args* a = push_arguments<fly_args>(pstate, t);
 			a->_0 = precondition->_1;
 			a->_1 = precondition->_3;
@@ -309,7 +309,7 @@ bool travel_by_air_branch_0_expand(method_instance* method, planner_state& pstat
 		PLNNR_COROUTINE_YIELD(*method, 2);
 
 		{
-			method_instance* t = push_method(pstate, task_travel, travel_branch_0_expand);
+			Method_Instance* t = push_method(pstate, task_travel, travel_branch_0_expand);
 			travel_args* a = push_arguments<travel_args>(pstate, t);
 			a->_0 = precondition->_3;
 			a->_1 = method_args->_1;

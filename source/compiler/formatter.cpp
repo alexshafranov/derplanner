@@ -90,7 +90,7 @@ bool is_valid_id(const char* symbol)
     return id_converted_length(symbol) > 0;
 }
 
-formatter::formatter(writer& output, const char* tab, const char* newline)
+Formatter::Formatter(Writer& output, const char* tab, const char* newline)
     : _output(output)
     , _buffer(0)
     , _buffer_top(0)
@@ -101,13 +101,13 @@ formatter::formatter(writer& output, const char* tab, const char* newline)
 {
 }
 
-formatter::~formatter()
+Formatter::~Formatter()
 {
     flush();
     memory::deallocate(_buffer);
 }
 
-bool formatter::init(size_t buffer_size)
+bool Formatter::init(size_t buffer_size)
 {
     void* buffer = memory::allocate(buffer_size);
 
@@ -125,7 +125,7 @@ bool formatter::init(size_t buffer_size)
     return true;
 }
 
-void formatter::_write(const char* format, va_list arglist)
+void Formatter::_write(const char* format, va_list arglist)
 {
     while (*format)
     {
@@ -165,7 +165,7 @@ void formatter::_write(const char* format, va_list arglist)
             // paste functor
             case 'p':
                 {
-                    paste_func* paste = va_arg(arglist, paste_func*);
+                    Paste_Func* paste = va_arg(arglist, Paste_Func*);
                     (*paste)(*this);
                 }
                 break;
@@ -186,7 +186,7 @@ void formatter::_write(const char* format, va_list arglist)
     }
 }
 
-void formatter::writeln(const char* format, ...)
+void Formatter::writeln(const char* format, ...)
 {
     put_indent();
     va_list arglist;
@@ -196,12 +196,12 @@ void formatter::writeln(const char* format, ...)
     newline();
 }
 
-void formatter::newline()
+void Formatter::newline()
 {
     put_str(_newline);
 }
 
-void formatter::put_char(char c)
+void Formatter::put_char(char c)
 {
     if (_buffer_top + 1 > _buffer_end)
     {
@@ -211,7 +211,7 @@ void formatter::put_char(char c)
     *(_buffer_top++) = c;
 }
 
-void formatter::put_str(const char* s)
+void Formatter::put_str(const char* s)
 {
     size_t length = strlen(s);
 
@@ -230,7 +230,7 @@ void formatter::put_str(const char* s)
     _buffer_top += length;
 }
 
-void formatter::put_int(int n)
+void Formatter::put_int(int n)
 {
     const char* digits = "0123456789";
     int t = n;
@@ -267,7 +267,7 @@ void formatter::put_int(int n)
     }
 }
 
-void formatter::put_id(const char* symbol)
+void Formatter::put_id(const char* symbol)
 {
     plnnrc_assert(is_valid_id(symbol));
 
@@ -307,12 +307,12 @@ void formatter::put_id(const char* symbol)
     }
 }
 
-void formatter::indent()
+void Formatter::indent()
 {
     _indent_level++;
 }
 
-void formatter::put_indent()
+void Formatter::put_indent()
 {
     for (int i = 0; i < _indent_level; ++i)
     {
@@ -320,12 +320,12 @@ void formatter::put_indent()
     }
 }
 
-void formatter::dedent()
+void Formatter::dedent()
 {
     _indent_level--;
 }
 
-void formatter::flush()
+void Formatter::flush()
 {
     size_t count = _buffer_top - _buffer;
 
@@ -336,7 +336,7 @@ void formatter::flush()
     }
 }
 
-scope::scope(formatter& output, bool end_with_empty_line)
+Scope::Scope(Formatter& output, bool end_with_empty_line)
     : output(output)
     , end_with_empty_line(end_with_empty_line)
 {
@@ -346,7 +346,7 @@ scope::scope(formatter& output, bool end_with_empty_line)
     output.newline();
 }
 
-scope::~scope()
+Scope::~Scope()
 {
     output.dedent();
     output.put_indent();
@@ -359,7 +359,7 @@ scope::~scope()
     }
 }
 
-class_scope::class_scope(formatter& output)
+Class_Scope::Class_Scope(Formatter& output)
     : output(output)
 {
     output.put_indent();
@@ -368,7 +368,7 @@ class_scope::class_scope(formatter& output)
     output.newline();
 }
 
-class_scope::~class_scope()
+Class_Scope::~Class_Scope()
 {
     output.dedent();
     output.put_indent();
@@ -377,13 +377,13 @@ class_scope::~class_scope()
     output.newline();
 }
 
-indented::indented(formatter& output)
+Indented::Indented(Formatter& output)
     : output(output)
 {
     output.indent();
 }
 
-indented::~indented()
+Indented::~Indented()
 {
     output.dedent();
 }

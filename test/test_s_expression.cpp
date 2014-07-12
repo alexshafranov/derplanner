@@ -29,7 +29,7 @@ using namespace plnnrc::sexpr;
 
 namespace
 {
-    std::string to_string(node* root)
+    std::string to_string(Node* root)
     {
         std::string result;
 
@@ -37,7 +37,7 @@ namespace
         {
             result += "(";
 
-            for (node* n = root->first_child; n != 0; n = n->next_sibling)
+            for (Node* n = root->first_child; n != 0; n = n->next_sibling)
             {
                 result += to_string(n);
 
@@ -59,7 +59,7 @@ namespace
 
     TEST(empty)
     {
-        tree s_exp;
+        Tree s_exp;
         char buffer[] = "";
         s_exp.parse(buffer);
         std::string actual = to_string(s_exp.root());
@@ -68,7 +68,7 @@ namespace
 
     TEST(symbol_delimeters)
     {
-        tree s_exp;
+        Tree s_exp;
         char buffer[] = "(hello world  hello\nplanner)";
         s_exp.parse(buffer);
         std::string actual = to_string(s_exp.root());
@@ -77,7 +77,7 @@ namespace
 
     TEST(simple_hierarchy)
     {
-        tree s_exp;
+        Tree s_exp;
         char buffer[] = "(hello (world) (hello planner))";
         s_exp.parse(buffer);
         std::string actual = to_string(s_exp.root());
@@ -86,7 +86,7 @@ namespace
 
     TEST(line_number)
     {
-        tree s_exp;
+        Tree s_exp;
         char buffer[] = "(hello\nworld)";
         s_exp.parse(buffer);
         CHECK_EQUAL(1, s_exp.root()->first_child->first_child->line);
@@ -95,7 +95,7 @@ namespace
 
     TEST(column_number)
     {
-        tree s_exp;
+        Tree s_exp;
         char buffer[] = "(hello world)";
         s_exp.parse(buffer);
         CHECK_EQUAL(2, s_exp.root()->first_child->first_child->column);
@@ -104,7 +104,7 @@ namespace
 
     TEST(column_number_is_reset_on_newline)
     {
-        tree s_exp;
+        Tree s_exp;
         char buffer[] = "(hello\nworld)";
         s_exp.parse(buffer);
         CHECK_EQUAL(2, s_exp.root()->first_child->first_child->column);
@@ -113,14 +113,14 @@ namespace
 
     TEST(line_comment)
     {
-        tree s_exp;
+        Tree s_exp;
         // children:       n1                           n2
         char buffer[] = "(hello ; world \n ; hello \n planner)";
         s_exp.parse(buffer);
         std::string actual = to_string(s_exp.root());
         CHECK_EQUAL("((hello planner))", actual.c_str());
-        node* n1 = s_exp.root()->first_child->first_child;
-        node* n2 = n1->next_sibling;
+        Node* n1 = s_exp.root()->first_child->first_child;
+        Node* n2 = n1->next_sibling;
         CHECK_EQUAL(1, n1->line);
         CHECK_EQUAL(2, n1->column);
         CHECK_EQUAL(3, n2->line);
@@ -129,37 +129,37 @@ namespace
 
     TEST(symbol_end_location)
     {
-        tree s_exp;
+        Tree s_exp;
         char buffer[] = "(hello)";
         s_exp.parse(buffer);
-        node* n = s_exp.root()->first_child->first_child;
+        Node* n = s_exp.root()->first_child->first_child;
         CHECK_EQUAL(7, n->column_end);
     }
 
     TEST(list_end_location)
     {
-        tree s_exp;
+        Tree s_exp;
         char buffer[] = "(hello\n(world\nhello (planner)))";
         s_exp.parse(buffer);
-        node* n = s_exp.root()->first_child->first_child->next_sibling;
+        Node* n = s_exp.root()->first_child->first_child->next_sibling;
         CHECK_EQUAL(3, n->line_end);
         CHECK_EQUAL(16, n->column_end);
     }
 
     TEST(multiple_top_level_lists)
     {
-        tree s_exp;
+        Tree s_exp;
         char buffer[] = "(hello) (world)";
         s_exp.parse(buffer);
         std::string actual = to_string(s_exp.root());
         CHECK_EQUAL("((hello) (world))", actual.c_str());
     }
 
-    void check_number(const char* str, node_type expected)
+    void check_number(const char* str, Node_Type expected)
     {
         char buffer[128];
         for (size_t i=0; i<strlen(str)+1 && i<128; ++i) { buffer[i] = str[i]; }
-        tree s_exp;
+        Tree s_exp;
         s_exp.parse(buffer);
         CHECK_EQUAL(expected, s_exp.root()->first_child->first_child->type);
     }
@@ -168,7 +168,7 @@ namespace
     {
         char buffer[128];
         for (size_t i=0; i<strlen(str)+1 && i<128; ++i) { buffer[i] = str[i]; }
-        tree s_exp;
+        Tree s_exp;
         s_exp.parse(buffer);
         CHECK_EQUAL(expected, as_float(s_exp.root()->first_child->first_child));
     }
@@ -177,7 +177,7 @@ namespace
     {
         char buffer[128];
         for (size_t i=0; i<strlen(str)+1 && i<128; ++i) { buffer[i] = str[i]; }
-        tree s_exp;
+        Tree s_exp;
         s_exp.parse(buffer);
         CHECK_EQUAL(expected, as_int(s_exp.root()->first_child->first_child));
     }
@@ -212,24 +212,24 @@ namespace
     {
         {
             char buffer[] = "(hello world))";
-            tree s_exp;
-            parse_result actual = s_exp.parse(buffer);
+            Tree s_exp;
+            Parse_Result actual = s_exp.parse(buffer);
             CHECK_EQUAL(parse_excess_close, actual.status);
             CHECK_EQUAL(14, actual.column);
         }
 
         {
             char buffer[] = "(hello (world (world (world)";
-            tree s_exp;
-            parse_result actual = s_exp.parse(buffer);
+            Tree s_exp;
+            Parse_Result actual = s_exp.parse(buffer);
             CHECK_EQUAL(parse_excess_open, actual.status);
             CHECK_EQUAL(15, actual.column);
         }
 
         {
             char buffer[] = "(hello) (world)";
-            tree s_exp;
-            parse_result actual = s_exp.parse(buffer);
+            Tree s_exp;
+            Parse_Result actual = s_exp.parse(buffer);
             CHECK_EQUAL(parse_ok, actual.status);
         }
     }
@@ -237,7 +237,7 @@ namespace
     TEST(glue_tokens)
     {
         char buffer[] = "(hello world)";
-        tree s_exp;
+        Tree s_exp;
         s_exp.parse(buffer);
         glue_tokens(s_exp.root()->first_child);
         CHECK_EQUAL("hello world", s_exp.root()->first_child->first_child->token);
@@ -247,7 +247,7 @@ namespace
     TEST(scan_number_rollback)
     {
         char buffer[] = "(-123>)";
-        tree s_exp;
+        Tree s_exp;
         s_exp.parse(buffer);
         CHECK_EQUAL(node_symbol, s_exp.root()->first_child->first_child->type);
         CHECK_EQUAL("-123>", s_exp.root()->first_child->first_child->token);

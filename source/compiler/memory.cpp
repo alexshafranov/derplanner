@@ -37,11 +37,11 @@ namespace
         ::free(ptr);
     }
 
-    alloc_func alloc_f = default_alloc;
-    dealloc_func  dealloc_f  = default_dealloc;
+    Alloc_Func alloc_f = default_alloc;
+    Dealloc_Func  dealloc_f  = default_dealloc;
 }
 
-void set_custom(alloc_func a, dealloc_func f)
+void set_custom(Alloc_Func a, Dealloc_Func f)
 {
     alloc_f = a;
     dealloc_f  = f;

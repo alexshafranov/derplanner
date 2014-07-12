@@ -12,7 +12,7 @@ int main()
 {
     const size_t tuple_list_page = 1024;
 
-    blocks::worldstate world_struct;
+    blocks::Worldstate world_struct;
     memset(&world_struct, 0, sizeof(world_struct));
 
     world_struct.atoms[atom_block] = tuple_list::create<block_tuple>(tuple_list_page);
@@ -28,7 +28,7 @@ int main()
     world_struct.atoms[atom_put_on_table] = tuple_list::create<put_on_table_tuple>(tuple_list_page);
     world_struct.atoms[atom_stack_on_block] = tuple_list::create<stack_on_block_tuple>(tuple_list_page);
 
-    plnnr::worldstate world(&world_struct);
+    plnnr::Worldstate world(&world_struct);
 
     world.append(atom<block_tuple>(1));
     world.append(atom<block_tuple>(2));
@@ -54,15 +54,15 @@ int main()
     world.append(atom<goal_clear_tuple>(4));
     world.append(atom<goal_clear_tuple>(2));
 
-    world_printf printer;
+    World_Printf printer;
     plnnr::reflect(world_struct, printer);
 
-    plnnr::stack methods(32768);
-    plnnr::stack tasks(32768);
-    plnnr::stack jstack(32768);
-    plnnr::stack trace(32768);
+    plnnr::Stack methods(32768);
+    plnnr::Stack tasks(32768);
+    plnnr::Stack jstack(32768);
+    plnnr::Stack trace(32768);
 
-    planner_state pstate;
+    Planner_State pstate;
     pstate.top_method = 0;
     pstate.top_task = 0;
     pstate.methods = &methods;
@@ -72,7 +72,7 @@ int main()
 
     find_plan_init(pstate, blocks::task_solve, blocks::solve_branch_0_expand);
 
-    find_plan_status status =  plan_in_progress;
+    Find_Plan_Status status =  plan_in_progress;
     while (status == plan_in_progress)
     {
         status = find_plan_step(pstate, world.data());
@@ -81,9 +81,9 @@ int main()
     if (status == plan_found)
     {
         printf("\nplan found:\n\n");
-        task_instance* task = bottom<task_instance>(pstate.tasks);
+        Task_Instance* task = bottom<Task_Instance>(pstate.tasks);
         task_printf task_printer;
-        plnnr::walk_stack_up<blocks::task_type>(task, task_printer);
+        plnnr::walk_stack_up<blocks::Task_Type>(task, task_printer);
     }
     else
     {

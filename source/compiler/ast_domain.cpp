@@ -39,7 +39,7 @@ namespace ast {
 
 namespace
 {
-    sexpr::node* next_branch_expr(sexpr::node* branch_expr)
+    sexpr::Node* next_branch_expr(sexpr::Node* branch_expr)
     {
         if (is_token(branch_expr->first_child, token_foreach))
         {
@@ -55,11 +55,11 @@ namespace
         return branch_expr->next_sibling->next_sibling;
     }
 
-    int count_elements(sexpr::node* root, str_ref token)
+    int count_elements(sexpr::Node* root, Str_Ref token)
     {
         int result = 0;
 
-        for (sexpr::node* c = root->first_child; c != 0; c = c->next_sibling)
+        for (sexpr::Node* c = root->first_child; c != 0; c = c->next_sibling)
         {
             if (sexpr::is_list(c))
             {
@@ -76,52 +76,52 @@ namespace
         return result;
     }
 
-    void link_to_parameter(node* parameter, node* root)
+    void link_to_parameter(Node* parameter, Node* root)
     {
         plnnrc_assert(is_term_variable(parameter));
         const char* id = parameter->s_expr->token;
         plnnrc_assert(id);
 
-        for (node* n = root; n != 0; n = preorder_traversal_next(root, n))
+        for (Node* n = root; n != 0; n = preorder_traversal_next(root, n))
         {
             if (is_term_variable(n))
             {
                 if (strcmp(n->s_expr->token, id) == 0)
                 {
-                    annotation<term_ann>(n)->var_def = parameter;
+                    annotation<Term_Ann>(n)->var_def = parameter;
                 }
             }
         }
     }
 
-    void link_to_variable(node* variable, node* root, node* first)
+    void link_to_variable(Node* variable, Node* root, Node* first)
     {
         plnnrc_assert(is_term_variable(variable));
         const char* id = variable->s_expr->token;
         plnnrc_assert(id);
 
-        for (node* n = first; n != 0; n = preorder_traversal_next(root, n))
+        for (Node* n = first; n != 0; n = preorder_traversal_next(root, n))
         {
             if (is_term_variable(n) && !definition(n))
             {
                 if (strcmp(n->s_expr->token, id) == 0)
                 {
-                    annotation<term_ann>(n)->var_def = variable;
+                    annotation<Term_Ann>(n)->var_def = variable;
                 }
             }
         }
     }
 
-    void link_branch_variables(tree& ast, node* method_atom, node* precondition, node* tasklist)
+    void link_branch_variables(Tree& ast, Node* method_atom, Node* precondition, Node* tasklist)
     {
-        for (node* p = method_atom->first_child; p != 0; p = p->next_sibling)
+        for (Node* p = method_atom->first_child; p != 0; p = p->next_sibling)
         {
             PLNNRC_SKIP_ERROR_NODE(p);
             link_to_parameter(p, precondition);
             link_to_parameter(p, tasklist);
         }
 
-        for (node* n = precondition; n != 0; n = preorder_traversal_next(precondition, n))
+        for (Node* n = precondition; n != 0; n = preorder_traversal_next(precondition, n))
         {
             if (is_term_variable(n) && !definition(n))
             {
@@ -130,11 +130,11 @@ namespace
             }
         }
 
-        for (node* n = precondition; n != 0; n = preorder_traversal_next(precondition, n))
+        for (Node* n = precondition; n != 0; n = preorder_traversal_next(precondition, n))
         {
             if (is_term_call(n) || is_comparison_op(n))
             {
-                for (node* arg = n->first_child; arg != 0; arg = arg->next_sibling)
+                for (Node* arg = n->first_child; arg != 0; arg = arg->next_sibling)
                 {
                     if (is_term_variable(arg))
                     {
@@ -147,7 +147,7 @@ namespace
             }
         }
 
-        for (node* n = tasklist; n != 0; n = preorder_traversal_next(tasklist, n))
+        for (Node* n = tasklist; n != 0; n = preorder_traversal_next(tasklist, n))
         {
             if (is_term_variable(n))
             {
@@ -159,12 +159,12 @@ namespace
         }
     }
 
-    void link_method_variables(tree& ast, node* method)
+    void link_method_variables(Tree& ast, Node* method)
     {
-        node* atom = method->first_child;
+        Node* atom = method->first_child;
         plnnrc_assert(atom && is_atom(atom));
 
-        for (node* p = atom->first_child; p != 0; p = p->next_sibling)
+        for (Node* p = atom->first_child; p != 0; p = p->next_sibling)
         {
             PLNNRC_SKIP_ERROR_NODE(p);
 
@@ -174,25 +174,25 @@ namespace
             }
         }
 
-        for (node* branch = atom->next_sibling; branch != 0; branch = branch->next_sibling)
+        for (Node* branch = atom->next_sibling; branch != 0; branch = branch->next_sibling)
         {
             PLNNRC_SKIP_ERROR_NODE(branch);
-            node* precondition = branch->first_child;
+            Node* precondition = branch->first_child;
             plnnrc_assert(precondition);
-            node* tasklist = precondition->next_sibling;
+            Node* tasklist = precondition->next_sibling;
             plnnrc_assert(tasklist);
             link_branch_variables(ast, atom, precondition, tasklist);
         }
     }
 
-    void link_operator_variables(node* operatr)
+    void link_operator_variables(Node* operatr)
     {
-        node* atom = operatr->first_child;
+        Node* atom = operatr->first_child;
         plnnrc_assert(atom && is_atom(atom));
 
-        for (node* effect_list = atom->next_sibling; effect_list != 0; effect_list = effect_list->next_sibling)
+        for (Node* effect_list = atom->next_sibling; effect_list != 0; effect_list = effect_list->next_sibling)
         {
-            for (node* param = atom->first_child; param != 0; param = param->next_sibling)
+            for (Node* param = atom->first_child; param != 0; param = param->next_sibling)
             {
                 // stub operators can have call terms as "variables"
                 if (is_term_variable(param))
@@ -204,12 +204,12 @@ namespace
     }
 }
 
-node* build_domain(tree& ast, sexpr::node* s_expr)
+Node* build_domain(Tree& ast, sexpr::Node* s_expr)
 {
     PLNNRC_CHECK_NODE(domain, ast.make_node(node_domain, s_expr));
 
     PLNNRC_RETURN(expect_next_type(ast, s_expr->first_child, sexpr::node_list));
-    sexpr::node* name_list_expr = s_expr->first_child->next_sibling;
+    sexpr::Node* name_list_expr = s_expr->first_child->next_sibling;
 
     PLNNRC_CHECK_NODE(domain_namespace, build_namespace(ast, name_list_expr));
     append_child(domain, domain_namespace);
@@ -220,9 +220,9 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
 
     PLNNRC_CHECK(ast.operators.init(num_operator_decls > 0 ? num_operator_decls : 128));
 
-    for (sexpr::node* c_expr = name_list_expr->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
+    for (sexpr::Node* c_expr = name_list_expr->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
     {
-        node* element = 0;
+        Node* element = 0;
 
         if (is_token(c_expr->first_child, token_method))
         {
@@ -246,20 +246,20 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
 
     PLNNRC_CHECK(build_operator_stubs(ast));
 
-    for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+    for (Id_Table_Values methods = ast.methods.values(); !methods.empty(); methods.pop())
     {
-        node* method = methods.value();
-        node* method_atom = method->first_child;
+        Node* method = methods.value();
+        Node* method_atom = method->first_child;
         plnnrc_assert(method_atom && is_atom(method_atom));
         (void)(method_atom);
 
         link_method_variables(ast, method);
     }
 
-    for (id_table_values operators = ast.operators.values(); !operators.empty(); operators.pop())
+    for (Id_Table_Values operators = ast.operators.values(); !operators.empty(); operators.pop())
     {
-        node* operatr = operators.value();
-        node* operator_atom = operatr->first_child;
+        Node* operatr = operators.value();
+        Node* operator_atom = operatr->first_child;
         plnnrc_assert(operator_atom && is_atom(operator_atom));
         (void)(operator_atom);
 
@@ -269,12 +269,12 @@ node* build_domain(tree& ast, sexpr::node* s_expr)
     return domain;
 }
 
-node* build_method(tree& ast, sexpr::node* s_expr)
+Node* build_method(Tree& ast, sexpr::Node* s_expr)
 {
     PLNNRC_CHECK_NODE(method, ast.make_node(node_method, s_expr));
 
     PLNNRC_RETURN(expect_next_type(ast, s_expr->first_child, sexpr::node_list));
-    sexpr::node* task_atom_expr = s_expr->first_child->next_sibling;
+    sexpr::Node* task_atom_expr = s_expr->first_child->next_sibling;
 
     PLNNRC_CHECK_NODE(task_atom, build_atom(ast, task_atom_expr));
     append_child(method, task_atom);
@@ -284,11 +284,11 @@ node* build_method(tree& ast, sexpr::node* s_expr)
         PLNNRC_RETURN(expect_valid_id(ast, task_atom->s_expr));
         PLNNRC_RETURN(expect_condition(ast, task_atom->s_expr, !ast.methods.find(task_atom->s_expr->token), error_redefinition)
             << task_atom->s_expr
-            << location(ast.methods.find(task_atom->s_expr->token)));
+            << Location(ast.methods.find(task_atom->s_expr->token)));
         ast.methods.insert(task_atom->s_expr->token, method);
     }
 
-    for (sexpr::node* branch_expr = task_atom_expr->next_sibling; branch_expr != 0; branch_expr = next_branch_expr(branch_expr))
+    for (sexpr::Node* branch_expr = task_atom_expr->next_sibling; branch_expr != 0; branch_expr = next_branch_expr(branch_expr))
     {
         PLNNRC_CONTINUE(expect_type(ast, branch_expr, sexpr::node_list, method));
         PLNNRC_CHECK_NODE(branch, build_branch(ast, branch_expr));
@@ -298,14 +298,14 @@ node* build_method(tree& ast, sexpr::node* s_expr)
     return method;
 }
 
-node* build_branch(tree& ast, sexpr::node* s_expr)
+Node* build_branch(Tree& ast, sexpr::Node* s_expr)
 {
     PLNNRC_CHECK_NODE(branch, ast.make_node(node_branch, s_expr));
 
-    sexpr::node* precondition_expr = 0;
-    sexpr::node* tasklist_expr = 0;
+    sexpr::Node* precondition_expr = 0;
+    sexpr::Node* tasklist_expr = 0;
 
-    branch_ann* ann = annotation<branch_ann>(branch);
+    Branch_Ann* ann = annotation<Branch_Ann>(branch);
     ann->foreach = is_token(s_expr->first_child, token_foreach);
 
     if (ann->foreach)
@@ -341,18 +341,18 @@ node* build_branch(tree& ast, sexpr::node* s_expr)
     return branch;
 }
 
-node* build_task_list(tree& ast, sexpr::node* s_expr)
+Node* build_task_list(Tree& ast, sexpr::Node* s_expr)
 {
     PLNNRC_CHECK_NODE(task_list, ast.make_node(node_task_list, s_expr));
 
-    for (sexpr::node* c_expr = s_expr->first_child; c_expr != 0; c_expr = c_expr->next_sibling)
+    for (sexpr::Node* c_expr = s_expr->first_child; c_expr != 0; c_expr = c_expr->next_sibling)
     {
         if (is_token(c_expr->first_child, token_add) || is_token(c_expr->first_child, token_delete))
         {
-            node_type type = is_token(c_expr->first_child, token_add) ? node_add_list : node_delete_list;
+            Node_Type type = is_token(c_expr->first_child, token_add) ? node_add_list : node_delete_list;
             PLNNRC_CHECK_NODE(task, ast.make_node(type, c_expr));
 
-            for (sexpr::node* t_expr = c_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
+            for (sexpr::Node* t_expr = c_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
             {
                 PLNNRC_CONTINUE(expect_type(ast, t_expr, sexpr::node_list, task));
                 PLNNRC_CHECK_NODE(atom, build_atom(ast, t_expr));
@@ -372,12 +372,12 @@ node* build_task_list(tree& ast, sexpr::node* s_expr)
     return task_list;
 }
 
-node* build_operator(tree& ast, sexpr::node* s_expr)
+Node* build_operator(Tree& ast, sexpr::Node* s_expr)
 {
     PLNNRC_CHECK_NODE(operatr, ast.make_node(node_operator, s_expr));
 
     PLNNRC_RETURN(expect_next_type(ast, s_expr->first_child, sexpr::node_list));
-    sexpr::node* task_atom_expr = s_expr->first_child->next_sibling;
+    sexpr::Node* task_atom_expr = s_expr->first_child->next_sibling;
 
     PLNNRC_CHECK_NODE(task_atom, build_atom(ast, task_atom_expr));
     append_child(operatr, task_atom);
@@ -387,14 +387,14 @@ node* build_operator(tree& ast, sexpr::node* s_expr)
         PLNNRC_RETURN(expect_valid_id(ast, task_atom->s_expr));
         PLNNRC_RETURN(expect_condition(ast, task_atom->s_expr, !ast.operators.find(task_atom->s_expr->token), error_redefinition)
             << task_atom->s_expr
-            << location(ast.operators.find(task_atom->s_expr->token)));
+            << Location(ast.operators.find(task_atom->s_expr->token)));
         PLNNRC_CHECK(ast.operators.insert(task_atom->s_expr->token, operatr));
     }
 
-    sexpr::node* delete_effects_expr = 0;
-    sexpr::node* add_effects_expr = 0;
+    sexpr::Node* delete_effects_expr = 0;
+    sexpr::Node* add_effects_expr = 0;
 
-    for (sexpr::node* child = task_atom_expr->next_sibling; child != 0; child = child->next_sibling)
+    for (sexpr::Node* child = task_atom_expr->next_sibling; child != 0; child = child->next_sibling)
     {
         PLNNRC_RETURN(expect_type(ast, child, sexpr::node_list));
 
@@ -420,7 +420,7 @@ node* build_operator(tree& ast, sexpr::node* s_expr)
 
     if (delete_effects_expr)
     {
-        for (sexpr::node* t_expr = delete_effects_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
+        for (sexpr::Node* t_expr = delete_effects_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
         {
             PLNNRC_CHECK_NODE(atom, build_atom(ast, t_expr));
             append_child(delete_effects, atom);
@@ -432,7 +432,7 @@ node* build_operator(tree& ast, sexpr::node* s_expr)
 
     if (add_effects_expr)
     {
-        for (sexpr::node* t_expr = add_effects_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
+        for (sexpr::Node* t_expr = add_effects_expr->first_child->next_sibling; t_expr != 0; t_expr = t_expr->next_sibling)
         {
             PLNNRC_CHECK_NODE(atom, build_atom(ast, t_expr));
             append_child(add_effects, atom);
@@ -442,7 +442,7 @@ node* build_operator(tree& ast, sexpr::node* s_expr)
     return operatr;
 }
 
-node* build_operator_stub(tree& ast, sexpr::node* s_expr)
+Node* build_operator_stub(Tree& ast, sexpr::Node* s_expr)
 {
     PLNNRC_RETURN(expect_valid_id(ast, s_expr));
 
@@ -461,23 +461,23 @@ node* build_operator_stub(tree& ast, sexpr::node* s_expr)
     return operatr;
 }
 
-bool build_operator_stubs(tree& ast)
+bool build_operator_stubs(Tree& ast)
 {
-    for (id_table_values methods = ast.methods.values(); !methods.empty(); methods.pop())
+    for (Id_Table_Values methods = ast.methods.values(); !methods.empty(); methods.pop())
     {
-        node* method = methods.value();
-        node* method_atom = method->first_child;
+        Node* method = methods.value();
+        Node* method_atom = method->first_child;
         plnnrc_assert(method_atom && is_atom(method_atom));
 
-        for (node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
+        for (Node* branch = method_atom->next_sibling; branch != 0; branch = branch->next_sibling)
         {
             PLNNRC_SKIP_ERROR_NODE(branch);
 
             plnnrc_assert(branch->first_child);
-            node* tasklist = branch->first_child->next_sibling;
+            Node* tasklist = branch->first_child->next_sibling;
             plnnrc_assert(tasklist);
 
-            for (node* task = tasklist->first_child; task != 0; task = task->next_sibling)
+            for (Node* task = tasklist->first_child; task != 0; task = task->next_sibling)
             {
                 PLNNRC_SKIP_SUBTREE_WITH_ERRORS(task);
 

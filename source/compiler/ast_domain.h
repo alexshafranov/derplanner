@@ -23,19 +23,19 @@
 
 namespace plnnrc {
 
-namespace sexpr { struct node; }
-namespace ast { struct node; }
-namespace ast { class tree; }
+namespace sexpr { struct Node; }
+namespace ast { struct Node; }
+namespace ast { class Tree; }
 
 namespace ast {
 
-node* build_domain(tree& ast, sexpr::node* s_expr);
-node* build_method(tree& ast, sexpr::node* s_expr);
-node* build_branch(tree& ast, sexpr::node* s_expr);
-node* build_task_list(tree& ast, sexpr::node* s_expr);
-node* build_operator(tree& ast, sexpr::node* s_expr);
-node* build_operator_stub(tree& ast, sexpr::node* s_expr);
-bool  build_operator_stubs(tree& ast);
+Node* build_domain(Tree& ast, sexpr::Node* s_expr);
+Node* build_method(Tree& ast, sexpr::Node* s_expr);
+Node* build_branch(Tree& ast, sexpr::Node* s_expr);
+Node* build_task_list(Tree& ast, sexpr::Node* s_expr);
+Node* build_operator(Tree& ast, sexpr::Node* s_expr);
+Node* build_operator_stub(Tree& ast, sexpr::Node* s_expr);
+bool  build_operator_stubs(Tree& ast);
 
 }
 }

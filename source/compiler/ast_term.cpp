@@ -30,11 +30,11 @@
 namespace plnnrc {
 namespace ast {
 
-node* build_namespace(tree& ast, sexpr::node* s_expr)
+Node* build_namespace(Tree& ast, sexpr::Node* s_expr)
 {
     PLNNRC_RETURN(expect_child_type(ast, s_expr, sexpr::node_symbol));
 
-    for (sexpr::node* n = s_expr->first_child; n != 0; n = n->next_sibling)
+    for (sexpr::Node* n = s_expr->first_child; n != 0; n = n->next_sibling)
     {
         PLNNRC_RETURN(expect_type(ast, n, sexpr::node_symbol));
         PLNNRC_RETURN(expect_valid_id(ast, n));
@@ -45,11 +45,11 @@ node* build_namespace(tree& ast, sexpr::node* s_expr)
     return result;
 }
 
-node* build_atom(tree& ast, sexpr::node* s_expr)
+Node* build_atom(Tree& ast, sexpr::Node* s_expr)
 {
     PLNNRC_RETURN(expect_child_type(ast, s_expr, sexpr::node_symbol));
 
-    sexpr::node* name_expr = s_expr->first_child;
+    sexpr::Node* name_expr = s_expr->first_child;
 
     bool lazy = is_token(name_expr, token_lazy);
 
@@ -62,9 +62,9 @@ node* build_atom(tree& ast, sexpr::node* s_expr)
     PLNNRC_RETURN(expect_valid_id(ast, name_expr));
 
     PLNNRC_CHECK_NODE(atom, ast.make_node(node_atom, name_expr));
-    annotation<atom_ann>(atom)->lazy = lazy;
+    annotation<Atom_Ann>(atom)->lazy = lazy;
 
-    for (sexpr::node* c_expr = name_expr->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
+    for (sexpr::Node* c_expr = name_expr->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
     {
         PLNNRC_CHECK_NODE(argument, build_term(ast, c_expr));
         append_child(atom, argument);
@@ -73,7 +73,7 @@ node* build_atom(tree& ast, sexpr::node* s_expr)
     return atom;
 }
 
-node* build_term(tree& ast, sexpr::node* s_expr)
+Node* build_term(Tree& ast, sexpr::Node* s_expr)
 {
     switch (s_expr->type)
     {
@@ -91,33 +91,33 @@ node* build_term(tree& ast, sexpr::node* s_expr)
     }
 }
 
-node* build_variable_term(tree& ast, sexpr::node* s_expr)
+Node* build_variable_term(Tree& ast, sexpr::Node* s_expr)
 {
     PLNNRC_RETURN(expect_valid_id(ast, s_expr));
     PLNNRC_CHECK_NODE(variable, ast.make_node(node_term_variable, s_expr));
     return variable;
 }
 
-node* build_int_term(tree& ast, sexpr::node* s_expr)
+Node* build_int_term(Tree& ast, sexpr::Node* s_expr)
 {
     PLNNRC_CHECK_NODE(literal, ast.make_node(node_term_int, s_expr));
     return literal;
 }
 
-node* build_float_term(tree& ast, sexpr::node* s_expr)
+Node* build_float_term(Tree& ast, sexpr::Node* s_expr)
 {
     PLNNRC_CHECK_NODE(literal, ast.make_node(node_term_float, s_expr));
     return literal;
 }
 
-node* build_call_term(tree& ast, sexpr::node* s_expr)
+Node* build_call_term(Tree& ast, sexpr::Node* s_expr)
 {
     PLNNRC_RETURN(expect_child_type(ast, s_expr, sexpr::node_symbol));
-    sexpr::node* name_expr = s_expr->first_child;
+    sexpr::Node* name_expr = s_expr->first_child;
 
     PLNNRC_CHECK_NODE(call_term, ast.make_node(node_term_call, name_expr));
 
-    for (sexpr::node* c_expr = name_expr->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
+    for (sexpr::Node* c_expr = name_expr->next_sibling; c_expr != 0; c_expr = c_expr->next_sibling)
     {
         PLNNRC_CHECK_NODE(term, build_term(ast, c_expr));
         append_child(call_term, term);

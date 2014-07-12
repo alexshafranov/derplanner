@@ -26,13 +26,13 @@
 namespace plnnrc {
 namespace pool {
 
-struct handle;
+struct Handle;
 
-handle* create(size_t page_size);
+Handle* create(size_t page_size);
 
-void destroy(const handle* pool);
+void destroy(const Handle* pool);
 
-void* allocate(handle* pool, size_t bytes, size_t alignment);
+void* allocate(Handle* pool, size_t bytes, size_t alignment);
 
 }
 }

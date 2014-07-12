@@ -26,12 +26,12 @@
 
 namespace plnnrc {
 
-namespace sexpr { struct node; }
-namespace pool { struct handle; }
+namespace sexpr { struct Node; }
+namespace pool { struct Handle; }
 
 namespace ast {
 
-enum node_type
+enum Node_Type
 {
     node_none = 0,
 
@@ -40,100 +40,100 @@ enum node_type
     #undef PLNNRC_AST_NODE
 };
 
-struct node
+struct Node
 {
-    node_type type;
-    sexpr::node* s_expr;
-    node* parent;
-    node* first_child;
-    node* next_sibling;
-    node* prev_sibling_cyclic;
+    Node_Type type;
+    sexpr::Node* s_expr;
+    Node* parent;
+    Node* first_child;
+    Node* next_sibling;
+    Node* prev_sibling_cyclic;
     void* annotation;
 };
 
 template <typename T>
-T* annotation(node* n)
+T* annotation(Node* n)
 {
     return static_cast<T*>(n->annotation);
 }
 
-class tree
+class Tree
 {
 public:
-    tree(int error_node_cache_size=8);
-    ~tree();
+    Tree(int error_node_cache_size=8);
+    ~Tree();
 
-    node* root() { return &_root; }
-    const node* root() const { return &_root; }
+    Node* root() { return &_root; }
+    const Node* root() const { return &_root; }
 
-    node* make_node(node_type type, sexpr::node* token=0);
-    node* clone_node(node* original);
-    node* clone_subtree(node* original);
+    Node* make_node(Node_Type type, sexpr::Node* token=0);
+    Node* clone_node(Node* original);
+    Node* clone_subtree(Node* original);
 
-    id_table ws_atoms;
-    id_table ws_funcs;
-    id_table ws_types;
-    id_table methods;
-    id_table operators;
-    node_array type_tag_to_node;
-    node_array error_node_cache;
+    Id_Table ws_atoms;
+    Id_Table ws_funcs;
+    Id_Table ws_types;
+    Id_Table methods;
+    Id_Table operators;
+    Node_Array type_tag_to_node;
+    Node_Array error_node_cache;
 
 private:
-    tree(const tree&);
-    const tree& operator=(const tree&);
+    Tree(const Tree&);
+    const Tree& operator=(const Tree&);
 
-    pool::handle* _node_pool;
-    node _root;
+    pool::Handle* _node_pool;
+    Node _root;
 };
 
 // annotation types
 
-struct ws_type_ann
+struct WS_Type_Ann
 {
     int type_tag;
 };
 
-struct term_ann
+struct Term_Ann
 {
     int   type_tag;
     int   var_index;
-    node* var_def;
+    Node* var_def;
 };
 
-struct atom_ann
+struct Atom_Ann
 {
     int index;
     bool lazy;
 };
 
-struct branch_ann
+struct Branch_Ann
 {
     bool foreach;
 };
 
-struct method_ann
+struct Method_Ann
 {
     bool processed;
 };
 
 #define PLNNRC_AST_NODE_GROUP(GROUP_ID, FIRST_ID, LAST_ID)          \
-    inline bool is_##GROUP_ID(node_type type)                       \
+    inline bool is_##GROUP_ID(Node_Type type)                       \
     {                                                               \
         return type >= node_##FIRST_ID && type <= node_##LAST_ID;   \
     }                                                               \
                                                                     \
-    inline bool is_##GROUP_ID(const node* n)                        \
+    inline bool is_##GROUP_ID(const Node* n)                        \
     {                                                               \
         return is_##GROUP_ID(n->type);                              \
     }                                                               \
 
 #define PLNNRC_AST_NODE(NODE_ID)                \
-    inline bool is_##NODE_ID(node_type type)    \
+    inline bool is_##NODE_ID(Node_Type type)    \
     {                                           \
         return type == node_##NODE_ID;          \
     }                                           \
                                                 \
-    inline bool is_##NODE_ID(const node* n)     \
+    inline bool is_##NODE_ID(const Node* n)     \
     {                                           \
         return is_##NODE_ID(n->type);           \
     }                                           \

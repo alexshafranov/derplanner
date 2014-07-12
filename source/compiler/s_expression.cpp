@@ -33,12 +33,12 @@ namespace
 {
     const size_t page_size = DERPLANNER_SEXPR_MEMPAGE_SIZE;
 
-    node* alloc_node(pool::handle* pool)
+    Node* alloc_node(pool::Handle* pool)
     {
-        return static_cast<node*>(pool::allocate(pool, sizeof(node), plnnrc_alignof(node)));
+        return static_cast<Node*>(pool::allocate(pool, sizeof(Node), plnnrc_alignof(Node)));
     }
 
-    enum token_type
+    enum Token_Type
     {
         token_none = 0,
         token_lp,
@@ -48,16 +48,16 @@ namespace
         token_float,
     };
 
-    struct token
+    struct Token
     {
-        token_type  type;
+        Token_Type  type;
         char*       begin;
         int         count;
         int         line;
         int         column;
     };
 
-    void init(token& token)
+    void init(Token& token)
     {
         token.type = token_none;
         token.begin = 0;
@@ -66,18 +66,18 @@ namespace
         token.column = 0;
     }
 
-    struct parse_state
+    struct Parse_State
     {
-        pool::handle* pool;
+        pool::Handle* pool;
         int line;
         int column;
         char* cursor;
         char* null;
-        node* parent;
-        node* root;
+        Node* parent;
+        Node* root;
     };
 
-    void init(parse_state& state, char* buffer, pool::handle* pool)
+    void init(Parse_State& state, char* buffer, pool::Handle* pool)
     {
         state.pool = pool;
         state.line = 1;
@@ -88,21 +88,21 @@ namespace
         state.root = 0;
     }
 
-    void move(parse_state& state)
+    void move(Parse_State& state)
     {
         state.cursor++;
         state.column++;
     }
 
-    void move(token& token)
+    void move(Token& token)
     {
         token.count++;
     }
 
-    node* append_child(parse_state& state)
+    Node* append_child(Parse_State& state)
     {
-        node* n = alloc_node(state.pool);
-        node* p = state.parent;
+        Node* n = alloc_node(state.pool);
+        Node* p = state.parent;
 
         if (!n)
         {
@@ -116,11 +116,11 @@ namespace
 
         if (p)
         {
-            node* first_child = p->first_child;
+            Node* first_child = p->first_child;
 
             if (first_child)
             {
-                node* last_child = first_child->prev_sibling_cyclic;
+                Node* last_child = first_child->prev_sibling_cyclic;
                 last_child->next_sibling = n;
                 n->prev_sibling_cyclic = last_child;
                 first_child->prev_sibling_cyclic = n;
@@ -135,9 +135,9 @@ namespace
         return n;
     }
 
-    node* push_list(parse_state& state)
+    Node* push_list(Parse_State& state)
     {
-        node* n = append_child(state);
+        Node* n = append_child(state);
 
         if (!n)
         {
@@ -156,9 +156,9 @@ namespace
         return n;
     }
 
-    node* pop_list(parse_state& state)
+    Node* pop_list(Parse_State& state)
     {
-        node* n = state.parent;
+        Node* n = state.parent;
 
         if (!n || n == state.root)
         {
@@ -173,9 +173,9 @@ namespace
         return n;
     }
 
-    node* append_node(parse_state& state, node_type type)
+    Node* append_node(Parse_State& state, Node_Type type)
     {
-        node* n = append_child(state);
+        Node* n = append_child(state);
 
         if (!n)
         {
@@ -192,7 +192,7 @@ namespace
         return n;
     }
 
-    void increment_line(parse_state& state)
+    void increment_line(Parse_State& state)
     {
         char c = *state.cursor;
 
@@ -221,9 +221,9 @@ namespace
         return false;
     }
 
-    token scan_symbol(parse_state& state)
+    Token scan_symbol(Parse_State& state)
     {
-        token result;
+        Token result;
         result.type = token_symbol;
         result.begin = state.cursor;
         result.count = 0;
@@ -265,9 +265,9 @@ namespace
         -1,  7, -1, -1,
     };
 
-    token scan_number(parse_state& state)
+    Token scan_number(Parse_State& state)
     {
-        token result;
+        Token result;
         result.type = token_none;
         result.begin = state.cursor;
         result.count = 0;
@@ -308,7 +308,7 @@ namespace
         return result;
     }
 
-    void null_terminate(parse_state& state)
+    void null_terminate(Parse_State& state)
     {
         if (state.null)
         {
@@ -317,9 +317,9 @@ namespace
         }
     }
 
-    token next_token(parse_state& state)
+    Token next_token(Parse_State& state)
     {
-        token result;
+        Token result;
         init(result);
 
         while (*state.cursor)
@@ -377,23 +377,23 @@ namespace
         return result;
     }
 
-    token lookahead(parse_state& state)
+    Token lookahead(Parse_State& state)
     {
-        parse_state saved_state = state;
-        token result = next_token(state);
+        Parse_State saved_state = state;
+        Token result = next_token(state);
         state = saved_state;
         return result;
     }
 
 } // unnamed namespace
 
-tree::tree()
+Tree::Tree()
     : _pool(0)
     , _root(0)
 {
 }
 
-tree::~tree()
+Tree::~Tree()
 {
     if (_pool)
     {
@@ -401,11 +401,11 @@ tree::~tree()
     }
 }
 
-parse_result tree::parse(char* buffer)
+Parse_Result Tree::parse(char* buffer)
 {
     plnnrc_assert(buffer != 0);
 
-    parse_result result;
+    Parse_Result result;
     result.status = parse_ok;
     result.line = -1;
     result.column = -1;
@@ -417,7 +417,7 @@ parse_result tree::parse(char* buffer)
         _root = 0;
     }
 
-    pool::handle* pool = pool::create(page_size);
+    pool::Handle* pool = pool::create(page_size);
 
     if (!pool)
     {
@@ -427,7 +427,7 @@ parse_result tree::parse(char* buffer)
 
     _pool = pool;
 
-    parse_state state;
+    Parse_State state;
     init(state, buffer, _pool);
 
     _root = push_list(state);
@@ -440,7 +440,7 @@ parse_result tree::parse(char* buffer)
 
     state.root = _root;
 
-    token root_token = lookahead(state);
+    Token root_token = lookahead(state);
 
     if (root_token.type != token_lp && root_token.type != token_none)
     {
@@ -452,7 +452,7 @@ parse_result tree::parse(char* buffer)
 
     for (;;)
     {
-        token t = next_token(state);
+        Token t = next_token(state);
 
         if (t.type == token_none)
         {
@@ -528,21 +528,21 @@ parse_result tree::parse(char* buffer)
     return result;
 }
 
-float as_float(const node* n)
+float as_float(const Node* n)
 {
     return static_cast<float>(strtod(n->token, 0));
 }
 
-int as_int(const node* n)
+int as_int(const Node* n)
 {
     return static_cast<int>(strtol(n->token, 0, 10));
 }
 
-void glue_tokens(const node* n)
+void glue_tokens(const Node* n)
 {
     plnnrc_assert(n->type == node_list);
 
-    for (node* c = n->first_child; c != 0; c = c->next_sibling)
+    for (Node* c = n->first_child; c != 0; c = c->next_sibling)
     {
         if (c->next_sibling)
         {

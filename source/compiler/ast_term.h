@@ -23,21 +23,21 @@
 
 namespace plnnrc {
 
-namespace sexpr { struct node; }
-namespace ast { struct node; }
-namespace ast { class tree; }
+namespace sexpr { struct Node; }
+namespace ast { struct Node; }
+namespace ast { class Tree; }
 
 namespace ast {
 
-node* build_namespace(tree& ast, sexpr::node* s_expr);
+Node* build_namespace(Tree& ast, sexpr::Node* s_expr);
 
-node* build_atom(tree& ast, sexpr::node* s_expr);
+Node* build_atom(Tree& ast, sexpr::Node* s_expr);
 
-node* build_term(tree& ast, sexpr::node* s_expr);
-node* build_variable_term(tree& ast, sexpr::node* s_expr);
-node* build_int_term(tree& ast, sexpr::node* s_expr);
-node* build_float_term(tree& ast, sexpr::node* s_expr);
-node* build_call_term(tree& ast, sexpr::node* s_expr);
+Node* build_term(Tree& ast, sexpr::Node* s_expr);
+Node* build_variable_term(Tree& ast, sexpr::Node* s_expr);
+Node* build_int_term(Tree& ast, sexpr::Node* s_expr);
+Node* build_float_term(Tree& ast, sexpr::Node* s_expr);
+Node* build_call_term(Tree& ast, sexpr::Node* s_expr);
 
 }
 }

@@ -23,12 +23,12 @@
 
 namespace plnnrc {
 
-namespace sexpr { struct node; }
-namespace ast { class tree; }
+namespace sexpr { struct Node; }
+namespace ast { class Tree; }
 
 namespace ast {
 
-bool build_translation_unit(tree& ast, sexpr::node* s_expr);
+bool build_translation_unit(Tree& ast, sexpr::Node* s_expr);
 
 }
 }

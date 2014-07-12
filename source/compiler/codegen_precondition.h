@@ -23,20 +23,20 @@
 
 namespace plnnrc {
 
-namespace ast { struct node; }
-namespace ast { class tree; }
-class formatter;
+namespace ast { struct Node; }
+namespace ast { class Tree; }
+class Formatter;
 
-void generate_preconditions(ast::tree& ast, ast::node* domain, formatter& output);
+void generate_preconditions(ast::Tree& ast, ast::Node* domain, Formatter& output);
 
-void generate_precondition_state(ast::tree& ast, ast::node* root, unsigned branch_index, formatter& output);
-void generate_precondition_next(ast::tree& ast, ast::node* root, unsigned branch_index, formatter& output);
+void generate_precondition_state(ast::Tree& ast, ast::Node* root, unsigned branch_index, Formatter& output);
+void generate_precondition_next(ast::Tree& ast, ast::Node* root, unsigned branch_index, Formatter& output);
 
-void generate_precondition_satisfier(ast::tree& ast, ast::node* root, formatter& output, int yield_label);
-void generate_conjunctive_clause(ast::tree& ast, ast::node* root, formatter& output, int yield_label);
-void generate_literal_chain(ast::tree& ast, ast::node* root, formatter& output, int yield_label);
-void generate_literal_chain_call_term(ast::tree& ast, ast::node* root, ast::node* atom, formatter& output, int yield_label);
-void generate_literal_chain_comparison(ast::tree& ast, ast::node* root, ast::node* atom, formatter& output, int yield_label);
+void generate_precondition_satisfier(ast::Tree& ast, ast::Node* root, Formatter& output, int yield_label);
+void generate_conjunctive_clause(ast::Tree& ast, ast::Node* root, Formatter& output, int yield_label);
+void generate_literal_chain(ast::Tree& ast, ast::Node* root, Formatter& output, int yield_label);
+void generate_literal_chain_call_term(ast::Tree& ast, ast::Node* root, ast::Node* atom, Formatter& output, int yield_label);
+void generate_literal_chain_comparison(ast::Tree& ast, ast::Node* root, ast::Node* atom, Formatter& output, int yield_label);
 
 }
 

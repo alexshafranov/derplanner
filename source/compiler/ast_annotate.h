@@ -23,15 +23,15 @@
 
 namespace plnnrc {
 
-namespace ast { struct node; }
-namespace ast { class tree; }
+namespace ast { struct Node; }
+namespace ast { class Tree; }
 
 namespace ast {
 
-void annotate(tree& ast);
+void annotate(Tree& ast);
 
-void annotate_precondition(node* precondition);
-void annotate_params(node* task);
+void annotate_precondition(Node* precondition);
+void annotate_params(Node* task);
 
 }
 }

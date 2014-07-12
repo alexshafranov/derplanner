@@ -23,11 +23,11 @@
 
 namespace plnnrc {
 
-namespace pool { struct handle; }
+namespace pool { struct Handle; }
 
 namespace sexpr {
 
-enum node_type
+enum Node_Type
 {
     node_none = 0,
     node_list,
@@ -36,26 +36,26 @@ enum node_type
     node_float,
 };
 
-struct node
+struct Node
 {
-    node_type type;
+    Node_Type type;
     int line;
     int column;
     int line_end;
     int column_end;
     char* token;
-    node* parent;
-    node* first_child;
-    node* next_sibling;
-    node* prev_sibling_cyclic;
+    Node* parent;
+    Node* first_child;
+    Node* next_sibling;
+    Node* prev_sibling_cyclic;
 };
 
-int as_int(const node* n);
-float as_float(const node* n);
+int as_int(const Node* n);
+float as_float(const Node* n);
 
-void glue_tokens(const node* n);
+void glue_tokens(const Node* n);
 
-enum parse_status
+enum Parse_Status
 {
     parse_ok = 0,
     parse_excess_open,
@@ -64,46 +64,46 @@ enum parse_status
     parse_out_of_memory,
 };
 
-struct parse_result
+struct Parse_Result
 {
-    parse_status status;
+    Parse_Status status;
     int line;
     int column;
 };
 
-class tree
+class Tree
 {
 public:
-    tree();
-    ~tree();
+    Tree();
+    ~Tree();
 
-    parse_result parse(char* buffer);
-    node* root() const { return _root; }
+    Parse_Result parse(char* buffer);
+    Node* root() const { return _root; }
 
 private:
-    tree(const tree&);
-    const tree& operator=(const tree&);
+    Tree(const Tree&);
+    const Tree& operator=(const Tree&);
 
-    pool::handle* _pool;
-    node* _root;
+    pool::Handle* _pool;
+    Node* _root;
 };
 
-inline bool is_list(const node* n)
+inline bool is_list(const Node* n)
 {
     return n->type == node_list;
 }
 
-inline bool is_symbol(const node* n)
+inline bool is_symbol(const Node* n)
 {
     return n->type == node_symbol;
 }
 
-inline bool is_int(const node* n)
+inline bool is_int(const Node* n)
 {
     return n->type == node_int;
 }
 
-inline bool is_float(const node* n)
+inline bool is_float(const Node* n)
 {
     return n->type == node_float;
 }

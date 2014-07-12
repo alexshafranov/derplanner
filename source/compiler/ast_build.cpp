@@ -33,12 +33,12 @@
 namespace plnnrc {
 namespace ast {
 
-bool build_translation_unit(tree& ast, sexpr::node* s_expr)
+bool build_translation_unit(Tree& ast, sexpr::Node* s_expr)
 {
-    sexpr::node* worldstate_expr = 0;
-    sexpr::node* domain_expr = 0;
+    sexpr::Node* worldstate_expr = 0;
+    sexpr::Node* domain_expr = 0;
 
-    for (sexpr::node* c_expr = s_expr->first_child; c_expr != 0; c_expr = c_expr->next_sibling)
+    for (sexpr::Node* c_expr = s_expr->first_child; c_expr != 0; c_expr = c_expr->next_sibling)
     {
         if (sexpr::is_list(c_expr))
         {
@@ -62,8 +62,8 @@ bool build_translation_unit(tree& ast, sexpr::node* s_expr)
 
     if (worldstate_expr)
     {
-        PLNNRC_CHECK_NODE(worldstate, build_worldstate(ast, worldstate_expr));
-        append_child(ast.root(), worldstate);
+        PLNNRC_CHECK_NODE(Worldstate, build_worldstate(ast, worldstate_expr));
+        append_child(ast.root(), Worldstate);
     }
 
     if (domain_expr)

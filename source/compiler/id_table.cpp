@@ -67,14 +67,14 @@ namespace
     }
 }
 
-struct id_table_entry
+struct Id_Table_Entry
 {
     const char* key;
     uint32_t    hash;
-    ast::node*  value;
+    ast::Node*  value;
 };
 
-id_table::id_table()
+Id_Table::Id_Table()
     : _buffer(0)
     , _capacity(0)
     , _mask(0)
@@ -82,20 +82,20 @@ id_table::id_table()
 {
 }
 
-bool id_table::init(uint32_t max_count)
+bool Id_Table::init(uint32_t max_count)
 {
     memory::deallocate(_buffer);
     return _allocate(required_capacity(max_count));
 }
 
-id_table::~id_table()
+Id_Table::~Id_Table()
 {
     memory::deallocate(_buffer);
 }
 
-bool id_table::_allocate(uint32_t new_capacity)
+bool Id_Table::_allocate(uint32_t new_capacity)
 {
-    id_table_entry* buffer = static_cast<id_table_entry*>(memory::allocate(sizeof(buffer[0])*new_capacity));
+    Id_Table_Entry* buffer = static_cast<Id_Table_Entry*>(memory::allocate(sizeof(buffer[0])*new_capacity));
 
     if (!buffer)
     {
@@ -111,7 +111,7 @@ bool id_table::_allocate(uint32_t new_capacity)
     return true;
 }
 
-void id_table::_insert(uint32_t hash_code, const char* key, ast::node* value)
+void Id_Table::_insert(uint32_t hash_code, const char* key, ast::Node* value)
 {
     plnnrc_assert(_buffer != 0);
 
@@ -121,7 +121,7 @@ void id_table::_insert(uint32_t hash_code, const char* key, ast::node* value)
     {
         slot = (slot + step) & _mask;
 
-        id_table_entry& e = _buffer[slot];
+        Id_Table_Entry& e = _buffer[slot];
 
         if (!e.key)
         {
@@ -145,7 +145,7 @@ void id_table::_insert(uint32_t hash_code, const char* key, ast::node* value)
 
         if (d < step)
         {
-            id_table_entry t = e;
+            Id_Table_Entry t = e;
 
             e.key = key;
             e.value = value;
@@ -162,11 +162,11 @@ void id_table::_insert(uint32_t hash_code, const char* key, ast::node* value)
     plnnrc_assert(false);
 }
 
-bool id_table::_grow()
+bool Id_Table::_grow()
 {
     plnnrc_assert(_buffer != 0);
 
-    id_table_entry* old_buffer = _buffer;
+    Id_Table_Entry* old_buffer = _buffer;
     uint32_t old_capacity = _capacity;
 
     if (!_allocate(old_capacity*2))
@@ -176,7 +176,7 @@ bool id_table::_grow()
 
     for (uint32_t i = 0; i < old_capacity; ++i)
     {
-        id_table_entry& old_entry = old_buffer[i];
+        Id_Table_Entry& old_entry = old_buffer[i];
 
         if (old_entry.key)
         {
@@ -189,7 +189,7 @@ bool id_table::_grow()
     return true;
 }
 
-bool id_table::insert(const char* key, ast::node* value)
+bool Id_Table::insert(const char* key, ast::Node* value)
 {
     plnnrc_assert(_buffer != 0);
 
@@ -208,7 +208,7 @@ bool id_table::insert(const char* key, ast::node* value)
     return true;
 }
 
-ast::node* id_table::find(const char* key) const
+ast::Node* Id_Table::find(const char* key) const
 {
     plnnrc_assert(key != 0);
 
@@ -225,7 +225,7 @@ ast::node* id_table::find(const char* key) const
     {
         slot = (slot + step) & _mask;
 
-        const id_table_entry& e = _buffer[slot];
+        const Id_Table_Entry& e = _buffer[slot];
 
         if (!e.key)
         {
@@ -251,13 +251,13 @@ ast::node* id_table::find(const char* key) const
     return 0;
 }
 
-id_table_values::id_table_values()
+Id_Table_Values::Id_Table_Values()
     : _slot(0xffffffff)
     , _table(0)
 {
 }
 
-id_table_values::id_table_values(const id_table* table)
+Id_Table_Values::Id_Table_Values(const Id_Table* table)
     : _slot(0xffffffff)
     , _table(table)
 {
@@ -271,20 +271,20 @@ id_table_values::id_table_values(const id_table* table)
     }
 }
 
-id_table_values::id_table_values(const id_table_values& values)
+Id_Table_Values::Id_Table_Values(const Id_Table_Values& values)
     : _slot(values._slot)
     , _table(values._table)
 {
 }
 
-id_table_values& id_table_values::operator=(const id_table_values& values)
+Id_Table_Values& Id_Table_Values::operator=(const Id_Table_Values& values)
 {
     _slot = values._slot;
     _table = values._table;
     return *this;
 }
 
-void id_table_values::pop()
+void Id_Table_Values::pop()
 {
     if (!empty())
     {
@@ -302,15 +302,15 @@ void id_table_values::pop()
     }
 }
 
-ast::node* id_table_values::value() const
+ast::Node* Id_Table_Values::value() const
 {
     plnnrc_assert(!empty() && _table);
     return _table->_buffer[_slot].value;
 }
 
-id_table_values id_table::values() const
+Id_Table_Values Id_Table::values() const
 {
-    return id_table_values(this);
+    return Id_Table_Values(this);
 }
 
 }

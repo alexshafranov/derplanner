@@ -25,19 +25,19 @@
 namespace plnnr {
 namespace tuple_list {
 
-struct handle;
+struct Handle;
 
-struct page
+struct Page
 {
-    page* prev;
+    Page* prev;
     char* memory;
     char* top;
     char  data[1];
 };
 
-struct handle
+struct Handle
 {
-    page* head_page;
+    Page* head_page;
     void* head_tuple;
     tuple_traits tuple;
     size_t page_size;
@@ -57,11 +57,11 @@ namespace
         return *p;
     }
 
-    void* allocate(handle* tuple_list)
+    void* allocate(Handle* tuple_list)
     {
         size_t bytes = tuple_list->tuple.size;
         size_t alignment = tuple_list->tuple.alignment;
-        page* p = tuple_list->head_page;
+        Page* p = tuple_list->head_page;
 
         char* top = static_cast<char*>(memory::align(p->top, alignment));
 
@@ -74,7 +74,7 @@ namespace
                 return 0;
             }
 
-            p = memory::align<page>(memory);
+            p = memory::align<Page>(memory);
             p->prev = tuple_list->head_page;
             p->memory = memory;
             p->top = p->data;
@@ -90,10 +90,10 @@ namespace
     }
 }
 
-handle* create(tuple_traits traits, size_t items_per_page)
+Handle* create(tuple_traits traits, size_t items_per_page)
 {
-    size_t handle_size = sizeof(handle) + plnnr_alignof(handle);
-    size_t header_size = sizeof(page) + plnnr_alignof(page);
+    size_t handle_size = sizeof(Handle) + plnnr_alignof(Handle);
+    size_t header_size = sizeof(Page) + plnnr_alignof(Page);
     size_t page_size = header_size + items_per_page * traits.size + traits.alignment;
 
     char* memory = static_cast<char*>(memory::allocate(handle_size + page_size));
@@ -103,8 +103,8 @@ handle* create(tuple_traits traits, size_t items_per_page)
         return 0;
     }
 
-    handle* tuple_list = memory::align<handle>(memory);
-    page* head_page = memory::align<page>(tuple_list + 1);
+    Handle* tuple_list = memory::align<Handle>(memory);
+    Page* head_page = memory::align<Page>(tuple_list + 1);
 
     head_page->prev = 0;
     head_page->memory = memory;
@@ -118,13 +118,13 @@ handle* create(tuple_traits traits, size_t items_per_page)
     return tuple_list;
 }
 
-void clear(handle* tuple_list)
+void clear(Handle* tuple_list)
 {
-    page* p = tuple_list->head_page;
+    Page* p = tuple_list->head_page;
 
     while (p->prev)
     {
-        page* n = p->prev;
+        Page* n = p->prev;
         memory::deallocate(p->memory);
         p = n;
     }
@@ -134,17 +134,17 @@ void clear(handle* tuple_list)
     tuple_list->head_tuple = 0;
 }
 
-void destroy(const handle* tuple_list)
+void destroy(const Handle* tuple_list)
 {
-    for (page* p = tuple_list->head_page; p != 0;)
+    for (Page* p = tuple_list->head_page; p != 0;)
     {
-        page* n = p->prev;
+        Page* n = p->prev;
         memory::deallocate(p->memory);
         p = n;
     }
 }
 
-void* append(handle* tuple_list)
+void* append(Handle* tuple_list)
 {
     void* tuple = allocate(tuple_list);
 
@@ -178,7 +178,7 @@ void* append(handle* tuple_list)
     return tuple;
 }
 
-void detach(handle* tuple_list, void* tuple)
+void detach(Handle* tuple_list, void* tuple)
 {
     size_t next_offset = tuple_list->tuple.next_offset;
     size_t prev_offset = tuple_list->tuple.prev_offset;
@@ -208,7 +208,7 @@ void detach(handle* tuple_list, void* tuple)
     }
 }
 
-void undo(handle* tuple_list, void* tuple)
+void undo(Handle* tuple_list, void* tuple)
 {
     size_t next_offset = tuple_list->tuple.next_offset;
     size_t prev_offset = tuple_list->tuple.prev_offset;
@@ -249,7 +249,7 @@ void undo(handle* tuple_list, void* tuple)
     }
 }
 
-void* head(handle* tuple_list)
+void* head(Handle* tuple_list)
 {
     plnnr_assert(tuple_list);
     return tuple_list->head_tuple;
