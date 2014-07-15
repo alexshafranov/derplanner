@@ -1,3 +1,4 @@
+; domain ported from jshop
 
 (:worldstate (blocks)
     (block (int))
