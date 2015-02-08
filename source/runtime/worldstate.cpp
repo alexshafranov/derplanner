@@ -20,7 +20,7 @@
 
 #include "derplanner/runtime/assert.h"
 #include "derplanner/runtime/memory.h"
-#include "derplanner/runtime/worldstate_old.h"
+#include "derplanner/runtime/worldstate.h"
 
 namespace plnnr {
 namespace tuple_list {

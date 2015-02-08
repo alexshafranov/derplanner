@@ -21,7 +21,7 @@
 #include <string.h>
 #include "derplanner/runtime/assert.h"
 #include "derplanner/runtime/memory.h"
-#include "derplanner/runtime/worldstate_old.h"
+#include "derplanner/runtime/worldstate.h"
 #include "derplanner/runtime/runtime.h"
 
 namespace plnnr

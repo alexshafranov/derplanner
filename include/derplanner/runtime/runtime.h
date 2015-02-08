@@ -24,7 +24,7 @@
 #include <stdint.h>
 #include <stddef.h> // size_t
 
-#include "derplanner/runtime/worldstate_old.h"
+#include "derplanner/runtime/worldstate.h"
 #include "derplanner/runtime/memory.h" // alignof
 
 namespace plnnr {

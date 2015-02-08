@@ -19,7 +19,7 @@
 //
 
 #include <unittestpp.h>
-#include <derplanner/runtime/worldstate_old.h>
+#include <derplanner/runtime/worldstate.h>
 
 using namespace plnnr;
 
