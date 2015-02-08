@@ -21,7 +21,7 @@
 #ifndef DERPLANNER_RUNTIME_INTERFACE_H_
 #define DERPLANNER_RUNTIME_INTERFACE_H_
 
-#include <derplanner/runtime/worldstate.h>
+#include <derplanner/runtime/worldstate_old.h>
 #include <derplanner/runtime/assert.h>
 
 namespace plnnr {
