@@ -78,6 +78,14 @@ inline void* offset(void* ptr, size_t offset)
     return static_cast<char*>(ptr) + offset;
 }
 
+class Memory
+{
+public:
+    virtual ~Memory() {}
+    virtual void* allocate(size_t size, size_t align)=0;
+    virtual void  deallocate(void* ptr)=0;
+};
+
 }
 }
 
