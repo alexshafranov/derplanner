@@ -28,8 +28,9 @@ namespace plnnr {
 enum Type
 {
     Type_None = 0,
-    Type_Int32,
-    Type_Float,
+    #define PLNNR_TYPE(TYPE_TAG, TYPE_NAME) Type_##TYPE_TAG,
+    #include "derplanner/runtime/type_tags.inl"
+    #undef PLNNR_TYPE
     Type_Count,
 };
 
@@ -37,6 +38,7 @@ enum { Max_Fact_Arity = 16 };
 
 struct Fact_Type
 {
+    uint8_t arity;
     Type param_type[Max_Fact_Arity];
 };
 
@@ -50,10 +52,10 @@ struct Fact_Handle
 //
 // Fact_Name(P00, P01, ..., P0M)
 // Fact_Name(P10, P11, ..., P1M)
-// <...>
+// ...
 // Fact_Name(PN0, PN1, ..., PNM)
 //
-// columns[i] = { P0i, P1i, ..., PNi }
+// columns[i]  { P0i, P1i, ..., PNi }
 //
 struct Fact_Table
 {

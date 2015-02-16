@@ -39,28 +39,47 @@ void deallocate(void*);
 }
 
 #ifndef plnnr_alignof
+    #define plnnr_alignof(T) __alignof(T)
+#endif
 
-namespace
-{
-    template <typename T>
-    struct alignof_tester
-    {
-        char c;
-        T t;
-    };
-
-    template <typename T>
-    struct alignof_helper
-    {
-        enum { value = sizeof(alignof_tester<T>) - sizeof(T) };
-    };
-}
-
-    #define plnnr_alignof(T) alignof_helper<T>::value
+#ifndef PLNNR_DEFAULT_ALIGNMENT
+    #define PLNNR_DEFAULT_ALIGNMENT 16
 #endif
 
 namespace plnnr {
+
 namespace memory {
+
+    inline void* align(void* ptr, size_t alignment)
+    {
+        return reinterpret_cast<void*>((reinterpret_cast<uintptr_t>(ptr) + (alignment - 1)) & ~(alignment - 1));
+    }
+
+    template <typename T>
+    inline T* align(void* ptr)
+    {
+        return static_cast<T*>(align(ptr, plnnr_alignof(T)));
+    }
+
+    inline void* offset(void* ptr, size_t offset)
+    {
+        return static_cast<char*>(ptr) + offset;
+    }
+}
+
+class Memory
+{
+public:
+    virtual ~Memory() {}
+    virtual void* allocate(size_t size, size_t align=PLNNR_DEFAULT_ALIGNMENT)=0;
+    virtual void  deallocate(void* ptr)=0;
+};
+
+template <typename T>
+T* allocate(Memory* mem, size_t count)
+{
+    return static_cast<T*>(mem->allocate(count*sizeof(T), plnnr_alignof(T)));
+}
 
 inline void* align(void* ptr, size_t alignment)
 {
@@ -73,20 +92,6 @@ inline T* align(void* ptr)
     return static_cast<T*>(align(ptr, plnnr_alignof(T)));
 }
 
-inline void* offset(void* ptr, size_t offset)
-{
-    return static_cast<char*>(ptr) + offset;
-}
-
-class Memory
-{
-public:
-    virtual ~Memory() {}
-    virtual void* allocate(size_t size, size_t align)=0;
-    virtual void  deallocate(void* ptr)=0;
-};
-
-}
 }
 
 #endif

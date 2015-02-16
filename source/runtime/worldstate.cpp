@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2013 Alexander Shafranov shafranov@gmail.com
+// Copyright (c) 2015 Alexander Shafranov shafranov@gmail.com
 //
 // This software is provided 'as-is', without any express or implied
 // warranty.  In no event will the authors be held liable for any damages
@@ -18,242 +18,49 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#include "derplanner/runtime/assert.h"
-#include "derplanner/runtime/memory.h"
-#include "derplanner/runtime/worldstate_old.h"
+#include <string.h> // memset
+#include "derplanner/runtime/worldstate.h"
 
-namespace plnnr {
-namespace tuple_list {
+using namespace plnnr;
 
-struct Handle;
-
-struct Page
+Fact_Table plnnr::create_fact_table(Memory* mem, uint32_t id, const Fact_Type& format, uint32_t max_entries)
 {
-    Page* prev;
-    char* memory;
-    char* top;
-    char  data[1];
-};
+    Fact_Table result;
+    result.fact_id = id;
+    result.num_entries = 0;
+    result.max_entries = max_entries;
+    result.format = format;
 
-struct Handle
-{
-    Page* head_page;
-    void* head_tuple;
-    tuple_traits tuple;
-    size_t page_size;
-};
-
-namespace
-{
-    void set_ptr(void* tuple, size_t offset, void* ptr)
+    size_t size = 0;
+    // data columns
+    for (uint8_t i = 0; i < format.arity; ++i)
     {
-        void** p = reinterpret_cast<void**>(static_cast<char*>(tuple) + offset);
-        *p = ptr;
+        size += get_type_align(format.param_type[i]) + max_entries * get_type_size(format.param_type[i]);
+    }
+    // generations
+    size += plnnr_alignof(uint32_t) + max_entries * sizeof(uint32_t);
+
+    void* buffer = mem->allocate(size);
+
+    // setup pointers
+    result.buffer = buffer;
+    uint8_t* bytes = static_cast<uint8_t*>(buffer);
+
+    for (uint8_t i = 0; i < format.arity; ++i)
+    {
+        Type param_type = format.param_type[i];
+        size_t param_align = get_type_align(param_type);
+        uint8_t* column = static_cast<uint8_t*>(plnnr::align(bytes, param_align));
+        bytes = column + max_entries * get_type_size(param_type);
+        result.columns[i] = column;
     }
 
-    void* get_ptr(void* tuple, size_t offset)
-    {
-        void** p = reinterpret_cast<void**>(static_cast<char*>(tuple) + offset);
-        return *p;
-    }
-
-    void* allocate(Handle* tuple_list)
-    {
-        size_t bytes = tuple_list->tuple.size;
-        size_t alignment = tuple_list->tuple.alignment;
-        Page* p = tuple_list->head_page;
-
-        char* top = static_cast<char*>(memory::align(p->top, alignment));
-
-        if (top + bytes > p->memory + tuple_list->page_size)
-        {
-            char* memory = static_cast<char*>(memory::allocate(tuple_list->page_size));
-
-            if (!memory)
-            {
-                return 0;
-            }
-
-            p = memory::align<Page>(memory);
-            p->prev = tuple_list->head_page;
-            p->memory = memory;
-            p->top = p->data;
-
-            tuple_list->head_page = p;
-
-            top = static_cast<char*>(memory::align(p->top, alignment));
-        }
-
-        p->top = top + bytes;
-
-        return top;
-    }
+    result.generations = plnnr::align<uint32_t>(bytes);
+    return result;
 }
 
-Handle* create(tuple_traits traits, size_t items_per_page)
+void plnnr::destroy(Memory* mem, Fact_Table& t)
 {
-    size_t handle_size = sizeof(Handle) + plnnr_alignof(Handle);
-    size_t header_size = sizeof(Page) + plnnr_alignof(Page);
-    size_t page_size = header_size + items_per_page * traits.size + traits.alignment;
-
-    char* memory = static_cast<char*>(memory::allocate(handle_size + page_size));
-
-    if (!memory)
-    {
-        return 0;
-    }
-
-    Handle* tuple_list = memory::align<Handle>(memory);
-    Page* head_page = memory::align<Page>(tuple_list + 1);
-
-    head_page->prev = 0;
-    head_page->memory = memory;
-    head_page->top = head_page->data;
-
-    tuple_list->head_page = head_page;
-    tuple_list->head_tuple = 0;
-    tuple_list->tuple = traits;
-    tuple_list->page_size = page_size;
-
-    return tuple_list;
-}
-
-void clear(Handle* tuple_list)
-{
-    Page* p = tuple_list->head_page;
-
-    while (p->prev)
-    {
-        Page* n = p->prev;
-        memory::deallocate(p->memory);
-        p = n;
-    }
-
-    p->top = p->data;
-    tuple_list->head_page = p;
-    tuple_list->head_tuple = 0;
-}
-
-void destroy(const Handle* tuple_list)
-{
-    for (Page* p = tuple_list->head_page; p != 0;)
-    {
-        Page* n = p->prev;
-        memory::deallocate(p->memory);
-        p = n;
-    }
-}
-
-void* append(Handle* tuple_list)
-{
-    void* tuple = allocate(tuple_list);
-
-    if (!tuple)
-    {
-        return 0;
-    }
-
-    void* head = tuple_list->head_tuple;
-
-    size_t next_offset = tuple_list->tuple.next_offset;
-    size_t prev_offset = tuple_list->tuple.prev_offset;
-
-    set_ptr(tuple, next_offset, 0);
-    set_ptr(tuple, prev_offset, 0);
-
-    if (head)
-    {
-        void* tail = get_ptr(head, prev_offset);
-        plnnr_assert(tail != 0);
-        set_ptr(tail, next_offset, tuple);
-        set_ptr(tuple, prev_offset, tail);
-        set_ptr(head, prev_offset, tuple);
-    }
-    else
-    {
-        tuple_list->head_tuple = tuple;
-        set_ptr(tuple, prev_offset, tuple);
-    }
-
-    return tuple;
-}
-
-void detach(Handle* tuple_list, void* tuple)
-{
-    size_t next_offset = tuple_list->tuple.next_offset;
-    size_t prev_offset = tuple_list->tuple.prev_offset;
-
-    void* head = tuple_list->head_tuple;
-    void* next = get_ptr(tuple, next_offset);
-    void* prev = get_ptr(tuple, prev_offset);
-
-    if (next)
-    {
-        set_ptr(next, prev_offset, prev);
-    }
-    else
-    {
-        set_ptr(head, prev_offset, prev);
-    }
-
-    void* prev_next = get_ptr(prev, next_offset);
-
-    if (prev_next)
-    {
-        set_ptr(prev, next_offset, next);
-    }
-    else
-    {
-        tuple_list->head_tuple = next;
-    }
-}
-
-void undo(Handle* tuple_list, void* tuple)
-{
-    size_t next_offset = tuple_list->tuple.next_offset;
-    size_t prev_offset = tuple_list->tuple.prev_offset;
-
-    void* head = tuple_list->head_tuple;
-    void* prev = get_ptr(tuple, prev_offset);
-    void* next = get_ptr(tuple, next_offset);
-
-    if ((head == tuple) ||
-        (next != 0 && get_ptr(next, prev_offset) == tuple) ||
-        (prev != 0 && get_ptr(prev, next_offset) == tuple))
-    {
-        detach(tuple_list, tuple);
-    }
-    else
-    {
-        if (prev)
-        {
-            set_ptr(prev, next_offset, tuple);
-        }
-
-        if (next)
-        {
-            set_ptr(next, prev_offset, tuple);
-        }
-
-        if (!head || head == next)
-        {
-            tuple_list->head_tuple = tuple;
-            head = tuple;
-            set_ptr(prev, next_offset, 0);
-        }
-
-        if (!next)
-        {
-            set_ptr(head, prev_offset, tuple);
-        }
-    }
-}
-
-void* head(Handle* tuple_list)
-{
-    plnnr_assert(tuple_list);
-    return tuple_list->head_tuple;
-}
-
-}
+    mem->deallocate(t.buffer);
+    memset(&t, 0, sizeof(t));
 }
