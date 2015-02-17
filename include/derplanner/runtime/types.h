@@ -42,20 +42,17 @@ struct Fact_Type
     Type param_type[Max_Fact_Arity];
 };
 
-// Points to a a single fact instance in Fact_Table
+// Points to a a single fact instance in Fact_Database
 struct Fact_Handle
 {
-    uint32_t index;
-    uint32_t generation;
+    // index of table in Fact_Database
+    uint64_t table      : 20;
+    // index of entry in Fact_Table
+    uint64_t entry      : 20;
+    // entry generation when this handle was obtained
+    uint64_t generation : 24;
 };
 
-//
-// Fact_Name(P00, P01, ..., P0M)
-// Fact_Name(P10, P11, ..., P1M)
-// ...
-// Fact_Name(PN0, PN1, ..., PNM)
-//
-// columns[i]  { P0i, P1i, ..., PNi }
 //
 struct Fact_Table
 {
@@ -68,6 +65,7 @@ struct Fact_Table
     uint32_t*   generations;
 };
 
+//
 struct Fact_Database
 {
     uint32_t    num_tables;
