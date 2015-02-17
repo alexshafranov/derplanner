@@ -34,9 +34,10 @@ void destroy(Memory* mem, Fact_Table& t);
 
 /// Fact_Handle
 
-inline bool is_valid(const Fact_Table& table, Fact_Handle handle)
+inline bool is_valid(const Fact_Database& db, Fact_Handle handle)
 {
-    return handle.generation == table.generations[handle.index];
+    const Fact_Table& table = db.tables[handle.table];
+    return handle.generation == table.generations[handle.entry];
 }
 
 /// as_<Type> inline accessors for Fact_Table data
@@ -45,10 +46,10 @@ inline bool is_valid(const Fact_Table& table, Fact_Handle handle)
 #define PLNNR_TYPE(TYPE_TAG, TYPE_NAME)                                                         \
     inline TYPE_NAME as_##TYPE_TAG(const Fact_Table& t, Fact_Handle handle, int param_index)    \
     {                                                                                           \
-        plnnr_assert(handle.index < t.num_entries);                                             \
+        plnnr_assert(handle.entry < t.num_entries);                                             \
         plnnr_assert(t.format.param_type[param_index] == Type_##TYPE_TAG);                      \
         const TYPE_NAME* values = static_cast<const TYPE_NAME*>(t.columns[param_index]);        \
-        return values[handle.index];                                                            \
+        return values[handle.entry];                                                            \
     }                                                                                           \
 
     #include "derplanner/runtime/type_tags.inl"
@@ -72,7 +73,7 @@ inline size_t get_type_size(Type t)
 }
 
 // returns alignment of type given type enum value
-size_t get_type_align(Type t)
+inline size_t get_type_align(Type t)
 {
     switch(t)
     {

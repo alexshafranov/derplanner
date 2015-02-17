@@ -1,4 +1,6 @@
+#include <string.h>
 #include "derplanner/runtime/runtime.h"
+#include "derplanner/runtime/worldstate.h"
 #include "travel.h"
 
 using namespace plnnr;
@@ -18,6 +20,40 @@ using namespace plnnr;
 #define PLNNR_COROUTINE_END() } return false
 
 namespace travel {
+
+Fact_Database create_database(Memory* mem)
+{
+	Fact_Database result;
+	memset(&result, 0, sizeof(result));
+
+	result.num_tables = 5;
+	result.tables = allocate<Fact_Table>(mem, result.num_tables);
+
+	Fact_Type fact_types[5];
+	memset(fact_types, 0, sizeof(fact_types)/sizeof(fact_types[0]));
+
+	fact_types[0].arity = 1;
+	fact_types[1].arity = 1;
+	fact_types[2].arity = 2;
+	fact_types[3].arity = 2;
+	fact_types[4].arity = 2;
+
+	fact_types[0].param_type[0] = Type_Int32;
+	fact_types[1].param_type[0] = Type_Int32;
+	fact_types[2].param_type[0] = Type_Int32;
+	fact_types[2].param_type[1] = Type_Int32;
+	fact_types[3].param_type[0] = Type_Int32;
+	fact_types[3].param_type[1] = Type_Int32;
+	fact_types[4].param_type[0] = Type_Int32;
+	fact_types[4].param_type[1] = Type_Int32;
+
+	for (uint32_t i = 0; i < result.num_tables; ++i)
+	{
+		result.tables[i] = create_fact_table(mem, i, fact_types[i], 32);
+	}
+
+	return result;
+}
 
 static const char* atom_type_to_name[] =
 {

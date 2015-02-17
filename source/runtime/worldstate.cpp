@@ -26,6 +26,8 @@ using namespace plnnr;
 Fact_Table plnnr::create_fact_table(Memory* mem, uint32_t id, const Fact_Type& format, uint32_t max_entries)
 {
     Fact_Table result;
+    memset(&result, 0, sizeof(result));
+
     result.fact_id = id;
     result.num_entries = 0;
     result.max_entries = max_entries;
