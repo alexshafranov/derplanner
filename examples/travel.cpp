@@ -114,6 +114,13 @@ bool next(p0_state& state, Worldstate& world)
 	PLNNR_COROUTINE_END();
 }
 
+struct p0_state
+{
+	int stage;
+	Fact_Handle	start_0;
+	Fact_Handle finish_1;
+};
+
 // method travel [17:9]
 struct p1_state
 {

@@ -25,6 +25,7 @@
 
 namespace plnnr {
 
+// Type IDs.
 enum Type
 {
     Type_None = 0,
@@ -36,13 +37,16 @@ enum Type
 
 enum { Max_Fact_Arity = 16 };
 
+// Format of the fact tuple.
 struct Fact_Type
 {
+    // number of parameters.
     uint8_t arity;
+    // type of each parameter.
     Type param_type[Max_Fact_Arity];
 };
 
-// Points to a a single fact instance in Fact_Database
+// Weak pointer to a fact tuple in Fact_Database
 struct Fact_Handle
 {
     // index of table in Fact_Database
@@ -53,23 +57,88 @@ struct Fact_Handle
     uint64_t generation : 24;
 };
 
-//
+// Collection of tuples of a single fact type.
 struct Fact_Table
 {
-    uint32_t    fact_id;
-    uint32_t    num_entries;
-    uint32_t    max_entries;
-    Fact_Type   format;
-    void*       buffer;
-    void*       columns[Max_Fact_Arity];
-    uint32_t*   generations;
+    // current number of entries stored.
+    uint32_t        num_entries;
+    // total allocated number of entries.
+    uint32_t        max_entries;
+    // linear block of memory accommodating entries' data
+    void*           blob;
+    // tuples laid out in SOA order.
+    void*           columns[Max_Fact_Arity];
+    // generation per each entry to support weak handles.
+    uint32_t*       generations;
+};
+
+// A set of fact tables.
+struct Fact_Database
+{
+    // current number of tables.
+    uint32_t        num_tables;
+    // total allocated number of tables.
+    uint32_t        max_tables;
+    // fact name hash per each table.
+    uint32_t*       hashes;
+    // fact name per each table.
+    const char**    names;
+    // type (format) per each table.
+    Fact_Type*      types;
+    // table data.
+    Fact_Table*     tables;
+    // linear block of memory accommodating database data.
+    void*           blob;
 };
 
 //
-struct Fact_Database
+struct Planner_State;
+struct Method_Instance;
+
+//
+typedef bool (*Composite_Task_Expand)(Planner_State*, Method_Instance*, Fact_Database*);
+
+// Database construction parameters.
+struct Database_Format
 {
-    uint32_t    num_tables;
-    Fact_Table* tables;
+    // number of tables (fact types).
+    uint32_t        num_tables;
+    // size hint (max entries) per each table.
+    uint32_t*       size_hints;
+    // fact format.
+    Fact_Type*      types;
+    // fact name hash per each table.
+    uint32_t*       hashes;
+    // fact name per each table
+    const char**    names;
+};
+
+// Runtime task information specified by generated domain code.
+struct Task_Info
+{
+    // number of tasks in domain.
+    uint32_t                num_tasks;
+    // number of primitive tasks in domain.
+    uint32_t                num_primitive;
+    // task name hashes (composite tasks are specified after primitive).
+    uint32_t*               hashes;
+    // task names (composite tasks are specified after primitive).
+    const char**            names;
+    // pointer to generated "expand" function for each composite task.
+    Composite_Task_Expand*  expands;
+};
+
+// Interface to the generated domain code.
+class Domain
+{
+public:
+    virtual ~Domain() {}
+
+    // format of the fact database required by this domain.
+    virtual Database_Format get_database_requirements() const = 0;
+
+    // task type information for tasks specified in this domain.
+    virtual Task_Info get_task_info() const = 0;
 };
 
 }
