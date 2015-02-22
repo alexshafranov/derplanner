@@ -1,0 +1,29 @@
+
+domain travel
+{
+    world
+    {
+        start( int ),
+        finish( int ),
+        short_distance( int, int ),
+        long_distance( int, int ),
+        airport( int, int ),
+    }
+
+    task root()
+    {
+        case( start(s) & finish(f) ) -> [ travel(s, f) ]
+    }
+
+    task travel(x, y)
+    {
+        case( short_distance(x, y) ) -> [ !go_by_taxi(x, y) ]
+
+        case( long_distance(x, y) ) -> [ travel_by_air(x, y) ]
+    }
+
+    task travel_by_plane(x, y)
+    {
+        case( airport(x, ax) & airport(y, ay) ) -> [ travel(x, ax), !go_by_plane(ax, ay), travel(y, ay) ]
+    }
+}
