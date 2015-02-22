@@ -42,11 +42,11 @@ Fact_Table plnnr::create_fact_table(Memory* mem, uint32_t id, const Fact_Type& f
     // generations
     size += plnnr_alignof(uint32_t) + max_entries * sizeof(uint32_t);
 
-    void* buffer = mem->allocate(size);
+    void* blob = mem->allocate(size);
 
     // setup pointers
-    result.buffer = buffer;
-    uint8_t* bytes = static_cast<uint8_t*>(buffer);
+    result.blob = blob;
+    uint8_t* bytes = static_cast<uint8_t*>(blob);
 
     for (uint8_t i = 0; i < format.arity; ++i)
     {
