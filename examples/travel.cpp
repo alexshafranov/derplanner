@@ -21,37 +21,88 @@ using namespace plnnr;
 
 namespace travel {
 
-Fact_Database create_database(Memory* mem)
+bool root_branch_0_expand(Planner_State*, Expansion_Frame*, Fact_Database*);
+bool travel_branch_0_expand(Planner_State*, Expansion_Frame*, Fact_Database*);
+bool travel_branch_1_expand(Planner_State*, Expansion_Frame*, Fact_Database*);
+bool travel_by_air_branch_0_expand(Planner_State*, Expansion_Frame*, Fact_Database*);
+
+void Domain::init()
 {
-	Fact_Database result;
-	memset(&result, 0, sizeof(result));
-
-	result.num_tables = 5;
-	result.tables = allocate<Fact_Table>(mem, result.num_tables);
-
-	Fact_Type fact_types[5];
-	memset(fact_types, 0, sizeof(fact_types)/sizeof(fact_types[0]));
+	memset(fact_types, 0, sizeof(fact_types)/sizeof(fact_types[0])));
+	memset(fact_name_hashes, 0, sizeof(fact_name_hashes)/sizeof(fact_name_hashes[0])));
+	memset(fact_names, 0, sizeof(fact_names)/sizeof(fact_names[0])));
+	memset(task_name_hashes, 0, sizeof(task_name_hashes)/sizeof(task_name_hashes[0])));
+	memset(task_names, 0, sizeof(task_names)/sizeof(task_names[0])));
+	memset(task_parameters, 0, sizeof(task_parameters)/sizeof(task_parameters[0])));
+	memset(task_expands, 0, sizeof(task_expands)/sizeof(task_expands[0])));
 
 	fact_types[0].arity = 1;
+		fact_types[0].param_type[0] = Type_Int32;
 	fact_types[1].arity = 1;
+		fact_types[1].param_type[0] = Type_Int32;
 	fact_types[2].arity = 2;
+		fact_types[2].param_type[0] = Type_Int32;
+		fact_types[2].param_type[1] = Type_Int32;
 	fact_types[3].arity = 2;
+		fact_types[3].param_type[0] = Type_Int32;
+		fact_types[3].param_type[1] = Type_Int32;
 	fact_types[4].arity = 2;
+		fact_types[4].param_type[0] = Type_Int32;
+		fact_types[4].param_type[1] = Type_Int32;
 
-	fact_types[0].param_type[0] = Type_Int32;
-	fact_types[1].param_type[0] = Type_Int32;
-	fact_types[2].param_type[0] = Type_Int32;
-	fact_types[2].param_type[1] = Type_Int32;
-	fact_types[3].param_type[0] = Type_Int32;
-	fact_types[3].param_type[1] = Type_Int32;
-	fact_types[4].param_type[0] = Type_Int32;
-	fact_types[4].param_type[1] = Type_Int32;
+	//fact_name_hashes
+	fact_names[0] = "start";
+	fact_names[1] = "finish";
+	fact_names[2] = "short_distance";
+	fact_names[3] = "long_distance";
+	fact_names[4] = "airport";
 
-	for (uint32_t i = 0; i < result.num_tables; ++i)
-	{
-		result.tables[i] = create_fact_table(mem, i, fact_types[i], 32);
-	}
+	//task_name_hashes
+	task_names[0] = "!go_by_taxi";
+	task_names[1] = "!go_by_plane";
+	task_names[2] = "root";
+	task_names[3] = "travel";
+	task_names[4] = "travel_by_plane";
 
+	task_expands[0] = root_branch_0_expand;
+	task_expands[1] = travel_branch_0_expand;
+	task_expands[2] = travel_by_air_branch_0_expand;
+
+	task_parameters[0].arity = 2;
+		task_parameters[0].param_type[0] = Type_Int32;
+		task_parameters[0].param_type[1] = Type_Int32;
+	task_parameters[1].arity = 2;
+		task_parameters[1].param_type[0] = Type_Int32;
+		task_parameters[1].param_type[1] = Type_Int32;
+	task_parameters[2].arity = 0;
+	task_parameters[3].arity = 2;
+		task_parameters[3].param_type[0] = Type_Int32;
+		task_parameters[3].param_type[1] = Type_Int32;
+	task_parameters[4].arity = 2;
+		task_parameters[4].param_type[0] = Type_Int32;
+		task_parameters[4].param_type[1] = Type_Int32;
+}
+
+Database_Format Domain::get_database_requirements() const
+{
+	Database_Format result;
+	result.num_tables = 5;
+	result.size_hints = 0;
+	result.types = fact_types;
+	result.hashes = fact_name_hashes;
+	result.names = fact_names;
+	return result;
+}
+
+Task_Info Domain::get_task_info() const
+{
+	Task_Info result;
+	result.num_tasks = 5;
+	result.num_primitive = 2;
+	result.hashes = task_name_hashes;
+	result.names = task_names;
+	result.expands = task_expands;
+	result.parameters = task_parameters;
 	return result;
 }
 
