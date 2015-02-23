@@ -3,11 +3,11 @@ domain travel
 {
     world
     {
-        start( int ),
-        finish( int ),
-        short_distance( int, int ),
-        long_distance( int, int ),
-        airport( int, int ),
+        start( int )  :size(1)
+        finish( int ) :size(1)
+        short_distance( int, int )
+        long_distance( int, int )
+        airport( int, int )
     }
 
     task root()
