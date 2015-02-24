@@ -22,6 +22,7 @@
 #define DERPLANNER_RUNTIME_TYPES_H_
 
 #include <stdint.h>
+#include <stddef.h>
 
 namespace plnnr {
 
@@ -91,6 +92,12 @@ struct Fact_Database
     void*           blob;
 };
 
+struct Planning_State;
+struct Expansion_Frame;
+
+// Generated expansion function prototype.
+typedef bool (*Composite_Task_Expand)(Planning_State*, Expansion_Frame*, Fact_Database*);
+
 // Header of a single frame on expansion stack. The frame layout is: Header | Arguments | Precondition_State.
 struct Expansion_Frame
 {
@@ -113,15 +120,25 @@ struct Task_Frame
     uint32_t task_type;
 };
 
-//
-struct Planner_State
+// Planning state to support non-recursive planning.
+struct Planning_State
 {
-    Expansion_Frame*    top_expansion;
-    Task_Frame*         top_task;
-};
+    struct Stack
+    {
+        size_t      size;
+        uint8_t*    top;
+        uint8_t*    bottom;
+    };
 
-//
-typedef bool (*Composite_Task_Expand)(Planner_State*, Expansion_Frame*, Fact_Database*);
+    // header of the top-most expansion stack frame.
+    Expansion_Frame*    top_expansion;
+    // header of the top-most task stack frame.
+    Task_Frame*         top_task;
+    // expansion stack.
+    Stack               expansion_stack;
+    // task (plan) stack.
+    Stack               task_stack;
+};
 
 // Database construction parameters.
 struct Database_Format
@@ -155,20 +172,13 @@ struct Task_Info
     Composite_Task_Expand*  expands;
 };
 
-// Interface to the generated domain code.
-class Domain
+// Domain info provided by the generated code.
+struct Domain_Info
 {
-public:
-    virtual ~Domain() {}
-
-    // initialize domain information.
-    virtual void init() = 0;
-
-    // format of the fact database required by this domain.
-    virtual Database_Format get_database_requirements() const = 0;
-
-    // task type information for tasks specified in this domain.
-    virtual Task_Info get_task_info() const = 0;
+    // generated tasks info.
+    Task_Info           task_info;
+    // required fact database format.
+    Database_Format     database_req;
 };
 
 }
