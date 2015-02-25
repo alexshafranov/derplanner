@@ -74,8 +74,8 @@ solution "derplanner"
         includedirs { "include" }
         links { "derplanner-runtime" }
 
-    project "example-blocks"
-        kind "ConsoleApp"
-        files { "examples/blocks.main.cpp", "examples/blocks.cpp" }
-        includedirs { "include" }
-        links { "derplanner-runtime" }
+    -- project "example-blocks"
+    --     kind "ConsoleApp"
+    --     files { "examples/blocks.main.cpp", "examples/blocks.cpp" }
+    --     includedirs { "include" }
+    --     links { "derplanner-runtime" }

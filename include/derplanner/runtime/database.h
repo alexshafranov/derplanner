@@ -18,8 +18,8 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef DERPLANNER_RUNTIME_WORLDSTATE_H_
-#define DERPLANNER_RUNTIME_WORLDSTATE_H_
+#ifndef DERPLANNER_RUNTIME_DATABASE_H_
+#define DERPLANNER_RUNTIME_DATABASE_H_
 
 #include "derplanner/runtime/assert.h"
 #include "derplanner/runtime/memory.h"
