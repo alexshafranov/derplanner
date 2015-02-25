@@ -3,6 +3,6 @@
 
 #include "derplanner/runtime/types.h"
 
-const Domain_Info* plnnr_domain_info();
+const plnnr::Domain_Info* travel_domain_info();
 
 #endif

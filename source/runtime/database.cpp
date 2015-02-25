@@ -19,7 +19,7 @@
 //
 
 #include <string.h> // memset
-#include "derplanner/runtime/worldstate.h"
+#include "derplanner/runtime/database.h"
 
 using namespace plnnr;
 

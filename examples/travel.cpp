@@ -1,6 +1,5 @@
 #include <string.h>
-#include "derplanner/runtime/runtime.h"
-#include "derplanner/runtime/worldstate.h"
+#include "derplanner/runtime/planning.h"
 #include "travel.h"
 
 using namespace plnnr;
@@ -66,40 +65,10 @@ static Domain_Info s_domain_info = {
 	},
 };
 
-const Domain_Info* plnnr_domain_info()
+const Domain_Info* travel_domain_info()
 {
 	return &s_domain_info;
 }
-
-namespace travel {
-
-static const char* atom_type_to_name[] =
-{
-	"start",
-	"finish",
-	"short_distance",
-	"long_distance",
-	"airport",
-	"<none>",
-};
-
-const char* atom_name(Atom_Type type) { return atom_type_to_name[type]; }
-
-}
-
-namespace travel {
-
-static const char* task_type_to_name[] =
-{
-	"!ride_taxi",
-	"!fly",
-	"root",
-	"travel",
-	"travel_by_air",
-	"<none>",
-};
-
-const char* task_name(Task_Type type) { return task_type_to_name[type]; }
 
 // method root [12:9]
 struct p0_state
@@ -370,10 +339,13 @@ bool travel_by_air_branch_0_expand(Planning_State* state, Expansion_Frame* frame
 		PLNNR_COROUTINE_YIELD(*method, 2);
 
 		{
-			Method_Instance* t = push_method(pstate, task_travel, travel_branch_0_expand);
-			travel_args* a = push_arguments<travel_args>(pstate, t);
-			a->_0 = precondition->_3;
-			a->_1 = method_args->_1;
+			// Method_Instance* t = push_method(pstate, task_travel, travel_branch_0_expand);
+			// travel_args* a = push_arguments<travel_args>(pstate, t);
+			// a->_0 = precondition->_3;
+			// a->_1 = method_args->_1;
+			push_composite(state, 3, travel_branch_0_expand);
+			push_argument(state, precondition->_3);
+			push_argument(state, method_args->_1);
 		}
 
 		method->flags |= method_flags_expanded;
@@ -381,6 +353,4 @@ bool travel_by_air_branch_0_expand(Planning_State* state, Expansion_Frame* frame
 	}
 
 	PLNNR_COROUTINE_END();
-}
-
 }
