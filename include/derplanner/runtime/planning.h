@@ -28,7 +28,19 @@ namespace plnnr {
 
 /// Planning_State
 
-Planning_State create_planning_state(Memory* mem, size_t expansion_stack_size, size_t task_stack_size);
+struct Planning_State_Config
+{
+    // maximum expansion depth.
+    size_t max_depth;
+    // maximum plan length.
+    size_t max_plan_length;
+    // maximum size of the expansions data block (arguments & preconditions).
+    size_t max_expansion_data_size;
+    // maximum size of the plan data block (arguments & preconditions).
+    size_t max_plan_data_size;
+};
+
+Planning_State create_planning_state(Memory* mem, Planning_State_Config config);
 void destroy(Memory* mem, Planning_State& s);
 
 }

@@ -27,7 +27,7 @@ static bool travel_by_air_branch_0_expand(Planning_State*, Expansion_Frame*, Fac
 static const char* s_fact_names[] = { "start", "finish", "short_distance", "long_distance", "airport" };
 static const char* s_task_names[] = { "!go_by_taxi", "!go_by_plane", "root", "travel", "travel_by_plane" };
 
-static Composite_Task_Expand s_task_expands[] = { root_branch_0_expand, travel_branch_0_expand, travel_by_air_branch_0_expand };
+static Composite_Task_Expand* s_task_expands[] = { root_branch_0_expand, travel_branch_0_expand, travel_by_air_branch_0_expand };
 
 static Fact_Type s_fact_types[] = {
 	{ 1, { Type_Int32, } },
