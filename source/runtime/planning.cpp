@@ -22,18 +22,32 @@
 
 using namespace plnnr;
 
-Planning_State plnnr::create_planning_state(Memory* mem, size_t expansion_stack_size, size_t task_stack_size)
+// struct Planning_State
+// {
+//     // expansion stack to support back-tracking
+//     Stack<Expansion_Frame>  expansion_stack;
+//     // the resulting plan is stored on this stack.
+//     Stack<Task_Frame>       task_stack;
+//     // composite task arguments and precondition state storage.
+//     Linear_Blob             expansion_blob;
+//     // task arguments storage.
+//     Linear_Blob             task_blob;
+// };
+
+Planning_State plnnr::create_planning_state(Memory* mem, Planning_State_Config config)
 {
     Planning_State result;
     memset(&result, 0, sizeof(result));
 
-    result.expansion_stack.size = expansion_stack_size;
-    result.expansion_stack.bottom = allocate<uint8_t>(mem, expansion_stack_size, plnnr_alignof(Expansion_Stack_Frame));
+    result.expansion_stack.frames = allocate<Expansion_Frame>();
 
-    result.task_stack.size = task_stack_size;
-    result.task_stack.bottom = allocate<uint8_t>(mem, task_stack_size, plnnr_alignof(Task_Stack_Frame));
+    // result.expansion_stack.size = expansion_stack_size;
+    // result.expansion_stack.bottom = allocate<uint8_t>(mem, expansion_stack_size, plnnr_alignof(Expansion_Stack_Frame));
 
-    return result;
+    // result.task_stack.size = task_stack_size;
+    // result.task_stack.bottom = allocate<uint8_t>(mem, task_stack_size, plnnr_alignof(Task_Stack_Frame));
+
+    // return result;
 }
 
 void plnnr::destroy(Memory* mem, Planning_State& s)
