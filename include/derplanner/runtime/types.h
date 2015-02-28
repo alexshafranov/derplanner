@@ -101,6 +101,13 @@ typedef bool Composite_Task_Expand(Planning_State*, Expansion_Frame*, Fact_Datab
 // Composite task case expansion state.
 struct Expansion_Frame
 {
+    enum Flags
+    {
+        Flags_None      = 0x0,
+        Flags_Expanded  = 0x1,
+        Flags_Failed    = 0x2,
+    };
+
     // in-progress/expanded/failed flags.
     uint32_t                flags               : 2;
     // composite task type this frame holds data for, can be used for lookups in `Task_Info`.
@@ -132,6 +139,7 @@ struct Task_Frame
     void*       arguments;
 };
 
+// Helper: fixed size stack.
 template <typename T>
 struct Stack
 {
@@ -140,6 +148,7 @@ struct Stack
     T*          frames;
 };
 
+// Helper: fixed size linear block of memory.
 struct Linear_Blob
 {
     uint32_t    max_size;

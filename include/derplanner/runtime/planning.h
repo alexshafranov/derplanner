@@ -35,9 +35,9 @@ struct Planning_State_Config
     // maximum plan length.
     size_t max_plan_length;
     // maximum size of the expansions data block (arguments & preconditions).
-    size_t max_expansion_data_size;
+    size_t expansion_data_size;
     // maximum size of the plan data block (arguments & preconditions).
-    size_t max_plan_data_size;
+    size_t plan_data_size;
 };
 
 Planning_State create_planning_state(Memory* mem, Planning_State_Config config);
