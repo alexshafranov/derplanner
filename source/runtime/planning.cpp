@@ -18,41 +18,42 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
+#include <string.h> // memset
 #include "derplanner/runtime/planning.h"
 
 using namespace plnnr;
-
-// struct Planning_State
-// {
-//     // expansion stack to support back-tracking
-//     Stack<Expansion_Frame>  expansion_stack;
-//     // the resulting plan is stored on this stack.
-//     Stack<Task_Frame>       task_stack;
-//     // composite task arguments and precondition state storage.
-//     Linear_Blob             expansion_blob;
-//     // task arguments storage.
-//     Linear_Blob             task_blob;
-// };
 
 Planning_State plnnr::create_planning_state(Memory* mem, Planning_State_Config config)
 {
     Planning_State result;
     memset(&result, 0, sizeof(result));
 
-    result.expansion_stack.frames = allocate<Expansion_Frame>();
+    Expansion_Frame* expansion_frames = allocate<Expansion_Frame>(mem, config.max_depth);
+    result.expansion_stack.max_size = config.max_depth;
+    result.expansion_stack.frames = expansion_frames;
 
-    // result.expansion_stack.size = expansion_stack_size;
-    // result.expansion_stack.bottom = allocate<uint8_t>(mem, expansion_stack_size, plnnr_alignof(Expansion_Stack_Frame));
+    Task_Frame* task_frames = allocate<Task_Frame>(mem, config.max_plan_length);
+    result.task_stack.max_size = config.max_plan_length;
+    result.task_stack.frames = task_frames;
 
-    // result.task_stack.size = task_stack_size;
-    // result.task_stack.bottom = allocate<uint8_t>(mem, task_stack_size, plnnr_alignof(Task_Stack_Frame));
+    uint8_t* expansion_data = allocate<uint8_t>(mem, config.expansion_data_size, PLNNR_DEFAULT_ALIGNMENT);
+    result.expansion_blob.max_size = config.expansion_data_size;
+    result.expansion_blob.top = expansion_data;
+    result.expansion_blob.base = expansion_data;
 
-    // return result;
+    uint8_t* plan_data = allocate<uint8_t>(mem, config.plan_data_size, PLNNR_DEFAULT_ALIGNMENT);
+    result.task_blob.max_size = config.plan_data_size;
+    result.task_blob.top = plan_data;
+    result.task_blob.base = plan_data;
+
+    return result;
 }
 
 void plnnr::destroy(Memory* mem, Planning_State& s)
 {
-    mem->deallocate(s.task_stack.bottom);
-    mem->deallocate(s.expansion_stack.bottom);
+    mem->deallocate(s.expansion_stack.frames);
+    mem->deallocate(s.task_stack.frames);
+    mem->deallocate(s.expansion_blob.base);
+    mem->deallocate(s.task_blob.base);
     memset(&s, 0, sizeof(s));
 }

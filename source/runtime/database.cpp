@@ -23,15 +23,13 @@
 
 using namespace plnnr;
 
-Fact_Table plnnr::create_fact_table(Memory* mem, uint32_t id, const Fact_Type& format, uint32_t max_entries)
+Fact_Table plnnr::create_fact_table(Memory* mem, const Fact_Type& format, uint32_t max_entries)
 {
     Fact_Table result;
     memset(&result, 0, sizeof(result));
 
-    result.fact_id = id;
     result.num_entries = 0;
     result.max_entries = max_entries;
-    result.format = format;
 
     size_t size = 0;
     // data columns
@@ -63,6 +61,6 @@ Fact_Table plnnr::create_fact_table(Memory* mem, uint32_t id, const Fact_Type& f
 
 void plnnr::destroy(Memory* mem, Fact_Table& t)
 {
-    mem->deallocate(t.buffer);
+    mem->deallocate(t.blob);
     memset(&t, 0, sizeof(t));
 }

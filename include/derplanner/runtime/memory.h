@@ -36,7 +36,6 @@ void* allocate(size_t);
 void deallocate(void*);
 
 }
-}
 
 #ifndef plnnr_alignof
     #define plnnr_alignof(T) __alignof(T)
@@ -63,7 +62,7 @@ inline T* allocate(Memory* mem, size_t count, size_t alignment)
 template <typename T>
 inline T* allocate(Memory* mem, size_t count)
 {
-    return allocate<T>(count*sizeof(T), plnnr_alignof(T));
+    return allocate<T>(mem, count*sizeof(T), plnnr_alignof(T));
 }
 
 inline void* align(void* ptr, size_t alignment)

@@ -1,4 +1,5 @@
 #include <string.h>
+#include "derplanner/runtime/database.h"
 #include "derplanner/runtime/planning.h"
 #include "travel.h"
 
@@ -14,10 +15,9 @@ using namespace plnnr;
 #pragma warning(disable: 4189) // local variable is initialized but not referenced
 #endif
 
-#define PLNNR_COROUTINE_BEGIN(state) switch ((state).stage) { case 0:
-#define PLNNR_COROUTINE_YIELD(state, label) (state).stage = label; return true; case label:;
+#define PLNNR_COROUTINE_BEGIN(state, label) switch (state->label) { case 0:
+#define PLNNR_COROUTINE_YIELD(state, label, value) state->label = value; return true; case value:;
 #define PLNNR_COROUTINE_END() } return false
-
 
 static bool root_branch_0_expand(Planning_State*, Expansion_Frame*, Fact_Database*);
 static bool travel_branch_0_expand(Planning_State*, Expansion_Frame*, Fact_Database*);
@@ -64,214 +64,175 @@ static Domain_Info s_domain_info = {
 		s_fact_names,
 	},
 };
+///////////////////////////////////////////////////////////////////////////////
 
 const Domain_Info* travel_domain_info()
 {
 	return &s_domain_info;
 }
+///////////////////////////////////////////////////////////////////////////////
 
-// method root [12:9]
-struct p0_state
+/// Precondition iterators
+
+struct p0_output { int _0; int _1; };
+
+static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, p0_output* result)
 {
-	// s [12:17]
-	int _0;
-	// f [12:28]
-	int _1;
-	start_tuple* start_0;
-	finish_tuple* finish_1;
-	int stage;
-};
+	Fact_Handle* handles = frame->handles;
 
-bool next(p0_state& state, Worldstate& world)
-{
-	PLNNR_COROUTINE_BEGIN(state);
+	PLNNR_COROUTINE_BEGIN(frame, precond_label);
+	allocate_handles(state, frame, 2);
 
-	for (state.start_0 = tuple_list::head<start_tuple>(world.atoms[atom_start]); state.start_0 != 0; state.start_0 = state.start_0->next)
+	for (handles[0] = first(db, 0); is_valid(db, handles[0]); handles[0] = next(db, handles[0]))
 	{
-		state._0 = state.start_0->_0;
-
-		for (state.finish_1 = tuple_list::head<finish_tuple>(world.atoms[atom_finish]); state.finish_1 != 0; state.finish_1 = state.finish_1->next)
+		for (handles[1] = first(db, 1); is_valid(db, handles[1]); handles[1] = next(db, handles[1]))
 		{
-			state._1 = state.finish_1->_0;
-
-			PLNNR_COROUTINE_YIELD(state, 2);
+			result->_0 = as_Int32(db, handles[0], 0);
+			result->_1 = as_Int32(db, handles[1], 0);
+			PLNNR_COROUTINE_YIELD(frame, precond_label, 1);
 		}
 	}
 
 	PLNNR_COROUTINE_END();
 }
+///////////////////////////////////////////////////////////////////////////////
 
-struct p0_state
+struct p1_input { int _0; int _1; };
+
+static bool p1_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, p1_input* args)
 {
-	int stage;
-	Fact_Handle	start_0;
-	Fact_Handle finish_1;
-};
+	Fact_Handle* handles = frame->handles;
 
-// method travel [17:9]
-struct p1_state
-{
-	// x [17:25]
-	int _0;
-	// y [17:27]
-	int _1;
-	short_distance_tuple* short_distance_0;
-	int stage;
-};
+	PLNNR_COROUTINE_BEGIN(frame, precond_label);
+	allocate_handles(state, frame, 1);
 
-bool next(p1_state& state, Worldstate& world)
-{
-	PLNNR_COROUTINE_BEGIN(state);
-
-	for (state.short_distance_0 = tuple_list::head<short_distance_tuple>(world.atoms[atom_short_distance]); state.short_distance_0 != 0; state.short_distance_0 = state.short_distance_0->next)
+	for (handles[0] = first(db, 2); is_valid(db, handles[0]); handles[0] = next(db, handles[0]))
 	{
-		if (state.short_distance_0->_0 != state._0)
+		if (as_Int32(db, handles[0], 0) != args->_0)
 		{
 			continue;
 		}
 
-		if (state.short_distance_0->_1 != state._1)
+		if (as_Int32(db, handles[0], 1) != args->_1)
 		{
 			continue;
 		}
 
-		PLNNR_COROUTINE_YIELD(state, 1);
+		PLNNR_COROUTINE_YIELD(frame, precond_label, 1);
 	}
 
 	PLNNR_COROUTINE_END();
 }
+///////////////////////////////////////////////////////////////////////////////
 
-// method travel [20:9]
-struct p2_state
+struct p2_input { int _0; int _1; };
+
+static bool p2_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, p2_input* args)
 {
-	// x [20:24]
-	int _0;
-	// y [20:26]
-	int _1;
-	long_distance_tuple* long_distance_0;
-	int stage;
-};
+	Fact_Handle* handles = frame->handles;
 
-bool next(p2_state& state, Worldstate& world)
-{
-	PLNNR_COROUTINE_BEGIN(state);
+	PLNNR_COROUTINE_BEGIN(frame, precond_label);
+	allocate_handles(state, frame, 1);
 
-	for (state.long_distance_0 = tuple_list::head<long_distance_tuple>(world.atoms[atom_long_distance]); state.long_distance_0 != 0; state.long_distance_0 = state.long_distance_0->next)
+	for (handles[0] = first(db, 3); is_valid(db, handles[0]); handles[0] = next(db, handles[0]))
 	{
-		if (state.long_distance_0->_0 != state._0)
+		if (as_Int32(db, handles[0], 0) != args->_0)
 		{
 			continue;
 		}
 
-		if (state.long_distance_0->_1 != state._1)
+		if (as_Int32(db, handles[0], 1) != args->_1)
 		{
 			continue;
 		}
 
-		PLNNR_COROUTINE_YIELD(state, 1);
+		PLNNR_COROUTINE_YIELD(frame, precond_label, 1);
 	}
 
 	PLNNR_COROUTINE_END();
 }
+///////////////////////////////////////////////////////////////////////////////
 
-// method travel_by_air [25:9]
-struct p3_state
+struct p3_input { int _0; int _1; };
+
+struct p3_output { int _0; int _1; };
+
+static bool p3_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, p3_input* args, p3_output* result)
 {
-	// x [25:19]
-	int _0;
-	// ax [25:21]
-	int _1;
-	// y [25:34]
-	int _2;
-	// ay [25:36]
-	int _3;
-	airport_tuple* airport_0;
-	airport_tuple* airport_1;
-	int stage;
-};
+	Fact_Handle* handles = frame->handles;
 
-bool next(p3_state& state, Worldstate& world)
-{
-	PLNNR_COROUTINE_BEGIN(state);
+	PLNNR_COROUTINE_BEGIN(frame, precond_label);
+	allocate_handles(state, frame, 2);
 
-	for (state.airport_0 = tuple_list::head<airport_tuple>(world.atoms[atom_airport]); state.airport_0 != 0; state.airport_0 = state.airport_0->next)
+	for (handles[0] = first(db, 4); is_valid(db, handles[0]); handles[0] = next(db, handles[0]))
 	{
-		if (state.airport_0->_0 != state._0)
+		if (as_Int32(db, handles[0], 0) != args->_0)
 		{
 			continue;
 		}
 
-		state._1 = state.airport_0->_1;
-
-		for (state.airport_1 = tuple_list::head<airport_tuple>(world.atoms[atom_airport]); state.airport_1 != 0; state.airport_1 = state.airport_1->next)
+		for (handles[1] = first(db, 4); is_valid(db, handles[1]); handles[1] = next(db, handles[1]))
 		{
-			if (state.airport_1->_0 != state._2)
+			if (as_Int32(db, handles[1], 0) != args->_1)
 			{
 				continue;
 			}
 
-			state._3 = state.airport_1->_1;
-
-			PLNNR_COROUTINE_YIELD(state, 2);
+			result->_0 = as_Int32(db, handles[0], 1);
+			result->_1 = as_Int32(db, handles[1], 1);
+			PLNNR_COROUTINE_YIELD(frame, precond_label, 1);
 		}
 	}
 
 	PLNNR_COROUTINE_END();
 }
+///////////////////////////////////////////////////////////////////////////////
 
-bool root_branch_0_expand(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
+/// Composite task expansions
+
+static bool root_branch_0_expand(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
 {
-	p0_state* precondition = plnnr::precondition<p0_state>(method);
-	Worldstate* wstate = static_cast<Worldstate*>(world);
+	p0_output p0_result;
 
-	PLNNR_COROUTINE_BEGIN(*method);
+	PLNNR_COROUTINE_BEGIN(frame, expand_label);
 
-	precondition = push_precondition<p0_state>(pstate, method);
-
-	while (next(*precondition, *wstate))
+	while (p0_next(state, frame, db, &p0_result))
 	{
-		{
-			Method_Instance* t = push_method(pstate, task_travel, travel_branch_0_expand);
-			travel_args* a = push_arguments<travel_args>(pstate, t);
-			a->_0 = precondition->_0;
-			a->_1 = precondition->_1;
-		}
-
-		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method, 1);
+		push_composite(state, 3, travel_branch_0_expand, 2);
+		push_composite_arg(state, Type_Int32, p0_result._0);
+		push_composite_arg(state, Type_Int32, p0_result._1);
+		frame->flags |= Expansion_Frame::Flags_Expanded;
+		PLNNR_COROUTINE_YIELD(frame, expand_label, 1);
 	}
 
 	PLNNR_COROUTINE_END();
 }
+///////////////////////////////////////////////////////////////////////////////
 
-bool travel_branch_0_expand(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
+static bool travel_branch_0_expand(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
 {
-	p1_state* precondition = plnnr::precondition<p1_state>(method);
-	travel_args* method_args = plnnr::arguments<travel_args>(method);
-	Worldstate* wstate = static_cast<Worldstate*>(world);
+	int _0 = as_Int32(frame->arguments, s_task_parameters[3], 0);
+	int _1 = as_Int32(frame->arguments, s_task_parameters[3], 1);
+	p1_input p1_args;
+	p1_args._0 = _0;
+	p1_args._1 = _1;
 
-	PLNNR_COROUTINE_BEGIN(*method);
+	PLNNR_COROUTINE_BEGIN(frame, expand_label);
 
-	precondition = push_precondition<p1_state>(pstate, method);
-	precondition->_0 = method_args->_0;
-	precondition->_1 = method_args->_1;
-
-	while (next(*precondition, *wstate))
+	while (p1_next(state, frame, db, &p1_args))
 	{
-		{
-			Task_Instance* t = push_task(pstate, task_ride_taxi, 0);
-			ride_taxi_args* a = push_arguments<ride_taxi_args>(pstate, t);
-			a->_0 = method_args->_0;
-			a->_1 = method_args->_1;
-		}
-
-		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method, 1);
+		push_task(state, 0, 2);
+		push_task_arg(state, Type_Int32, _0);
+		push_task_arg(state, Type_Int32, _1);
+		frame->flags |= Expansion_Frame::Flags_Expanded;
+		PLNNR_COROUTINE_YIELD(frame, expand_label, 1);
 	}
 
-	return expand_next_branch(pstate, travel_branch_1_expand, world);
+	return expand_next_case(state, frame, db, travel_branch_1_expand);
+
 	PLNNR_COROUTINE_END();
 }
+///////////////////////////////////////////////////////////////////////////////
 
 bool travel_branch_1_expand(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
 {
