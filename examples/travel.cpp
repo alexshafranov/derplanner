@@ -22,12 +22,12 @@ using namespace plnnr;
 static bool root_branch_0_expand(Planning_State*, Expansion_Frame*, Fact_Database*);
 static bool travel_branch_0_expand(Planning_State*, Expansion_Frame*, Fact_Database*);
 static bool travel_branch_1_expand(Planning_State*, Expansion_Frame*, Fact_Database*);
-static bool travel_by_air_branch_0_expand(Planning_State*, Expansion_Frame*, Fact_Database*);
+static bool travel_by_plane_branch_0_expand(Planning_State*, Expansion_Frame*, Fact_Database*);
 
 static const char* s_fact_names[] = { "start", "finish", "short_distance", "long_distance", "airport" };
 static const char* s_task_names[] = { "!go_by_taxi", "!go_by_plane", "root", "travel", "travel_by_plane" };
 
-static Composite_Task_Expand* s_task_expands[] = { root_branch_0_expand, travel_branch_0_expand, travel_by_air_branch_0_expand };
+static Composite_Task_Expand* s_task_expands[] = { root_branch_0_expand, travel_branch_0_expand, travel_by_plane_branch_0_expand };
 
 static Fact_Type s_fact_types[] = {
 	{ 1, { Type_Int32, } },
@@ -221,7 +221,7 @@ static bool travel_branch_0_expand(Planning_State* state, Expansion_Frame* frame
 
 	while (p1_next(state, frame, db, &p1_args))
 	{
-		push_task(state, 0, 2);
+		push_task(state, 0, 1);
 		push_task_arg(state, Type_Int32, _0);
 		push_task_arg(state, Type_Int32, _1);
 		frame->flags |= Expansion_Frame::Flags_Expanded;
@@ -234,84 +234,67 @@ static bool travel_branch_0_expand(Planning_State* state, Expansion_Frame* frame
 }
 ///////////////////////////////////////////////////////////////////////////////
 
-bool travel_branch_1_expand(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
+static bool travel_branch_1_expand(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
 {
-	p2_state* precondition = plnnr::precondition<p2_state>(method);
-	travel_args* method_args = plnnr::arguments<travel_args>(method);
-	Worldstate* wstate = static_cast<Worldstate*>(world);
+	int _0 = as_Int32(frame->arguments, s_task_parameters[3], 0);
+	int _1 = as_Int32(frame->arguments, s_task_parameters[3], 1);
+	p2_input p2_args;
+	p2_args._0 = _0;
+	p2_args._1 = _1;
 
-	PLNNR_COROUTINE_BEGIN(*method);
+	PLNNR_COROUTINE_BEGIN(frame, expand_label);
 
-	precondition = push_precondition<p2_state>(pstate, method);
-	precondition->_0 = method_args->_0;
-	precondition->_1 = method_args->_1;
-
-	while (next(*precondition, *wstate))
+	while (p2_next(state, frame, db, &p2_args))
 	{
-		{
-			Method_Instance* t = push_method(pstate, task_travel_by_air, travel_by_air_branch_0_expand);
-			travel_by_air_args* a = push_arguments<travel_by_air_args>(pstate, t);
-			a->_0 = method_args->_0;
-			a->_1 = method_args->_1;
-		}
-
-		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method, 1);
+		push_composite(state, 4, travel_by_plane_branch_0_expand, 2);
+		push_composite_arg(state, Type_Int32, _0);
+		push_composite_arg(state, Type_Int32, _1);
+		frame->flags |= Expansion_Frame::Flags_Expanded;
+		PLNNR_COROUTINE_YIELD(frame, expand_label, 1);
 	}
 
 	PLNNR_COROUTINE_END();
 }
+///////////////////////////////////////////////////////////////////////////////
 
-bool travel_by_air_branch_0_expand(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
+static bool travel_by_plane_branch_0_expand(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
 {
-	p3_state* precondition = plnnr::precondition<p3_state>(method);
-	travel_by_air_args* method_args = plnnr::arguments<travel_by_air_args>(method);
-	Worldstate* wstate = static_cast<Worldstate*>(world);
+	int _0 = as_Int32(frame->arguments, s_task_parameters[4], 0);
+	int _1 = as_Int32(frame->arguments, s_task_parameters[4], 1);
+	p3_input p3_args;
+	p3_args._0 = _0;
+	p3_args._1 = _1;
+	p3_output p3_result;
 
-	PLNNR_COROUTINE_BEGIN(*method);
+	PLNNR_COROUTINE_BEGIN(frame, expand_label);
 
-	precondition = push_precondition<p3_state>(pstate, method);
-	precondition->_0 = method_args->_0;
-	precondition->_2 = method_args->_1;
-
-	while (next(*precondition, *wstate))
+	while (p3_next(state, frame, db, &p3_args, &p3_result))
 	{
-		{
-			Method_Instance* t = push_method(pstate, task_travel, travel_branch_0_expand);
-			travel_args* a = push_arguments<travel_args>(pstate, t);
-			a->_0 = method_args->_0;
-			a->_1 = precondition->_1;
-		}
+		push_composite(state, 3, travel_branch_0_expand, 2);
+		push_composite_arg(state, Type_Int32, _0);
+		push_composite_arg(state, Type_Int32, p3_result._0);
 
-		PLNNR_COROUTINE_YIELD(*method, 1);
+		PLNNR_COROUTINE_YIELD(frame, expand_label, 1);
 
-		if (method->flags & method_flags_failed)
+		if ((frame->flags & Expansion_Frame::Flags_Failed) != 0)
 		{
 			continue;
 		}
 
-		{
-			Task_Instance* t = push_task(pstate, task_fly, 0);
-			fly_args* a = push_arguments<fly_args>(pstate, t);
-			a->_0 = precondition->_1;
-			a->_1 = precondition->_3;
-		}
+		push_task(state, 1, 2);
+		push_task_arg(state, Type_Int32, p3_result._0);
+		push_task_arg(state, Type_Int32, p3_result._1);
 
-		PLNNR_COROUTINE_YIELD(*method, 2);
+		PLNNR_COROUTINE_YIELD(frame, expand_label, 2);
 
-		{
-			// Method_Instance* t = push_method(pstate, task_travel, travel_branch_0_expand);
-			// travel_args* a = push_arguments<travel_args>(pstate, t);
-			// a->_0 = precondition->_3;
-			// a->_1 = method_args->_1;
-			push_composite(state, 3, travel_branch_0_expand);
-			push_argument(state, precondition->_3);
-			push_argument(state, method_args->_1);
-		}
+		push_composite(state, 3, travel_branch_0_expand, 2);
+		push_composite_arg(state, Type_Int32, p3_result._1);
+		push_composite_arg(state, Type_Int32, _1);
 
-		method->flags |= method_flags_expanded;
-		PLNNR_COROUTINE_YIELD(*method, 3);
+		frame->flags |= Expansion_Frame::Flags_Expanded;
+		PLNNR_COROUTINE_YIELD(frame, expand_label, 3);
 	}
 
 	PLNNR_COROUTINE_END();
 }
+///////////////////////////////////////////////////////////////////////////////
