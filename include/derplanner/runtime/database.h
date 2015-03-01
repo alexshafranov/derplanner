@@ -57,7 +57,7 @@ inline bool is_valid(const Fact_Database& db, Fact_Handle handle)
 // returns size of type given type enum value
 inline size_t get_type_size(Type t)
 {
-    switch(t)
+    switch (t)
     {
 #define PLNNR_TYPE(TYPE_TAG, TYPE_NAME) \
     case Type_##TYPE_TAG: return sizeof(TYPE_NAME);
@@ -74,7 +74,7 @@ inline size_t get_type_size(Type t)
 // returns alignment of type given type enum value
 inline size_t get_type_align(Type t)
 {
-    switch(t)
+    switch (t)
     {
 #define PLNNR_TYPE(TYPE_TAG, TYPE_NAME) \
     case Type_##TYPE_TAG: return plnnr_alignof(TYPE_NAME);
