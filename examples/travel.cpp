@@ -93,8 +93,8 @@ static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 	{
 		for (handles[1] = first(db, 1); is_valid(db, handles[1]); handles[1] = next(db, handles[1]))
 		{
-			write_output(state, frame, s_precondition_output[0], 0, as_Int32(db, handles[0], 0));
-			write_output(state, frame, s_precondition_output[0], 1, as_Int32(db, handles[1], 0));
+			write_output(frame, s_precondition_output[0], 0, as_Int32(db, handles[0], 0));
+			write_output(frame, s_precondition_output[0], 1, as_Int32(db, handles[1], 0));
 
 			PLNNR_COROUTINE_YIELD(frame, precond_label, 1);
 		}
@@ -184,8 +184,8 @@ static bool p3_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 				continue;
 			}
 
-			write_output(state, frame, s_precondition_output[3], 0, as_Int32(db, handles[0], 1));
-			write_output(state, frame, s_precondition_output[3], 1, as_Int32(db, handles[1], 1));
+			write_output(frame, s_precondition_output[3], 0, as_Int32(db, handles[0], 1));
+			write_output(frame, s_precondition_output[3], 1, as_Int32(db, handles[1], 1));
 
 			PLNNR_COROUTINE_YIELD(frame, precond_label, 1);
 		}
