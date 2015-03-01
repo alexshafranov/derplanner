@@ -126,6 +126,8 @@ struct Expansion_Frame
     Composite_Task_Expand*  expand;
     // pointer to the composite task arguments.
     void*                   arguments;
+    // pointer to the precondition outputs.
+    void*                   precond_output;
     // fact database handles kept by the case precondition.
     Fact_Handle*            handles;
 };

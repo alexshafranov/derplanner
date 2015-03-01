@@ -45,6 +45,13 @@ static Fact_Type s_task_parameters[] = {
 	{ 2, { Type_Int32, Type_Int32 } },
 };
 
+static Fact_Type s_precondition_output[] = {
+	{ 2, { Type_Int32, Type_Int32 } },
+	{ 0, { } },
+	{ 0, { } },
+	{ 2, { Type_Int32, Type_Int32 } },
+}
+
 static Domain_Info s_domain_info = {
 	// task_info
 	{
@@ -74,21 +81,21 @@ const Domain_Info* travel_domain_info()
 
 /// Precondition iterators
 
-struct p0_output { int _0; int _1; };
-
 static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, p0_output* result)
 {
 	Fact_Handle* handles = frame->handles;
 
 	PLNNR_COROUTINE_BEGIN(frame, precond_label);
 	allocate_handles(state, frame, 2);
+	allocate_output(state, frame, s_precondition_output[0]);
 
 	for (handles[0] = first(db, 0); is_valid(db, handles[0]); handles[0] = next(db, handles[0]))
 	{
 		for (handles[1] = first(db, 1); is_valid(db, handles[1]); handles[1] = next(db, handles[1]))
 		{
-			result->_0 = as_Int32(db, handles[0], 0);
-			result->_1 = as_Int32(db, handles[1], 0);
+			write_output(state, frame, s_precondition_output[0], 0, as_Int32(db, handles[0], 0));
+			write_output(state, frame, s_precondition_output[0], 1, as_Int32(db, handles[1], 0));
+
 			PLNNR_COROUTINE_YIELD(frame, precond_label, 1);
 		}
 	}
@@ -155,14 +162,13 @@ static bool p2_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 
 struct p3_input { int _0; int _1; };
 
-struct p3_output { int _0; int _1; };
-
-static bool p3_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, p3_input* args, p3_output* result)
+static bool p3_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, p3_input* args)
 {
 	Fact_Handle* handles = frame->handles;
 
 	PLNNR_COROUTINE_BEGIN(frame, precond_label);
 	allocate_handles(state, frame, 2);
+	allocate_output(state, frame, s_precondition_output[3]);
 
 	for (handles[0] = first(db, 4); is_valid(db, handles[0]); handles[0] = next(db, handles[0]))
 	{
@@ -178,8 +184,9 @@ static bool p3_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 				continue;
 			}
 
-			result->_0 = as_Int32(db, handles[0], 1);
-			result->_1 = as_Int32(db, handles[1], 1);
+			write_output(state, frame, s_precondition_output[3], 0, as_Int32(db, handles[0], 1));
+			write_output(state, frame, s_precondition_output[3], 1, as_Int32(db, handles[1], 1));
+
 			PLNNR_COROUTINE_YIELD(frame, precond_label, 1);
 		}
 	}
@@ -192,15 +199,13 @@ static bool p3_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 
 static bool root_branch_0_expand(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
 {
-	p0_output p0_result;
-
 	PLNNR_COROUTINE_BEGIN(frame, expand_label);
 
-	while (p0_next(state, frame, db, &p0_result))
+	while (p0_next(state, frame, db))
 	{
 		push_composite(state, 3, travel_branch_0_expand, 2);
-		push_composite_arg(state, Type_Int32, p0_result._0);
-		push_composite_arg(state, Type_Int32, p0_result._1);
+		push_composite_arg(state, Type_Int32, as_Int32(frame->precond_output, s_precondition_output[0], 0));
+		push_composite_arg(state, Type_Int32, as_Int32(frame->precond_output, s_precondition_output[0], 1));
 		frame->flags |= Expansion_Frame::Flags_Expanded;
 		PLNNR_COROUTINE_YIELD(frame, expand_label, 1);
 	}
@@ -264,15 +269,14 @@ static bool travel_by_plane_branch_0_expand(Planning_State* state, Expansion_Fra
 	p3_input p3_args;
 	p3_args._0 = _0;
 	p3_args._1 = _1;
-	p3_output p3_result;
 
 	PLNNR_COROUTINE_BEGIN(frame, expand_label);
 
-	while (p3_next(state, frame, db, &p3_args, &p3_result))
+	while (p3_next(state, frame, db, &p3_args))
 	{
 		push_composite(state, 3, travel_branch_0_expand, 2);
 		push_composite_arg(state, Type_Int32, _0);
-		push_composite_arg(state, Type_Int32, p3_result._0);
+		push_composite_arg(state, Type_Int32, as_Int32(frame->precond_output, s_precondition_output[3], 0));
 
 		PLNNR_COROUTINE_YIELD(frame, expand_label, 1);
 
@@ -282,13 +286,13 @@ static bool travel_by_plane_branch_0_expand(Planning_State* state, Expansion_Fra
 		}
 
 		push_task(state, 1, 2);
-		push_task_arg(state, Type_Int32, p3_result._0);
-		push_task_arg(state, Type_Int32, p3_result._1);
+		push_task_arg(state, Type_Int32, as_Int32(frame->precond_output, s_precondition_output[3], 0));
+		push_task_arg(state, Type_Int32, as_Int32(frame->precond_output, s_precondition_output[3], 1));
 
 		PLNNR_COROUTINE_YIELD(frame, expand_label, 2);
 
 		push_composite(state, 3, travel_branch_0_expand, 2);
-		push_composite_arg(state, Type_Int32, p3_result._1);
+		push_composite_arg(state, Type_Int32, as_Int32(frame->precond_output, s_precondition_output[3], 1));
 		push_composite_arg(state, Type_Int32, _1);
 
 		frame->flags |= Expansion_Frame::Flags_Expanded;
