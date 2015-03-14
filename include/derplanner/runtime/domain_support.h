@@ -29,17 +29,41 @@
 
 namespace plnnr {
 
-inline uint8_t* allocate_with_layout(Linear_Blob& blob, Param_Layout layout)
+inline void compute_offsets_and_size(Param_Layout* layout)
+{
+    uint8_t num_params = layout->num_params;
+    if (num_params == 0)
+    {
+        layout->size = 0;
+        return;
+    }
+
+    Type first_type = layout->types[0];
+    layout->offsets[0] = 0;
+    size_t offset = get_type_size(first_type);
+
+    for (uint8_t i = 1; i < num_params; ++i)
+    {
+        Type type = layout->types[i];
+        size_t alignment = get_type_alignment(type);
+        size_t size = get_type_size(type);
+
+        offset = align(offset, alignment);
+        layout->offsets[i] = offset;
+        offset += size;
+    }
+
+    layout->size = offset;
+}
+
+inline uint8_t* allocate_with_layout(Linear_Blob* blob, Param_Layout layout)
 {
     Type first_type = layout.types[0];
-    Type last_type = layout.types[layout.num_params - 1];
-    size_t last_offset = layout.offsets[layout.num_params - 1];
-
     size_t alignment = get_type_alignment(first_type);
-    size_t size = last_offset + get_type_size(last_type);
+    size_t size = layout.size;
 
-    uint8_t* bytes = blob.top;
-    blob.top = (uint8_t*)align(blob.top, alignment) + size;
+    uint8_t* bytes = blob->top;
+    blob->top = (uint8_t*)align(blob->top, alignment) + size;
 
     return bytes;
 }
@@ -56,7 +80,7 @@ inline void allocate_handles(Planning_State* state, Expansion_Frame* frame, uint
 
 inline void allocate_output(Planning_State* state, Expansion_Frame* frame, Param_Layout output_type)
 {
-    Linear_Blob& blob = state->expansion_blob;
+    Linear_Blob* blob = &state->expansion_blob;
     uint8_t* bytes = allocate_with_layout(blob, output_type);
     frame->precond_output = bytes;
 }
@@ -94,7 +118,7 @@ inline void begin_composite(Planning_State* state, uint32_t id, Composite_Task_E
     frame.expand = expand;
     frame.task_stack_rewind = static_cast<uint16_t>(state->task_stack.size);
 
-    Linear_Blob& blob = state->expansion_blob;
+    Linear_Blob* blob = &state->expansion_blob;
     uint8_t* args = allocate_with_layout(blob, args_layout);
 
     frame.arguments = args;
@@ -109,7 +133,7 @@ inline void begin_task(Planning_State* state, uint32_t id, Param_Layout args_lay
     memset(&frame, 0, sizeof(Task_Frame));
     frame.task_type = id;
 
-    Linear_Blob& blob = state->task_blob;
+    Linear_Blob* blob = &state->task_blob;
     uint8_t* args = allocate_with_layout(blob, args_layout);
 
     frame.arguments = args;

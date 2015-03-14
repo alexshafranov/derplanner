@@ -49,8 +49,16 @@ void destroy(Memory* mem, Planning_State& s);
 template <typename T>
 inline T* top(const Stack<T>& stack)
 {
+    return (stack.size > 0) ? stack.frames + (stack.size - 1) : 0;
+}
+
+template <typename T>
+inline T* pop(const Stack<T>& stack)
+{
     plnnr_assert(stack.size > 0);
-    return stack.frames + (stack.size - 1);
+    T* result = stack.frames + (stack.size - 1);
+    --stack.size;
+    return result;
 }
 
 /// Planning functions.

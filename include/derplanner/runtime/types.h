@@ -126,10 +126,10 @@ struct Expansion_Frame
     Composite_Task_Expand*  expand;
     // pointer to the composite task arguments.
     void*                   arguments;
-    // pointer to the precondition outputs.
-    void*                   precond_output;
     // fact database handles kept by the case precondition.
     Fact_Handle*            handles;
+    // pointer to the precondition outputs.
+    void*                   precond_output;
 };
 
 // Primitive (or composite) task in the plan.
@@ -193,6 +193,8 @@ struct Param_Layout
     uint8_t     num_params;
     // type of each parameter.
     Type*       types;
+    // size in bytes needed for this layout.
+    size_t      size;
     // offset in memory of each parameter from the first one.
     size_t*     offsets;
 };
@@ -200,10 +202,14 @@ struct Param_Layout
 // Runtime task information specified by generated domain code.
 struct Task_Info
 {
-    // number of tasks in domain.
+    // number of tasks in domain (num_primitive + num_composite).
     uint32_t                    num_tasks;
     // number of primitive tasks in domain.
     uint32_t                    num_primitive;
+    // number of composite tasks in domain.
+    uint32_t                    num_composite;
+    // number of cases for each composite task.
+    uint32_t*                   num_cases;
     // task name hashes (composite tasks are specified after primitive tasks).
     uint32_t*                   hashes;
     // task names (composite tasks are specified after primitive tasks).
