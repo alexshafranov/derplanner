@@ -19,6 +19,7 @@
 //
 
 #include <string.h> // memset
+#include "derplanner/runtime/domain_support.h"
 #include "derplanner/runtime/planning.h"
 
 using namespace plnnr;
@@ -56,4 +57,62 @@ void plnnr::destroy(Memory* mem, Planning_State& s)
     mem->deallocate(s.expansion_blob.base);
     mem->deallocate(s.task_blob.base);
     memset(&s, 0, sizeof(s));
+}
+
+static plnnr::Expansion_Frame* revert_top_expansion(plnnr::Planning_State* /*state*/, bool /*failed*/)
+{
+    return 0;
+}
+
+bool plnnr::find_plan(const Domain_Info* domain, Fact_Database* db, Planning_State* state)
+{
+    // there's no composite tasks in this domain -> bail out with an empty plan.
+    if (domain->task_info.num_tasks - domain->task_info.num_primitive <= 0)
+    {
+        return true;
+    }
+
+    // the root task is the first composite task in domain.
+    uint32_t root_id = domain->task_info.num_primitive;
+    Composite_Task_Expand* root_expand = domain->task_info.expands[0];
+    Param_Layout args_layout = domain->task_info.parameters[root_id];
+    // this find_plan variant doesn't support root tasks with arguments.
+    plnnr_assert(args_layout.num_params == 0);
+
+    // put the root task on stack.
+    begin_composite(state, root_id, root_expand, args_layout);
+
+    for (;;)
+    {
+        Expansion_Frame* frame = top(state->expansion_stack);
+
+        if (frame->expand(state, frame, db))
+        {
+            Expansion_Frame* new_top_frame = top(state->expansion_stack);
+
+            // expanded to primitive tasks -> go up, popping expanded methods.
+            if (frame == new_top_frame && (frame->flags & Expansion_Frame::Flags_Expanded) != 0)
+            {
+                while (frame && (frame->flags & Expansion_Frame::Flags_Expanded) != 0)
+                {
+                    frame = revert_top_expansion(state, false);
+                }
+
+                // all composites are now expanded -> plan found.
+                if (!frame)
+                {
+                    return true;
+                }
+            }
+        }
+        else
+        {
+            frame = revert_top_expansion(state, true);
+
+            if (!frame)
+            {
+                return false;
+            }
+        }
+    }
 }

@@ -27,6 +27,8 @@
 
 namespace plnnr {
 
+static const uint32_t INVALID_GENERATION_ID = 0xffffffff;
+
 /// Fact_Table
 
 Fact_Table create_fact_table(Memory* mem, const Fact_Type& format, uint32_t max_entries);
@@ -40,16 +42,76 @@ inline bool is_valid(const Fact_Database& db, Fact_Handle handle)
     return handle.generation == table.generations[handle.entry];
 }
 
+inline bool is_valid(const Fact_Database* db, Fact_Handle handle)
+{
+    return is_valid(*db, handle);
+}
+
+/// Fact_Database
+
+inline Fact_Handle first(const Fact_Database* db, uint32_t table_index)
+{
+    plnnr_assert(table_index < db->num_tables);
+    const Fact_Table& table = db->tables[table_index];
+
+    Fact_Handle handle;
+    handle.table = table_index;
+    handle.entry = 0;
+    handle.generation = (table.num_entries > 0) ? table.generations[0] : INVALID_GENERATION_ID;
+
+    return handle;
+}
+
+inline Fact_Handle next(const Fact_Database* db, Fact_Handle handle)
+{
+    plnnr_assert(is_valid(db, handle));
+    const Fact_Table& table = db->tables[handle.table];
+
+    Fact_Handle result;
+    result.table = handle.table;
+
+    bool hasNext = (handle.entry < table.num_entries - 1);
+    if (hasNext)
+    {
+        result.entry = handle.entry + 1;
+        result.generation = table.generations[result.entry];
+    }
+    else
+    {
+        result.entry = 0;
+        result.generation = INVALID_GENERATION_ID;
+    }
+
+    return result;
+}
+
 /// as_<Type> inline accessors for Fact_Table data
 
 // converts fact parameter with index param_index, referenced by handle to a given type.
-#define PLNNR_TYPE(TYPE_TAG, TYPE_NAME)                                                         \
-    inline TYPE_NAME as_##TYPE_TAG(const Fact_Table& t, Fact_Handle handle, int param_index)    \
-    {                                                                                           \
-        plnnr_assert(handle.entry < t.num_entries);                                             \
-        const TYPE_NAME* values = static_cast<const TYPE_NAME*>(t.columns[param_index]);        \
-        return values[handle.entry];                                                            \
-    }                                                                                           \
+#define PLNNR_TYPE(TYPE_TAG, TYPE_NAME)                                                             \
+    inline TYPE_NAME as_##TYPE_TAG(const Fact_Table& t, Fact_Handle handle, int param_index)        \
+    {                                                                                               \
+        plnnr_assert(handle.entry < t.num_entries);                                                 \
+        const TYPE_NAME* values = static_cast<const TYPE_NAME*>(t.columns[param_index]);            \
+        return values[handle.entry];                                                                \
+    }                                                                                               \
+                                                                                                    \
+    inline TYPE_NAME as_##TYPE_TAG(const Fact_Table* t, Fact_Handle handle, int param_index)        \
+    {                                                                                               \
+        return as_##TYPE_TAG(*t, handle, param_index);                                              \
+    }                                                                                               \
+                                                                                                    \
+    inline TYPE_NAME as_##TYPE_TAG(const Fact_Database& db, Fact_Handle handle, int param_index)    \
+    {                                                                                               \
+        plnnr_assert(handle.table < db.num_tables);                                                 \
+        const Fact_Table& table = db.tables[handle.table];                                          \
+        return as_##TYPE_TAG(table, handle, param_index);                                           \
+    }                                                                                               \
+                                                                                                    \
+    inline TYPE_NAME as_##TYPE_TAG(const Fact_Database* db, Fact_Handle handle, int param_index)    \
+    {                                                                                               \
+        return as_##TYPE_TAG(*db, handle, param_index);                                             \
+    }                                                                                               \
 
     #include "derplanner/runtime/type_tags.inl"
 #undef PLNNR_TYPE
@@ -72,7 +134,7 @@ inline size_t get_type_size(Type t)
 }
 
 // returns alignment of type given type enum value
-inline size_t get_type_align(Type t)
+inline size_t get_type_alignment(Type t)
 {
     switch (t)
     {

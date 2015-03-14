@@ -186,21 +186,32 @@ struct Database_Format
     const char**    names;
 };
 
+// Describes layout of task parameters in memory.
+struct Param_Layout
+{
+    // number of parameters.
+    uint8_t     num_params;
+    // type of each parameter.
+    Type*       types;
+    // offset in memory of each parameter from the first one.
+    size_t*     offsets;
+};
+
 // Runtime task information specified by generated domain code.
 struct Task_Info
 {
     // number of tasks in domain.
-    uint32_t                num_tasks;
+    uint32_t                    num_tasks;
     // number of primitive tasks in domain.
-    uint32_t                num_primitive;
-    // task name hashes (composite tasks are specified after primitive).
-    uint32_t*               hashes;
-    // task names (composite tasks are specified after primitive).
-    const char**            names;
+    uint32_t                    num_primitive;
+    // task name hashes (composite tasks are specified after primitive tasks).
+    uint32_t*                   hashes;
+    // task names (composite tasks are specified after primitive tasks).
+    const char**                names;
     // format of task parameters.
-    Fact_Type*              parameters;
+    Param_Layout*               parameters;
     // pointer to generated expand function for each composite task.
-    Composite_Task_Expand*  expands;
+    Composite_Task_Expand**     expands;
 };
 
 // Domain info provided by the generated code.

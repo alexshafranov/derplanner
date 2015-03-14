@@ -21,6 +21,7 @@
 #ifndef DERPLANNER_RUNTIME_PLANNING_H_
 #define DERPLANNER_RUNTIME_PLANNING_H_
 
+#include "derplanner/runtime/assert.h"
 #include "derplanner/runtime/memory.h"
 #include "derplanner/runtime/types.h"
 
@@ -42,6 +43,19 @@ struct Planning_State_Config
 
 Planning_State create_planning_state(Memory* mem, Planning_State_Config config);
 void destroy(Memory* mem, Planning_State& s);
+
+/// Stack
+
+template <typename T>
+inline T* top(const Stack<T>& stack)
+{
+    plnnr_assert(stack.size > 0);
+    return stack.frames + (stack.size - 1);
+}
+
+/// Planning functions.
+
+bool find_plan(const Domain_Info* domain, Fact_Database* db, Planning_State* state);
 
 }
 
