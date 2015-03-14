@@ -49,8 +49,8 @@ class Memory
 {
 public:
     virtual ~Memory() {}
-    virtual void* allocate(size_t size, size_t alignment=PLNNR_DEFAULT_ALIGNMENT)=0;
-    virtual void  deallocate(void* ptr)=0;
+    virtual void* allocate(size_t size, size_t alignment=PLNNR_DEFAULT_ALIGNMENT) = 0;
+    virtual void  deallocate(void* ptr) = 0;
 };
 
 template <typename T>
@@ -63,6 +63,11 @@ template <typename T>
 inline T* allocate(Memory* mem, size_t count)
 {
     return allocate<T>(mem, count*sizeof(T), plnnr_alignof(T));
+}
+
+inline size_t align(size_t value, size_t alignment)
+{
+    return (value + (alignment - 1)) & ~(alignment - 1);
 }
 
 inline void* align(void* ptr, size_t alignment)
