@@ -47,26 +47,30 @@ static size_t s_layout_offsets[2];
 static int s_layout_num_params[] = { 2 };
 
 static Param_Layout s_task_parameters[] = {
-	{ 2, s_layout_types + 0, s_layout_offsets + 0 },
-	{ 2, s_layout_types + 0, s_layout_offsets + 0 },
-	{ 0, 0, 0 },
-	{ 2, s_layout_types + 0, s_layout_offsets + 0 },
-	{ 2, s_layout_types + 0, s_layout_offsets + 0 },
+	{ 2, s_layout_types + 0, 0, s_layout_offsets + 0 },
+	{ 2, s_layout_types + 0, 0, s_layout_offsets + 0 },
+	{ 0, 0, 0, 0 },
+	{ 2, s_layout_types + 0, 0, s_layout_offsets + 0 },
+	{ 2, s_layout_types + 0, 0, s_layout_offsets + 0 },
 };
 
 static Param_Layout s_precondition_output[] = {
-	{ 2, s_layout_types + 0, s_layout_offsets + 0 },
-	{ 0, 0, 0 },
-	{ 0, 0, 0 },
-	{ 2, s_layout_types + 0, s_layout_offsets + 0 },
+	{ 2, s_layout_types + 0, 0, s_layout_offsets + 0 },
+	{ 0, 0, 0, 0 },
+	{ 0, 0, 0, 0 },
+	{ 2, s_layout_types + 0, 0, s_layout_offsets + 0 },
 };
+
+static uint32_t s_num_cases[] = { 1, 2, 1 };
 
 static Domain_Info s_domain_info = {
 	// task_info
 	{
-		5,	// num_tasks
-		2,	// num_primitive
-		0,	// hashes
+		5,				// num_tasks
+		2,				// num_primitive
+		3,  			// num_composite
+		s_num_cases, 	// num_cases
+		0,				// hashes
 		s_task_names,
 		s_task_parameters,
 		s_task_expands,
@@ -84,26 +88,14 @@ static Domain_Info s_domain_info = {
 
 const Domain_Info* travel_domain_info()
 {
-	int first_layout_param = 0;
-	for (int i = 0; i < PLNNR_STATIC_ARRAY_SIZE(s_layout_num_params); ++i)
+	for (int i = 0; i < PLNNR_STATIC_ARRAY_SIZE(s_task_parameters); ++i)
 	{
-		int num_layout_params = s_layout_num_params[i];
+		compute_offsets_and_size(&s_task_parameters[i]);
+	}
 
-		Type type = s_layout_types[first_layout_param];
-		s_layout_offsets[first_layout_param] = 0;
-		size_t offset = get_type_size(type);
-
-		for (int j = first_layout_param + 1; j < first_layout_param + num_layout_params; ++j)
-		{
-			Type type = s_layout_types[j];
-			size_t alignment = get_type_alignment(type);
-			size_t size = get_type_size(type);
-
-			s_layout_offsets[j] = offset;
-			offset += size;
-		}
-
-		first_layout_param += num_layout_params;
+	for (int i = 0; i < PLNNR_STATIC_ARRAY_SIZE(s_precondition_output); ++i)
+	{
+		compute_offsets_and_size(&s_precondition_output[i]);
 	}
 
 	return &s_domain_info;

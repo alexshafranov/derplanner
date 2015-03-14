@@ -59,15 +59,33 @@ void plnnr::destroy(Memory* mem, Planning_State& s)
     memset(&s, 0, sizeof(s));
 }
 
-static plnnr::Expansion_Frame* revert_top_expansion(plnnr::Planning_State* /*state*/, bool /*failed*/)
+static plnnr::Expansion_Frame* revert_top_expansion(plnnr::Planning_State* state, const Domain_Info* /*domain*/, bool /*failed*/)
 {
-    return 0;
+    // plnnr::Expansion_Frame* old_top = plnnr::pop(state->expansion_stack);
+    plnnr::Expansion_Frame* new_top = plnnr::top(state->expansion_stack);
+
+    // if (new_top)
+    // {
+    //     // // rewind precondition state.
+    //     // if (frame->handles || frame->precond_output)
+    //     // {
+    //     //     void* ptr = ( frame->handles ) ? frame->handles : frame->precond_output;
+    //     //     uint8_t* new_top = static_cast<uint8_t*>(ptr);
+
+    //     //     Linear_Blob& blob = state->expansion_blob;
+    //     //     blob.top = new_top;
+    //     // }
+
+    //     old_top
+    // }
+
+    return new_top;
 }
 
 bool plnnr::find_plan(const Domain_Info* domain, Fact_Database* db, Planning_State* state)
 {
     // there's no composite tasks in this domain -> bail out with an empty plan.
-    if (domain->task_info.num_tasks - domain->task_info.num_primitive <= 0)
+    if (domain->task_info.num_composite == 0)
     {
         return true;
     }
@@ -90,12 +108,12 @@ bool plnnr::find_plan(const Domain_Info* domain, Fact_Database* db, Planning_Sta
         {
             Expansion_Frame* new_top_frame = top(state->expansion_stack);
 
-            // expanded to primitive tasks -> go up, popping expanded methods.
+            // expanded to primitive tasks -> pop all expanded composites.
             if (frame == new_top_frame && (frame->flags & Expansion_Frame::Flags_Expanded) != 0)
             {
                 while (frame && (frame->flags & Expansion_Frame::Flags_Expanded) != 0)
                 {
-                    frame = revert_top_expansion(state, false);
+                    frame = revert_top_expansion(state, domain, false);
                 }
 
                 // all composites are now expanded -> plan found.
@@ -107,7 +125,7 @@ bool plnnr::find_plan(const Domain_Info* domain, Fact_Database* db, Planning_Sta
         }
         else
         {
-            frame = revert_top_expansion(state, true);
+            frame = revert_top_expansion(state, domain, true);
 
             if (!frame)
             {
