@@ -53,6 +53,13 @@ public:
     virtual void  deallocate(void* ptr) = 0;
 };
 
+class Memory_Default : public Memory
+{
+public:
+    virtual void* allocate(size_t size, size_t alignment=PLNNR_DEFAULT_ALIGNMENT);
+    virtual void  deallocate(void* ptr);
+};
+
 template <typename T>
 inline T* allocate(Memory* mem, size_t count, size_t alignment)
 {

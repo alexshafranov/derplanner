@@ -61,3 +61,40 @@ void deallocate(void* ptr)
 
 }
 }
+
+void* plnnr::Memory_Default::allocate(size_t size, size_t alignment)
+{
+    alignment = (alignment < sizeof(uint32_t)) ? sizeof(uint32_t) : alignment;
+    void* p = plnnr::memory::allocate(sizeof(uint32_t) + alignment + size);
+
+    uint32_t* pad = static_cast<uint32_t*>(p);
+    pad[0] = 0;
+    ++pad;
+
+    uint32_t* data = static_cast<uint32_t*>(align(pad, alignment));
+
+    for (; pad < data; ++pad)
+    {
+        pad[0] = 0xffffffff;
+    }
+
+    return data;
+}
+
+void plnnr::Memory_Default::deallocate(void* ptr)
+{
+    if (!ptr)
+    {
+        return;
+    }
+
+    uint32_t* p = reinterpret_cast<uint32_t*>(ptr);
+
+    do
+    {
+        --p;
+    }
+    while (p[0] == 0xffffffff);
+
+    plnnr::memory::deallocate(p);
+}

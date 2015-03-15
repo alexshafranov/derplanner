@@ -27,12 +27,39 @@
 
 namespace plnnr {
 
-static const uint32_t INVALID_GENERATION_ID = 0xffffffff;
+static const uint64_t INVALID_GENERATION_ID = 0xffffffffffffffff;
+
+/// Fact_Database
+
+Fact_Database create_fact_database(Memory* mem, const Database_Format& format);
+void destroy(Memory* mem, Fact_Database& db);
 
 /// Fact_Table
 
 Fact_Table create_fact_table(Memory* mem, const Fact_Type& format, uint32_t max_entries);
 void destroy(Memory* mem, Fact_Table& t);
+
+template <typename T0>
+inline void add_entry(Fact_Table& table, const T0& a0)
+{
+    uint32_t entry = table.num_entries;
+    plnnr_assert(entry < table.max_entries);
+    T0* c0 = static_cast<T0*>(table.columns[0]);
+    c0[entry] = a0;
+    ++table.num_entries;
+}
+
+template <typename T0, typename T1>
+inline void add_entry(Fact_Table& table, const T0& a0, const T1& a1)
+{
+    uint32_t entry = table.num_entries;
+    plnnr_assert(entry < table.max_entries);
+    T0* c0 = static_cast<T0*>(table.columns[0]);
+    T1* c1 = static_cast<T0*>(table.columns[1]);
+    c0[entry] = a0;
+    c1[entry] = a1;
+    ++table.num_entries;
+}
 
 /// Fact_Handle
 
