@@ -59,25 +59,21 @@ void plnnr::destroy(Memory* mem, Planning_State& s)
     memset(&s, 0, sizeof(s));
 }
 
-static plnnr::Expansion_Frame* revert_top_expansion(plnnr::Planning_State* state, const Domain_Info* /*domain*/, bool /*failed*/)
+static plnnr::Expansion_Frame* pop_expansion(plnnr::Planning_State* state, bool failed)
 {
-    // plnnr::Expansion_Frame* old_top = plnnr::pop(state->expansion_stack);
-    plnnr::Expansion_Frame* new_top = plnnr::top(state->expansion_stack);
+    Expansion_Frame* old_top = pop(state->expansion_stack);
+    Expansion_Frame* new_top = top(state->expansion_stack);
 
-    // if (new_top)
-    // {
-    //     // // rewind precondition state.
-    //     // if (frame->handles || frame->precond_output)
-    //     // {
-    //     //     void* ptr = ( frame->handles ) ? frame->handles : frame->precond_output;
-    //     //     uint8_t* new_top = static_cast<uint8_t*>(ptr);
+    // revert all data allocated by old_top expansion.
+    Linear_Blob* blob = &state->expansion_blob;
+    blob->top = blob->base + old_top->blob_rewind;
 
-    //     //     Linear_Blob& blob = state->expansion_blob;
-    //     //     blob.top = new_top;
-    //     // }
+    if (new_top && failed)
+    {
+        new_top->flags |= Expansion_Frame::Flags_Failed;
 
-    //     old_top
-    // }
+        // now revert tasks this expansion produced before failure.
+    }
 
     return new_top;
 }
@@ -113,7 +109,7 @@ bool plnnr::find_plan(const Domain_Info* domain, Fact_Database* db, Planning_Sta
             {
                 while (frame && (frame->flags & Expansion_Frame::Flags_Expanded) != 0)
                 {
-                    frame = revert_top_expansion(state, domain, false);
+                    frame = pop_expansion(state, false);
                 }
 
                 // all composites are now expanded -> plan found.
@@ -125,7 +121,8 @@ bool plnnr::find_plan(const Domain_Info* domain, Fact_Database* db, Planning_Sta
         }
         else
         {
-            frame = revert_top_expansion(state, domain, true);
+            // expansion failed -> pop expansion and revert tasks.
+            frame = pop_expansion(state, true);
 
             if (!frame)
             {

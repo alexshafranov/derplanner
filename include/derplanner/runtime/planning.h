@@ -53,12 +53,19 @@ inline T* top(const Stack<T>& stack)
 }
 
 template <typename T>
-inline T* pop(const Stack<T>& stack)
+inline T* pop(Stack<T>& stack)
 {
     plnnr_assert(stack.size > 0);
     T* result = stack.frames + (stack.size - 1);
     --stack.size;
     return result;
+}
+
+template <typename T>
+inline void push(Stack<T>& stack, const T& value)
+{
+    plnnr_assert(stack.size < stack.max_size);
+    stack.frames[stack.size++] = value;
 }
 
 /// Planning functions.

@@ -58,6 +58,11 @@ inline void compute_offsets_and_size(Param_Layout* layout)
 
 inline uint8_t* allocate_with_layout(Linear_Blob* blob, Param_Layout layout)
 {
+    if (layout.size == 0)
+    {
+        return 0;
+    }
+
     Type first_type = layout.types[0];
     size_t alignment = get_type_alignment(first_type);
     size_t size = layout.size;
@@ -70,19 +75,19 @@ inline uint8_t* allocate_with_layout(Linear_Blob* blob, Param_Layout layout)
 
 /// Functions used in generated code.
 
-inline void allocate_handles(Planning_State* state, Expansion_Frame* frame, uint32_t num_handles)
+inline void allocate_precond_handles(Planning_State* state, Expansion_Frame* frame, uint32_t num_handles)
 {
-    Linear_Blob& blob = state->expansion_blob;
-    uint8_t* bytes = blob.top;
-    blob.top = (uint8_t*)align(blob.top, plnnr_alignof(Fact_Handle)) + sizeof(Fact_Handle) * num_handles;
+    Linear_Blob* blob = &state->expansion_blob;
+    uint8_t* bytes = blob->top;
+    blob->top = (uint8_t*)align(blob->top, plnnr_alignof(Fact_Handle)) + sizeof(Fact_Handle) * num_handles;
     frame->handles = reinterpret_cast<Fact_Handle*>(bytes);
 }
 
-inline void allocate_output(Planning_State* state, Expansion_Frame* frame, Param_Layout output_type)
+inline void allocate_precond_result(Planning_State* state, Expansion_Frame* frame, Param_Layout output_type)
 {
     Linear_Blob* blob = &state->expansion_blob;
     uint8_t* bytes = allocate_with_layout(blob, output_type);
-    frame->precond_output = bytes;
+    frame->precond_result = bytes;
 }
 
 #define PLNNR_TYPE(TYPE_TAG, TYPE_NAME)                                                             \
@@ -99,47 +104,34 @@ inline void allocate_output(Planning_State* state, Expansion_Frame* frame, Param
     #include "derplanner/runtime/type_tags.inl"
 #undef PLNNR_TYPE
 
-inline void write_output(Expansion_Frame* frame, Param_Layout layout, int param_index, int32_t value)
-{
-    plnnr_assert(param_index < layout.num_params);
-    plnnr_assert(Type_Int32 == layout.types[param_index]);
-
-    uint8_t* bytes = static_cast<uint8_t*>(frame->precond_output);
-    size_t offset = layout.offsets[param_index];
-    int32_t* result = reinterpret_cast<int32_t*>(bytes + offset);
-    *result = value;
-}
-
 inline void begin_composite(Planning_State* state, uint32_t id, Composite_Task_Expand* expand, Param_Layout args_layout)
 {
+    Linear_Blob* blob = &state->expansion_blob;
+    uint32_t blob_size = static_cast<uint32_t>(blob->top - blob->base);
+
     Expansion_Frame frame;
     memset(&frame, 0, sizeof(Expansion_Frame));
     frame.task_type = id;
     frame.expand = expand;
     frame.task_stack_rewind = static_cast<uint16_t>(state->task_stack.size);
+    frame.blob_offset = blob_size;
+    frame.arguments = allocate_with_layout(blob, args_layout);
 
-    Linear_Blob* blob = &state->expansion_blob;
-    uint8_t* args = allocate_with_layout(blob, args_layout);
-
-    frame.arguments = args;
-
-    Stack<Expansion_Frame>& stack = state->expansion_stack;
-    stack.frames[stack.size++] = frame;
+    push(state->expansion_stack, frame);
 }
 
 inline void begin_task(Planning_State* state, uint32_t id, Param_Layout args_layout)
 {
+    Linear_Blob* blob = &state->task_blob;
+    uint32_t blob_size = static_cast<uint32_t>(blob->top - blob->base);
+
     Task_Frame frame;
     memset(&frame, 0, sizeof(Task_Frame));
     frame.task_type = id;
+    frame.blob_offset = blob_size;
+    frame.arguments = allocate_with_layout(blob, args_layout);
 
-    Linear_Blob* blob = &state->task_blob;
-    uint8_t* args = allocate_with_layout(blob, args_layout);
-
-    frame.arguments = args;
-
-    Stack<Task_Frame>& stack = state->task_stack;
-    stack.frames[stack.size++] = frame;
+    push(state->task_stack, frame);
 }
 
 inline void set_composite_arg(Planning_State* state, Param_Layout layout, int param_index, int32_t value)
@@ -166,21 +158,27 @@ inline void set_task_arg(Planning_State* state, Param_Layout layout, int param_i
     *result = value;
 }
 
-inline bool expand_next_case(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, Composite_Task_Expand* expand)
+inline void set_precond_result(Expansion_Frame* frame, Param_Layout layout, int param_index, int32_t value)
+{
+    plnnr_assert(param_index < layout.num_params);
+    plnnr_assert(Type_Int32 == layout.types[param_index]);
+
+    uint8_t* bytes = static_cast<uint8_t*>(frame->precond_result);
+    size_t offset = layout.offsets[param_index];
+    int32_t* result = reinterpret_cast<int32_t*>(bytes + offset);
+    *result = value;
+}
+
+inline bool expand_next_case(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, Composite_Task_Expand* expand, Param_Layout args_layout)
 {
     frame->case_index++;
     frame->expand_label = 0;
     frame->expand = expand;
 
-    // rewind precondition state.
-    if (frame->handles || frame->precond_output)
-    {
-        void* ptr = ( frame->handles ) ? frame->handles : frame->precond_output;
-        uint8_t* new_top = static_cast<uint8_t*>(ptr);
-
-        Linear_Blob& blob = state->expansion_blob;
-        blob.top = new_top;
-    }
+    // rewind data past arguments.
+    Linear_Blob* blob = &state->expansion_blob;
+    blob->top = blob->base + frame->blob_offset;
+    allocate_with_layout(blob, args_layout);
 
     return frame->expand(state, frame, db);
 }
