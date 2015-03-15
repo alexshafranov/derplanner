@@ -88,7 +88,7 @@ struct Fact_Database
     Fact_Type*      types;
     // table data.
     Fact_Table*     tables;
-    // linear block of memory accommodating database data.
+    // linear block of memory accommodating database data (not including tables data).
     void*           blob;
 };
 
@@ -114,8 +114,8 @@ struct Expansion_Frame
     uint32_t                task_type           : 15;
     // index of the expanding case.
     uint32_t                case_index          : 15;
-    // stores the number of tasks on the task stack for rewinding.
-    uint16_t                task_stack_rewind;
+    // the number of tasks on the task stack before expansion.
+    uint16_t                orig_task_count;
     // jump label to support coroutine-like expansion behaviour.
     uint16_t                expand_label;
     // jump label to support coroutine-like precondition iteration.
@@ -123,7 +123,7 @@ struct Expansion_Frame
     // number of fact database handles kept by the case precondition.
     uint16_t                num_handles;
     // offset in the Planning_State::expansion_blob before any data is written.
-    uint32_t                blob_offset;
+    uint32_t                orig_blob_size;
     // the expand function of the expanding case.
     Composite_Task_Expand*  expand;
 
@@ -143,7 +143,7 @@ struct Task_Frame
     // composite/primitive task type.
     uint32_t    task_type;
     // offset in Planning_State::task_blob before any data is written.
-    uint32_t    blob_offset;
+    uint32_t    orig_blob_size;
     // pointer to the task arguments.
     void*       arguments;
 };

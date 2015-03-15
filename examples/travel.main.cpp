@@ -1,88 +1,105 @@
 #include <stdio.h>
-#include <string.h>
-#include <derplanner/runtime/runtime.h>
-#include <derplanner/runtime/interface.h>
-#include <derplanner/runtime/world_printf.h>
+#include "derplanner/runtime/database.h"
+#include "derplanner/runtime/planning.h"
+// todo: remove this include
+#include "derplanner/runtime/domain_support.h"
 #include "travel.h"
 
-using namespace plnnr;
-using namespace travel;
+// city
+static const int SPB = 0;
+// airport
+static const int LED = 1;
+// city
+static const int MSC = 2;
+// airport
+static const int SVO = 3;
+
+static const char* objects[] = { "SPB", "LED", "MSC", "SVO" };
+
+void print_tuple(const char* name, const void* values, plnnr::Param_Layout layout)
+{
+    printf("%s(", name);
+
+    for (uint32_t i = 0; i < layout.num_params; ++i)
+    {
+        int32_t value = plnnr::as_Int32(values, layout, i);
+        printf("%s", objects[value]);
+
+        if (i + 1 != layout.num_params)
+        {
+            printf(", ");
+        }
+    }
+
+    printf(")");
+}
+
+void print_plan(const plnnr::Planning_State* state, const plnnr::Domain_Info* domain)
+{
+    for (uint32_t i = 0; i < state->task_stack.size; ++i)
+    {
+        plnnr::Task_Frame task = state->task_stack.frames[i];
+        const char* name = domain->task_info.names[task.task_type];
+        plnnr::Param_Layout layout = domain->task_info.parameters[task.task_type];
+
+        print_tuple(name, task.arguments, layout);
+        printf("\n");
+    }
+}
 
 int main()
 {
-    const size_t tuple_list_page = 1024;
+    // initialize static data in domain code.
+    travel_init_domain_info();
+    // get the domain description.
+    const plnnr::Domain_Info* domain = travel_get_domain_info();
 
-    travel::Worldstate world_struct;
-    memset(&world_struct, 0, sizeof(world_struct));
+    plnnr::Memory_Default default_mem;
 
-    world_struct.atoms[atom_start] = tuple_list::create<start_tuple>(1);
-    world_struct.atoms[atom_finish] = tuple_list::create<finish_tuple>(1);
-    world_struct.atoms[atom_short_distance] = tuple_list::create<short_distance_tuple>(tuple_list_page);
-    world_struct.atoms[atom_long_distance] = tuple_list::create<long_distance_tuple>(tuple_list_page);
-    world_struct.atoms[atom_airport] = tuple_list::create<airport_tuple>(tuple_list_page);
+    // create database using format provided in domain info.
+    plnnr::Fact_Database db = plnnr::create_fact_database(&default_mem, domain->database_req);
 
-    plnnr::Worldstate world(&world_struct);
+    // start & finish
+    plnnr::add_entry(db.tables[0], SPB);
+    plnnr::add_entry(db.tables[1], MSC);
 
-    const int spb = 0;
-    const int led = 1;
-    const int svo = 2;
-    const int msc = 3;
+    // short_distance
+    plnnr::add_entry(db.tables[2], SPB, LED);
+    plnnr::add_entry(db.tables[2], LED, SPB);
+    plnnr::add_entry(db.tables[2], MSC, SVO);
+    plnnr::add_entry(db.tables[2], SVO, MSC);
 
-    world.append(atom<start_tuple>(spb));
-    world.append(atom<finish_tuple>(msc));
+    // long_distance
+    plnnr::add_entry(db.tables[3], SPB, MSC);
+    plnnr::add_entry(db.tables[3], MSC, SPB);
+    plnnr::add_entry(db.tables[3], LED, SVO);
+    plnnr::add_entry(db.tables[3], SVO, LED);
+    plnnr::add_entry(db.tables[3], SPB, SVO);
+    plnnr::add_entry(db.tables[3], SVO, SPB);
+    plnnr::add_entry(db.tables[3], MSC, LED);
+    plnnr::add_entry(db.tables[3], LED, MSC);
 
-    world.append(atom<short_distance_tuple>(spb, led));
-    world.append(atom<short_distance_tuple>(led, spb));
-    world.append(atom<short_distance_tuple>(msc, svo));
-    world.append(atom<short_distance_tuple>(svo, msc));
+    // airport
+    plnnr::add_entry(db.tables[4], SPB, LED);
+    plnnr::add_entry(db.tables[4], MSC, SVO);
 
-    world.append(atom<long_distance_tuple>(spb, msc));
-    world.append(atom<long_distance_tuple>(msc, spb));
-    world.append(atom<long_distance_tuple>(led, svo));
-    world.append(atom<long_distance_tuple>(svo, led));
-    world.append(atom<long_distance_tuple>(spb, svo));
-    world.append(atom<long_distance_tuple>(svo, spb));
-    world.append(atom<long_distance_tuple>(msc, led));
-    world.append(atom<long_distance_tuple>(led, msc));
+    // create planning state.
+    plnnr::Planning_State_Config config;
+    config.max_depth = 10;
+    config.max_plan_length = 10;
+    config.expansion_data_size = 1024;
+    config.plan_data_size = 1024;
 
-    world.append(atom<airport_tuple>(spb, led));
-    world.append(atom<airport_tuple>(msc, svo));
+    plnnr::Planning_State pstate = plnnr::create_planning_state(&default_mem, config);
 
-    World_Printf printer;
-    plnnr::reflect(world_struct, printer);
+    plnnr::find_plan(domain, &db, &pstate);
 
-    plnnr::Stack methods(32768);
-    plnnr::Stack tasks(32768);
-    plnnr::Stack jstack(32768);
-    plnnr::Stack trace(32768);
+    // resulting plan is stored on the task stack.
+    printf("plan:\n");
+    print_plan(&pstate, domain);
 
-    Planner_State pstate;
-    pstate.top_method = 0;
-    pstate.top_task = 0;
-    pstate.methods = &methods;
-    pstate.tasks = &tasks;
-    pstate.journal = &jstack;
-    pstate.trace = &trace;
-
-    find_plan_init(pstate, travel::task_root, travel::root_branch_0_expand);
-
-    Find_Plan_Status status = plan_in_progress;
-    while (status == plan_in_progress)
-    {
-        status = find_plan_step(pstate, world.data());
-    }
-
-    if (status == plan_found)
-    {
-        printf("\nplan found:\n\n");
-        Task_Instance* task = bottom<Task_Instance>(pstate.tasks);
-        task_printf task_printer;
-        plnnr::walk_stack_up<travel::Task_Type>(task, task_printer);
-    }
-    else
-    {
-        printf("plan not found.\n");
-    }
+    plnnr::destroy(&default_mem, pstate);
+    plnnr::destroy(&default_mem, db);
 
     return 0;
 }

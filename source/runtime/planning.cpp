@@ -30,20 +30,20 @@ Planning_State plnnr::create_planning_state(Memory* mem, Planning_State_Config c
     memset(&result, 0, sizeof(result));
 
     Expansion_Frame* expansion_frames = allocate<Expansion_Frame>(mem, config.max_depth);
-    result.expansion_stack.max_size = config.max_depth;
+    result.expansion_stack.max_size = static_cast<uint32_t>(config.max_depth);
     result.expansion_stack.frames = expansion_frames;
 
     Task_Frame* task_frames = allocate<Task_Frame>(mem, config.max_plan_length);
-    result.task_stack.max_size = config.max_plan_length;
+    result.task_stack.max_size = static_cast<uint32_t>(config.max_plan_length);
     result.task_stack.frames = task_frames;
 
     uint8_t* expansion_data = allocate<uint8_t>(mem, config.expansion_data_size, PLNNR_DEFAULT_ALIGNMENT);
-    result.expansion_blob.max_size = config.expansion_data_size;
+    result.expansion_blob.max_size = static_cast<uint32_t>(config.expansion_data_size);
     result.expansion_blob.top = expansion_data;
     result.expansion_blob.base = expansion_data;
 
     uint8_t* plan_data = allocate<uint8_t>(mem, config.plan_data_size, PLNNR_DEFAULT_ALIGNMENT);
-    result.task_blob.max_size = config.plan_data_size;
+    result.task_blob.max_size = static_cast<uint32_t>(config.plan_data_size);
     result.task_blob.top = plan_data;
     result.task_blob.base = plan_data;
 
@@ -59,32 +59,44 @@ void plnnr::destroy(Memory* mem, Planning_State& s)
     memset(&s, 0, sizeof(s));
 }
 
-static plnnr::Expansion_Frame* pop_expansion(plnnr::Planning_State* state, bool failed)
+static plnnr::Expansion_Frame* pop_expansion(plnnr::Planning_State* state)
 {
     Expansion_Frame* old_top = pop(state->expansion_stack);
     Expansion_Frame* new_top = top(state->expansion_stack);
 
     // revert all data allocated by old_top expansion.
     Linear_Blob* blob = &state->expansion_blob;
-    blob->top = blob->base + old_top->blob_rewind;
-
-    if (new_top && failed)
-    {
-        new_top->flags |= Expansion_Frame::Flags_Failed;
-
-        // now revert tasks this expansion produced before failure.
-    }
+    blob->top = blob->base + old_top->orig_blob_size;
 
     return new_top;
 }
 
+static void undo_expansion(plnnr::Planning_State* state)
+{
+    plnnr_assert(state->expansion_stack.size > 0);
+
+    Expansion_Frame* frame = top(state->expansion_stack);
+    frame->flags |= Expansion_Frame::Flags_Failed;
+
+    // now revert any tasks parent expansion has produced.
+    uint32_t curr_task_count = state->task_stack.size;
+    uint32_t orig_task_count = frame->orig_task_count;
+
+    Linear_Blob* blob = &state->task_blob;
+
+    // any tasks added by expansion?
+    if (curr_task_count > orig_task_count)
+    {
+        // the first task added by expansion.
+        Task_Frame* task_frame = &state->task_stack.frames[orig_task_count + 1];
+        blob->top = blob->base + task_frame->orig_blob_size;
+        state->task_stack.size = orig_task_count;
+    }
+}
+
 bool plnnr::find_plan(const Domain_Info* domain, Fact_Database* db, Planning_State* state)
 {
-    // there's no composite tasks in this domain -> bail out with an empty plan.
-    if (domain->task_info.num_composite == 0)
-    {
-        return true;
-    }
+    plnnr_assert(domain->task_info.num_composite > 0);
 
     // the root task is the first composite task in domain.
     uint32_t root_id = domain->task_info.num_primitive;
@@ -109,7 +121,7 @@ bool plnnr::find_plan(const Domain_Info* domain, Fact_Database* db, Planning_Sta
             {
                 while (frame && (frame->flags & Expansion_Frame::Flags_Expanded) != 0)
                 {
-                    frame = pop_expansion(state, false);
+                    frame = pop_expansion(state);
                 }
 
                 // all composites are now expanded -> plan found.
@@ -122,12 +134,14 @@ bool plnnr::find_plan(const Domain_Info* domain, Fact_Database* db, Planning_Sta
         else
         {
             // expansion failed -> pop expansion and revert tasks.
-            frame = pop_expansion(state, true);
+            frame = pop_expansion(state);
 
             if (!frame)
             {
                 return false;
             }
+
+            undo_expansion(state);
         }
     }
 }

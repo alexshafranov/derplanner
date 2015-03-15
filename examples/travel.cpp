@@ -29,7 +29,7 @@ static bool travel_branch_1_expand(Planning_State*, Expansion_Frame*, Fact_Datab
 static bool travel_by_plane_branch_0_expand(Planning_State*, Expansion_Frame*, Fact_Database*);
 
 static const char* s_fact_names[] = { "start", "finish", "short_distance", "long_distance", "airport" };
-static const char* s_task_names[] = { "!go_by_taxi", "!go_by_plane", "root", "travel", "travel_by_plane" };
+static const char* s_task_names[] = { "!taxi", "!plane", "root", "travel", "travel_by_plane" };
 
 static Composite_Task_Expand* s_task_expands[] = { root_branch_0_expand, travel_branch_0_expand, travel_by_plane_branch_0_expand };
 
@@ -63,6 +63,10 @@ static Param_Layout s_precondition_output[] = {
 
 static uint32_t s_num_cases[] = { 1, 2, 1 };
 
+static uint32_t s_size_hints[] = { 1, 1, 0, 0, 0 };
+
+static uint32_t s_hashes[] = { 0, 0, 0, 0, 0 };
+
 static Domain_Info s_domain_info = {
 	// task_info
 	{
@@ -77,16 +81,16 @@ static Domain_Info s_domain_info = {
 	},
 	// database_req
 	{
-		5, // num_tables
-		0, // size_hints
+		5,				// num_tables
+		s_size_hints,	// size_hints
 		s_fact_types,
-		0, // hashes
+		s_hashes,		// hashes
 		s_fact_names,
 	},
 };
 ///////////////////////////////////////////////////////////////////////////////
 
-const Domain_Info* travel_domain_info()
+void travel_init_domain_info()
 {
 	for (int i = 0; i < PLNNR_STATIC_ARRAY_SIZE(s_task_parameters); ++i)
 	{
@@ -97,7 +101,11 @@ const Domain_Info* travel_domain_info()
 	{
 		compute_offsets_and_size(&s_precondition_output[i]);
 	}
+}
+///////////////////////////////////////////////////////////////////////////////
 
+const Domain_Info* travel_get_domain_info()
+{
 	return &s_domain_info;
 }
 ///////////////////////////////////////////////////////////////////////////////
@@ -109,7 +117,7 @@ static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 	Fact_Handle* handles = frame->handles;
 
 	PLNNR_COROUTINE_BEGIN(frame, precond_label);
-	allocate_precond_handles(state, frame, 2);
+	handles = allocate_precond_handles(state, frame, 2);
 	allocate_precond_result(state, frame, s_precondition_output[0]);
 
 	for (handles[0] = first(db, 0); is_valid(db, handles[0]); handles[0] = next(db, handles[0]))
@@ -134,7 +142,7 @@ static bool p1_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 	Fact_Handle* handles = frame->handles;
 
 	PLNNR_COROUTINE_BEGIN(frame, precond_label);
-	allocate_precond_handles(state, frame, 1);
+	handles = allocate_precond_handles(state, frame, 1);
 
 	for (handles[0] = first(db, 2); is_valid(db, handles[0]); handles[0] = next(db, handles[0]))
 	{
@@ -162,7 +170,7 @@ static bool p2_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 	Fact_Handle* handles = frame->handles;
 
 	PLNNR_COROUTINE_BEGIN(frame, precond_label);
-	allocate_precond_handles(state, frame, 1);
+	handles = allocate_precond_handles(state, frame, 1);
 
 	for (handles[0] = first(db, 3); is_valid(db, handles[0]); handles[0] = next(db, handles[0]))
 	{
@@ -190,7 +198,7 @@ static bool p3_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 	Fact_Handle* handles = frame->handles;
 
 	PLNNR_COROUTINE_BEGIN(frame, precond_label);
-	allocate_precond_handles(state, frame, 2);
+	handles = allocate_precond_handles(state, frame, 2);
 	allocate_precond_result(state, frame, s_precondition_output[3]);
 
 	for (handles[0] = first(db, 4); is_valid(db, handles[0]); handles[0] = next(db, handles[0]))
