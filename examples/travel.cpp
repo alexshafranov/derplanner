@@ -92,12 +92,12 @@ static Domain_Info s_domain_info = {
 
 void travel_init_domain_info()
 {
-	for (int i = 0; i < PLNNR_STATIC_ARRAY_SIZE(s_task_parameters); ++i)
+	for (size_t i = 0; i < PLNNR_STATIC_ARRAY_SIZE(s_task_parameters); ++i)
 	{
 		compute_offsets_and_size(&s_task_parameters[i]);
 	}
 
-	for (int i = 0; i < PLNNR_STATIC_ARRAY_SIZE(s_precondition_output); ++i)
+	for (size_t i = 0; i < PLNNR_STATIC_ARRAY_SIZE(s_precondition_output); ++i)
 	{
 		compute_offsets_and_size(&s_precondition_output[i]);
 	}
