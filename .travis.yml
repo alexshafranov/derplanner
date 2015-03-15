@@ -11,6 +11,6 @@ script:
     - ./bin/x64/release/derplannerc --out examples examples/travel.domain
     - ./bin/x64/release/derplannerc --out examples examples/blocks.domain
     - make config=release_x64 example-travel
-    - make config=release_x64 example-blocks
+    # - make config=release_x64 example-blocks
     - ./bin/x64/release/example-travel
-    - ./bin/x64/release/example-blocks
+    # - ./bin/x64/release/example-blocks
