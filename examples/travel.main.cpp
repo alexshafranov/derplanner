@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include "derplanner/runtime/database.h"
 #include "derplanner/runtime/planning.h"
-// todo: remove this include
-#include "derplanner/runtime/domain_support.h"
 #include "travel.h"
 
 // city

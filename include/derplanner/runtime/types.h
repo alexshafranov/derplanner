@@ -61,6 +61,8 @@ struct Fact_Handle
 // Collection of tuples of a single fact type.
 struct Fact_Table
 {
+    // type (format) of the stored data tuples.
+    Fact_Type       format;
     // current number of entries stored.
     uint32_t        num_entries;
     // total allocated number of entries.
@@ -84,8 +86,6 @@ struct Fact_Database
     uint32_t*       hashes;
     // fact name per each table.
     const char**    names;
-    // type (format) per each table.
-    Fact_Type*      types;
     // table data.
     Fact_Table*     tables;
     // linear block of memory accommodating database data (not including tables data).
