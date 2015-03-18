@@ -28,6 +28,7 @@ Fact_Table plnnr::create_fact_table(Memory* mem, const Fact_Type& format, uint32
     Fact_Table result;
     memset(&result, 0, sizeof(result));
 
+    result.format = format;
     result.num_entries = 0;
     result.max_entries = max_entries;
 
@@ -81,9 +82,6 @@ Fact_Database plnnr::create_fact_database(Memory* mem, const Database_Format& fo
     // names
     size = align(size, plnnr_alignof(void*));
     size += sizeof(void*) * max_tables;
-    // types
-    size = align(size, plnnr_alignof(Fact_Type));
-    size += sizeof(Fact_Type) * max_tables;
     // tables
     size = align(size, plnnr_alignof(Fact_Table));
     size += sizeof(Fact_Table) * max_tables;
@@ -96,8 +94,6 @@ Fact_Database plnnr::create_fact_database(Memory* mem, const Database_Format& fo
     bytes += sizeof(uint32_t) * max_tables;
     result.names = plnnr::align<const char*>(bytes);
     bytes += sizeof(void*) * max_tables;
-    result.types = plnnr::align<Fact_Type>(bytes);
-    bytes += sizeof(Fact_Type) * max_tables;
     result.tables = plnnr::align<Fact_Table>(bytes);
 
     for (uint32_t i = 0; i < format.num_tables; ++i)
@@ -106,7 +102,6 @@ Fact_Database plnnr::create_fact_database(Memory* mem, const Database_Format& fo
         uint32_t max_entries = ( size_hint > 0 ) ? size_hint : 128;
         result.hashes[i] = format.hashes[i];
         result.names[i] = format.names[i];
-        result.types[i] = format.types[i];
         Fact_Table table = create_fact_table(mem, format.types[i], max_entries);
         result.tables[i] = table;
     }

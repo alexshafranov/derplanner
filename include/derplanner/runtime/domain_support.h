@@ -91,20 +91,6 @@ inline void allocate_precond_result(Planning_State* state, Expansion_Frame* fram
     frame->precond_result = bytes;
 }
 
-#define PLNNR_TYPE(TYPE_TAG, TYPE_NAME)                                                             \
-    inline TYPE_NAME as_##TYPE_TAG(const void* data, Param_Layout layout, int param_index)          \
-    {                                                                                               \
-        plnnr_assert(param_index < layout.num_params);                                              \
-        plnnr_assert(Type_##TYPE_TAG == layout.types[param_index]);                                 \
-        const uint8_t* bytes = static_cast<const uint8_t*>(data);                                   \
-        size_t offset = layout.offsets[param_index];                                                \
-        const TYPE_NAME* result = reinterpret_cast<const TYPE_NAME*>(bytes + offset);               \
-        return result[0];                                                                           \
-    }                                                                                               \
-
-    #include "derplanner/runtime/type_tags.inl"
-#undef PLNNR_TYPE
-
 inline void begin_composite(Planning_State* state, uint32_t id, Composite_Task_Expand* expand, Param_Layout args_layout)
 {
     Linear_Blob* blob = &state->expansion_blob;
@@ -135,41 +121,6 @@ inline void begin_task(Planning_State* state, uint32_t id, Param_Layout args_lay
     push(state->task_stack, frame);
 }
 
-inline void set_composite_arg(Planning_State* state, Param_Layout layout, int param_index, int32_t value)
-{
-    plnnr_assert(param_index < layout.num_params);
-    plnnr_assert(Type_Int32 == layout.types[param_index]);
-
-    Expansion_Frame* frame = top(state->expansion_stack);
-    uint8_t* bytes = static_cast<uint8_t*>(frame->arguments);
-    size_t offset = layout.offsets[param_index];
-    int32_t* result = reinterpret_cast<int32_t*>(bytes + offset);
-    *result = value;
-}
-
-inline void set_task_arg(Planning_State* state, Param_Layout layout, int param_index, int32_t value)
-{
-    plnnr_assert(param_index < layout.num_params);
-    plnnr_assert(Type_Int32 == layout.types[param_index]);
-
-    Task_Frame* frame = top(state->task_stack);
-    uint8_t* bytes = static_cast<uint8_t*>(frame->arguments);
-    size_t offset = layout.offsets[param_index];
-    int32_t* result = reinterpret_cast<int32_t*>(bytes + offset);
-    *result = value;
-}
-
-inline void set_precond_result(Expansion_Frame* frame, Param_Layout layout, int param_index, int32_t value)
-{
-    plnnr_assert(param_index < layout.num_params);
-    plnnr_assert(Type_Int32 == layout.types[param_index]);
-
-    uint8_t* bytes = static_cast<uint8_t*>(frame->precond_result);
-    size_t offset = layout.offsets[param_index];
-    int32_t* result = reinterpret_cast<int32_t*>(bytes + offset);
-    *result = value;
-}
-
 inline bool expand_next_case(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, Composite_Task_Expand* expand, Param_Layout args_layout)
 {
     frame->case_index++;
@@ -183,6 +134,26 @@ inline bool expand_next_case(Planning_State* state, Expansion_Frame* frame, Fact
     allocate_with_layout(blob, args_layout);
 
     return frame->expand(state, frame, db);
+}
+
+template <typename T>
+inline void set_composite_arg(Planning_State* state, Param_Layout layout, uint32_t param_index, const T& value)
+{
+    Expansion_Frame* frame = top(state->expansion_stack);
+    set_param(frame->arguments, layout, param_index, value);
+}
+
+template <typename T>
+inline void set_task_arg(Planning_State* state, Param_Layout layout, uint32_t param_index, const T& value)
+{
+    Task_Frame* frame = top(state->task_stack);
+    set_param(frame->arguments, layout, param_index, value);
+}
+
+template <typename T>
+inline void set_precond_result(Expansion_Frame* frame, Param_Layout layout, uint32_t param_index, const T& value)
+{
+    set_param(frame->precond_result, layout, param_index, value);
 }
 
 }
