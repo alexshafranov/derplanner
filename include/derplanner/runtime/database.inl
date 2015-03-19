@@ -23,6 +23,8 @@
 
 namespace plnnr {
 
+static const uint64_t INVALID_GENERATION_ID = 0x0000000000ffffff;
+
 /// Fact_Handle
 
 inline bool is_valid(const Fact_Database& db, Fact_Handle handle)
