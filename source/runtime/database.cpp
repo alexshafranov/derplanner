@@ -34,9 +34,9 @@ Fact_Table plnnr::create_fact_table(Memory* mem, const Fact_Type& format, uint32
 
     size_t size = 0;
     // data columns
-    for (uint8_t i = 0; i < format.arity; ++i)
+    for (uint8_t i = 0; i < format.num_params; ++i)
     {
-        size += get_type_alignment(format.param_type[i]) + max_entries * get_type_size(format.param_type[i]);
+        size += get_type_alignment(format.types[i]) + max_entries * get_type_size(format.types[i]);
     }
     // generations
     size = plnnr::align(size, plnnr_alignof(uint32_t));
@@ -49,9 +49,9 @@ Fact_Table plnnr::create_fact_table(Memory* mem, const Fact_Type& format, uint32
     result.blob = blob;
     uint8_t* bytes = static_cast<uint8_t*>(blob);
 
-    for (uint8_t i = 0; i < format.arity; ++i)
+    for (uint8_t i = 0; i < format.num_params; ++i)
     {
-        Type param_type = format.param_type[i];
+        Type param_type = format.types[i];
         size_t param_align = get_type_alignment(param_type);
         uint8_t* column = static_cast<uint8_t*>(plnnr::align(bytes, param_align));
         bytes = column + max_entries * get_type_size(param_type);

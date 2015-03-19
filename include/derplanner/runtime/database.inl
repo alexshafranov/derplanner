@@ -115,8 +115,8 @@ inline size_t get_type_alignment(Type t)
     inline TYPE_NAME as_##TYPE_TAG(const Fact_Table& table, uint32_t entry_index, uint32_t param_index)     \
     {                                                                                                       \
         plnnr_assert(entry_index < table.num_entries);                                                      \
-        plnnr_assert(param_index < table.format.arity);                                                     \
-        plnnr_assert(Type_##TYPE_TAG == table.format.param_type[param_index]);                              \
+        plnnr_assert(param_index < table.format.num_params);                                                \
+        plnnr_assert(Type_##TYPE_TAG == table.format.types[param_index]);                                   \
         const TYPE_NAME* values = static_cast<const TYPE_NAME*>(table.columns[param_index]);                \
         return values[entry_index];                                                                         \
     }                                                                                                       \
@@ -171,8 +171,8 @@ inline size_t get_type_alignment(Type t)
     inline void set_param(Fact_Table& table, uint32_t entry_index, uint32_t param_index, const TYPE_NAME& value)    \
     {                                                                                                               \
         plnnr_assert(entry_index < table.num_entries);                                                              \
-        plnnr_assert(param_index < table.format.arity);                                                             \
-        plnnr_assert(Type_##TYPE_TAG == table.format.param_type[param_index]);                                      \
+        plnnr_assert(param_index < table.format.num_params);                                                        \
+        plnnr_assert(Type_##TYPE_TAG == table.format.types[param_index]);                                           \
         TYPE_NAME* column = static_cast<TYPE_NAME*>(table.columns[param_index]);                                    \
         column[entry_index] = value;                                                                                \
     }                                                                                                               \
