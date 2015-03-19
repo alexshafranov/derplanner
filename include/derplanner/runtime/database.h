@@ -27,8 +27,6 @@
 
 namespace plnnr {
 
-static const uint64_t INVALID_GENERATION_ID = 0x0000000000ffffff;
-
 /// Fact_Database
 
 Fact_Database create_fact_database(Memory* mem, const Database_Format& format);
