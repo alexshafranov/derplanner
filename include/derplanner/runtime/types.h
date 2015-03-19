@@ -238,8 +238,12 @@ struct Domain_Info
     Database_Format     database_req;
 };
 
-// types of the generated domain interface functions.
+/// Domain interface function pointer types.
+
+// Must be called before calling `Get_Domain_Info`.
 typedef void Init_Domain_Info();
+
+// Retrieves `Domain_Info` object from generated code.
 typedef const Domain_Info* Get_Domain_Info();
 
 }
