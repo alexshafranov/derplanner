@@ -223,6 +223,8 @@ struct Task_Info
     const char**                names;
     // format of task parameters.
     Param_Layout*               parameters;
+    // format of the bindings created by composite task preconditions.
+    Param_Layout*               precondition_results;
     // pointer to generated expand function for each composite task.
     Composite_Task_Expand**     expands;
 };
@@ -235,6 +237,10 @@ struct Domain_Info
     // required fact database format.
     Database_Format     database_req;
 };
+
+// types of the generated domain interface functions.
+typedef void Init_Domain_Info();
+typedef const Domain_Info* Get_Domain_Info();
 
 }
 

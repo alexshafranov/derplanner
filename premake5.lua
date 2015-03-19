@@ -68,11 +68,20 @@ solution "derplanner"
             defines { "_CRT_SECURE_NO_WARNINGS" }
         configuration {}
 
+    project "domain-travel"
+        kind "SharedLib"
+        files { "examples/travel.cpp" }
+        includedirs { "include" }
+        configuration { "vs*" }
+            defines { "PLNNR_DOMAIN_API=__declspec(dllexport)" }
+
     project "example-travel"
         kind "ConsoleApp"
-        files { "examples/travel.main.cpp", "examples/travel.cpp" }
+        files { "examples/travel.main.cpp" }
         includedirs { "include" }
-        links { "derplanner-runtime" }
+        links { "derplanner-runtime", "domain-travel" }
+        configuration { "vs*" }
+            defines { "PLNNR_DOMAIN_API=__declspec(dllimport)" }
 
     -- project "example-blocks"
     --     kind "ConsoleApp"

@@ -54,7 +54,7 @@ static Param_Layout s_task_parameters[] = {
 	{ 2, s_layout_types + 0, 0, s_layout_offsets + 0 },
 };
 
-static Param_Layout s_precondition_output[] = {
+static Param_Layout s_precond_results[] = {
 	{ 2, s_layout_types + 0, 0, s_layout_offsets + 0 },
 	{ 0, 0, 0, 0 },
 	{ 0, 0, 0, 0 },
@@ -77,6 +77,7 @@ static Domain_Info s_domain_info = {
 		0,				// hashes
 		s_task_names,
 		s_task_parameters,
+		s_precond_results,
 		s_task_expands,
 	},
 	// database_req
@@ -97,9 +98,9 @@ void travel_init_domain_info()
 		compute_offsets_and_size(&s_task_parameters[i]);
 	}
 
-	for (size_t i = 0; i < PLNNR_STATIC_ARRAY_SIZE(s_precondition_output); ++i)
+	for (size_t i = 0; i < PLNNR_STATIC_ARRAY_SIZE(s_precond_results); ++i)
 	{
-		compute_offsets_and_size(&s_precondition_output[i]);
+		compute_offsets_and_size(&s_precond_results[i]);
 	}
 }
 ///////////////////////////////////////////////////////////////////////////////
@@ -118,14 +119,14 @@ static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 
 	PLNNR_COROUTINE_BEGIN(frame, precond_label);
 	handles = allocate_precond_handles(state, frame, 2);
-	allocate_precond_result(state, frame, s_precondition_output[0]);
+	allocate_precond_result(state, frame, s_precond_results[0]);
 
 	for (handles[0] = first(db, 0); is_valid(db, handles[0]); handles[0] = next(db, handles[0]))
 	{
 		for (handles[1] = first(db, 1); is_valid(db, handles[1]); handles[1] = next(db, handles[1]))
 		{
-			set_precond_result(frame, s_precondition_output[0], 0, as_Int32(db, handles[0], 0));
-			set_precond_result(frame, s_precondition_output[0], 1, as_Int32(db, handles[1], 0));
+			set_precond_result(frame, s_precond_results[0], 0, as_Int32(db, handles[0], 0));
+			set_precond_result(frame, s_precond_results[0], 1, as_Int32(db, handles[1], 0));
 
 			PLNNR_COROUTINE_YIELD(frame, precond_label, 1);
 		}
@@ -199,7 +200,7 @@ static bool p3_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 
 	PLNNR_COROUTINE_BEGIN(frame, precond_label);
 	handles = allocate_precond_handles(state, frame, 2);
-	allocate_precond_result(state, frame, s_precondition_output[3]);
+	allocate_precond_result(state, frame, s_precond_results[3]);
 
 	for (handles[0] = first(db, 4); is_valid(db, handles[0]); handles[0] = next(db, handles[0]))
 	{
@@ -215,8 +216,8 @@ static bool p3_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 				continue;
 			}
 
-			set_precond_result(frame, s_precondition_output[3], 0, as_Int32(db, handles[0], 1));
-			set_precond_result(frame, s_precondition_output[3], 1, as_Int32(db, handles[1], 1));
+			set_precond_result(frame, s_precond_results[3], 0, as_Int32(db, handles[0], 1));
+			set_precond_result(frame, s_precond_results[3], 1, as_Int32(db, handles[1], 1));
 
 			PLNNR_COROUTINE_YIELD(frame, precond_label, 1);
 		}
@@ -235,8 +236,8 @@ static bool root_branch_0_expand(Planning_State* state, Expansion_Frame* frame, 
 	while (p0_next(state, frame, db))
 	{
 		begin_composite(state, 3, travel_branch_0_expand, s_task_parameters[3]);
-		set_composite_arg(state, s_task_parameters[3], 0, as_Int32(frame->precond_result, s_precondition_output[0], 0));
-		set_composite_arg(state, s_task_parameters[3], 1, as_Int32(frame->precond_result, s_precondition_output[0], 1));
+		set_composite_arg(state, s_task_parameters[3], 0, as_Int32(frame->precond_result, s_precond_results[0], 0));
+		set_composite_arg(state, s_task_parameters[3], 1, as_Int32(frame->precond_result, s_precond_results[0], 1));
 		frame->flags |= Expansion_Frame::Flags_Expanded;
 		PLNNR_COROUTINE_YIELD(frame, expand_label, 1);
 	}
@@ -307,7 +308,7 @@ static bool travel_by_plane_branch_0_expand(Planning_State* state, Expansion_Fra
 	{
 		begin_composite(state, 3, travel_branch_0_expand, s_task_parameters[3]);
 		set_composite_arg(state, s_task_parameters[3], 0, _0);
-		set_composite_arg(state, s_task_parameters[3], 1, as_Int32(frame->precond_result, s_precondition_output[3], 0));
+		set_composite_arg(state, s_task_parameters[3], 1, as_Int32(frame->precond_result, s_precond_results[3], 0));
 
 		PLNNR_COROUTINE_YIELD(frame, expand_label, 1);
 
@@ -317,13 +318,13 @@ static bool travel_by_plane_branch_0_expand(Planning_State* state, Expansion_Fra
 		}
 
 		begin_task(state, 1, s_task_parameters[1]);
-		set_task_arg(state, s_task_parameters[1], 0, as_Int32(frame->precond_result, s_precondition_output[3], 0));
-		set_task_arg(state, s_task_parameters[1], 1, as_Int32(frame->precond_result, s_precondition_output[3], 1));
+		set_task_arg(state, s_task_parameters[1], 0, as_Int32(frame->precond_result, s_precond_results[3], 0));
+		set_task_arg(state, s_task_parameters[1], 1, as_Int32(frame->precond_result, s_precond_results[3], 1));
 
 		PLNNR_COROUTINE_YIELD(frame, expand_label, 2);
 
 		begin_composite(state, 3, travel_branch_0_expand, s_task_parameters[3]);
-		set_composite_arg(state, s_task_parameters[3], 0, as_Int32(frame->precond_result, s_precondition_output[3], 1));
+		set_composite_arg(state, s_task_parameters[3], 0, as_Int32(frame->precond_result, s_precond_results[3], 1));
 		set_composite_arg(state, s_task_parameters[3], 1, _1);
 
 		frame->flags |= Expansion_Frame::Flags_Expanded;
