@@ -3,8 +3,12 @@
 
 #include "derplanner/runtime/types.h"
 
-void travel_init_domain_info();
+#ifndef PLNNR_DOMAIN_API
+    #define PLNNR_DOMAIN_API
+#endif
 
-const plnnr::Domain_Info* travel_get_domain_info();
+extern "C" PLNNR_DOMAIN_API void travel_init_domain_info();
+
+extern "C" PLNNR_DOMAIN_API const plnnr::Domain_Info* travel_get_domain_info();
 
 #endif
