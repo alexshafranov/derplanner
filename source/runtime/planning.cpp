@@ -94,7 +94,7 @@ static void undo_expansion(plnnr::Planning_State* state)
     }
 }
 
-bool plnnr::find_plan(const Domain_Info* domain, Fact_Database* db, Planning_State* state)
+void plnnr::find_plan_init(const Domain_Info* domain, Planning_State* state)
 {
     plnnr_assert(domain->task_info.num_composite > 0);
 
@@ -107,41 +107,56 @@ bool plnnr::find_plan(const Domain_Info* domain, Fact_Database* db, Planning_Sta
 
     // put the root task on stack.
     begin_composite(state, root_id, root_expand, args_layout);
+}
 
-    for (;;)
+Find_Plan_Status plnnr::find_plan_step(Fact_Database* db, Planning_State* state)
+{
+    Expansion_Frame* frame = top(state->expansion_stack);
+
+    if (frame->expand(state, frame, db))
     {
-        Expansion_Frame* frame = top(state->expansion_stack);
+        Expansion_Frame* new_top_frame = top(state->expansion_stack);
 
-        if (frame->expand(state, frame, db))
+        // expanded to primitive tasks -> pop all expanded composites.
+        if (frame == new_top_frame && (frame->flags & Expansion_Frame::Flags_Expanded) != 0)
         {
-            Expansion_Frame* new_top_frame = top(state->expansion_stack);
-
-            // expanded to primitive tasks -> pop all expanded composites.
-            if (frame == new_top_frame && (frame->flags & Expansion_Frame::Flags_Expanded) != 0)
+            while (frame && (frame->flags & Expansion_Frame::Flags_Expanded) != 0)
             {
-                while (frame && (frame->flags & Expansion_Frame::Flags_Expanded) != 0)
-                {
-                    frame = pop_expansion(state);
-                }
-
-                // all composites are now expanded -> plan found.
-                if (!frame)
-                {
-                    return true;
-                }
+                frame = pop_expansion(state);
             }
-        }
-        else
-        {
-            // expansion failed -> pop expansion and revert tasks.
-            frame = pop_expansion(state);
 
+            // all composites are now expanded -> plan found.
             if (!frame)
             {
-                return false;
+                return Find_Plan_Succeeded;
             }
-
-            undo_expansion(state);
         }
     }
+    else
+    {
+        // expansion failed -> pop expansion and revert tasks.
+        frame = pop_expansion(state);
+
+        if (!frame)
+        {
+            return Find_Plan_Failed;
+        }
+
+        undo_expansion(state);
+    }
+
+    return Find_Plan_In_Progress;
+}
+
+bool plnnr::find_plan(const Domain_Info* domain, Fact_Database* db, Planning_State* state)
+{
+    find_plan_init(domain, state);
+
+    Find_Plan_Status status = find_plan_step(db, state);
+    while (status == Find_Plan_In_Progress)
+    {
+        status = find_plan_step(db, state);
+    }
+
+    return (status == Find_Plan_Succeeded);
 }

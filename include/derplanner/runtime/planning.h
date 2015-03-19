@@ -68,9 +68,25 @@ inline void push(Stack<T>& stack, const T& value)
     stack.frames[stack.size++] = value;
 }
 
-/// Planning functions.
+/// Planning function
 
+// expands the first (root) composite task in domain.
 bool find_plan(const Domain_Info* domain, Fact_Database* db, Planning_State* state);
+
+/// Iterative planning functions.
+
+enum Find_Plan_Status
+{
+    Find_Plan_Failed = 0,
+    Find_Plan_Succeeded = 1,
+    Find_Plan_In_Progress = 2,
+};
+
+// pushes the first composite task on the expansion stack.
+void find_plan_init(const Domain_Info* domain, Planning_State* state);
+
+// executes one step of the planning loop.
+Find_Plan_Status find_plan_step(Fact_Database* db, Planning_State* state);
 
 }
 
