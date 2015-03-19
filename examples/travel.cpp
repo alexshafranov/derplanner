@@ -1,4 +1,4 @@
- #include <string.h>
+#include <string.h>
 #include "derplanner/runtime/memory.h"
 #include "derplanner/runtime/database.h"
 #include "derplanner/runtime/planning.h"
