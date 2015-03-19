@@ -165,10 +165,10 @@ inline size_t get_type_alignment(Type t)
     #include "derplanner/runtime/type_tags.inl"
 #undef PLNNR_TYPE
 
-/// overloaded `set_value` functions for Fact_Table tuple data. (column-major order).
+/// overloaded `set_arg` functions for Fact_Table tuple data. (column-major order).
 
 #define PLNNR_TYPE(TYPE_TAG, TYPE_NAME)                                                                             \
-    inline void set_param(Fact_Table& table, uint32_t entry_index, uint32_t param_index, const TYPE_NAME& value)    \
+    inline void set_arg(Fact_Table& table, uint32_t entry_index, uint32_t param_index, const TYPE_NAME& value)    \
     {                                                                                                               \
         plnnr_assert(entry_index < table.num_entries);                                                              \
         plnnr_assert(param_index < table.format.num_params);                                                        \
@@ -180,10 +180,10 @@ inline size_t get_type_alignment(Type t)
     #include "derplanner/runtime/type_tags.inl"
 #undef PLNNR_TYPE
 
-/// overloaded `set_value` functions for row-major tuple data. (specified by Param_Layout).
+/// overloaded `set_arg` functions for row-major tuple data. (specified by Param_Layout).
 
 #define PLNNR_TYPE(TYPE_TAG, TYPE_NAME)                                                                     \
-    inline void set_param(void* data, Param_Layout layout, uint32_t param_index, const TYPE_NAME& value)    \
+    inline void set_arg(void* data, Param_Layout layout, uint32_t param_index, const TYPE_NAME& value)    \
     {                                                                                                       \
         plnnr_assert(data != 0);                                                                            \
         plnnr_assert(param_index < layout.num_params);                                                      \
@@ -204,7 +204,7 @@ inline void add_entry(Fact_Table& table, const T0& a0)
 {
     uint32_t entry = table.num_entries++;
     plnnr_assert(entry < table.max_entries);
-    set_param(table, entry, 0, a0);
+    set_arg(table, entry, 0, a0);
 }
 
 template <typename T0, typename T1>
@@ -212,8 +212,8 @@ inline void add_entry(Fact_Table& table, const T0& a0, const T1& a1)
 {
     uint32_t entry = table.num_entries++;
     plnnr_assert(entry < table.max_entries);
-    set_param(table, entry, 0, a0);
-    set_param(table, entry, 1, a1);
+    set_arg(table, entry, 0, a0);
+    set_arg(table, entry, 1, a1);
 }
 
 template <typename T0, typename T1, typename T2>
@@ -221,9 +221,9 @@ inline void add_entry(Fact_Table& table, const T0& a0, const T1& a1, const T2& a
 {
     uint32_t entry = table.num_entries++;
     plnnr_assert(entry < table.max_entries);
-    set_param(table, entry, 0, a0);
-    set_param(table, entry, 1, a1);
-    set_param(table, entry, 2, a2);
+    set_arg(table, entry, 0, a0);
+    set_arg(table, entry, 1, a1);
+    set_arg(table, entry, 2, a2);
 }
 
 template <typename T0, typename T1, typename T2, typename T3>
@@ -231,10 +231,10 @@ inline void add_entry(Fact_Table& table, const T0& a0, const T1& a1, const T2& a
 {
     uint32_t entry = table.num_entries++;
     plnnr_assert(entry < table.max_entries);
-    set_param(table, entry, 0, a0);
-    set_param(table, entry, 1, a1);
-    set_param(table, entry, 2, a2);
-    set_param(table, entry, 3, a3);
+    set_arg(table, entry, 0, a0);
+    set_arg(table, entry, 1, a1);
+    set_arg(table, entry, 2, a2);
+    set_arg(table, entry, 3, a3);
 }
 
 template <typename T0, typename T1, typename T2, typename T3, typename T4>
@@ -242,11 +242,11 @@ inline void add_entry(Fact_Table& table, const T0& a0, const T1& a1, const T2& a
 {
     uint32_t entry = table.num_entries++;
     plnnr_assert(entry < table.max_entries);
-    set_param(table, entry, 0, a0);
-    set_param(table, entry, 1, a1);
-    set_param(table, entry, 2, a2);
-    set_param(table, entry, 3, a3);
-    set_param(table, entry, 4, a4);
+    set_arg(table, entry, 0, a0);
+    set_arg(table, entry, 1, a1);
+    set_arg(table, entry, 2, a2);
+    set_arg(table, entry, 3, a3);
+    set_arg(table, entry, 4, a4);
 }
 
 template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
@@ -254,12 +254,12 @@ inline void add_entry(Fact_Table& table, const T0& a0, const T1& a1, const T2& a
 {
     uint32_t entry = table.num_entries++;
     plnnr_assert(entry < table.max_entries);
-    set_param(table, entry, 0, a0);
-    set_param(table, entry, 1, a1);
-    set_param(table, entry, 2, a2);
-    set_param(table, entry, 3, a3);
-    set_param(table, entry, 4, a4);
-    set_param(table, entry, 5, a5);
+    set_arg(table, entry, 0, a0);
+    set_arg(table, entry, 1, a1);
+    set_arg(table, entry, 2, a2);
+    set_arg(table, entry, 3, a3);
+    set_arg(table, entry, 4, a4);
+    set_arg(table, entry, 5, a5);
 }
 
 template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
@@ -267,13 +267,13 @@ inline void add_entry(Fact_Table& table, const T0& a0, const T1& a1, const T2& a
 {
     uint32_t entry = table.num_entries++;
     plnnr_assert(entry < table.max_entries);
-    set_param(table, entry, 0, a0);
-    set_param(table, entry, 1, a1);
-    set_param(table, entry, 2, a2);
-    set_param(table, entry, 3, a3);
-    set_param(table, entry, 4, a4);
-    set_param(table, entry, 5, a5);
-    set_param(table, entry, 6, a6);
+    set_arg(table, entry, 0, a0);
+    set_arg(table, entry, 1, a1);
+    set_arg(table, entry, 2, a2);
+    set_arg(table, entry, 3, a3);
+    set_arg(table, entry, 4, a4);
+    set_arg(table, entry, 5, a5);
+    set_arg(table, entry, 6, a6);
 }
 
 template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
@@ -281,14 +281,14 @@ inline void add_entry(Fact_Table& table, const T0& a0, const T1& a1, const T2& a
 {
     uint32_t entry = table.num_entries++;
     plnnr_assert(entry < table.max_entries);
-    set_param(table, entry, 0, a0);
-    set_param(table, entry, 1, a1);
-    set_param(table, entry, 2, a2);
-    set_param(table, entry, 3, a3);
-    set_param(table, entry, 4, a4);
-    set_param(table, entry, 5, a5);
-    set_param(table, entry, 6, a6);
-    set_param(table, entry, 7, a7);
+    set_arg(table, entry, 0, a0);
+    set_arg(table, entry, 1, a1);
+    set_arg(table, entry, 2, a2);
+    set_arg(table, entry, 3, a3);
+    set_arg(table, entry, 4, a4);
+    set_arg(table, entry, 5, a5);
+    set_arg(table, entry, 6, a6);
+    set_arg(table, entry, 7, a7);
 }
 
 }
