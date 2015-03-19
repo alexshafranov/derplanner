@@ -140,20 +140,20 @@ template <typename T>
 inline void set_composite_arg(Planning_State* state, Param_Layout layout, uint32_t param_index, const T& value)
 {
     Expansion_Frame* frame = top(state->expansion_stack);
-    set_param(frame->arguments, layout, param_index, value);
+    set_arg(frame->arguments, layout, param_index, value);
 }
 
 template <typename T>
 inline void set_task_arg(Planning_State* state, Param_Layout layout, uint32_t param_index, const T& value)
 {
     Task_Frame* frame = top(state->task_stack);
-    set_param(frame->arguments, layout, param_index, value);
+    set_arg(frame->arguments, layout, param_index, value);
 }
 
 template <typename T>
 inline void set_precond_result(Expansion_Frame* frame, Param_Layout layout, uint32_t param_index, const T& value)
 {
-    set_param(frame->precond_result, layout, param_index, value);
+    set_arg(frame->precond_result, layout, param_index, value);
 }
 
 }
