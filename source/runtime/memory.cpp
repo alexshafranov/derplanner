@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2013 Alexander Shafranov shafranov@gmail.com
+// Copyright (c) 2015 Alexander Shafranov shafranov@gmail.com
 //
 // This software is provided 'as-is', without any express or implied
 // warranty.  In no event will the authors be held liable for any damages
@@ -19,11 +19,8 @@
 //
 
 #include <stdlib.h>
-#include "derplanner/runtime/memory.h"
 #include "derplanner/runtime/assert.h"
-
-namespace plnnr {
-namespace memory {
+#include "derplanner/runtime/memory.h"
 
 namespace
 {
@@ -37,35 +34,32 @@ namespace
         ::free(ptr);
     }
 
-    Alloc_Func alloc_f = default_alloc;
-    Dealloc_Func  dealloc_f  = default_dealloc;
+    plnnr::Allocate*   alloc_f   = default_alloc;
+    plnnr::Deallocate* dealloc_f = default_dealloc;
 }
 
-void set_custom(Alloc_Func a, Dealloc_Func f)
+void plnnr::set_memory_functions(Allocate* a, Deallocate* f)
 {
     alloc_f = a;
-    dealloc_f  = f;
+    dealloc_f = f;
 }
 
-void* allocate(size_t size)
+void* plnnr::allocate(size_t size)
 {
     plnnr_assert(alloc_f != 0);
     return alloc_f(size);
 }
 
-void deallocate(void* ptr)
+void plnnr::deallocate(void* ptr)
 {
     plnnr_assert(dealloc_f != 0);
     dealloc_f(ptr);
 }
 
-}
-}
-
 void* plnnr::Memory_Default::allocate(size_t size, size_t alignment)
 {
     alignment = (alignment < sizeof(uint32_t)) ? sizeof(uint32_t) : alignment;
-    void* p = plnnr::memory::allocate(sizeof(uint32_t) + alignment + size);
+    void* p = plnnr::allocate(sizeof(uint32_t) + alignment + size);
 
     uint32_t* pad = static_cast<uint32_t*>(p);
     pad[0] = 0;
@@ -96,5 +90,5 @@ void plnnr::Memory_Default::deallocate(void* ptr)
     }
     while (p[0] == 0xffffffff);
 
-    plnnr::memory::deallocate(p);
+    plnnr::deallocate(p);
 }

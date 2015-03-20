@@ -17,9 +17,9 @@ using namespace plnnr;
 #pragma warning(disable: 4189) // local variable is initialized but not referenced
 #endif
 
-#define PLNNR_COROUTINE_BEGIN(state, label) switch (state->label) { case 0:
-#define PLNNR_COROUTINE_YIELD(state, label, value) state->label = value; return true; case value:;
-#define PLNNR_COROUTINE_END() } return false
+#define plnnr_coroutine_begin(state, label) switch (state->label) { case 0:
+#define plnnr_coroutine_yield(state, label, value) state->label = value; return true; case value:;
+#define plnnr_coroutine_end() } return false
 
 #define PLNNR_STATIC_ARRAY_SIZE(array) sizeof(array)/sizeof(array[0])
 
@@ -117,7 +117,7 @@ static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 {
 	Fact_Handle* handles = frame->handles;
 
-	PLNNR_COROUTINE_BEGIN(frame, precond_label);
+	plnnr_coroutine_begin(frame, precond_label);
 	handles = allocate_precond_handles(state, frame, 2);
 	allocate_precond_result(state, frame, s_precond_results[0]);
 
@@ -128,11 +128,11 @@ static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 			set_precond_result(frame, s_precond_results[0], 0, as_Int32(db, handles[0], 0));
 			set_precond_result(frame, s_precond_results[0], 1, as_Int32(db, handles[1], 0));
 
-			PLNNR_COROUTINE_YIELD(frame, precond_label, 1);
+			plnnr_coroutine_yield(frame, precond_label, 1);
 		}
 	}
 
-	PLNNR_COROUTINE_END();
+	plnnr_coroutine_end();
 }
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -142,7 +142,7 @@ static bool p1_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 {
 	Fact_Handle* handles = frame->handles;
 
-	PLNNR_COROUTINE_BEGIN(frame, precond_label);
+	plnnr_coroutine_begin(frame, precond_label);
 	handles = allocate_precond_handles(state, frame, 1);
 
 	for (handles[0] = first(db, 2); is_valid(db, handles[0]); handles[0] = next(db, handles[0]))
@@ -157,10 +157,10 @@ static bool p1_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 			continue;
 		}
 
-		PLNNR_COROUTINE_YIELD(frame, precond_label, 1);
+		plnnr_coroutine_yield(frame, precond_label, 1);
 	}
 
-	PLNNR_COROUTINE_END();
+	plnnr_coroutine_end();
 }
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -170,7 +170,7 @@ static bool p2_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 {
 	Fact_Handle* handles = frame->handles;
 
-	PLNNR_COROUTINE_BEGIN(frame, precond_label);
+	plnnr_coroutine_begin(frame, precond_label);
 	handles = allocate_precond_handles(state, frame, 1);
 
 	for (handles[0] = first(db, 3); is_valid(db, handles[0]); handles[0] = next(db, handles[0]))
@@ -185,10 +185,10 @@ static bool p2_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 			continue;
 		}
 
-		PLNNR_COROUTINE_YIELD(frame, precond_label, 1);
+		plnnr_coroutine_yield(frame, precond_label, 1);
 	}
 
-	PLNNR_COROUTINE_END();
+	plnnr_coroutine_end();
 }
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -198,7 +198,7 @@ static bool p3_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 {
 	Fact_Handle* handles = frame->handles;
 
-	PLNNR_COROUTINE_BEGIN(frame, precond_label);
+	plnnr_coroutine_begin(frame, precond_label);
 	handles = allocate_precond_handles(state, frame, 2);
 	allocate_precond_result(state, frame, s_precond_results[3]);
 
@@ -219,11 +219,11 @@ static bool p3_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 			set_precond_result(frame, s_precond_results[3], 0, as_Int32(db, handles[0], 1));
 			set_precond_result(frame, s_precond_results[3], 1, as_Int32(db, handles[1], 1));
 
-			PLNNR_COROUTINE_YIELD(frame, precond_label, 1);
+			plnnr_coroutine_yield(frame, precond_label, 1);
 		}
 	}
 
-	PLNNR_COROUTINE_END();
+	plnnr_coroutine_end();
 }
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -231,7 +231,7 @@ static bool p3_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 
 static bool root_branch_0_expand(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
 {
-	PLNNR_COROUTINE_BEGIN(frame, expand_label);
+	plnnr_coroutine_begin(frame, expand_label);
 
 	while (p0_next(state, frame, db))
 	{
@@ -239,10 +239,10 @@ static bool root_branch_0_expand(Planning_State* state, Expansion_Frame* frame, 
 		set_composite_arg(state, s_task_parameters[3], 0, as_Int32(frame->precond_result, s_precond_results[0], 0));
 		set_composite_arg(state, s_task_parameters[3], 1, as_Int32(frame->precond_result, s_precond_results[0], 1));
 		frame->flags |= Expansion_Frame::Flags_Expanded;
-		PLNNR_COROUTINE_YIELD(frame, expand_label, 1);
+		plnnr_coroutine_yield(frame, expand_label, 1);
 	}
 
-	PLNNR_COROUTINE_END();
+	plnnr_coroutine_end();
 }
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -254,7 +254,7 @@ static bool travel_branch_0_expand(Planning_State* state, Expansion_Frame* frame
 	p1_args._0 = _0;
 	p1_args._1 = _1;
 
-	PLNNR_COROUTINE_BEGIN(frame, expand_label);
+	plnnr_coroutine_begin(frame, expand_label);
 
 	while (p1_next(state, frame, db, &p1_args))
 	{
@@ -262,12 +262,12 @@ static bool travel_branch_0_expand(Planning_State* state, Expansion_Frame* frame
 		set_task_arg(state, s_task_parameters[0], 0, _0);
 		set_task_arg(state, s_task_parameters[0], 1, _1);
 		frame->flags |= Expansion_Frame::Flags_Expanded;
-		PLNNR_COROUTINE_YIELD(frame, expand_label, 1);
+		plnnr_coroutine_yield(frame, expand_label, 1);
 	}
 
 	return expand_next_case(state, frame, db, travel_branch_1_expand, s_task_parameters[0]);
 
-	PLNNR_COROUTINE_END();
+	plnnr_coroutine_end();
 }
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -279,7 +279,7 @@ static bool travel_branch_1_expand(Planning_State* state, Expansion_Frame* frame
 	p2_args._0 = _0;
 	p2_args._1 = _1;
 
-	PLNNR_COROUTINE_BEGIN(frame, expand_label);
+	plnnr_coroutine_begin(frame, expand_label);
 
 	while (p2_next(state, frame, db, &p2_args))
 	{
@@ -287,10 +287,10 @@ static bool travel_branch_1_expand(Planning_State* state, Expansion_Frame* frame
 		set_composite_arg(state, s_task_parameters[4], 0, _0);
 		set_composite_arg(state, s_task_parameters[4], 1, _1);
 		frame->flags |= Expansion_Frame::Flags_Expanded;
-		PLNNR_COROUTINE_YIELD(frame, expand_label, 1);
+		plnnr_coroutine_yield(frame, expand_label, 1);
 	}
 
-	PLNNR_COROUTINE_END();
+	plnnr_coroutine_end();
 }
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -302,7 +302,7 @@ static bool travel_by_plane_branch_0_expand(Planning_State* state, Expansion_Fra
 	p3_args._0 = _0;
 	p3_args._1 = _1;
 
-	PLNNR_COROUTINE_BEGIN(frame, expand_label);
+	plnnr_coroutine_begin(frame, expand_label);
 
 	while (p3_next(state, frame, db, &p3_args))
 	{
@@ -310,7 +310,7 @@ static bool travel_by_plane_branch_0_expand(Planning_State* state, Expansion_Fra
 		set_composite_arg(state, s_task_parameters[3], 0, _0);
 		set_composite_arg(state, s_task_parameters[3], 1, as_Int32(frame->precond_result, s_precond_results[3], 0));
 
-		PLNNR_COROUTINE_YIELD(frame, expand_label, 1);
+		plnnr_coroutine_yield(frame, expand_label, 1);
 
 		if ((frame->flags & Expansion_Frame::Flags_Failed) != 0)
 		{
@@ -321,16 +321,16 @@ static bool travel_by_plane_branch_0_expand(Planning_State* state, Expansion_Fra
 		set_task_arg(state, s_task_parameters[1], 0, as_Int32(frame->precond_result, s_precond_results[3], 0));
 		set_task_arg(state, s_task_parameters[1], 1, as_Int32(frame->precond_result, s_precond_results[3], 1));
 
-		PLNNR_COROUTINE_YIELD(frame, expand_label, 2);
+		plnnr_coroutine_yield(frame, expand_label, 2);
 
 		begin_composite(state, 3, travel_branch_0_expand, s_task_parameters[3]);
 		set_composite_arg(state, s_task_parameters[3], 0, as_Int32(frame->precond_result, s_precond_results[3], 1));
 		set_composite_arg(state, s_task_parameters[3], 1, _1);
 
 		frame->flags |= Expansion_Frame::Flags_Expanded;
-		PLNNR_COROUTINE_YIELD(frame, expand_label, 3);
+		plnnr_coroutine_yield(frame, expand_label, 3);
 	}
 
-	PLNNR_COROUTINE_END();
+	plnnr_coroutine_end();
 }
 ///////////////////////////////////////////////////////////////////////////////

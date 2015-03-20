@@ -37,12 +37,12 @@ Planning_State plnnr::create_planning_state(Memory* mem, Planning_State_Config c
     result.task_stack.max_size = static_cast<uint32_t>(config.max_plan_length);
     result.task_stack.frames = task_frames;
 
-    uint8_t* expansion_data = allocate<uint8_t>(mem, config.expansion_data_size, PLNNR_DEFAULT_ALIGNMENT);
+    uint8_t* expansion_data = allocate<uint8_t>(mem, config.expansion_data_size, plnnr::default_alignment);
     result.expansion_blob.max_size = static_cast<uint32_t>(config.expansion_data_size);
     result.expansion_blob.top = expansion_data;
     result.expansion_blob.base = expansion_data;
 
-    uint8_t* plan_data = allocate<uint8_t>(mem, config.plan_data_size, PLNNR_DEFAULT_ALIGNMENT);
+    uint8_t* plan_data = allocate<uint8_t>(mem, config.plan_data_size, plnnr::default_alignment);
     result.task_blob.max_size = static_cast<uint32_t>(config.plan_data_size);
     result.task_blob.top = plan_data;
     result.task_blob.base = plan_data;
