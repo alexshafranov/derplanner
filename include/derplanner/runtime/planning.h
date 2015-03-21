@@ -44,30 +44,6 @@ struct Planning_State_Config
 Planning_State create_planning_state(Memory* mem, Planning_State_Config config);
 void destroy(Memory* mem, Planning_State& s);
 
-/// Stack
-
-template <typename T>
-inline T* top(const Stack<T>& stack)
-{
-    return (stack.size > 0) ? stack.frames + (stack.size - 1) : 0;
-}
-
-template <typename T>
-inline T* pop(Stack<T>& stack)
-{
-    plnnr_assert(stack.size > 0);
-    T* result = stack.frames + (stack.size - 1);
-    --stack.size;
-    return result;
-}
-
-template <typename T>
-inline void push(Stack<T>& stack, const T& value)
-{
-    plnnr_assert(stack.size < stack.max_size);
-    stack.frames[stack.size++] = value;
-}
-
 /// Planning function
 
 // expands the first (root) composite task in domain.
@@ -89,5 +65,7 @@ void find_plan_init(const Domain_Info* domain, Planning_State* state);
 Find_Plan_Status find_plan_step(Fact_Database* db, Planning_State* state);
 
 }
+
+#include "derplanner/runtime/planning.inl"
 
 #endif

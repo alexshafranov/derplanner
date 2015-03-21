@@ -24,7 +24,6 @@
 #include <string.h> // memset
 
 #include "derplanner/runtime/assert.h"
-#include "derplanner/runtime/types.h"
 #include "derplanner/runtime/memory.h"
 #include "derplanner/runtime/database.h"
 #include "derplanner/runtime/planning.h"
