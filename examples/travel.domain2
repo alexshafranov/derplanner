@@ -3,11 +3,11 @@ domain travel
 {
     world
     {
-        start( int )  :size(1)
-        finish( int ) :size(1)
-        short_distance( int, int )
-        long_distance( int, int )
-        airport( int, int )
+        start( int32 )  :size(1)
+        finish( int32 ) :size(1)
+        short_distance( int32, int32 )
+        long_distance( int32, int32 )
+        airport( int32, int32 )
     }
 
     task root()
@@ -17,13 +17,13 @@ domain travel
 
     task travel(x, y)
     {
-        case( short_distance(x, y) ) -> [ !go_by_taxi(x, y) ]
+        case( short_distance(x, y) ) -> [ !taxi(x, y) ]
 
         case( long_distance(x, y) ) -> [ travel_by_plane(x, y) ]
     }
 
     task travel_by_plane(x, y)
     {
-        case( airport(x, ax) & airport(y, ay) ) -> [ travel(x, ax), !go_by_plane(ax, ay), travel(y, ay) ]
+        case( airport(x, ax) & airport(y, ay) ) -> [ travel(x, ax), !plane(ax, ay), travel(y, ay) ]
     }
 }
