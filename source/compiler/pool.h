@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2013 Alexander Shafranov shafranov@gmail.com
+// Copyright (c) 2015 Alexander Shafranov shafranov@gmail.com
 //
 // This software is provided 'as-is', without any express or implied
 // warranty.  In no event will the authors be held liable for any damages
@@ -24,17 +24,15 @@
 #include <stddef.h> // size_t
 
 namespace plnnrc {
-namespace pool {
 
-struct Handle;
+struct Pool_Handle;
 
-Handle* create(size_t page_size);
+Pool_Handle* create_paged_pool(size_t page_size);
 
-void destroy(const Handle* pool);
+void destroy(const Pool_Handle* handle);
 
-void* allocate(Handle* pool, size_t bytes, size_t alignment);
+void* allocate(Pool_Handle* handle, size_t bytes, size_t alignment);
 
-}
 }
 
 #endif

@@ -21,7 +21,7 @@
 #ifndef DERPLANNER_RUNTIME_ASSERT_H_
 #define DERPLANNER_RUNTIME_ASSERT_H_
 
-// if external plnnrc_assert is not provided
+// if external plnnr_assert is not provided
 #ifndef plnnr_assert
     #ifdef NDEBUG
         // http://cnicholson.net/2009/02/stupid-c-tricks-adventures-in-assert/
