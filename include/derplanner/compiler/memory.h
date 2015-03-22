@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2013 Alexander Shafranov shafranov@gmail.com
+// Copyright (c) 2015 Alexander Shafranov shafranov@gmail.com
 //
 // This software is provided 'as-is', without any express or implied
 // warranty.  In no event will the authors be held liable for any damages
@@ -22,58 +22,47 @@
 #define DERPLANNER_COMPILER_MEMORY_H_
 
 #include <stddef.h> // for size_t
-#include <stdint.h> // uintptr_t
-
-namespace plnnrc {
-namespace memory {
-
-typedef void* (*Alloc_Func) (size_t size);
-typedef void (*Dealloc_Func)(void* ptr);
-
-void set_custom(Alloc_Func a, Dealloc_Func f);
-
-void* allocate(size_t);
-void deallocate(void*);
-
-}
-}
+#include <stdint.h> // for uintptr_t
 
 #ifndef plnnrc_alignof
-
-namespace
-{
-    template <typename T>
-    struct alignof_tester
-    {
-        char c;
-        T t;
-    };
-
-    template <typename T>
-    struct alignof_helper
-    {
-        enum { value = sizeof(alignof_tester<T>) - sizeof(T) };
-    };
-}
-
-    #define plnnrc_alignof(T) alignof_helper<T>::value
+    #define plnnrc_alignof(T) __alignof(T)
 #endif
 
 namespace plnnrc {
-namespace memory {
 
+enum { default_alignment = 16 };
+
+typedef void* Allocate(size_t bytes);
+typedef void  Deallocate(void* ptr);
+
+// allows global override of derplanner memory allocation.
+void set_memory_functions(Allocate* allocate_function, Deallocate* deallocate_function);
+
+// allocates a `bytes` sized memory block.
+void* allocate(size_t bytes);
+
+// deallocates memory block pointed previously obtained by `allocate`.
+void deallocate(void* ptr);
+
+// align size.
+inline size_t align(size_t value, size_t alignment)
+{
+    return (value + (alignment - 1)) & ~(alignment - 1);
+}
+
+// align pointer.
 inline void* align(void* ptr, size_t alignment)
 {
     return reinterpret_cast<void*>((reinterpret_cast<uintptr_t>(ptr) + (alignment - 1)) & ~(alignment - 1));
 }
 
+// align pointer to compiler specified alignment for type `T` and cast.
 template <typename T>
 inline T* align(void* ptr)
 {
     return static_cast<T*>(align(ptr, plnnrc_alignof(T)));
 }
 
-}
 }
 
 #endif

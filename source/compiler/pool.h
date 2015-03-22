@@ -25,6 +25,13 @@
 
 namespace plnnrc {
 
+///
+/// Paged Pool
+///
+/// Chain of uniformly sized blocks of memory, where each block is used for a linear `bump-pointer` allocations.
+/// There's no `deallocate` function as the pool can only grow. All pages are freed at once in `destroy`.
+///
+
 struct Pool_Handle;
 
 Pool_Handle* create_paged_pool(size_t page_size);
