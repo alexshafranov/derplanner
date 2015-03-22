@@ -7,7 +7,8 @@ script:
     - ./premake5 gmake
     # - make config=release_x64 tests
     # - ./bin/x64/release/tests
-    - make config=release_x64 derplannerc
+    - make config=release_x64 derplanner-compiler
+    # - make config=release_x64 derplannerc
     # - ./bin/x64/release/derplannerc --out examples examples/travel.domain
     # - ./bin/x64/release/derplannerc --out examples examples/blocks.domain
     - make config=release_x64 example-travel
