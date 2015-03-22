@@ -21,16 +21,9 @@
 #ifndef DERPLANNER_COMPILER_TOKEN_H_
 #define DERPLANNER_COMPILER_TOKEN_H_
 
-namespace plnnrc {
+#include "derplanner/compiler/lexer_types.h"
 
-// Lexer token IDs.
-enum Token_Type
-{
-    Token_None = 0,
-    #define PLNNRC_TOKEN(TAG) Token_##TAG,
-    #include "derplanner/compiler/token_tags.inl"
-    #undef
-};
+namespace plnnrc {
 
 // is_<Token_Type>
 #define PLNNRC_TOKEN(TAG)                           \
