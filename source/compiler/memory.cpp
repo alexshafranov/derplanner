@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2013 Alexander Shafranov shafranov@gmail.com
+// Copyright (c) 2015 Alexander Shafranov shafranov@gmail.com
 //
 // This software is provided 'as-is', without any express or implied
 // warranty.  In no event will the authors be held liable for any damages
@@ -19,11 +19,8 @@
 //
 
 #include <stdlib.h>
-#include "derplanner/compiler/memory.h"
 #include "derplanner/compiler/assert.h"
-
-namespace plnnrc {
-namespace memory {
+#include "derplanner/compiler/memory.h"
 
 namespace
 {
@@ -37,27 +34,24 @@ namespace
         ::free(ptr);
     }
 
-    Alloc_Func alloc_f = default_alloc;
-    Dealloc_Func  dealloc_f  = default_dealloc;
+    plnnrc::Allocate*   alloc_f   = default_alloc;
+    plnnrc::Deallocate* dealloc_f = default_dealloc;
 }
 
-void set_custom(Alloc_Func a, Dealloc_Func f)
+void plnnrc::set_memory_functions(Allocate* a, Deallocate* f)
 {
     alloc_f = a;
-    dealloc_f  = f;
+    dealloc_f = f;
 }
 
-void* allocate(size_t size)
+void* plnnrc::allocate(size_t size)
 {
     plnnrc_assert(alloc_f != 0);
     return alloc_f(size);
 }
 
-void deallocate(void* ptr)
+void plnnrc::deallocate(void* ptr)
 {
     plnnrc_assert(dealloc_f != 0);
     dealloc_f(ptr);
-}
-
-}
 }

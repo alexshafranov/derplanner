@@ -47,15 +47,15 @@ plnnrc::Pool_Handle* plnnrc::create_paged_pool(size_t page_size)
     plnnrc_assert(page_size > worstcase_size);
     (void)(worstcase_size);
 
-    uint8_t* memory = static_cast<uint8_t*>(memory::allocate(page_size));
+    uint8_t* memory = static_cast<uint8_t*>(plnnrc::allocate(page_size));
 
     if (!memory)
     {
         return 0;
     }
 
-    Pool_Handle* pool = memory::align<Pool_Handle>(memory);
-    Page* head = memory::align<Page>(pool + 1);
+    Pool_Handle* pool = plnnrc::align<Pool_Handle>(memory);
+    Page* head = plnnrc::align<Page>(pool + 1);
 
     head->prev = 0;
     head->memory = memory;
@@ -71,25 +71,25 @@ void* plnnrc::allocate(Pool_Handle* pool, size_t bytes, size_t alignment)
 {
     Page* p = pool->head;
 
-    uint8_t* top = static_cast<uint8_t*>(memory::align(p->top, alignment));
+    uint8_t* top = static_cast<uint8_t*>(plnnrc::align(p->top, alignment));
 
     if (top + bytes > p->memory + pool->page_size)
     {
-        uint8_t* memory = static_cast<uint8_t*>(memory::allocate(pool->page_size));
+        uint8_t* memory = static_cast<uint8_t*>(plnnrc::allocate(pool->page_size));
 
         if (!memory)
         {
             return 0;
         }
 
-        p = memory::align<Page>(memory);
+        p = plnnrc::align<Page>(memory);
         p->prev = pool->head;
         p->memory = memory;
         p->top = p->data;
 
         pool->head = p;
 
-        top = static_cast<uint8_t*>(memory::align(p->top, alignment));
+        top = static_cast<uint8_t*>(plnnrc::align(p->top, alignment));
     }
 
     p->top = top + bytes;
@@ -102,7 +102,7 @@ void plnnrc::destroy(const Pool_Handle* pool)
     for (Page* p = pool->head; p != 0;)
     {
         Page* n = p->prev;
-        memory::deallocate(p->memory);
+        plnnrc::deallocate(p->memory);
         p = n;
     }
 }
