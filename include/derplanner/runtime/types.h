@@ -148,7 +148,7 @@ struct Task_Frame
     void*       arguments;
 };
 
-// Helper: fixed size stack.
+// Fixed size POD stack.
 template <typename T>
 struct Stack
 {

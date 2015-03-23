@@ -30,8 +30,6 @@
 
 namespace plnnrc {
 
-enum { default_alignment = 16 };
-
 typedef void* Allocate(size_t bytes);
 typedef void  Deallocate(void* ptr);
 

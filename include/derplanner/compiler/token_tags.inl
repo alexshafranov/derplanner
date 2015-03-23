@@ -22,46 +22,52 @@
     #define PLNNRC_TOKEN(TAG)
 #endif
 
-#ifndef PLNNRC_KEYWORD
-    #define PLNNRC_KEYWORD(TAG, STR) PLNNRC_TOKEN(TAG)
+#ifndef PLNNRC_KEYWORD_TOKEN
+    #define PLNNRC_KEYWORD_TOKEN(TAG, STR) PLNNRC_TOKEN(TAG)
 #endif
 
-#ifndef PLNNRC_GROUP
-    #define PLNNRC_GROUP(GROUP_TAG, FIRST_TOKEN_TAG, LAST_TOKEN_TAG)
+#ifndef PLNNRC_PUNCTUATOR_TOKEN
+    #define PLNNRC_PUNCTUATOR_TOKEN(TAG, STR) PLNNRC_TOKEN(TAG)
 #endif
 
-#ifndef PLNNRC_PUNCTUATOR
-    #define PLNNRC_PUNCTUATOR(TAG, STR) PLNNRC_TOKEN(TAG)
+#ifndef PLNNRC_OPERATOR_TOKEN
+    #define PLNNRC_OPERATOR_TOKEN(TAG, STR) PLNNRC_TOKEN(TAG)
 #endif
 
-#ifndef PLNNRC_OPERATOR
-    #define PLNNRC_OPERATOR(TAG, STR) PLNNRC_TOKEN(TAG)
+#ifndef PLNNRC_TOKEN_GROUP
+    #define PLNNRC_TOKEN_GROUP(GROUP_TAG, FIRST_TOKEN_TAG, LAST_TOKEN_TAG)
 #endif
 
 PLNNRC_TOKEN(Identifier)
 PLNNRC_TOKEN(Literal_Integer)
 PLNNRC_TOKEN(Literal_Float)
 
-PLNNRC_KEYWORD(Domain,          "domain")
-PLNNRC_KEYWORD(World,           "world")
-PLNNRC_KEYWORD(Task,            "task")
-PLNNRC_KEYWORD(Case,            "case")
+PLNNRC_KEYWORD_TOKEN(Domain,          "domain")
+PLNNRC_KEYWORD_TOKEN(World,           "world")
+PLNNRC_KEYWORD_TOKEN(Task,            "task")
+PLNNRC_KEYWORD_TOKEN(Case,            "case")
 
-PLNNRC_KEYWORD(Int32,           "int32")
-PLNNRC_KEYWORD(Float,           "float")
+PLNNRC_KEYWORD_TOKEN(Int32,           "int32")
+PLNNRC_KEYWORD_TOKEN(Float,           "float")
 
-PLNNRC_PUNCTUATOR(L_Curly,      "{")
-PLNNRC_PUNCTUATOR(R_Curly,      "}")
-PLNNRC_PUNCTUATOR(L_Paren,      "(")
-PLNNRC_PUNCTUATOR(R_Paren,      ")")
-PLNNRC_PUNCTUATOR(L_Square,     "[")
-PLNNRC_PUNCTUATOR(R_Square,     "]")
-PLNNRC_PUNCTUATOR(Arrow,        "->")
+PLNNRC_PUNCTUATOR_TOKEN(L_Curly,      "{")
+PLNNRC_PUNCTUATOR_TOKEN(R_Curly,      "}")
+PLNNRC_PUNCTUATOR_TOKEN(L_Paren,      "(")
+PLNNRC_PUNCTUATOR_TOKEN(R_Paren,      ")")
+PLNNRC_PUNCTUATOR_TOKEN(L_Square,     "[")
+PLNNRC_PUNCTUATOR_TOKEN(R_Square,     "]")
+PLNNRC_PUNCTUATOR_TOKEN(Arrow,        "->")
 
-PLNNRC_OPERATOR(And,            "&")
-PLNNRC_OPERATOR(Or,             "|")
-PLNNRC_OPERATOR(Not,            "~")
+PLNNRC_OPERATOR_TOKEN(And,            "&")
+PLNNRC_OPERATOR_TOKEN(Or,             "|")
+PLNNRC_OPERATOR_TOKEN(Not,            "~")
 
-PLNNRC_GROUP(Keyword,   Domain, Float)
-PLNNRC_GROUP(Type,      Int32,  Float)
-PLNNRC_GROUP(Logical,   And,    Not)
+PLNNRC_TOKEN_GROUP(Keyword,   Domain, Float)
+PLNNRC_TOKEN_GROUP(Type,      Int32,  Float)
+PLNNRC_TOKEN_GROUP(Logical,   And,    Not)
+
+#undef PLNNRC_TOKEN_GROUP
+#undef PLNNRC_OPERATOR_TOKEN
+#undef PLNNRC_PUNCTUATOR_TOKEN
+#undef PLNNRC_KEYWORD_TOKEN
+#undef PLNNRC_TOKEN
