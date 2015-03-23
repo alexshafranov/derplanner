@@ -21,15 +21,39 @@
 #ifndef DERPLANNER_COMPILER_LEXER_H_
 #define DERPLANNER_COMPILER_LEXER_H_
 
-#include "derplanner/compiler/lexer_types.h"
+#include "derplanner/compiler/types.h"
 
 namespace plnnrc {
 
-// initialize lexer state.
+/// Lexer
+
+// create lexer state.
 Lexer_State create_lexer(const char* buffer);
 
 // returns next token from the input buffer.
 Token lex(Lexer_State& state);
+
+/// Token queries
+
+// is_<Token_Type>
+#define PLNNRC_TOKEN(TAG)                           \
+    inline bool is_##TAG(Token_Type token_type)     \
+    {                                               \
+        return token_type == Token_##TAG;           \
+    }                                               \
+
+#include "derplanner/compiler/token_tags.inl"
+#undef PLNNRC_TOKEN
+
+// is_<Token_Group>
+#define PLNNRC_TOKEN_GROUP(GROUP_TAG, FIRST_TOKEN_TAG, LAST_TOKEN_TAG)                          \
+    inline bool is_##GROUP_TAG(Token_Type token_type)                                           \
+    {                                                                                           \
+        return token_type >= Token_##FIRST_TOKEN_TAG && token_type <= Token_##LAST_TOKEN_TAG;   \
+    }                                                                                           \
+
+#include "derplanner/compiler/token_tags.inl"
+#undef PLNNRC_TOKEN_GROUP
 
 }
 
