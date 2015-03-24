@@ -170,7 +170,7 @@ inline size_t get_type_alignment(Type t)
 /// overloaded `set_arg` functions for Fact_Table tuple data. (column-major order).
 
 #define PLNNR_TYPE(TYPE_TAG, TYPE_NAME)                                                                             \
-    inline void set_arg(Fact_Table& table, uint32_t entry_index, uint32_t param_index, const TYPE_NAME& value)    \
+    inline void set_arg(Fact_Table& table, uint32_t entry_index, uint32_t param_index, const TYPE_NAME& value)      \
     {                                                                                                               \
         plnnr_assert(entry_index < table.num_entries);                                                              \
         plnnr_assert(param_index < table.format.num_params);                                                        \
@@ -185,7 +185,7 @@ inline size_t get_type_alignment(Type t)
 /// overloaded `set_arg` functions for row-major tuple data. (specified by Param_Layout).
 
 #define PLNNR_TYPE(TYPE_TAG, TYPE_NAME)                                                                     \
-    inline void set_arg(void* data, Param_Layout layout, uint32_t param_index, const TYPE_NAME& value)    \
+    inline void set_arg(void* data, Param_Layout layout, uint32_t param_index, const TYPE_NAME& value)      \
     {                                                                                                       \
         plnnr_assert(data != 0);                                                                            \
         plnnr_assert(param_index < layout.num_params);                                                      \

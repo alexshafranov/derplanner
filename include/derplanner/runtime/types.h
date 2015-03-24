@@ -73,6 +73,8 @@ struct Fact_Table
     void*           columns[Max_Fact_Arity];
     // generation per each entry to support weak handles.
     uint32_t*       generations;
+    // allocator.
+    Memory*         memory;
 };
 
 // A set of fact tables.
@@ -90,6 +92,8 @@ struct Fact_Database
     Fact_Table*     tables;
     // linear block of memory accommodating database data (not including tables data).
     void*           blob;
+    // allocator.
+    Memory*         memory;
 };
 
 struct Planning_State;
@@ -148,7 +152,7 @@ struct Task_Frame
     void*       arguments;
 };
 
-// Fixed size POD stack.
+// Stack storage for POD data.
 template <typename T>
 struct Stack
 {
@@ -165,6 +169,8 @@ struct Linear_Blob
     uint8_t*    base;
 };
 
+class Memory;
+
 // Planning state to support non-recursive planning.
 struct Planning_State
 {
@@ -176,6 +182,8 @@ struct Planning_State
     Linear_Blob             expansion_blob;
     // task arguments storage.
     Linear_Blob             task_blob;
+    // allocator used for allocating & growing planning blobs and stacks.
+    Memory*                 memory;
 };
 
 // Database construction parameters.
@@ -245,6 +253,16 @@ typedef void Init_Domain_Info();
 
 // Retrieves `Domain_Info` object from generated code.
 typedef const Domain_Info* Get_Domain_Info();
+
+// RAII destruction.
+template <typename T>
+struct Scoped : public T
+{
+    inline ~Scoped()
+    {
+        destroy(*this);
+    }
+};
 
 }
 

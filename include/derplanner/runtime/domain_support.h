@@ -30,34 +30,34 @@
 
 namespace plnnr {
 
-inline void compute_offsets_and_size(Param_Layout* layout)
+inline void compute_offsets_and_size(Param_Layout& layout)
 {
-    uint8_t num_params = layout->num_params;
+    uint8_t num_params = layout.num_params;
     if (num_params == 0)
     {
-        layout->size = 0;
+        layout.size = 0;
         return;
     }
 
-    Type first_type = layout->types[0];
-    layout->offsets[0] = 0;
+    Type first_type = layout.types[0];
+    layout.offsets[0] = 0;
     size_t offset = get_type_size(first_type);
 
     for (uint8_t i = 1; i < num_params; ++i)
     {
-        Type type = layout->types[i];
+        Type type = layout.types[i];
         size_t alignment = get_type_alignment(type);
         size_t size = get_type_size(type);
 
         offset = align(offset, alignment);
-        layout->offsets[i] = offset;
+        layout.offsets[i] = offset;
         offset += size;
     }
 
-    layout->size = offset;
+    layout.size = offset;
 }
 
-inline uint8_t* allocate_with_layout(Linear_Blob* blob, Param_Layout layout)
+inline uint8_t* allocate_with_layout(Linear_Blob* blob, const Param_Layout& layout)
 {
     if (layout.size == 0) { return 0; }
 
@@ -83,14 +83,14 @@ inline Fact_Handle* allocate_precond_handles(Planning_State* state, Expansion_Fr
     return frame->handles;
 }
 
-inline void allocate_precond_result(Planning_State* state, Expansion_Frame* frame, Param_Layout output_type)
+inline void allocate_precond_result(Planning_State* state, Expansion_Frame* frame, const Param_Layout& output_type)
 {
     Linear_Blob* blob = &state->expansion_blob;
     uint8_t* bytes = allocate_with_layout(blob, output_type);
     frame->precond_result = bytes;
 }
 
-inline void begin_composite(Planning_State* state, uint32_t id, Composite_Task_Expand* expand, Param_Layout args_layout)
+inline void begin_composite(Planning_State* state, uint32_t id, Composite_Task_Expand* expand, const Param_Layout& args_layout)
 {
     Linear_Blob* blob = &state->expansion_blob;
     uint32_t blob_size = static_cast<uint32_t>(blob->top - blob->base);
@@ -106,7 +106,7 @@ inline void begin_composite(Planning_State* state, uint32_t id, Composite_Task_E
     push(state->expansion_stack, frame);
 }
 
-inline void begin_task(Planning_State* state, uint32_t id, Param_Layout args_layout)
+inline void begin_task(Planning_State* state, uint32_t id, const Param_Layout& args_layout)
 {
     Linear_Blob* blob = &state->task_blob;
     uint32_t blob_size = static_cast<uint32_t>(blob->top - blob->base);
@@ -120,7 +120,7 @@ inline void begin_task(Planning_State* state, uint32_t id, Param_Layout args_lay
     push(state->task_stack, frame);
 }
 
-inline bool expand_next_case(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, Composite_Task_Expand* expand, Param_Layout args_layout)
+inline bool expand_next_case(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, Composite_Task_Expand* expand, const Param_Layout& args_layout)
 {
     frame->case_index++;
     frame->expand_label = 0;
@@ -136,21 +136,21 @@ inline bool expand_next_case(Planning_State* state, Expansion_Frame* frame, Fact
 }
 
 template <typename T>
-inline void set_composite_arg(Planning_State* state, Param_Layout layout, uint32_t param_index, const T& value)
+inline void set_composite_arg(Planning_State* state, const Param_Layout& layout, uint32_t param_index, const T& value)
 {
     Expansion_Frame* frame = top(state->expansion_stack);
     set_arg(frame->arguments, layout, param_index, value);
 }
 
 template <typename T>
-inline void set_task_arg(Planning_State* state, Param_Layout layout, uint32_t param_index, const T& value)
+inline void set_task_arg(Planning_State* state, const Param_Layout& layout, uint32_t param_index, const T& value)
 {
     Task_Frame* frame = top(state->task_stack);
     set_arg(frame->arguments, layout, param_index, value);
 }
 
 template <typename T>
-inline void set_precond_result(Expansion_Frame* frame, Param_Layout layout, uint32_t param_index, const T& value)
+inline void set_precond_result(Expansion_Frame* frame, const Param_Layout& layout, uint32_t param_index, const T& value)
 {
     set_arg(frame->precond_result, layout, param_index, value);
 }
