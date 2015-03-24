@@ -95,12 +95,12 @@ void travel_init_domain_info()
 {
 	for (size_t i = 0; i < PLNNR_STATIC_ARRAY_SIZE(s_task_parameters); ++i)
 	{
-		compute_offsets_and_size(&s_task_parameters[i]);
+		compute_offsets_and_size(s_task_parameters[i]);
 	}
 
 	for (size_t i = 0; i < PLNNR_STATIC_ARRAY_SIZE(s_precond_results); ++i)
 	{
-		compute_offsets_and_size(&s_precond_results[i]);
+		compute_offsets_and_size(s_precond_results[i]);
 	}
 }
 ///////////////////////////////////////////////////////////////////////////////

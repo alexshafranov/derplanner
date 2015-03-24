@@ -55,7 +55,8 @@ int main()
     plnnr::Memory_Default default_mem;
 
     // create database using format provided in domain info.
-    plnnr::Fact_Database db = plnnr::create_fact_database(&default_mem, domain->database_req);
+    plnnr::Scoped<plnnr::Fact_Database> db;
+    plnnr::init(db, &default_mem, domain->database_req);
 
     // start & finish
     plnnr::add_entry(db.tables[0], SPB);
@@ -88,16 +89,14 @@ int main()
     config.expansion_data_size = 1024;
     config.plan_data_size = 1024;
 
-    plnnr::Planning_State pstate = plnnr::create_planning_state(&default_mem, config);
+    plnnr::Scoped<plnnr::Planning_State> pstate;
+    plnnr::init(pstate, &default_mem, config);
 
     plnnr::find_plan(domain, &db, &pstate);
 
     // resulting plan is stored on the task stack.
     printf("plan:\n");
     print_plan(&pstate, domain);
-
-    plnnr::destroy(&default_mem, pstate);
-    plnnr::destroy(&default_mem, db);
 
     return 0;
 }

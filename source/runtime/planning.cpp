@@ -24,9 +24,8 @@
 
 using namespace plnnr;
 
-Planning_State plnnr::create_planning_state(Memory* mem, Planning_State_Config config)
+void plnnr::init(Planning_State& result, Memory* mem, const Planning_State_Config& config)
 {
-    Planning_State result;
     memset(&result, 0, sizeof(result));
 
     Expansion_Frame* expansion_frames = allocate<Expansion_Frame>(mem, config.max_depth);
@@ -47,11 +46,12 @@ Planning_State plnnr::create_planning_state(Memory* mem, Planning_State_Config c
     result.task_blob.top = plan_data;
     result.task_blob.base = plan_data;
 
-    return result;
+    result.memory = mem;
 }
 
-void plnnr::destroy(Memory* mem, Planning_State& s)
+void plnnr::destroy(Planning_State& s)
 {
+    Memory* mem = s.memory;
     mem->deallocate(s.expansion_stack.frames);
     mem->deallocate(s.task_stack.frames);
     mem->deallocate(s.expansion_blob.base);

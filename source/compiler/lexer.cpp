@@ -24,16 +24,18 @@
 
 using namespace plnnrc;
 
-Lexer_State plnnrc::create_lexer(const char* buffer)
+void plnnrc::init(Lexer_State& result, const char* buffer)
 {
-    Lexer_State result;
     result.buffer_start = buffer;
     result.buffer_ptr = buffer;
     result.column = 0;
     result.line = 0;
-    grow(result.errors, 32);
+    init(result.errors, 32);
+}
 
-    return result;
+void plnnrc::destroy(Lexer_State& state)
+{
+    destroy(state.errors);
 }
 
 inline char get_char(const Lexer_State& state)

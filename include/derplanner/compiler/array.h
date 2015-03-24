@@ -30,6 +30,12 @@
 namespace plnnrc {
 
 template <typename T>
+void init(Array<T>& array, uint32_t max_size);
+
+template <typename T>
+void destroy(Array<T>& array);
+
+template <typename T>
 void grow(Array<T>& array, uint32_t new_max_size);
 
 template <typename T>
@@ -38,25 +44,19 @@ void push_back(Array<T>& array, const T& value);
 }
 
 template <typename T>
-inline plnnrc::Array<T>::Array()
-    : size(0)
-    , max_size(0)
-    , data(0)
+void plnnrc::init(plnnrc::Array<T>& result, uint32_t max_size)
 {
+    result.size = 0;
+    result.max_size = max_size;
+    result.data = static_cast<T*>(plnnrc::allocate(sizeof(T) * max_size));
 }
 
 template <typename T>
-inline plnnrc::Array<T>::Array(uint32_t max_size)
-    : size(0)
-    , max_size(max_size)
+inline void plnnrc::destroy(Array<T>& array)
 {
-    data = static_cast<T*>(plnnrc::allocate(sizeof(T) * max_size));
-}
-
-template <typename T>
-inline plnnrc::Array<T>::~Array()
-{
-    plnnrc::deallocate(data);
+    plnnrc::deallocate(array.data);
+    array.size = 0;
+    array.max_size = 0;
 }
 
 template <typename T>

@@ -41,8 +41,8 @@ struct Planning_State_Config
     size_t plan_data_size;
 };
 
-Planning_State create_planning_state(Memory* mem, Planning_State_Config config);
-void destroy(Memory* mem, Planning_State& s);
+void init(Planning_State& s, Memory* mem, const Planning_State_Config& config);
+void destroy(Planning_State& s);
 
 /// Planning function
 

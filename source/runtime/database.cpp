@@ -23,9 +23,8 @@
 
 using namespace plnnr;
 
-Fact_Table plnnr::create_fact_table(Memory* mem, const Fact_Type& format, uint32_t max_entries)
+void plnnr::init(Fact_Table& result, Memory* mem, const Fact_Type& format, uint32_t max_entries)
 {
-    Fact_Table result;
     memset(&result, 0, sizeof(result));
 
     result.format = format;
@@ -59,18 +58,18 @@ Fact_Table plnnr::create_fact_table(Memory* mem, const Fact_Type& format, uint32
     }
 
     result.generations = plnnr::align<uint32_t>(bytes);
-    return result;
+    result.memory = mem;
 }
 
-void plnnr::destroy(Memory* mem, Fact_Table& t)
+void plnnr::destroy(Fact_Table& t)
 {
+    Memory* mem = t.memory;
     mem->deallocate(t.blob);
     memset(&t, 0, sizeof(t));
 }
 
-Fact_Database plnnr::create_fact_database(Memory* mem, const Database_Format& format)
+void plnnr::init(Fact_Database& result, Memory* mem, const Database_Format& format)
 {
-    Fact_Database result;
     memset(&result, 0, sizeof(result));
 
     result.num_tables = format.num_tables;
@@ -102,19 +101,20 @@ Fact_Database plnnr::create_fact_database(Memory* mem, const Database_Format& fo
         uint32_t max_entries = ( size_hint > 0 ) ? size_hint : 128;
         result.hashes[i] = format.hashes[i];
         result.names[i] = format.names[i];
-        Fact_Table table = create_fact_table(mem, format.types[i], max_entries);
-        result.tables[i] = table;
+        init(result.tables[i], mem, format.types[i], max_entries);
     }
 
-    return result;
+    result.memory = mem;
 }
 
-void plnnr::destroy(Memory* mem, Fact_Database& db)
+void plnnr::destroy(Fact_Database& db)
 {
+    Memory* mem = db.memory;
+
     for (uint32_t i = 0; i < db.num_tables; ++i)
     {
         Fact_Table& table = db.tables[i];
-        destroy(mem, table);
+        destroy(table);
     }
 
     mem->deallocate(db.blob);

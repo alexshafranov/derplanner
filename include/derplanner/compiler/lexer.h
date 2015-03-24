@@ -28,7 +28,10 @@ namespace plnnrc {
 /// Lexer
 
 // create lexer state.
-Lexer_State create_lexer(const char* buffer);
+void init(Lexer_State& state, const char* buffer);
+
+// destroy lexer state.
+void destroy(Lexer_State& state);
 
 // returns next token from the input buffer.
 Token lex(Lexer_State& state);

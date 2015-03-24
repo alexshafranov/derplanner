@@ -27,15 +27,15 @@
 
 namespace plnnr {
 
-/// Fact_Database
-
-Fact_Database create_fact_database(Memory* mem, const Database_Format& format);
-void destroy(Memory* mem, Fact_Database& db);
-
 /// Fact_Table
 
-Fact_Table create_fact_table(Memory* mem, const Fact_Type& format, uint32_t max_entries);
-void destroy(Memory* mem, Fact_Table& t);
+void init(Fact_Table& table, Memory* mem, const Fact_Type& format, uint32_t max_entries);
+void destroy(Fact_Table& t);
+
+/// Fact_Database
+
+void init(Fact_Database& db, Memory* mem, const Database_Format& format);
+void destroy(Fact_Database& db);
 
 }
 

@@ -25,16 +25,10 @@
 
 namespace plnnrc {
 
-// POD Array.
+// Array of POD types.
 template <typename T>
 struct Array
 {
-    Array();
-    Array(uint32_t max_size);
-    Array(const Array& other);
-    Array& operator=(const Array<T>& other);
-    ~Array();
-
     T& operator[](uint32_t index);
     const T& operator[](uint32_t index) const;
 
@@ -95,6 +89,16 @@ struct Lexer_State
     uint32_t            line;
     // emitted errors & warnings.
     Array<Lexer_Error>  errors;
+};
+
+// RAII destruction.
+template <typename T>
+struct Scoped : public T
+{
+    inline ~Scoped()
+    {
+        destroy(*this);
+    }
 };
 
 }
