@@ -64,34 +64,83 @@ inline void consume_newline(Lexer_State& state)
     state.line++;
 }
 
-inline Token make_token()
+inline void consume_until_whitespace(Lexer_State& state)
 {
-    Token tok;
-    memset(&tok, 0, sizeof(Token));
-    return tok;
+    char c = get_char(state);
+    while (c != 0)
+    {
+        // whitespace
+        if (c == ' ' || c == '\f' || c == '\t' || c == '\v' || c == '\n' || c == '\r')
+        {
+            return;
+        }
+
+        consume_char(state);
+    }
 }
 
-inline Token make_token(Lexer_State& state, Token_Type type, const char* str, uint32_t size)
+inline Token make_token(Lexer_State& state, Token_Type type)
 {
     Token tok;
     tok.type = type;
     tok.column = state.column;
     tok.line = state.line;
-    tok.size = size;
-    tok.str = str;
+    tok.length = 0;
+    tok.str = 0;
+    return tok;
+}
+
+inline Token begin_token(Lexer_State& state)
+{
+    Token tok;
+    tok.column = state.column;
+    tok.line = state.line;
+    tok.str = state.buffer_ptr - 1;
+    tok.length = 0;
+    return tok;
+}
+
+inline void end_token(Lexer_State& state, Token& tok, Token_Type type)
+{
+    tok.type = type;
+    tok.length = static_cast<uint32_t>(state.buffer_ptr - tok.str);
+}
+
+inline Token lex_id(Lexer_State& state)
+{
+    Token tok = begin_token(state);
+
+    for (;;)
+    {
+        switch (get_char(state))
+        {
+            case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I': case 'J': case 'K': case 'L': case 'M': case 'N':
+            case 'O': case 'P': case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W': case 'X': case 'Y': case 'Z':
+            case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n':
+            case 'o': case 'p': case 'q': case 'r': case 's': case 't': case 'u': case 'v': case 'w': case 'x': case 'y': case 'z':
+            case '!': case '?': case '_':
+            case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
+                consume_char(state);
+                break;
+            default:
+                end_token(state, tok, Token_Identifier);
+                return tok;
+        }
+    }
+}
+
+inline Token lex_unknown(Lexer_State& state)
+{
+    Token tok = begin_token(state);
+    consume_until_whitespace(state);
+    end_token(state, tok, Token_Unknown);
     return tok;
 }
 
 Token plnnrc::lex(Lexer_State& state)
 {
-    for (;;)
+    for (char c = get_char(state); c != 0; c = get_char(state))
     {
-        char c = get_char(state);
-        if (c == 0)
-        {
-            break;
-        }
-
         switch (c)
         {
         // whitespace
@@ -102,16 +151,61 @@ Token plnnrc::lex(Lexer_State& state)
         case '\n': case '\r':
             consume_newline(state);
             break;
-        // punctuators
+
+        // single-character punctuators
+        case '{':
+            consume_char(state);
+            return make_token(state, Token_L_Curly);
+        case '}':
+            consume_char(state);
+            return make_token(state, Token_R_Curly);
+        case '(':
+            consume_char(state);
+            return make_token(state, Token_L_Paren);
+        case ')':
+            consume_char(state);
+            return make_token(state, Token_R_Paren);
+        case '[':
+            consume_char(state);
+            return make_token(state, Token_L_Square);
+        case ']':
+            consume_char(state);
+            return make_token(state, Token_R_Square);
+
+        // single-character operators
+        case '&':
+            consume_char(state);
+            return make_token(state, Token_And);
+        case '|':
+            consume_char(state);
+            return make_token(state, Token_Or);
+        case '~':
+            consume_char(state);
+            return make_token(state, Token_Not);
+
+        // arrow
         case '-':
             consume_char(state);
             if (get_char(state) == '>')
             {
                 consume_char(state);
+                return make_token(state, Token_Arrow);
             }
-            break;
+
+            return lex_unknown(state);
+
+        // identifiers & keywords
+        case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I': case 'J': case 'K': case 'L': case 'M': case 'N':
+        case 'O': case 'P': case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W': case 'X': case 'Y': case 'Z':
+        case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n':
+        case 'o': case 'p': case 'q': case 'r': case 's': case 't': case 'u': case 'v': case 'w': case 'x': case 'y': case 'z':
+        case '!': case '?': case '_':
+            return lex_id(state);
+
+        default:
+            return lex_unknown(state);
         }
     }
 
-    return make_token();
+    return make_token(state, Token_Eof);
 }
