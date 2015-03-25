@@ -38,6 +38,7 @@
     #define PLNNRC_TOKEN_GROUP(GROUP_TAG, FIRST_TOKEN_TAG, LAST_TOKEN_TAG)
 #endif
 
+PLNNRC_TOKEN(Eof)
 PLNNRC_TOKEN(Identifier)
 PLNNRC_TOKEN(Literal_Integer)
 PLNNRC_TOKEN(Literal_Float)
@@ -63,7 +64,7 @@ PLNNRC_OPERATOR_TOKEN(Or,             "|")
 PLNNRC_OPERATOR_TOKEN(Not,            "~")
 
 PLNNRC_TOKEN_GROUP(Keyword,   Domain, Float)
-PLNNRC_TOKEN_GROUP(Type,      Int32,  Float)
+PLNNRC_TOKEN_GROUP(Literal,   Literal_Integer, Literal_Float)
 PLNNRC_TOKEN_GROUP(Logical,   And,    Not)
 
 #undef PLNNRC_TOKEN_GROUP

@@ -28,6 +28,8 @@
 #include "derplanner/runtime/database.h"
 #include "derplanner/runtime/planning.h"
 
+/// This header contains functions used from auto-generated domain code.
+
 namespace plnnr {
 
 inline void compute_offsets_and_size(Param_Layout& layout)

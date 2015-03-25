@@ -65,7 +65,7 @@ struct Token
     // input buffer line.
     uint32_t        line;
     // number of characters in the token.
-    uint32_t        size;
+    uint32_t        length;
     // points to the token first character.
     const char*     str;
 };
