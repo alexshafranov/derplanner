@@ -20,6 +20,7 @@
 
 #include <string.h>
 #include "derplanner/compiler/array.h"
+#include "derplanner/compiler/id_table.h"
 #include "derplanner/compiler/lexer.h"
 
 using namespace plnnrc;
@@ -31,6 +32,13 @@ void plnnrc::init(Lexer_State& result, const char* buffer)
     result.column = 0;
     result.line = 0;
     init(result.errors, 32);
+    init(result.keywords, 32);
+
+#define PLNNRC_KEYWORD_TOKEN(TOKEN_TAG, TOKEN_STR)      \
+    set(result.keywords, TOKEN_STR, Token_##TOKEN_TAG); \
+
+    #include "derplanner/compiler/token_tags.inl"
+#undef PLNNRC_KEYWORD_TOKEN
 }
 
 void plnnrc::destroy(Lexer_State& state)

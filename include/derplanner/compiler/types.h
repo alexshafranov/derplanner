@@ -37,6 +37,17 @@ struct Array
     T*          data;
 };
 
+// Open-addressing hash table, mapping constant strings to POD values.
+template <typename T>
+struct Id_Table
+{
+    uint32_t        size;
+    uint32_t        max_size;
+    const char**    keys;
+    uint32_t*       hashes;
+    T*              values;
+};
+
 // Error/Warning IDs.
 enum Error_Type
 {
@@ -80,15 +91,17 @@ struct Lexer_Error
 struct Lexer_State
 {
     // points to the first character in input buffer.
-    const char*         buffer_start;
+    const char*             buffer_start;
     // points to the next character to be lexed.
-    const char*         buffer_ptr;
+    const char*             buffer_ptr;
     // current column.
-    uint32_t            column;
+    uint32_t                column;
     // current line.
-    uint32_t            line;
+    uint32_t                line;
+    // maps keyword strings to keyword types.
+    Id_Table<Token_Type>    keywords;
     // emitted errors & warnings.
-    Array<Lexer_Error>  errors;
+    Array<Lexer_Error>      errors;
 };
 
 // RAII destruction.
