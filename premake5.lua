@@ -47,25 +47,25 @@ solution "derplanner"
     --         defines { "_CRT_SECURE_NO_WARNINGS" }
     --     configuration {}
 
-    -- project "deps-unittestpp"
-    --     kind "StaticLib"
-    --     files { "deps/unittestpp/src/*.cpp" }
-    --     configuration { "linux or macosx" }
-    --         files { "deps/unittestpp/src/Posix/*.cpp" }
-    --     configuration { "vs*" }
-    --         defines { "_CRT_SECURE_NO_WARNINGS" }
-    --     configuration { "vs*" }
-    --         files { "deps/unittestpp/src/Win32/*.cpp" }
-    --     configuration {}
+    project "deps-unittestpp"
+        kind "StaticLib"
+        files { "deps/unittestpp/src/*.cpp" }
+        configuration { "linux or macosx" }
+            files { "deps/unittestpp/src/Posix/*.cpp" }
+        configuration { "vs*" }
+            defines { "_CRT_SECURE_NO_WARNINGS" }
+        configuration { "vs*" }
+            files { "deps/unittestpp/src/Win32/*.cpp" }
+        configuration {}
 
-    -- project "tests"
-    --     kind "ConsoleApp"
-    --     files { "test/*.cpp" }
-    --     includedirs { "deps/unittestpp", "include", "source" }
-    --     links { "deps-unittestpp", "derplanner-compiler", "derplanner-runtime" }
-    --     configuration { "vs*" }
-    --         defines { "_CRT_SECURE_NO_WARNINGS" }
-    --     configuration {}
+    project "tests"
+        kind "ConsoleApp"
+        files { "test/*.cpp" }
+        includedirs { "deps/unittestpp", "include", "source" }
+        links { "deps-unittestpp", "derplanner-compiler", "derplanner-runtime" }
+        configuration { "vs*" }
+            defines { "_CRT_SECURE_NO_WARNINGS" }
+        configuration {}
 
     project "domain-travel"
         kind "SharedLib"

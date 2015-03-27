@@ -81,7 +81,7 @@ inline Fact_Handle* allocate_precond_handles(Planning_State* state, Expansion_Fr
     uint8_t* bytes = blob->top;
     blob->top = (uint8_t*)align(blob->top, plnnr_alignof(Fact_Handle)) + sizeof(Fact_Handle) * num_handles;
     frame->handles = reinterpret_cast<Fact_Handle*>(bytes);
-    frame->num_handles = static_cast<uint16_t>(num_handles);
+    frame->num_handles = (uint16_t)(num_handles);
     return frame->handles;
 }
 
@@ -95,13 +95,13 @@ inline void allocate_precond_result(Planning_State* state, Expansion_Frame* fram
 inline void begin_composite(Planning_State* state, uint32_t id, Composite_Task_Expand* expand, const Param_Layout& args_layout)
 {
     Linear_Blob* blob = &state->expansion_blob;
-    uint32_t blob_size = static_cast<uint32_t>(blob->top - blob->base);
+    uint32_t blob_size = (uint32_t)(blob->top - blob->base);
 
     Expansion_Frame frame;
     memset(&frame, 0, sizeof(Expansion_Frame));
     frame.task_type = id;
     frame.expand = expand;
-    frame.orig_task_count = static_cast<uint16_t>(state->task_stack.size);
+    frame.orig_task_count = (uint16_t)(state->task_stack.size);
     frame.orig_blob_size = blob_size;
     frame.arguments = allocate_with_layout(blob, args_layout);
 
@@ -111,7 +111,7 @@ inline void begin_composite(Planning_State* state, uint32_t id, Composite_Task_E
 inline void begin_task(Planning_State* state, uint32_t id, const Param_Layout& args_layout)
 {
     Linear_Blob* blob = &state->task_blob;
-    uint32_t blob_size = static_cast<uint32_t>(blob->top - blob->base);
+    uint32_t blob_size = (uint32_t)(blob->top - blob->base);
 
     Task_Frame frame;
     memset(&frame, 0, sizeof(Task_Frame));
