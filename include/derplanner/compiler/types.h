@@ -43,8 +43,9 @@ struct Id_Table
 {
     uint32_t        size;
     uint32_t        max_size;
-    const char**    keys;
     uint32_t*       hashes;
+    const char**    keys;
+    uint32_t*       lengths;
     T*              values;
 };
 

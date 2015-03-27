@@ -29,8 +29,8 @@ void plnnrc::init(Lexer_State& result, const char* buffer)
 {
     result.buffer_start = buffer;
     result.buffer_ptr = buffer;
-    result.column = 0;
-    result.line = 0;
+    result.column = 1;
+    result.line = 1;
     init(result.errors, 32);
     init(result.keywords, 32);
 
@@ -63,12 +63,12 @@ inline void consume_newline(Lexer_State& state)
     consume_char(state);
     char c2 = get_char(state);
 
-    if ((c2 != c1) && (c1 == '\n' || c1 == '\r'))
+    if ((c2 != c1) && (c1 == '\n' || c1 == '\r') && (c2 == '\n' || c2 == '\r'))
     {
         consume_char(state);
     }
 
-    state.column = 0;
+    state.column = 1;
     state.line++;
 }
 
@@ -103,7 +103,7 @@ inline Token begin_token(Lexer_State& state)
     Token tok;
     tok.column = state.column;
     tok.line = state.line;
-    tok.str = state.buffer_ptr - 1;
+    tok.str = state.buffer_ptr;
     tok.length = 0;
     return tok;
 }
@@ -111,6 +111,7 @@ inline Token begin_token(Lexer_State& state)
 inline void end_token(Lexer_State& state, Token& tok, Token_Type type)
 {
     tok.type = type;
+    plnnrc_assert(state.buffer_ptr > tok.str);
     tok.length = static_cast<uint32_t>(state.buffer_ptr - tok.str);
 }
 
@@ -131,8 +132,18 @@ inline Token lex_id(Lexer_State& state)
                 consume_char(state);
                 break;
             default:
+            {
                 end_token(state, tok, Token_Identifier);
+
+                // test if the token is actually keyword and modify type accordinly
+                const Token_Type* keyword_type_ptr = get(state.keywords, tok.str, tok.length);
+                if (keyword_type_ptr != 0)
+                {
+                    tok.type = *keyword_type_ptr;
+                }
+
                 return tok;
+            }
         }
     }
 }
