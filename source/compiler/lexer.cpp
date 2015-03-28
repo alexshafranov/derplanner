@@ -74,8 +74,7 @@ inline void consume_newline(Lexer_State& state)
 
 inline void consume_until_whitespace(Lexer_State& state)
 {
-    char c = get_char(state);
-    while (c != 0)
+    while (char c = get_char(state))
     {
         // whitespace
         if (c == ' ' || c == '\f' || c == '\t' || c == '\v' || c == '\n' || c == '\r')
