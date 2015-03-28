@@ -32,7 +32,7 @@ void plnnrc::init(Lexer_State& result, const char* buffer)
     result.column = 1;
     result.line = 1;
     init(result.errors, 32);
-    init(result.keywords, 32);
+    init(result.keywords, 16);
 
 #define PLNNRC_KEYWORD_TOKEN(TOKEN_TAG, TOKEN_STR)      \
     set(result.keywords, TOKEN_STR, Token_##TOKEN_TAG); \
@@ -49,6 +49,26 @@ void plnnrc::destroy(Lexer_State& state)
 inline char get_char(const Lexer_State& state)
 {
     return *state.buffer_ptr;
+}
+
+inline bool is_whitespace(char c)
+{
+    return c == ' ' || c == '\f' || c == '\t' || c == '\v' || c == '\n' || c == '\r';
+}
+
+inline bool is_identifier_body(char c)
+{
+    return \
+        c == 'A' || c == 'B' || c == 'C' || c == 'D' || c == 'E' || c == 'F' || c == 'G' || c == 'H' || c == 'I' || c == 'J' || c == 'K' || c == 'L' ||
+        c == 'M' || c == 'N' || c == 'O' || c == 'P' || c == 'Q' || c == 'R' || c == 'S' || c == 'T' || c == 'U' || c == 'V' || c == 'W' || c == 'X' || c == 'Y' || c == 'Z' ||
+        c == 'a' || c == 'b' || c == 'c' || c == 'd' || c == 'e' || c == 'f' || c == 'g' || c == 'h' || c == 'i' || c == 'j' || c == 'k' || c == 'l' ||
+        c == 'm' || c == 'n' || c == 'o' || c == 'p' || c == 'q' || c == 'r' || c == 's' || c == 't' || c == 'u' || c == 'v' || c == 'w' || c == 'x' || c == 'y' || c == 'z' ||
+        c == '0' || c == '1' || c == '2' || c == '3' || c == '4' || c == '5' || c == '6' || c == '7' || c == '8' || c == '9';
+}
+
+inline bool is_digit(char c)
+{
+    return c == '0' || c == '1' || c == '2' || c == '3' || c == '4' || c == '5' || c == '6' || c == '7' || c == '8' || c == '9';
 }
 
 inline void consume_char(Lexer_State& state)
@@ -77,7 +97,7 @@ inline void consume_until_whitespace(Lexer_State& state)
     while (char c = get_char(state))
     {
         // whitespace
-        if (c == ' ' || c == '\f' || c == '\t' || c == '\v' || c == '\n' || c == '\r')
+        if (is_whitespace(c))
         {
             return;
         }
@@ -114,37 +134,102 @@ inline void end_token(Lexer_State& state, Token& tok, Token_Type type)
     tok.length = static_cast<uint32_t>(state.buffer_ptr - tok.str);
 }
 
-inline Token lex_id(Lexer_State& state)
+inline Token lex_identifier(Lexer_State& state)
 {
     Token tok = begin_token(state);
 
-    for (;;)
+    while (char c = get_char(state))
     {
-        switch (get_char(state))
+        if (!is_identifier_body(c))
         {
-            case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I': case 'J': case 'K': case 'L': case 'M': case 'N':
-            case 'O': case 'P': case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W': case 'X': case 'Y': case 'Z':
-            case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n':
-            case 'o': case 'p': case 'q': case 'r': case 's': case 't': case 'u': case 'v': case 'w': case 'x': case 'y': case 'z':
-            case '!': case '?': case '_':
-            case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
-                consume_char(state);
-                break;
-            default:
-            {
-                end_token(state, tok, Token_Identifier);
-
-                // test if the token is actually keyword and modify type accordinly
-                const Token_Type* keyword_type_ptr = get(state.keywords, tok.str, tok.length);
-                if (keyword_type_ptr != 0)
-                {
-                    tok.type = *keyword_type_ptr;
-                }
-
-                return tok;
-            }
+            break;
         }
+
+        consume_char(state);
     }
+
+    end_token(state, tok, Token_Identifier);
+
+    // test if the token is actually keyword and modify type accordinly
+    const Token_Type* keyword_type_ptr = get(state.keywords, tok.str, tok.length);
+    if (keyword_type_ptr != 0)
+    {
+        tok.type = *keyword_type_ptr;
+    }
+
+    return tok;
+}
+
+namespace numeric_literal
+{
+    int get_char_class(char c)
+    {
+        switch (c)
+        {
+        case '+': case '-':
+            return 0;
+        case '0': case '1': case '2': case '3': case '4':
+        case '5': case '6': case '7': case '8': case '9':
+            return 1;
+        case '.':
+            return 2;
+        case 'e': case 'E':
+            return 3;
+        }
+
+        return -1;
+    }
+
+    int transitions[] = {
+         1,  3,  2, -1,
+        -1,  3,  2, -1,
+        -1,  4, -1, -1,
+        -1,  3,  4,  5,
+        -1,  4, -1,  5,
+         6,  7, -1, -1,
+        -1,  7, -1, -1,
+        -1,  7, -1, -1,
+    };
+}
+
+inline Token lex_numeric_literal(Lexer_State& lexer_state)
+{
+    Token tok = begin_token(lexer_state);
+
+    int state = 0;
+    while (char c = get_char(lexer_state))
+    {
+        int char_class = numeric_literal::get_char_class(c);
+
+        if (char_class < 0)
+        {
+            break;
+        }
+
+        int next_state = numeric_literal::transitions[state * 4 + char_class];
+
+        if (next_state < 0)
+        {
+            break;
+        }
+
+        state = next_state;
+        consume_char(lexer_state);
+    }
+
+    Token_Type type = Token_Unknown;
+
+    if (state == 3)
+    {
+        type = Token_Literal_Integer;
+    }
+    else if (state == 4 || state == 7)
+    {
+        type = Token_Literal_Float;
+    }
+
+    end_token(lexer_state, tok, type);
+    return tok;
 }
 
 inline Token lex_unknown(Lexer_State& state)
@@ -189,6 +274,12 @@ Token plnnrc::lex(Lexer_State& state)
         case ']':
             consume_char(state);
             return make_token(state, Token_R_Square);
+        case ',':
+            consume_char(state);
+            return make_token(state, Token_Comma);
+        case ':':
+            consume_char(state);
+            return make_token(state, Token_Colon);
 
         // single-character operators
         case '&':
@@ -201,7 +292,7 @@ Token plnnrc::lex(Lexer_State& state)
             consume_char(state);
             return make_token(state, Token_Not);
 
-        // arrow
+        // arrow or numeric
         case '-':
             consume_char(state);
             if (get_char(state) == '>')
@@ -210,7 +301,11 @@ Token plnnrc::lex(Lexer_State& state)
                 return make_token(state, Token_Arrow);
             }
 
-            return lex_unknown(state);
+            return make_token(state, Token_Minus);
+
+        case '+':
+            consume_char(state);
+            return make_token(state, Token_Plus);
 
         // identifiers & keywords
         case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I': case 'J': case 'K': case 'L': case 'M': case 'N':
@@ -218,7 +313,11 @@ Token plnnrc::lex(Lexer_State& state)
         case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n':
         case 'o': case 'p': case 'q': case 'r': case 's': case 't': case 'u': case 'v': case 'w': case 'x': case 'y': case 'z':
         case '!': case '?': case '_':
-            return lex_id(state);
+            return lex_identifier(state);
+
+        // numeric literal
+        case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
+            return lex_numeric_literal(state);
 
         default:
             return lex_unknown(state);

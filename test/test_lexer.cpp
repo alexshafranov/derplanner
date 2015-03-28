@@ -18,6 +18,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
+#include <stdlib.h>
 #include "unittestpp.h"
 #include "derplanner/compiler/lexer.h"
 
@@ -72,8 +73,49 @@ namespace
     TEST(unknown_token)
     {
         plnnrc::Scoped<plnnrc::Lexer_State> lexer;
-        plnnrc::init(lexer, "-*");
+        plnnrc::init(lexer, "$");
         plnnrc::Token tok = plnnrc::lex(lexer);
         CHECK_EQUAL(plnnrc::Token_Unknown, tok.type);
+    }
+
+    void check_number(const char* str, plnnrc::Token_Type expected)
+    {
+        plnnrc::Scoped<plnnrc::Lexer_State> lexer;
+        plnnrc::init(lexer, str);
+        plnnrc::Token tok = plnnrc::lex(lexer);
+        CHECK_EQUAL(expected, tok.type);
+    }
+
+    void check_number(const char* str, float expected)
+    {
+        plnnrc::Scoped<plnnrc::Lexer_State> lexer;
+        plnnrc::init(lexer, str);
+        plnnrc::Token tok = plnnrc::lex(lexer);
+        float actual = (float)strtod(tok.str, 0);
+        CHECK_EQUAL(expected, actual);
+    }
+
+    void check_number(const char* str, int expected)
+    {
+        plnnrc::Scoped<plnnrc::Lexer_State> lexer;
+        plnnrc::init(lexer, str);
+        plnnrc::Token tok = plnnrc::lex(lexer);
+        int actual = (int)strtol(tok.str, 0, 10);
+        CHECK_EQUAL(expected, actual);
+    }
+
+    TEST(numeric_literals)
+    {
+        check_number("123", plnnrc::Token_Literal_Integer);
+        check_number("123.", plnnrc::Token_Literal_Float);
+        check_number("1.23", plnnrc::Token_Literal_Float);
+        check_number("0.1e+23", plnnrc::Token_Literal_Float);
+        check_number("0.1e+23", plnnrc::Token_Literal_Float);
+        check_number("0.1e+23", plnnrc::Token_Literal_Float);
+        check_number("1e23", plnnrc::Token_Literal_Float);
+        check_number("1e-23", plnnrc::Token_Literal_Float);
+        check_number("1e+23", plnnrc::Token_Literal_Float);
+        check_number("123", 123);
+        check_number("1.23", 1.23f);
     }
 }
