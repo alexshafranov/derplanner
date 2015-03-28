@@ -68,4 +68,12 @@ namespace
         CHECK_EQUAL(2u, tok2.line);
         CHECK_EQUAL(2u, tok2.column);
     }
+
+    TEST(unknown_token)
+    {
+        plnnrc::Scoped<plnnrc::Lexer_State> lexer;
+        plnnrc::init(lexer, "-*");
+        plnnrc::Token tok = plnnrc::lex(lexer);
+        CHECK_EQUAL(plnnrc::Token_Unknown, tok.type);
+    }
 }
