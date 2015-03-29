@@ -26,7 +26,7 @@ namespace
 {
     TEST(test_eof)
     {
-        plnnrc::Scoped<plnnrc::Lexer_State> lexer;
+        plnnrc::Scoped<plnnrc::Lexer> lexer;
         plnnrc::init(lexer, "");
         plnnrc::Token actual = plnnrc::lex(lexer);
         CHECK_EQUAL(plnnrc::Token_Eof, actual.type);
@@ -34,7 +34,7 @@ namespace
 
     TEST(test_id)
     {
-        plnnrc::Scoped<plnnrc::Lexer_State> lexer;
+        plnnrc::Scoped<plnnrc::Lexer> lexer;
         plnnrc::init(lexer, "id1");
         plnnrc::Token actual = plnnrc::lex(lexer);
         CHECK_EQUAL(plnnrc::Token_Identifier, actual.type);
@@ -42,7 +42,7 @@ namespace
 
     TEST(test_ids_and_kws)
     {
-        plnnrc::Scoped<plnnrc::Lexer_State> lexer;
+        plnnrc::Scoped<plnnrc::Lexer> lexer;
         plnnrc::init(lexer, "id1 id2 domain id3");
         plnnrc::Token_Type expected_types[] = { plnnrc::Token_Identifier, plnnrc::Token_Identifier, plnnrc::Token_Domain, plnnrc::Token_Identifier, plnnrc::Token_Eof };
         const char* expected_strings[] = { "id1", "id2", "domain", "id3", 0 };
@@ -60,7 +60,7 @@ namespace
 
     TEST(location)
     {
-        plnnrc::Scoped<plnnrc::Lexer_State> lexer;
+        plnnrc::Scoped<plnnrc::Lexer> lexer;
         plnnrc::init(lexer, "id1 \n id2");
         plnnrc::Token tok1 = plnnrc::lex(lexer);
         plnnrc::Token tok2 = plnnrc::lex(lexer);
@@ -72,7 +72,7 @@ namespace
 
     TEST(unknown_token)
     {
-        plnnrc::Scoped<plnnrc::Lexer_State> lexer;
+        plnnrc::Scoped<plnnrc::Lexer> lexer;
         plnnrc::init(lexer, "$");
         plnnrc::Token tok = plnnrc::lex(lexer);
         CHECK_EQUAL(plnnrc::Token_Unknown, tok.type);
@@ -80,7 +80,7 @@ namespace
 
     void check_number(const char* str, plnnrc::Token_Type expected)
     {
-        plnnrc::Scoped<plnnrc::Lexer_State> lexer;
+        plnnrc::Scoped<plnnrc::Lexer> lexer;
         plnnrc::init(lexer, str);
         plnnrc::Token tok = plnnrc::lex(lexer);
         CHECK_EQUAL(expected, tok.type);
@@ -88,7 +88,7 @@ namespace
 
     void check_number(const char* str, float expected)
     {
-        plnnrc::Scoped<plnnrc::Lexer_State> lexer;
+        plnnrc::Scoped<plnnrc::Lexer> lexer;
         plnnrc::init(lexer, str);
         plnnrc::Token tok = plnnrc::lex(lexer);
         float actual = (float)strtod(tok.str, 0);
@@ -97,7 +97,7 @@ namespace
 
     void check_number(const char* str, int expected)
     {
-        plnnrc::Scoped<plnnrc::Lexer_State> lexer;
+        plnnrc::Scoped<plnnrc::Lexer> lexer;
         plnnrc::init(lexer, str);
         plnnrc::Token tok = plnnrc::lex(lexer);
         int actual = (int)strtol(tok.str, 0, 10);

@@ -28,13 +28,13 @@ namespace plnnrc {
 /// Lexer
 
 // create lexer state.
-void init(Lexer_State& state, const char* buffer);
+void init(Lexer& state, const char* buffer);
 
 // destroy lexer state.
-void destroy(Lexer_State& state);
+void destroy(Lexer& state);
 
 // returns next token from the input buffer.
-Token lex(Lexer_State& state);
+Token lex(Lexer& state);
 
 /// Token queries
 
@@ -43,6 +43,11 @@ Token lex(Lexer_State& state);
     inline bool is_##TAG(Token_Type token_type)     \
     {                                               \
         return token_type == Token_##TAG;           \
+    }                                               \
+                                                    \
+    inline bool is_##TAG(const Token& token)        \
+    {                                               \
+        return is_##TAG(token.type);                \
     }                                               \
 
 #include "derplanner/compiler/token_tags.inl"
@@ -57,6 +62,9 @@ Token lex(Lexer_State& state);
 
 #include "derplanner/compiler/token_tags.inl"
 #undef PLNNRC_TOKEN_GROUP
+
+// gets token type name as a string to aid debugging.
+const char* get_token_name(Token_Type token_type);
 
 }
 

@@ -25,7 +25,21 @@
 
 using namespace plnnrc;
 
-void plnnrc::init(Lexer_State& result, const char* buffer)
+static const char* token_type_names[] =
+{
+    "Unknown",
+    #define PLNNRC_TOKEN(TOKEN_TAG) #TOKEN_TAG,
+    #include "derplanner/compiler/token_tags.inl"
+    #undef PLNNRC_TOKEN
+    "None",
+};
+
+const char* plnnrc::get_token_name(Token_Type token_type)
+{
+    return token_type_names[token_type];
+}
+
+void plnnrc::init(Lexer& result, const char* buffer)
 {
     result.buffer_start = buffer;
     result.buffer_ptr = buffer;
@@ -41,12 +55,12 @@ void plnnrc::init(Lexer_State& result, const char* buffer)
 #undef PLNNRC_KEYWORD_TOKEN
 }
 
-void plnnrc::destroy(Lexer_State& state)
+void plnnrc::destroy(Lexer& state)
 {
     destroy(state.errors);
 }
 
-inline char get_char(const Lexer_State& state)
+inline char get_char(const Lexer& state)
 {
     return *state.buffer_ptr;
 }
@@ -63,7 +77,7 @@ inline bool is_identifier_body(char c)
         c == 'M' || c == 'N' || c == 'O' || c == 'P' || c == 'Q' || c == 'R' || c == 'S' || c == 'T' || c == 'U' || c == 'V' || c == 'W' || c == 'X' || c == 'Y' || c == 'Z' ||
         c == 'a' || c == 'b' || c == 'c' || c == 'd' || c == 'e' || c == 'f' || c == 'g' || c == 'h' || c == 'i' || c == 'j' || c == 'k' || c == 'l' ||
         c == 'm' || c == 'n' || c == 'o' || c == 'p' || c == 'q' || c == 'r' || c == 's' || c == 't' || c == 'u' || c == 'v' || c == 'w' || c == 'x' || c == 'y' || c == 'z' ||
-        c == '0' || c == '1' || c == '2' || c == '3' || c == '4' || c == '5' || c == '6' || c == '7' || c == '8' || c == '9';
+        c == '0' || c == '1' || c == '2' || c == '3' || c == '4' || c == '5' || c == '6' || c == '7' || c == '8' || c == '9' || c == '_' || c == '!' || c == '?';
 }
 
 inline bool is_digit(char c)
@@ -71,13 +85,13 @@ inline bool is_digit(char c)
     return c == '0' || c == '1' || c == '2' || c == '3' || c == '4' || c == '5' || c == '6' || c == '7' || c == '8' || c == '9';
 }
 
-inline void consume_char(Lexer_State& state)
+inline void consume_char(Lexer& state)
 {
     state.column++;
     state.buffer_ptr++;
 }
 
-inline void consume_newline(Lexer_State& state)
+inline void consume_newline(Lexer& state)
 {
     char c1 = get_char(state);
     consume_char(state);
@@ -92,7 +106,7 @@ inline void consume_newline(Lexer_State& state)
     state.line++;
 }
 
-inline void consume_until_whitespace(Lexer_State& state)
+inline void consume_until_whitespace(Lexer& state)
 {
     while (char c = get_char(state))
     {
@@ -106,7 +120,7 @@ inline void consume_until_whitespace(Lexer_State& state)
     }
 }
 
-inline Token make_token(Lexer_State& state, Token_Type type)
+inline Token make_token(Lexer& state, Token_Type type)
 {
     Token tok;
     tok.type = type;
@@ -117,7 +131,7 @@ inline Token make_token(Lexer_State& state, Token_Type type)
     return tok;
 }
 
-inline Token begin_token(Lexer_State& state)
+inline Token begin_token(Lexer& state)
 {
     Token tok;
     tok.column = state.column;
@@ -127,14 +141,14 @@ inline Token begin_token(Lexer_State& state)
     return tok;
 }
 
-inline void end_token(Lexer_State& state, Token& tok, Token_Type type)
+inline void end_token(Lexer& state, Token& tok, Token_Type type)
 {
     tok.type = type;
     plnnrc_assert(state.buffer_ptr > tok.str);
     tok.length = static_cast<uint32_t>(state.buffer_ptr - tok.str);
 }
 
-inline Token lex_identifier(Lexer_State& state)
+inline Token lex_identifier(Lexer& state)
 {
     Token tok = begin_token(state);
 
@@ -192,7 +206,7 @@ namespace numeric_literal
     };
 }
 
-inline Token lex_numeric_literal(Lexer_State& lexer_state)
+inline Token lex_numeric_literal(Lexer& lexer_state)
 {
     Token tok = begin_token(lexer_state);
 
@@ -232,7 +246,7 @@ inline Token lex_numeric_literal(Lexer_State& lexer_state)
     return tok;
 }
 
-inline Token lex_unknown(Lexer_State& state)
+inline Token lex_unknown(Lexer& state)
 {
     Token tok = begin_token(state);
     consume_until_whitespace(state);
@@ -240,7 +254,7 @@ inline Token lex_unknown(Lexer_State& state)
     return tok;
 }
 
-Token plnnrc::lex(Lexer_State& state)
+Token plnnrc::lex(Lexer& state)
 {
     for (char c = get_char(state); c != 0; c = get_char(state))
     {

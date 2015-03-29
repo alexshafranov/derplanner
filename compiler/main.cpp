@@ -23,13 +23,16 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <derplanner/compiler/io.h>
-#include <derplanner/compiler/memory.h>
-#include <derplanner/compiler/s_expression.h>
-#include <derplanner/compiler/errors.h>
-#include <derplanner/compiler/ast.h>
-#include <derplanner/compiler/ast_build.h>
-#include <derplanner/compiler/codegen.h>
+// #include <derplanner/compiler/io.h>
+// #include <derplanner/compiler/memory.h>
+// #include <derplanner/compiler/s_expression.h>
+// #include <derplanner/compiler/errors.h>
+// #include <derplanner/compiler/ast.h>
+// #include <derplanner/compiler/ast_build.h>
+// #include <derplanner/compiler/codegen.h>
+
+#include "derplanner/compiler/memory.h"
+#include "derplanner/compiler/lexer.h"
 
 using namespace plnnrc;
 
@@ -38,12 +41,12 @@ struct Buffer_Context
     Buffer_Context(size_t bytes)
         : data(0)
     {
-        data = static_cast<char*>(memory::allocate(bytes));
+        data = static_cast<char*>(plnnrc::allocate(bytes));
     }
 
     ~Buffer_Context()
     {
-        memory::deallocate(data);
+        plnnrc::deallocate(data);
     }
 
     char* data;
@@ -77,18 +80,18 @@ size_t file_size(const char* path)
     return input_size;
 }
 
-struct Error_Node_Comparator
-{
-    bool operator()(const ast::Node* a, const ast::Node* b)
-    {
-        if (a->s_expr->line == b->s_expr->line)
-        {
-            return a->s_expr->column < b->s_expr->column;
-        }
+// struct Error_Node_Comparator
+// {
+//     bool operator()(const ast::Node* a, const ast::Node* b)
+//     {
+//         if (a->s_expr->line == b->s_expr->line)
+//         {
+//             return a->s_expr->column < b->s_expr->column;
+//         }
 
-        return a->s_expr->line < b->s_expr->line;
-    }
-};
+//         return a->s_expr->line < b->s_expr->line;
+//     }
+// };
 
 void print_help()
 {
@@ -278,79 +281,105 @@ int main(int argc, char** argv)
 
     input_buffer.data[input_size] = 0;
 
-    sexpr::Tree expr;
+    plnnrc::Scoped<plnnrc::Lexer> lexer;
+    plnnrc::init(lexer, input_buffer.data);
     {
-        sexpr::Parse_Result result = expr.parse(input_buffer.data);
-
-        if (result.status != sexpr::parse_ok)
+        plnnrc::Token tok = plnnrc::lex(lexer);
+        for (; tok.type != plnnrc::Token_Eof; tok = plnnrc::lex(lexer))
         {
-            fprintf(stderr, "error: %d:%d\n", result.line, result.column);
-            return 1;
+            if (plnnrc::is_Identifier(tok))
+            {
+                char buffer[256] = {0};
+                size_t len = tok.length + 1 < 256 ? tok.length : 255;
+                memcpy(buffer, tok.str, len);
+
+                printf("%s[%s]\n", plnnrc::get_token_name(tok.type), buffer);
+            }
+            else
+            {
+                printf("%s\n", plnnrc::get_token_name(tok.type));
+            }
+        }
+
+        if (tok.type == plnnrc::Token_Eof)
+        {
+            printf("%s\n", plnnrc::get_token_name(tok.type));
         }
     }
 
-    ast::Tree tree;
-    ast::build_translation_unit(tree, expr.root());
+    // sexpr::Tree expr;
+    // {
+    //     sexpr::Parse_Result result = expr.parse(input_buffer.data);
 
-    if (tree.error_node_cache.size() > 0)
-    {
-        std::stable_sort(
-            &tree.error_node_cache[0],
-            &tree.error_node_cache[0] + tree.error_node_cache.size(),
-            Error_Node_Comparator());
+    //     if (result.status != sexpr::parse_ok)
+    //     {
+    //         fprintf(stderr, "error: %d:%d\n", result.line, result.column);
+    //         return 1;
+    //     }
+    // }
 
-        for (unsigned i = 0; i < tree.error_node_cache.size(); ++i)
-        {
-            Stdio_File_Writer writer(stderr);
-            ast::Node* error = tree.error_node_cache[i];
-            ast::Error_Ann* error_annotation = ast::annotation<ast::Error_Ann>(error);
-            format_error(error_annotation, writer);
-        }
+    // ast::Tree tree;
+    // ast::build_translation_unit(tree, expr.root());
 
-        return 1;
-    }
+    // if (tree.error_node_cache.size() > 0)
+    // {
+    //     std::stable_sort(
+    //         &tree.error_node_cache[0],
+    //         &tree.error_node_cache[0] + tree.error_node_cache.size(),
+    //         Error_Node_Comparator());
 
-    std::string header_file_name = output_name + ".h";
-    std::string source_file_name = output_name + ".cpp";
-    std::string header_file_path = std::string(output_dir) + "/" + header_file_name;
-    std::string source_file_path = std::string(output_dir) + "/" + source_file_name;
+    //     for (unsigned i = 0; i < tree.error_node_cache.size(); ++i)
+    //     {
+    //         Stdio_File_Writer writer(stderr);
+    //         ast::Node* error = tree.error_node_cache[i];
+    //         ast::Error_Ann* error_annotation = ast::annotation<ast::Error_Ann>(error);
+    //         format_error(error_annotation, writer);
+    //     }
 
-    File_Context header_file(header_file_path.c_str(), "wt");
-    File_Context source_file(source_file_path.c_str(), "wt");
+    //     return 1;
+    // }
 
-    Stdio_File_Writer header_writer(header_file.fd);
-    Stdio_File_Writer source_writer(source_file.fd);
+    // std::string header_file_name = output_name + ".h";
+    // std::string source_file_name = output_name + ".cpp";
+    // std::string header_file_path = std::string(output_dir) + "/" + header_file_name;
+    // std::string source_file_path = std::string(output_dir) + "/" + source_file_name;
 
-    std::string include_guard(output_name);
-    include_guard += "_H_";
+    // File_Context header_file(header_file_path.c_str(), "wt");
+    // File_Context source_file(source_file_path.c_str(), "wt");
 
-    Codegen_Options options;
-    options.tab = "\t";
-    options.newline = "\n";
-    options.include_guard = include_guard.c_str();
-    options.header_file_name = header_file_name.c_str();
+    // Stdio_File_Writer header_writer(header_file.fd);
+    // Stdio_File_Writer source_writer(source_file.fd);
 
-    if (!custom_header.empty())
-    {
-        options.custom_header = custom_header.c_str();
-    }
-    else
-    {
-        options.custom_header = 0;
-    }
+    // std::string include_guard(output_name);
+    // include_guard += "_H_";
 
-    options.runtime_atom_names = true;
-    options.runtime_task_names = true;
-    options.enable_reflection = true;
+    // Codegen_Options options;
+    // options.tab = "\t";
+    // options.newline = "\n";
+    // options.include_guard = include_guard.c_str();
+    // options.header_file_name = header_file_name.c_str();
 
-    generate_header(tree, header_writer, options);
-    generate_source(tree, source_writer, options);
+    // if (!custom_header.empty())
+    // {
+    //     options.custom_header = custom_header.c_str();
+    // }
+    // else
+    // {
+    //     options.custom_header = 0;
+    // }
 
-    if (header_writer.error() || source_writer.error())
-    {
-        fprintf(stderr, "i/o error occured.");
-        return 1;
-    }
+    // options.runtime_atom_names = true;
+    // options.runtime_task_names = true;
+    // options.enable_reflection = true;
+
+    // generate_header(tree, header_writer, options);
+    // generate_source(tree, source_writer, options);
+
+    // if (header_writer.error() || source_writer.error())
+    // {
+    //     fprintf(stderr, "i/o error occured.");
+    //     return 1;
+    // }
 
     return 0;
 }
