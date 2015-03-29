@@ -44,7 +44,6 @@ static Fact_Type s_fact_types[] = {
 
 static Type s_layout_types[] = { Type_Int32, Type_Int32 };
 static size_t s_layout_offsets[2];
-static int s_layout_num_params[] = { 2 };
 
 static Param_Layout s_task_parameters[] = {
 	{ 2, s_layout_types + 0, 0, s_layout_offsets + 0 },
@@ -136,7 +135,7 @@ static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 }
 ///////////////////////////////////////////////////////////////////////////////
 
-struct p1_input { int _0; int _1; };
+struct p1_input { int32_t _0; int32_t _1; };
 
 static bool p1_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, p1_input* args)
 {
@@ -164,7 +163,7 @@ static bool p1_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 }
 ///////////////////////////////////////////////////////////////////////////////
 
-struct p2_input { int _0; int _1; };
+struct p2_input { int32_t _0; int32_t _1; };
 
 static bool p2_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, p2_input* args)
 {
@@ -192,7 +191,7 @@ static bool p2_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 }
 ///////////////////////////////////////////////////////////////////////////////
 
-struct p3_input { int _0; int _1; };
+struct p3_input { int32_t _0; int32_t _1; };
 
 static bool p3_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, p3_input* args)
 {
@@ -248,8 +247,8 @@ static bool root_branch_0_expand(Planning_State* state, Expansion_Frame* frame, 
 
 static bool travel_branch_0_expand(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
 {
-	int _0 = as_Int32(frame->arguments, s_task_parameters[3], 0);
-	int _1 = as_Int32(frame->arguments, s_task_parameters[3], 1);
+	int32_t _0 = as_Int32(frame->arguments, s_task_parameters[3], 0);
+	int32_t _1 = as_Int32(frame->arguments, s_task_parameters[3], 1);
 	p1_input p1_args;
 	p1_args._0 = _0;
 	p1_args._1 = _1;
@@ -273,8 +272,8 @@ static bool travel_branch_0_expand(Planning_State* state, Expansion_Frame* frame
 
 static bool travel_branch_1_expand(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
 {
-	int _0 = as_Int32(frame->arguments, s_task_parameters[3], 0);
-	int _1 = as_Int32(frame->arguments, s_task_parameters[3], 1);
+	int32_t _0 = as_Int32(frame->arguments, s_task_parameters[3], 0);
+	int32_t _1 = as_Int32(frame->arguments, s_task_parameters[3], 1);
 	p2_input p2_args;
 	p2_args._0 = _0;
 	p2_args._1 = _1;
@@ -296,8 +295,8 @@ static bool travel_branch_1_expand(Planning_State* state, Expansion_Frame* frame
 
 static bool travel_by_plane_branch_0_expand(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
 {
-	int _0 = as_Int32(frame->arguments, s_task_parameters[4], 0);
-	int _1 = as_Int32(frame->arguments, s_task_parameters[4], 1);
+	int32_t _0 = as_Int32(frame->arguments, s_task_parameters[4], 0);
+	int32_t _1 = as_Int32(frame->arguments, s_task_parameters[4], 1);
 	p3_input p3_args;
 	p3_args._0 = _0;
 	p3_args._1 = _1;

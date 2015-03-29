@@ -287,13 +287,9 @@ int main(int argc, char** argv)
         plnnrc::Token tok = plnnrc::lex(lexer);
         for (; tok.type != plnnrc::Token_Eof; tok = plnnrc::lex(lexer))
         {
-            if (plnnrc::is_Identifier(tok))
+            if (plnnrc::has_value(tok))
             {
-                char buffer[256] = {0};
-                size_t len = tok.length + 1 < 256 ? tok.length : 255;
-                memcpy(buffer, tok.str, len);
-
-                printf("%s[%s]\n", plnnrc::get_token_name(tok.type), buffer);
+                printf("%s[%.*s]\n", plnnrc::get_token_name(tok.type), (int)tok.length, tok.str);
             }
             else
             {

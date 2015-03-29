@@ -41,6 +41,9 @@ void grow(Array<T>& array, uint32_t new_max_size);
 template <typename T>
 void push_back(Array<T>& array, const T& value);
 
+template <typename T>
+uint32_t size(const Array<T>& array);
+
 }
 
 template <typename T>
@@ -82,17 +85,23 @@ inline void plnnrc::push_back(plnnrc::Array<T>& array, const T& value)
 }
 
 template <typename T>
-T& plnnrc::Array<T>::operator[](uint32_t index)
+inline T& plnnrc::Array<T>::operator[](uint32_t index)
 {
     plnnrc_assert(index < size);
     return data[index];
 }
 
 template <typename T>
-const T& plnnrc::Array<T>::operator[](uint32_t index) const
+inline const T& plnnrc::Array<T>::operator[](uint32_t index) const
 {
     plnnrc_assert(index < size);
     return data[index];
+}
+
+template <typename T>
+inline uint32_t plnnrc::size(const plnnrc::Array<T>& array)
+{
+    return array.size;
 }
 
 #endif

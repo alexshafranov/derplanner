@@ -45,7 +45,6 @@ void plnnrc::init(Lexer& result, const char* buffer)
     result.buffer_ptr = buffer;
     result.column = 1;
     result.line = 1;
-    init(result.errors, 32);
     init(result.keywords, 16);
 
 #define PLNNRC_KEYWORD_TOKEN(TOKEN_TAG, TOKEN_STR)      \
@@ -57,7 +56,7 @@ void plnnrc::init(Lexer& result, const char* buffer)
 
 void plnnrc::destroy(Lexer& state)
 {
-    destroy(state.errors);
+    destroy(state.keywords);
 }
 
 inline char get_char(const Lexer& state)
