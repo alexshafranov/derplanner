@@ -54,9 +54,9 @@ struct Task
     // task name.
     Token       name;
     // parameter linked list.
-    Parameter*  first_parameter;
+    Parameter*  parameter_list;
     // case linked list.
-    Case*       first_case;
+    Case*       case_list;
 };
 
 }

@@ -99,13 +99,6 @@ struct Lexer
     Id_Table<Token_Type>    keywords;
 };
 
-//
-struct Parser
-{
-    Array<Domain>   domains;
-    Array<Task>     tasks;
-};
-
 // RAII destruction.
 template <typename T>
 struct Scoped : public T
