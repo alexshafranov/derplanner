@@ -63,6 +63,12 @@ Token lex(Lexer& state);
 #include "derplanner/compiler/token_tags.inl"
 #undef PLNNRC_TOKEN_GROUP
 
+// checks if the given token has a string value attached.
+inline bool has_value(const Token& tok)
+{
+    return tok.str != 0 && tok.length > 0;
+}
+
 // gets token type name as a string to aid debugging.
 const char* get_token_name(Token_Type token_type);
 

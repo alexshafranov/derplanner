@@ -84,12 +84,6 @@ struct Token
     const char*     str;
 };
 
-// Error/Warning emitted by lexer.
-struct Lexer_Error
-{
-    Error_Type type;
-};
-
 // Keeps track of lexer progress through the input buffer.
 struct Lexer
 {
@@ -103,8 +97,13 @@ struct Lexer
     uint32_t                line;
     // maps keyword strings to keyword types.
     Id_Table<Token_Type>    keywords;
-    // emitted errors & warnings.
-    Array<Lexer_Error>      errors;
+};
+
+//
+struct Parser
+{
+    Array<Domain>   domains;
+    Array<Task>     tasks;
 };
 
 // RAII destruction.
