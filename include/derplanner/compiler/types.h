@@ -56,6 +56,7 @@ enum Error_Type
     #define PLNNRC_ERROR(TAG) Error_##TAG,
     #include "derplanner/compiler/error_tags.inl"
     #undef PLNNRC_ERROR
+    Error_Count,
 };
 
 // Token identifiers.
@@ -65,6 +66,7 @@ enum Token_Type
     #define PLNNRC_TOKEN(TAG) Token_##TAG,
     #include "derplanner/compiler/token_tags.inl"
     #undef PLNNRC_TOKEN
+    Token_Count,
 };
 
 // Token data returned by the lexer.
@@ -89,7 +91,7 @@ struct Lexer_Error
 };
 
 // Keeps track of lexer progress through the input buffer.
-struct Lexer_State
+struct Lexer
 {
     // points to the first character in input buffer.
     const char*             buffer_start;

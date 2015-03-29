@@ -38,14 +38,14 @@ solution "derplanner"
         files { "source/runtime/*.cpp" }
         includedirs { "include" }
 
-    -- project "derplannerc"
-    --     kind "ConsoleApp"
-    --     files { "compiler/*.cpp" }
-    --     includedirs { "include" }
-    --     links { "derplanner-compiler" }
-    --     configuration { "vs*" }
-    --         defines { "_CRT_SECURE_NO_WARNINGS" }
-    --     configuration {}
+    project "derplannerc"
+        kind "ConsoleApp"
+        files { "compiler/*.cpp" }
+        includedirs { "include" }
+        links { "derplanner-compiler" }
+        configuration { "vs*" }
+            defines { "_CRT_SECURE_NO_WARNINGS" }
+        configuration {}
 
     project "deps-unittestpp"
         kind "StaticLib"
