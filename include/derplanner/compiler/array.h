@@ -36,6 +36,9 @@ template <typename T>
 void destroy(Array<T>& array);
 
 template <typename T>
+void resize(Array<T>& array, uint32_t new_size);
+
+template <typename T>
 void grow(Array<T>& array, uint32_t new_max_size);
 
 template <typename T>
@@ -60,6 +63,17 @@ inline void plnnrc::destroy(Array<T>& array)
     plnnrc::deallocate(array.data);
     array.size = 0;
     array.max_size = 0;
+}
+
+template <typename T>
+inline void resize(plnnrc::Array<T>& array, uint32_t new_size)
+{
+    if (new_size > max_size)
+    {
+        plnnrc::grow(array, new_size);
+    }
+
+    array.size = new_size;
 }
 
 template <typename T>
