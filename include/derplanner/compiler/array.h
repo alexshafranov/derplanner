@@ -68,7 +68,7 @@ inline void plnnrc::destroy(Array<T>& array)
 template <typename T>
 inline void resize(plnnrc::Array<T>& array, uint32_t new_size)
 {
-    if (new_size > max_size)
+    if (new_size > array.max_size)
     {
         plnnrc::grow(array, new_size);
     }
