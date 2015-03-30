@@ -99,6 +99,51 @@ struct Lexer
     Id_Table<Token_Type>    keywords;
 };
 
+//
+struct World
+{
+    //
+    uint32_t        max_facts;
+    //
+    uint32_t        num_facts;
+    //
+    Token*          names;
+    //
+    uint32_t*       param_counts;
+    //
+    Token_Type*     params;
+};
+
+//
+struct Domain
+{
+    //
+    uint32_t        max_tasks;
+    //
+    uint32_t        num_tasks;
+    //
+    Token*          task_names;
+    //
+    uint32_t*       task_param_counts;
+    //
+    Token*          task_params;
+    //
+    uint32_t*       task_case_counts;
+};
+
+// 
+struct Parser
+{
+    //
+    World               world;
+    //
+    Domain              domain;
+    //
+    Id_Table<uint32_t>  task_ids;
+    //
+    Id_Table<uint32_t>  fact_ids;
+};
+
 // RAII destruction.
 template <typename T>
 struct Scoped : public T
