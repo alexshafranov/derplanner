@@ -125,8 +125,8 @@ inline Token make_token(Lexer& state, Token_Type type)
     tok.type = type;
     tok.column = state.column;
     tok.line = state.line;
-    tok.length = 0;
-    tok.str = 0;
+    tok.value.length = 0;
+    tok.value.str = 0;
     return tok;
 }
 
@@ -135,16 +135,16 @@ inline Token begin_token(Lexer& state)
     Token tok;
     tok.column = state.column;
     tok.line = state.line;
-    tok.str = state.buffer_ptr;
-    tok.length = 0;
+    tok.value.length = 0;
+    tok.value.str = state.buffer_ptr;
     return tok;
 }
 
 inline void end_token(Lexer& state, Token& tok, Token_Type type)
 {
     tok.type = type;
-    plnnrc_assert(state.buffer_ptr > tok.str);
-    tok.length = static_cast<uint32_t>(state.buffer_ptr - tok.str);
+    plnnrc_assert(state.buffer_ptr > tok.value.str);
+    tok.value.length = static_cast<uint32_t>(state.buffer_ptr - tok.value.str);
 }
 
 inline Token lex_identifier(Lexer& state)
@@ -164,7 +164,7 @@ inline Token lex_identifier(Lexer& state)
     end_token(state, tok, Token_Identifier);
 
     // test if the token is actually keyword and modify type accordinly
-    const Token_Type* keyword_type_ptr = get(state.keywords, tok.str, tok.length);
+    const Token_Type* keyword_type_ptr = get(state.keywords, tok.value.str, tok.value.length);
     if (keyword_type_ptr != 0)
     {
         tok.type = *keyword_type_ptr;

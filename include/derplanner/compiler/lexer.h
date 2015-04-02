@@ -66,7 +66,7 @@ Token lex(Lexer& state);
 // checks if the given token has a string value attached.
 inline bool has_value(const Token& tok)
 {
-    return tok.str != 0 && tok.length > 0;
+    return tok.value.str != 0 && tok.value.length > 0;
 }
 
 // gets token type name as a string to aid debugging.

@@ -53,7 +53,7 @@ namespace
             CHECK_EQUAL(expected_types[i], actual.type);
             if (expected_strings[i] != 0)
             {
-                CHECK_ARRAY_EQUAL(expected_strings[i], actual.str, actual.length);
+                CHECK_ARRAY_EQUAL(expected_strings[i], actual.value.str, actual.value.length);
             }
         }
     }
@@ -91,7 +91,7 @@ namespace
         plnnrc::Scoped<plnnrc::Lexer> lexer;
         plnnrc::init(lexer, str);
         plnnrc::Token tok = plnnrc::lex(lexer);
-        float actual = (float)strtod(tok.str, 0);
+        float actual = (float)strtod(tok.value.str, 0);
         CHECK_EQUAL(expected, actual);
     }
 
@@ -100,7 +100,7 @@ namespace
         plnnrc::Scoped<plnnrc::Lexer> lexer;
         plnnrc::init(lexer, str);
         plnnrc::Token tok = plnnrc::lex(lexer);
-        int actual = (int)strtol(tok.str, 0, 10);
+        int actual = (int)strtol(tok.value.str, 0, 10);
         CHECK_EQUAL(expected, actual);
     }
 
