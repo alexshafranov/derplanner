@@ -200,7 +200,7 @@ struct Parser
     ast::Domain*        domain;
     // token source for parsing.
     Lexer*              lexer;
-    // memory pool ast nodes are allocated from.
+    // memory pool `ast::*` types are allocated from.
     Pool_Handle*        pool;
 };
 
