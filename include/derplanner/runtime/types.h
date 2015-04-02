@@ -69,7 +69,7 @@ struct Fact_Table
     uint32_t        max_entries;
     // linear block of memory accommodating entries' data.
     void*           blob;
-    // tuples laid out in SOA order.
+    // tuples in SOA layout.
     void*           columns[Max_Fact_Arity];
     // generation per each entry to support weak handles.
     uint32_t*       generations;

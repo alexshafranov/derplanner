@@ -289,7 +289,7 @@ int main(int argc, char** argv)
         {
             if (plnnrc::has_value(tok))
             {
-                printf("%s[%.*s]\n", plnnrc::get_token_name(tok.type), (int)tok.length, tok.str);
+                printf("%s[%.*s]\n", plnnrc::get_token_name(tok.type), (int)tok.value.length, tok.value.str);
             }
             else
             {

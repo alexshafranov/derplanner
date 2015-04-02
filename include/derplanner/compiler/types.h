@@ -69,6 +69,15 @@ enum Token_Type
     Token_Count,
 };
 
+// String value of the token.
+struct Token_Value
+{
+    // number of characters in the string.
+    uint32_t        length;
+    // pointer to the beginning of the string in an input buffer.
+    const char*     str;
+};
+
 // Token data returned by the lexer.
 struct Token
 {
@@ -78,10 +87,8 @@ struct Token
     uint32_t        column;
     // input buffer line.
     uint32_t        line;
-    // number of characters in the token.
-    uint32_t        length;
-    // points to the token first character.
-    const char*     str;
+    // string value of the token.
+    Token_Value     value;
 };
 
 // Keeps track of lexer progress through the input buffer.
@@ -99,49 +106,102 @@ struct Lexer
     Id_Table<Token_Type>    keywords;
 };
 
-//
-struct World
+/// Abstract-Syntax-Tree nodes, produced by the parser.
+namespace ast
 {
-    //
-    uint32_t        max_facts;
-    //
-    uint32_t        num_facts;
-    //
-    Token*          names;
-    //
-    uint32_t*       param_counts;
-    //
-    Token_Type*     params;
-};
+    struct World;
+        struct Fact_Type;
 
-//
-struct Domain
-{
-    //
-    uint32_t        max_tasks;
-    //
-    uint32_t        num_tasks;
-    //
-    Token*          task_names;
-    //
-    uint32_t*       task_param_counts;
-    //
-    Token*          task_params;
-    //
-    uint32_t*       task_case_counts;
-};
+    struct Domain;
+        struct Task;
+            struct Case;
+                struct Expr;
 
-// 
+    // Database fact type declaration in `world` block.
+    struct Fact_Type
+    {
+        // name of the fact.
+        Token_Value     name;
+        // number of parameters.
+        uint32_t        num_params;
+        // parameter types. (one of the type tokens).
+        Token_Type*     param_types;
+    };
+
+    // Parsed `world` block.
+    struct World
+    {
+        // number of fact types declared.
+        uint32_t        num_facts;
+        // fact type declarations.
+        Fact_Type**     facts;
+    };
+
+    // Parsed `task` block.
+    struct Task
+    {
+        // name of the task.
+        Token_Value     name;
+        // number of cases in this task. 
+        uint32_t        num_cases;
+        // number of parameters.
+        uint32_t        num_params;
+        // name of each parameter.
+        Token_Value*    param_names;
+        // inferred parameter types.
+        Token_Type*     param_types;
+        // task case definitions.
+        Case**          cases;
+    };
+
+    // Parsed case precondition/task-list expression.
+    struct Expr
+    {
+        // could be operation or literal or fact/variable identifier.
+        Token_Type      type;
+        // literal or identifier or operation name.
+        Token_Value     value;
+        // inferred type for variables.
+        Token_Type      inferred;
+        // parent node.
+        Expr*           parent;
+        // first child node.
+        Expr*           child;
+        // next sibling.
+        Expr*           next_sibling;
+        // previous sibling (forms cyclic list).
+        Expr*           prev_sibling_cyclic;
+    };
+
+    // Parsed `case`.
+    struct Case
+    {
+        // precondition expression.
+        Expr*           precond;
+        // task list expression.
+        uint32_t        num_tasks;
+        // expression node for each task in task list.
+        Expr**          task_list;
+    };
+}
+
+struct Pool_Handle;
+
+// Parser state.
 struct Parser
 {
-    //
-    World               world;
-    //
-    Domain              domain;
-    //
-    Id_Table<uint32_t>  task_ids;
-    //
+    // maps fact name -> index
     Id_Table<uint32_t>  fact_ids;
+    // maps task name -> index.
+    Id_Table<uint32_t>  task_ids;
+    // parsed `world`.
+    ast::World*         world;
+    // parsed `domain`.
+    ast::Domain*        domain;
+    // token source for parsing.
+    Lexer*              lexer;
+    // memory pool ast nodes are allocated from.
+    Pool_Handle*        pool;
 };
 
 // RAII destruction.
