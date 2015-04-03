@@ -27,7 +27,7 @@ solution "derplanner"
         targetdir "bin/x64/release"
 
     configuration { "gmake" }
-        buildoptions { "-wno-missing-field-initializers" }
+        buildoptions { "-Wno-missing-field-initializers" }
 
     configuration { "vs*" }
         defines { "_CRT_SECURE_NO_WARNINGS" }
