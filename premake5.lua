@@ -26,6 +26,12 @@ solution "derplanner"
     configuration { "release", "x64" }
         targetdir "bin/x64/release"
 
+    configuration { "gmake" }
+        buildoptions { "-wno-missing-field-initializers" }
+
+    configuration { "vs*" }
+        defines { "_CRT_SECURE_NO_WARNINGS" }
+
     project "derplanner-compiler"
         kind "StaticLib"
         flags { "NoExceptions" }
@@ -43,9 +49,6 @@ solution "derplanner"
         files { "compiler/*.cpp" }
         includedirs { "include" }
         links { "derplanner-compiler" }
-        configuration { "vs*" }
-            defines { "_CRT_SECURE_NO_WARNINGS" }
-        configuration {}
 
     project "deps-unittestpp"
         kind "StaticLib"
@@ -53,19 +56,13 @@ solution "derplanner"
         configuration { "linux or macosx" }
             files { "deps/unittestpp/src/Posix/*.cpp" }
         configuration { "vs*" }
-            defines { "_CRT_SECURE_NO_WARNINGS" }
-        configuration { "vs*" }
             files { "deps/unittestpp/src/Win32/*.cpp" }
-        configuration {}
 
     project "tests"
         kind "ConsoleApp"
         files { "test/*.cpp" }
         includedirs { "deps/unittestpp", "include", "source" }
         links { "deps-unittestpp", "derplanner-compiler", "derplanner-runtime" }
-        configuration { "vs*" }
-            defines { "_CRT_SECURE_NO_WARNINGS" }
-        configuration {}
 
     project "domain-travel"
         kind "SharedLib"
