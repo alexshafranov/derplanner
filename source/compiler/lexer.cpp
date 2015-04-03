@@ -59,17 +59,17 @@ void plnnrc::destroy(Lexer& state)
     destroy(state.keywords);
 }
 
-inline char get_char(const Lexer& state)
+static inline char get_char(const Lexer& state)
 {
     return *state.buffer_ptr;
 }
 
-inline bool is_whitespace(char c)
+static inline bool is_whitespace(char c)
 {
     return c == ' ' || c == '\f' || c == '\t' || c == '\v' || c == '\n' || c == '\r';
 }
 
-inline bool is_identifier_body(char c)
+static inline bool is_identifier_body(char c)
 {
     return \
         c == 'A' || c == 'B' || c == 'C' || c == 'D' || c == 'E' || c == 'F' || c == 'G' || c == 'H' || c == 'I' || c == 'J' || c == 'K' || c == 'L' ||
@@ -79,18 +79,13 @@ inline bool is_identifier_body(char c)
         c == '0' || c == '1' || c == '2' || c == '3' || c == '4' || c == '5' || c == '6' || c == '7' || c == '8' || c == '9' || c == '_' || c == '!' || c == '?';
 }
 
-inline bool is_digit(char c)
-{
-    return c == '0' || c == '1' || c == '2' || c == '3' || c == '4' || c == '5' || c == '6' || c == '7' || c == '8' || c == '9';
-}
-
-inline void consume_char(Lexer& state)
+static inline void consume_char(Lexer& state)
 {
     state.column++;
     state.buffer_ptr++;
 }
 
-inline void consume_newline(Lexer& state)
+static inline void consume_newline(Lexer& state)
 {
     char c1 = get_char(state);
     consume_char(state);
@@ -105,7 +100,7 @@ inline void consume_newline(Lexer& state)
     state.line++;
 }
 
-inline void consume_until_whitespace(Lexer& state)
+static inline void consume_until_whitespace(Lexer& state)
 {
     while (char c = get_char(state))
     {
@@ -119,7 +114,7 @@ inline void consume_until_whitespace(Lexer& state)
     }
 }
 
-inline Token make_token(Lexer& state, Token_Type type)
+static inline Token make_token(Lexer& state, Token_Type type)
 {
     Token tok;
     tok.type = type;
@@ -130,7 +125,7 @@ inline Token make_token(Lexer& state, Token_Type type)
     return tok;
 }
 
-inline Token begin_token(Lexer& state)
+static inline Token begin_token(Lexer& state)
 {
     Token tok;
     tok.column = state.column;
@@ -140,14 +135,14 @@ inline Token begin_token(Lexer& state)
     return tok;
 }
 
-inline void end_token(Lexer& state, Token& tok, Token_Type type)
+static inline void end_token(Lexer& state, Token& tok, Token_Type type)
 {
     tok.type = type;
     plnnrc_assert(state.buffer_ptr > tok.value.str);
     tok.value.length = static_cast<uint32_t>(state.buffer_ptr - tok.value.str);
 }
 
-inline Token lex_identifier(Lexer& state)
+static inline Token lex_identifier(Lexer& state)
 {
     Token tok = begin_token(state);
 
@@ -205,7 +200,7 @@ namespace numeric_literal
     };
 }
 
-inline Token lex_numeric_literal(Lexer& lexer_state)
+static inline Token lex_numeric_literal(Lexer& lexer_state)
 {
     Token tok = begin_token(lexer_state);
 
@@ -245,7 +240,7 @@ inline Token lex_numeric_literal(Lexer& lexer_state)
     return tok;
 }
 
-inline Token lex_unknown(Lexer& state)
+static inline Token lex_unknown(Lexer& state)
 {
     Token tok = begin_token(state);
     consume_until_whitespace(state);
