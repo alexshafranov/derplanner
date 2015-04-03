@@ -106,35 +106,54 @@ struct Lexer
     Id_Table<Token_Type>    keywords;
 };
 
-/// Abstract-Syntax-Tree nodes, produced by the parser.
 namespace ast
 {
+    /// Abstract-Syntax-Tree nodes, produced by the parser.
+
     struct World;
         struct Fact_Type;
+            struct Fact_Param;
 
     struct Domain;
         struct Task;
+            struct Task_Param;
             struct Case;
                 struct Expr;
+
+    // Parsed `world` block.
+    struct World
+    {
+        // fact type declarations.
+        Fact_Type*      facts;
+    };
 
     // Database fact type declaration in `world` block.
     struct Fact_Type
     {
         // name of the fact.
         Token_Value     name;
-        // number of parameters.
-        uint32_t        num_params;
-        // parameter types. (one of the type tokens).
-        Token_Type*     param_types;
+        // list of parameter types.
+        Fact_Param*     params;
+        // next in a list.
+        Fact_Type*      next;
     };
 
-    // Parsed `world` block.
-    struct World
+    // Parsed fact parameter type.
+    struct Fact_Param
     {
-        // number of fact types declared.
-        uint32_t        num_facts;
-        // fact type declarations.
-        Fact_Type**     facts;
+        // parameter type. (one of the type tokens).
+        Token_Type      type;
+        // next parameter in a list.
+        Fact_Param*     next;
+    };
+
+    // Parsed `domain` block.
+    struct Domain
+    {
+        // domain name.
+        Token_Value     name;
+        // list of tasks.
+        Task*           tasks;
     };
 
     // Parsed `task` block.
@@ -142,16 +161,34 @@ namespace ast
     {
         // name of the task.
         Token_Value     name;
-        // number of cases in this task. 
-        uint32_t        num_cases;
-        // number of parameters.
-        uint32_t        num_params;
-        // name of each parameter.
-        Token_Value*    param_names;
-        // inferred parameter types.
-        Token_Type*     param_types;
-        // task case definitions.
-        Case**          cases;
+        // list of task parameters.
+        Task_Param*     params;
+        // list of expansion cases.
+        Case*           cases;
+        // next in a list.
+        Task*           next;
+    };
+
+    // Parsed task parameter.
+    struct Task_Param
+    {
+        // name of the parameter.
+        Token_Value     name;
+        // inferred type of the parameter.
+        Token_Type      inferred;
+        // next in a list.
+        Task_Param*     next;
+    };
+
+    // Parsed `case`.
+    struct Case
+    {
+        // precondition expression.
+        Expr*           precond;
+        // expression node for each task in task list.
+        Expr*           task_list;
+        // next in a list.
+        Case*           next;
     };
 
     // Parsed case precondition/task-list expression.
@@ -172,17 +209,6 @@ namespace ast
         // previous sibling (forms cyclic list).
         Expr*           prev_sibling_cyclic;
     };
-
-    // Parsed `case`.
-    struct Case
-    {
-        // precondition expression.
-        Expr*           precond;
-        // task list expression.
-        uint32_t        num_tasks;
-        // expression node for each task in task list.
-        Expr**          task_list;
-    };
 }
 
 struct Pool_Handle;
@@ -202,6 +228,8 @@ struct Parser
     Lexer*              lexer;
     // memory pool `ast::*` types are allocated from.
     Pool_Handle*        pool;
+    // last lexed token.
+    Token               token;
 };
 
 // RAII destruction.

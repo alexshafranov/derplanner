@@ -3,8 +3,8 @@ domain travel
 {
     world
     {
-        start( int32 )  :size(1)
-        finish( int32 ) :size(1)
+        start( int32 )
+        finish( int32 )
         short_distance( int32, int32 )
         long_distance( int32, int32 )
         airport( int32, int32 )

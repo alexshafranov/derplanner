@@ -59,6 +59,11 @@ Token lex(Lexer& state);
     {                                                                                           \
         return token_type >= Token_##FIRST_TOKEN_TAG && token_type <= Token_##LAST_TOKEN_TAG;   \
     }                                                                                           \
+                                                                                                \
+    inline bool is_##GROUP_TAG(const Token& token)                                              \
+    {                                                                                           \
+        return is_##GROUP_TAG(token.type);                                                      \
+    }                                                                                           \
 
 #include "derplanner/compiler/token_tags.inl"
 #undef PLNNRC_TOKEN_GROUP
