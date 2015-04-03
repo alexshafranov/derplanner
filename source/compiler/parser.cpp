@@ -89,6 +89,8 @@ static inline Token peek(Parser& state)
 
 static ast::World*  parse_world(Parser& state);
 static ast::Task*   parse_task(Parser& state);
+static ast::Expr*   parse_precond(Parser& state);
+static ast::Expr*   parse_task_list(Parser& state);
 
 void plnnrc::parse(Parser& state)
 {
@@ -230,30 +232,49 @@ static ast::Task* parse_task(Parser& state)
     }
 
     // parse cases
+    expect(state, Token_L_Curly);
+    if (!is_R_Curly(peek(state)))
     {
-        expect(state, Token_L_Curly);
-        int open = 1;
+        ast::Case root_case = {};
+        ast::Case* last_case = &root_case;
         for (;;)
         {
-            tok = eat(state);
-            if (is_L_Curly(tok))
-            {
-                ++open;
-                continue;
-            }
+            expect(state, Token_Case);
+            ast::Case* case_ = allocate_node<ast::Case>(state);
 
-            if (is_R_Curly(tok))
-            {
-                --open;
-                if (open == 0)
-                {
-                    break;
-                }
+            ast::Expr* precond = parse_precond(state);
+            expect(state, Token_Arrow);
+            ast::Expr* task_list = parse_task_list(state);
 
-                continue;
+            case_->precond = precond;
+            case_->task_list = task_list;
+
+            last_case->next = case_;
+            last_case = case_;
+
+            if (is_R_Curly(peek(state)))
+            {
+                eat(state);
+                break;
             }
         }
+
+        task->cases = root_case.next;
+    }
+    else
+    {
+        eat(state);
     }
 
     return task;
+}
+
+ast::Expr* parse_precond(Parser& /*state*/)
+{
+    return 0;
+}
+
+ast::Expr* parse_task_list(Parser& /*state*/)
+{
+    return 0;
 }
