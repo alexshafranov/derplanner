@@ -371,9 +371,33 @@ ast::Expr* plnnrc::parse_precond(Parser& state)
     return node_Expr;
 }
 
-ast::Expr* plnnrc::parse_task_list(Parser& /*state*/)
+ast::Expr* plnnrc::parse_task_list(Parser& state)
 {
-    return 0;
+    expect(state, is_L_Square);
+    ast::Expr* node_Task_List = allocate_node<ast::Expr>(state);
+
+    if (!is_R_Square(peek(state)))
+    {
+        for (;;)
+        {
+            ast::Expr* node_Task = parse_conjunct(state);
+            plnnrc::append_child(node_Task_List, node_Task);
+
+            if (!is_Comma(peek(state)))
+            {
+                expect(state, is_R_Square);
+                break;
+            }
+
+            expect(state, is_Comma);
+        }
+    }
+    else
+    {
+        eat(state);
+    }
+
+    return node_Task_List;
 }
 
 static ast::Expr* parse_expr(Parser& state)

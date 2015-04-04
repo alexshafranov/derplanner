@@ -18,6 +18,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
+#include <string>
 #include "unittestpp.h"
 #include "derplanner/compiler/array.h"
 #include "derplanner/compiler/lexer.h"
@@ -31,33 +32,35 @@ namespace plnnrc
 
 namespace
 {
-    void to_string(const plnnrc::ast::World* world, plnnrc::Array<char>& output)
+    std::string to_string(const plnnrc::ast::World* world)
     {
+        std::string output;
+
         for (plnnrc::ast::Fact_Type* fact = world->facts; fact != 0; fact = fact->next)
         {
-            plnnrc::push_back(output, fact->name.str, fact->name.length);
-            plnnrc::push_back(output, '[');
+            output.append(fact->name.str, fact->name.length);
+            output.append("[");
 
             for (plnnrc::ast::Fact_Param* param = fact->params; param != 0; param = param->next)
             {
                 const char* token_name = plnnrc::get_token_name(param->type);
-                plnnrc::push_back(output, token_name, (uint32_t)strlen(token_name));
+                output.append(token_name);
 
                 if (param->next != 0)
                 {
-                    plnnrc::push_back(output, ", ", 2);
+                    output.append(", ");
                 }
             }
 
-            plnnrc::push_back(output, ']');
+            output.append("]");
 
             if (fact->next != 0)
             {
-                plnnrc::push_back(output, ' ');
+                output.append(" ");
             }
         }
 
-        plnnrc::push_back(output, '\0');
+        return output;
     }
 
     TEST(world_parsing)
@@ -72,10 +75,8 @@ namespace
 
         parser.token = plnnrc::lex(lexer);
         plnnrc::ast::World* world = plnnrc::parse_world(parser);
-        plnnrc::Scoped<plnnrc::Array<char> > world_str;
-        plnnrc::init(world_str, 32);
-        to_string(world, world_str);
+        std::string world_str = to_string(world);
 
-        CHECK_EQUAL(expected, &world_str[0]);
+        CHECK_EQUAL(expected, world_str.c_str());
     }
 }
