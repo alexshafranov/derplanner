@@ -32,7 +32,7 @@ namespace plnnrc
         uint8_t     data[1];
     };
 
-    struct Pool_Handle
+    struct Paged_Pool
     {
         Page*   head;
         size_t  page_size;
@@ -41,9 +41,9 @@ namespace plnnrc
 
 using namespace plnnrc;
 
-plnnrc::Pool_Handle* plnnrc::create_paged_pool(size_t page_size)
+plnnrc::Paged_Pool* plnnrc::create_paged_pool(size_t page_size)
 {
-    size_t worstcase_size = sizeof(Pool_Handle) + plnnrc_alignof(Pool_Handle) + sizeof(Page) + plnnrc_alignof(Page);
+    size_t worstcase_size = sizeof(Paged_Pool) + plnnrc_alignof(Paged_Pool) + sizeof(Page) + plnnrc_alignof(Page);
     plnnrc_assert(page_size > worstcase_size);
     (void)(worstcase_size);
 
@@ -54,7 +54,7 @@ plnnrc::Pool_Handle* plnnrc::create_paged_pool(size_t page_size)
         return 0;
     }
 
-    Pool_Handle* pool = plnnrc::align<Pool_Handle>(memory);
+    Paged_Pool* pool = plnnrc::align<Paged_Pool>(memory);
     Page* head = plnnrc::align<Page>(pool + 1);
 
     head->prev = 0;
@@ -67,7 +67,7 @@ plnnrc::Pool_Handle* plnnrc::create_paged_pool(size_t page_size)
     return pool;
 }
 
-void* plnnrc::allocate(Pool_Handle* pool, size_t bytes, size_t alignment)
+void* plnnrc::allocate(Paged_Pool* pool, size_t bytes, size_t alignment)
 {
     Page* p = pool->head;
 
@@ -97,7 +97,7 @@ void* plnnrc::allocate(Pool_Handle* pool, size_t bytes, size_t alignment)
     return top;
 }
 
-void plnnrc::destroy(const Pool_Handle* pool)
+void plnnrc::destroy(const Paged_Pool* pool)
 {
     for (Page* p = pool->head; p != 0;)
     {

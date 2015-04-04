@@ -275,7 +275,7 @@ int main(int argc, char** argv)
     input_buffer.data[input_size] = 0;
 
     {
-        plnnrc::Scoped<plnnrc::Lexer> lexer;
+        plnnrc::Lexer lexer;
         plnnrc::init(lexer, input_buffer.data);
 
         plnnrc::Token tok = plnnrc::lex(lexer);
@@ -298,10 +298,10 @@ int main(int argc, char** argv)
     }
 
     {
-        plnnrc::Scoped<plnnrc::Lexer> lexer;
+        plnnrc::Lexer lexer;
         plnnrc::init(lexer, input_buffer.data);
 
-        plnnrc::Scoped<plnnrc::Parser> parser;
+        plnnrc::Parser parser;
         plnnrc::init(parser, &lexer);
 
         parse(parser);

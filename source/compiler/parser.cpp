@@ -37,6 +37,20 @@ namespace plnnrc
 
 using namespace plnnrc;
 
+plnnrc::Parser::Parser()
+    : world(0)
+    , domain(0)
+    , lexer(0)
+    , pool(0)
+{
+    memset(&token, 0, sizeof(token));
+}
+
+plnnrc::Parser::~Parser()
+{
+    destroy(*this);
+}
+
 void plnnrc::init(Parser& state, Lexer* lexer)
 {
     plnnrc_assert(lexer != 0);

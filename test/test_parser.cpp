@@ -68,8 +68,8 @@ namespace
         const char* str = "{ f1(int32) f2(float, int32) f3() }";
         const char* expected = "f1[Int32] f2[Float, Int32] f3[]";
 
-        plnnrc::Scoped<plnnrc::Lexer>   lexer;
-        plnnrc::Scoped<plnnrc::Parser>  parser;
+        plnnrc::Lexer   lexer;
+        plnnrc::Parser  parser;
         plnnrc::init(lexer, str);
         plnnrc::init(parser, &lexer);
 

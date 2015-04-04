@@ -36,47 +36,80 @@ void destroy(Lexer& state);
 // returns next token from the input buffer.
 Token lex(Lexer& state);
 
-/// Token queries
+/// Token
+
+// checks if the given token has a string value attached.
+bool has_value(const Token& tok);
+
+// gets token type name as a string to aid debugging.
+const char* get_token_name(Token_Type token_type);
 
 // is_<Token_Type>
-#define PLNNRC_TOKEN(TAG)                           \
-    inline bool is_##TAG(Token_Type token_type)     \
-    {                                               \
-        return token_type == Token_##TAG;           \
-    }                                               \
-                                                    \
-    inline bool is_##TAG(const Token& token)        \
-    {                                               \
-        return is_##TAG(token.type);                \
-    }                                               \
+#define PLNNRC_TOKEN(TAG)                    \
+    bool is_##TAG(Token_Type token_type);    \
+    bool is_##TAG(const Token& token);       \
+
+#include "derplanner/compiler/token_tags.inl"
+#undef PLNNRC_TOKEN
+
+// is_<Token_Group>
+#define PLNNRC_TOKEN_GROUP(GROUP_TAG, FIRST_TOKEN_TAG, LAST_TOKEN_TAG)   \
+    bool is_##GROUP_TAG(Token_Type token_type);                          \
+    bool is_##GROUP_TAG(const Token& token);                             \
+
+#include "derplanner/compiler/token_tags.inl"
+#undef PLNNRC_TOKEN_GROUP
+
+}
+
+/// Inline
+
+inline plnnrc::Token::Token()
+    : type(plnnrc::Token_Unknown)
+    , column(0)
+    , line(0)
+{
+}
+
+inline plnnrc::Token_Value::Token_Value()
+    : length(0)
+    , str(0)
+{
+}
+
+inline bool plnnrc::has_value(const plnnrc::Token& tok)
+{
+    return tok.value.str != 0 && tok.value.length > 0;
+}
+
+// is_<Token_Type>
+#define PLNNRC_TOKEN(TAG)                                           \
+    inline bool plnnrc::is_##TAG(plnnrc::Token_Type token_type)     \
+    {                                                               \
+        return token_type == plnnrc::Token_##TAG;                   \
+    }                                                               \
+                                                                    \
+    inline bool plnnrc::is_##TAG(const plnnrc::Token& token)        \
+    {                                                               \
+        return is_##TAG(token.type);                                \
+    }                                                               \
 
 #include "derplanner/compiler/token_tags.inl"
 #undef PLNNRC_TOKEN
 
 // is_<Token_Group>
 #define PLNNRC_TOKEN_GROUP(GROUP_TAG, FIRST_TOKEN_TAG, LAST_TOKEN_TAG)                          \
-    inline bool is_##GROUP_TAG(Token_Type token_type)                                           \
+    inline bool plnnrc::is_##GROUP_TAG(plnnrc::Token_Type token_type)                           \
     {                                                                                           \
         return token_type >= Token_##FIRST_TOKEN_TAG && token_type <= Token_##LAST_TOKEN_TAG;   \
     }                                                                                           \
                                                                                                 \
-    inline bool is_##GROUP_TAG(const Token& token)                                              \
+    inline bool plnnrc::is_##GROUP_TAG(const plnnrc::Token& token)                              \
     {                                                                                           \
-        return is_##GROUP_TAG(token.type);                                                      \
+        return plnnrc::is_##GROUP_TAG(token.type);                                              \
     }                                                                                           \
 
 #include "derplanner/compiler/token_tags.inl"
 #undef PLNNRC_TOKEN_GROUP
-
-// checks if the given token has a string value attached.
-inline bool has_value(const Token& tok)
-{
-    return tok.value.str != 0 && tok.value.length > 0;
-}
-
-// gets token type name as a string to aid debugging.
-const char* get_token_name(Token_Type token_type);
-
-}
 
 #endif
