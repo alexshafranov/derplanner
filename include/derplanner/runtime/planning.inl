@@ -21,9 +21,24 @@
 #ifndef DERPLANNER_RUNTIME_PLANNING_INL_
 #define DERPLANNER_RUNTIME_PLANNING_INL_
 
-namespace plnnr {
+/// Planning_State
+
+inline plnnr::Planning_State::Planning_State()
+    : memory(0)
+{
+}
+
+inline plnnr::Planning_State::~Planning_State()
+{
+    if (memory != 0)
+    {
+        destroy(*this);
+    }
+}
 
 /// Stack
+
+namespace plnnr {
 
 template <typename T>
 inline T* top(const Stack<T>& stack)

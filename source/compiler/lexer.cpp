@@ -39,6 +39,19 @@ const char* plnnrc::get_token_name(Token_Type token_type)
     return token_type_names[token_type];
 }
 
+plnnrc::Lexer::Lexer()
+    : buffer_start(0)
+    , buffer_ptr(0)
+    , column(0)
+    , line(0)
+{
+}
+
+plnnrc::Lexer::~Lexer()
+{
+    destroy(*this);
+}
+
 void plnnrc::init(Lexer& result, const char* buffer)
 {
     result.buffer_start = buffer;

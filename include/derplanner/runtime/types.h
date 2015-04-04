@@ -80,6 +80,9 @@ struct Fact_Table
 // A set of fact tables.
 struct Fact_Database
 {
+    Fact_Database();
+    ~Fact_Database();
+
     // current number of tables.
     uint32_t        num_tables;
     // total allocated number of tables.
@@ -174,6 +177,9 @@ class Memory;
 // Planning state to support non-recursive planning.
 struct Planning_State
 {
+    Planning_State();
+    ~Planning_State();
+
     // expansion stack to support back-tracking
     Stack<Expansion_Frame>  expansion_stack;
     // the resulting plan is stored on this stack.
@@ -253,16 +259,6 @@ typedef void Init_Domain_Info();
 
 // Retrieves `Domain_Info` object from generated code.
 typedef const Domain_Info* Get_Domain_Info();
-
-// RAII destruction.
-template <typename T>
-struct Scoped : public T
-{
-    inline ~Scoped()
-    {
-        destroy(*this);
-    }
-};
 
 }
 

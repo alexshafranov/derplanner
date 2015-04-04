@@ -31,6 +31,12 @@ namespace plnnrc {
 
 /// Id_Table
 
+template <typename T>
+Id_Table<T>::Id_Table();
+
+template <typename T>
+Id_Table<T>::~Id_Table();
+
 // creates id table.
 template <typename T>
 void init(Id_Table<T>& table, uint32_t max_size);
@@ -221,6 +227,23 @@ namespace id_table
 }
 
 template <typename T>
+inline plnnrc::Id_Table<T>::Id_Table()
+    : size(0)
+    , max_size(0)
+    , hashes(0)
+    , keys(0)
+    , lengths(0)
+    , values(0)
+{
+}
+
+template <typename T>
+inline plnnrc::Id_Table<T>::~Id_Table()
+{
+    destroy(*this);
+}
+
+template <typename T>
 void plnnrc::init(plnnrc::Id_Table<T>& table, uint32_t max_size)
 {
     max_size = id_table::required_size(max_size);
@@ -240,6 +263,7 @@ void plnnrc::destroy(plnnrc::Id_Table<T>& table)
     plnnrc::deallocate(table.lengths);
     plnnrc::deallocate(table.keys);
     plnnrc::deallocate(table.hashes);
+    memset(&table, 0, sizeof(table));
 }
 
 template <typename T>

@@ -30,6 +30,12 @@
 namespace plnnrc {
 
 template <typename T>
+Array<T>::Array();
+
+template <typename T>
+Array<T>::~Array();
+
+template <typename T>
 void init(Array<T>& array, uint32_t max_size);
 
 template <typename T>
@@ -50,6 +56,15 @@ void push_back(Array<T>& array, const T* values, uint32_t count);
 template <typename T>
 uint32_t size(const Array<T>& array);
 
+}
+
+template <typename T>
+inline plnnrc::Array<T>::Array() : size(0), max_size(0), data(0) {}
+
+template <typename T>
+inline plnnrc::Array<T>::~Array()
+{
+    destroy(*this);
 }
 
 template <typename T>

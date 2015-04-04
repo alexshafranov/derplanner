@@ -55,7 +55,7 @@ int main()
     plnnr::Memory_Default default_mem;
 
     // create database using format provided in domain info.
-    plnnr::Scoped<plnnr::Fact_Database> db;
+    plnnr::Fact_Database db;
     plnnr::init(db, &default_mem, domain->database_req);
 
     // start & finish
@@ -89,7 +89,7 @@ int main()
     config.expansion_data_size = 1024;
     config.plan_data_size = 1024;
 
-    plnnr::Scoped<plnnr::Planning_State> pstate;
+    plnnr::Planning_State pstate;
     plnnr::init(pstate, &default_mem, config);
 
     plnnr::find_plan(domain, &db, &pstate);

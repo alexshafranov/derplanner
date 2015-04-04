@@ -29,6 +29,9 @@ namespace plnnrc {
 template <typename T>
 struct Array
 {
+    Array();
+    ~Array();
+
     T& operator[](uint32_t index);
     const T& operator[](uint32_t index) const;
 
@@ -41,6 +44,9 @@ struct Array
 template <typename T>
 struct Id_Table
 {
+    Id_Table();
+    ~Id_Table();
+
     uint32_t        size;
     uint32_t        max_size;
     uint32_t*       hashes;
@@ -72,6 +78,8 @@ enum Token_Type
 // String value of the token.
 struct Token_Value
 {
+    Token_Value();
+
     // number of characters in the string.
     uint32_t        length;
     // pointer to the beginning of the string in an input buffer.
@@ -81,6 +89,8 @@ struct Token_Value
 // Token data returned by the lexer.
 struct Token
 {
+    Token();
+
     // type of the token.
     Token_Type      type;
     // input buffer column.
@@ -94,6 +104,9 @@ struct Token
 // Keeps track of lexer progress through the input buffer.
 struct Lexer
 {
+    Lexer();
+    ~Lexer();
+
     // points to the first character in input buffer.
     const char*             buffer_start;
     // points to the next character to be lexed.
@@ -211,11 +224,14 @@ namespace ast
     };
 }
 
-struct Pool_Handle;
+struct Paged_Pool;
 
 // Parser state.
 struct Parser
 {
+    Parser();
+    ~Parser();
+
     // maps fact name -> index
     Id_Table<uint32_t>  fact_ids;
     // maps task name -> index.
@@ -227,19 +243,9 @@ struct Parser
     // token source for parsing.
     Lexer*              lexer;
     // memory pool `ast::*` types are allocated from.
-    Pool_Handle*        pool;
+    Paged_Pool*         pool;
     // last lexed token.
     Token               token;
-};
-
-// RAII destruction.
-template <typename T>
-struct Scoped : public T
-{
-    inline ~Scoped()
-    {
-        destroy(*this);
-    }
 };
 
 }
