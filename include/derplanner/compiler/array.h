@@ -30,12 +30,6 @@
 namespace plnnrc {
 
 template <typename T>
-Array<T>::Array();
-
-template <typename T>
-Array<T>::~Array();
-
-template <typename T>
 void init(Array<T>& array, uint32_t max_size);
 
 template <typename T>
