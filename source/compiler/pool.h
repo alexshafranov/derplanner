@@ -32,13 +32,13 @@ namespace plnnrc {
 /// There's no `deallocate` function as the pool can only grow. All pages are freed at once in `destroy`.
 ///
 
-struct Paged_Pool;
+struct Pool;
 
-Paged_Pool* create_paged_pool(size_t page_size);
+Pool* create_paged_pool(size_t page_size);
 
-void destroy(const Paged_Pool* handle);
+void destroy(const Pool* handle);
 
-void* allocate(Paged_Pool* handle, size_t bytes, size_t alignment);
+void* allocate(Pool* handle, size_t bytes, size_t alignment);
 
 }
 
