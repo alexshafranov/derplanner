@@ -33,8 +33,6 @@ namespace
 {
     void to_string(const plnnrc::ast::World* world, plnnrc::Array<char>& output)
     {
-        plnnrc::init(output, 32);
-
         for (plnnrc::ast::Fact_Type* fact = world->facts; fact != 0; fact = fact->next)
         {
             plnnrc::push_back(output, fact->name.str, fact->name.length);
@@ -75,6 +73,7 @@ namespace
         parser.token = plnnrc::lex(lexer);
         plnnrc::ast::World* world = plnnrc::parse_world(parser);
         plnnrc::Scoped<plnnrc::Array<char> > world_str;
+        plnnrc::init(world_str, 32);
         to_string(world, world_str);
 
         CHECK_EQUAL(expected, &world_str[0]);
