@@ -305,24 +305,24 @@ void plnnrc::insert_child(ast::Expr* after, ast::Expr* child)
     plnnrc_assert(child != 0);
     plnnrc_assert(after->parent != 0);
 
-    ast::Expr* l = after;
-    ast::Expr* r = after->next_sibling;
-    ast::Expr* p = after->parent;
+    ast::Expr* left     = after;
+    ast::Expr* right    = after->next_sibling;
+    ast::Expr* parent   = after->parent;
 
-    l->next_sibling = child;
+    left->next_sibling = child;
 
-    if (r)
+    if (right)
     {
-        r->prev_sibling_cyclic = child;
+        right->prev_sibling_cyclic = child;
     }
     else
     {
-        p->child->prev_sibling_cyclic = child;
+        parent->child->prev_sibling_cyclic = child;
     }
 
-    child->prev_sibling_cyclic = l;
-    child->next_sibling = r;
-    child->parent = p;
+    child->prev_sibling_cyclic = left;
+    child->next_sibling = right;
+    child->parent = parent;
 }
 
 void plnnrc::unparent(ast::Expr* node)
