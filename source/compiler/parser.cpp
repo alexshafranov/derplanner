@@ -299,7 +299,7 @@ void plnnrc::append_child(ast::Expr* parent, ast::Expr* child)
     }
 }
 
-void plnnrc::indert_child(ast::Expr* after, ast::Expr* child)
+void plnnrc::insert_child(ast::Expr* after, ast::Expr* child)
 {
     plnnrc_assert(after != 0);
     plnnrc_assert(child != 0);

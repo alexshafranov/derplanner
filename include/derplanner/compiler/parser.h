@@ -42,7 +42,7 @@ void parse(Parser& state);
 void append_child(ast::Expr* parent, ast::Expr* child);
 
 // make `child` the next sibling of `after`.
-void indert_child(ast::Expr* after, ast::Expr* child);
+void insert_child(ast::Expr* after, ast::Expr* child);
 
 // unparent `node` from it's current parent.
 void unparent(ast::Expr* node);
