@@ -224,7 +224,7 @@ namespace ast
     };
 }
 
-struct Paged_Pool;
+struct Pool;
 
 // Parser state.
 struct Parser
@@ -243,7 +243,7 @@ struct Parser
     // token source for parsing.
     Lexer*              lexer;
     // memory pool `ast::*` types are allocated from.
-    Paged_Pool*         pool;
+    Pool*               pool;
     // last lexed token.
     Token               token;
 };
