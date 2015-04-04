@@ -26,6 +26,15 @@
 #include "derplanner/compiler/id_table.h"
 #include "pool.h"
 
+// implementation helpers.
+namespace plnnrc
+{
+    ast::World* parse_world(Parser& state);
+    ast::Task*  parse_task(Parser& state);
+    ast::Expr*  parse_precond(Parser& state);
+    ast::Expr*  parse_task_list(Parser& state);
+}
+
 using namespace plnnrc;
 
 void plnnrc::init(Parser& state, Lexer* lexer)
@@ -87,11 +96,6 @@ static inline Token peek(Parser& state)
     return state.token;
 }
 
-static ast::World*  parse_world(Parser& state);
-static ast::Task*   parse_task(Parser& state);
-static ast::Expr*   parse_precond(Parser& state);
-static ast::Expr*   parse_task_list(Parser& state);
-
 void plnnrc::parse(Parser& state)
 {
     // initialize buffered token.
@@ -138,7 +142,7 @@ void plnnrc::parse(Parser& state)
     expect(state, Token_Eof);
 }
 
-static ast::World* parse_world(Parser& state)
+ast::World* plnnrc::parse_world(Parser& state)
 {
     ast::World* world = allocate_node<ast::World>(state);
     Token tok = expect(state, Token_L_Curly);
@@ -150,6 +154,8 @@ static ast::World* parse_world(Parser& state)
         ast::Fact_Type* fact = allocate_node<ast::Fact_Type>(state);
         tok = expect(state, Token_Identifier);
         fact->name = tok.value;
+        last_fact->next = fact;
+        last_fact = fact;
 
         // parse parameters
         expect(state, Token_L_Paren);
@@ -175,8 +181,6 @@ static ast::World* parse_world(Parser& state)
             }
 
             fact->params = root_param.next;
-            last_fact->next = fact;
-            last_fact = fact;
         }
         else
         {
@@ -194,7 +198,7 @@ static ast::World* parse_world(Parser& state)
     return world;
 }
 
-static ast::Task* parse_task(Parser& state)
+ast::Task* plnnrc::parse_task(Parser& state)
 {
     Token tok = expect(state, Token_Identifier);
 
@@ -269,12 +273,12 @@ static ast::Task* parse_task(Parser& state)
     return task;
 }
 
-ast::Expr* parse_precond(Parser& /*state*/)
+ast::Expr* plnnrc::parse_precond(Parser& /*state*/)
 {
     return 0;
 }
 
-ast::Expr* parse_task_list(Parser& /*state*/)
+ast::Expr* plnnrc::parse_task_list(Parser& /*state*/)
 {
     return 0;
 }

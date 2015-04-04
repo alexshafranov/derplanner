@@ -45,6 +45,9 @@ template <typename T>
 void push_back(Array<T>& array, const T& value);
 
 template <typename T>
+void push_back(Array<T>& array, const T* values, uint32_t count);
+
+template <typename T>
 uint32_t size(const Array<T>& array);
 
 }
@@ -96,6 +99,18 @@ inline void plnnrc::push_back(plnnrc::Array<T>& array, const T& value)
     }
 
     array.data[array.size++] = value;
+}
+
+template <typename T>
+inline void plnnrc::push_back(plnnrc::Array<T>& array, const T* values, uint32_t count)
+{
+    if (array.size + count > array.max_size)
+    {
+        grow(array, (array.size + count) * 2);
+    }
+
+    memcpy(array.data + array.size, values, sizeof(T)*count);
+    array.size += count;
 }
 
 template <typename T>
