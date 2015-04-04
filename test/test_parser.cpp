@@ -74,7 +74,7 @@ namespace
 
         parser.token = plnnrc::lex(lexer);
         plnnrc::ast::World* world = plnnrc::parse_world(parser);
-        plnnrc::Array<char> world_str;
+        plnnrc::Scoped<plnnrc::Array<char> > world_str;
         to_string(world, world_str);
 
         CHECK_EQUAL(expected, &world_str[0]);
