@@ -61,7 +61,7 @@ void plnnrc::init(plnnrc::Array<T>& result, uint32_t max_size)
 }
 
 template <typename T>
-inline void plnnrc::destroy(Array<T>& array)
+inline void plnnrc::destroy(plnnrc::Array<T>& array)
 {
     plnnrc::deallocate(array.data);
     array.size = 0;

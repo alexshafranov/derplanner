@@ -26,7 +26,7 @@
 #include "derplanner/compiler/id_table.h"
 #include "pool.h"
 
-// implementation helpers.
+// implementation (exposed for unit tests)
 namespace plnnrc
 {
     ast::World* parse_world(Parser& state);
@@ -273,12 +273,213 @@ ast::Task* plnnrc::parse_task(Parser& state)
     return task;
 }
 
-ast::Expr* plnnrc::parse_precond(Parser& /*state*/)
+void plnnrc::append_child(ast::Expr* parent, ast::Expr* child)
 {
-    return 0;
+    plnnrc_assert(parent != 0);
+    plnnrc_assert(child != 0);
+
+    child->parent = parent;
+    child->prev_sibling_cyclic = 0;
+    child->next_sibling = 0;
+
+    ast::Expr* first_child = parent->child;
+
+    if (first_child)
+    {
+        ast::Expr* last_child = first_child->prev_sibling_cyclic;
+        plnnrc_assert(last_child != 0);
+        last_child->next_sibling = child;
+        child->prev_sibling_cyclic = last_child;
+        first_child->prev_sibling_cyclic = child;
+    }
+    else
+    {
+        parent->child = child;
+        child->prev_sibling_cyclic = child;
+    }
+}
+
+void plnnrc::indert_child(ast::Expr* after, ast::Expr* child)
+{
+    plnnrc_assert(after != 0);
+    plnnrc_assert(child != 0);
+    plnnrc_assert(after->parent != 0);
+
+    ast::Expr* l = after;
+    ast::Expr* r = after->next_sibling;
+    ast::Expr* p = after->parent;
+
+    l->next_sibling = child;
+
+    if (r)
+    {
+        r->prev_sibling_cyclic = child;
+    }
+    else
+    {
+        p->child->prev_sibling_cyclic = child;
+    }
+
+    child->prev_sibling_cyclic = l;
+    child->next_sibling = r;
+    child->parent = p;
+}
+
+void plnnrc::unparent(ast::Expr* node)
+{
+    plnnrc_assert(node != 0);
+
+    ast::Expr* parent = node->parent;
+    ast::Expr* next = node->next_sibling;
+    ast::Expr* prev = node->prev_sibling_cyclic;
+
+    plnnrc_assert(parent != 0);
+    plnnrc_assert(prev != 0);
+
+    if (next)
+    {
+        next->prev_sibling_cyclic = prev;
+    }
+    else
+    {
+        parent->child->prev_sibling_cyclic = prev;
+    }
+
+    if (prev->next_sibling)
+    {
+        prev->next_sibling = next;
+    }
+    else
+    {
+        parent->child = next;
+    }
+
+    node->parent = 0;
+    node->next_sibling = 0;
+    node->prev_sibling_cyclic = 0;
+}
+
+static ast::Expr* parse_expr(Parser& state);
+static ast::Expr* parse_disjunct(Parser& state);
+static ast::Expr* parse_conjunct(Parser& state);
+
+ast::Expr* plnnrc::parse_precond(Parser& state)
+{
+    expect(state, is_L_Paren);
+    ast::Expr* node_Expr = parse_expr(state);
+    expect(state, is_R_Paren);
+    return node_Expr;
 }
 
 ast::Expr* plnnrc::parse_task_list(Parser& /*state*/)
 {
+    return 0;
+}
+
+static ast::Expr* parse_expr(Parser& state)
+{
+    ast::Expr* node = parse_disjunct(state);
+
+    if (is_Or(peek(state)))
+    {
+        ast::Expr* node_Or = allocate_node<ast::Expr>(state);
+        node_Or->type = Token_Or;
+        plnnrc::append_child(node_Or, node);
+
+        while (is_Or(peek(state)))
+        {
+            eat(state);
+            ast::Expr* node = parse_disjunct(state);
+            plnnrc::append_child(node_Or, node);
+        }
+
+        return node_Or;
+    }
+
+    return node;
+}
+
+static ast::Expr* parse_disjunct(Parser& state)
+{
+    ast::Expr* node = parse_conjunct(state);
+
+    if (is_And(peek(state)))
+    {
+        ast::Expr* node_And = allocate_node<ast::Expr>(state);
+        node_And->type = Token_And;
+        plnnrc::append_child(node_And, node);
+
+        while (is_And(peek(state)))
+        {
+            eat(state);
+            ast::Expr* node = parse_conjunct(state);
+            plnnrc::append_child(node_And, node);
+        }
+
+        return node_And;
+    }
+
+    return node;
+}
+
+static ast::Expr* parse_conjunct(Parser& state)
+{
+    Token tok = eat(state);
+
+    if (is_L_Paren(tok))
+    {
+        ast::Expr* node_Expr = parse_expr(state);
+        expect(state, is_R_Paren);
+        return node_Expr;
+    }
+
+    if (is_Literal(tok))
+    {
+        ast::Expr* node_Literal = allocate_node<ast::Expr>(state);
+        node_Literal->type = tok.type;
+        node_Literal->value = tok.value;
+        return node_Literal;
+    }
+
+    if (is_Identifier(tok))
+    {
+        ast::Expr* node_Fact = allocate_node<ast::Expr>(state);
+        node_Fact->type = tok.type;
+        node_Fact->value = tok.value;
+
+        // actually a fact if there's arguments.
+        if (is_L_Paren(peek(state)))
+        {
+            eat(state);
+
+            if (!is_R_Paren(peek(state)))
+            {
+                for (;;)
+                {
+                    Token tok = expect(state, Token_Identifier);
+                    ast::Expr* node_Var = allocate_node<ast::Expr>(state);
+                    node_Var->type = tok.type;
+                    node_Var->value = tok.value;
+                    plnnrc::append_child(node_Fact, node_Var);
+
+                    if (!is_Comma(peek(state)))
+                    {
+                        expect(state, is_R_Paren);
+                        break;
+                    }
+
+                    expect(state, is_Comma);
+                }
+            }
+            else
+            {
+                eat(state);
+            }
+        }
+
+        return node_Fact;
+    }
+
+    plnnrc_assert(false);
     return 0;
 }
