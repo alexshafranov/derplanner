@@ -36,9 +36,15 @@ namespace plnnrc
 
     /// Expression transformations.
 
-    // minimize expression tree depth by collapsing redundant operaion nodes, e.g.:
-    //      Op { <head...> Op{ <children...> }  <rest...> } -> Op { <head...> <children...> <rest...> }
+    // minimize expression tree depth by collapsing redundant operaion nodes.
+    // e.g.: Op { <head...> Op{ <children...> }  <rest...> } -> Op { <head...> <children...> <rest...> }
     void        flatten(ast::Expr* root);
+
+    // converts expression `root` to Negative-Normal-Form.
+    ast::Expr*  convert_to_nnf(Parser& state, ast::Expr* root);
+
+    // converts expression `root` to Disjunctive-Normal-Form.
+    ast::Expr*  convert_to_dnf(Parser& state, ast::Expr* root);
 }
 
 using namespace plnnrc;
@@ -615,4 +621,82 @@ void plnnrc::flatten(ast::Expr* root)
             }
         }
     }
+}
+
+ast::Expr* plnnrc::convert_to_nnf(Parser& state, ast::Expr* root)
+{
+    ast::Expr* new_root = root;
+
+    // iterate over all `Not` nodes where argument (i.e. child node) is a logical operation.
+    for (ast::Expr* node_Not = root; node_Not != 0; )
+    {
+        if (!is_Not(node_Not->type))
+        {
+            node_Not = preorder_next(new_root, node_Not);
+            continue;
+        }
+
+        ast::Expr* node_Logical = node_Not->child;
+        plnnrc_assert(node_Logical != 0);
+
+        // eliminate double negation: Not { Not { <expr...> } } -> <expr...>
+        if (is_Not(node_Logical->type))
+        {
+            ast::Expr* expr = node_Logical->child;
+            plnnrc_assert(expr != 0);
+
+            // get rid of `node_Not` and `node_Logical`, replacing `node_Not` with `expr`.
+            plnnrc::unparent(expr);
+
+            if (node_Not->parent)
+            {
+                plnnrc::insert_child(node_Not, expr);
+                plnnrc::unparent(node_Not);
+            }
+
+            // update root if it's being replaced.
+            if (node_Not == new_root)
+            {
+                new_root = expr;
+            }
+
+            // now consider `expr` in next iteration.
+            node_Not = expr;
+            continue;
+        }
+
+        // De-Morgan's law:
+        //      Not{ Or{ <x...> <y...> } }  -> And{ Not{ <x...> } Not{ <y...> } }
+        //      Not{ And{ <x...> <y...> } } ->  Or{ Not{ <x...> } Not{ <y...> } }
+        if (is_And(node_Logical->type) || is_Or(node_Logical->type))
+        {
+            // node_Not becomes `And` or `Or`.
+            ast::Expr* node_Op = node_Not;
+            node_Op->type = is_And(node_Logical->type) ? Token_Or : Token_And;
+
+            // all chilren of `node_Logical` are parented under a new `Not` which is parented under `node_Op`.
+            ast::Expr* after = node_Logical;
+            for (ast::Expr* expr = node_Logical->child; expr != 0; )
+            {
+                ast::Expr* next_expr = expr->next_sibling;
+                plnnrc::unparent(expr);
+
+                ast::Expr* new_Not = allocate_node<ast::Expr>(state);
+                new_Not->type = Token_Not;
+                plnnrc::append_child(new_Not, expr);
+                plnnrc::insert_child(after, new_Not);
+                after = new_Not;
+
+                expr = next_expr;
+            }
+
+            // `node_Logical` now has no children and can be safely unparented.
+            plnnrc::unparent(node_Logical);
+        }
+
+        // move to next.
+        node_Not = preorder_next(new_root, node_Not);
+    }
+
+    return new_root;
 }

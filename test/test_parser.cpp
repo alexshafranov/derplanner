@@ -30,6 +30,7 @@ namespace plnnrc
     extern ast::World*  parse_world(Parser& state);
     extern ast::Expr*   parse_precond(Parser& state);
     extern void         flatten(ast::Expr* root);
+    extern ast::Expr*   convert_to_nnf(Parser& state, ast::Expr* root);
 }
 
 namespace
@@ -128,10 +129,8 @@ namespace
         check_expr("( a & (b & c) )", "And{ Id[a] And{ Id[b] Id[c] } }");
     }
 
-    TEST(minimizing_expression_depth)
+    void check_flattened_expr(const char* input, const char* expected)
     {
-        const char* input = "( ~(a & (b & (c | d | (e | f))) & (g & h)) )";
-        const char* expected = "Not{ And{ Id[a] Id[b] Or{ Id[c] Id[d] Id[e] Id[f] } Id[g] Id[h] } }";
         Test_Compiler compiler;
         init(compiler, input);
         plnnrc::ast::Expr* expr = plnnrc::parse_precond(compiler.parser);
@@ -139,5 +138,35 @@ namespace
         std::string actual;
         to_string(expr, actual);
         CHECK_EQUAL(expected, actual.c_str());
+    }
+
+    TEST(minimizing_expression_depth)
+    {
+        check_flattened_expr("( ~(a & (b & (c | d | (e | f))) & (g & h)) )",
+                             "Not{ And{ Id[a] Id[b] Or{ Id[c] Id[d] Id[e] Id[f] } Id[g] Id[h] } }");
+    }
+
+    void check_nnf_expr(const char* input, const char* expected)
+    {
+        Test_Compiler compiler;
+        init(compiler, input);
+        plnnrc::ast::Expr* expr = plnnrc::parse_precond(compiler.parser);
+        expr = plnnrc::convert_to_nnf(compiler.parser, expr);
+        std::string actual;
+        to_string(expr, actual);
+        CHECK_EQUAL(expected, actual.c_str());
+    }
+
+    TEST(nnf_conversion)
+    {
+        // trivial (already nnf)
+        check_nnf_expr("(  )", "And");
+        check_nnf_expr("( ~x & ~y )", "And{ Not{ Id[x] } Not{ Id[y] } }");
+        // double-negation
+        check_nnf_expr("(   ~~x )", "Id[x]");
+        check_nnf_expr("( ~~~~x )", "Id[x]");
+        check_nnf_expr("(  ~~~x )", "Not{ Id[x] }");
+        // De-Morgan's law
+        check_nnf_expr("( ~(x & (y | ~z)) )", "Or{ Not{ Id[x] } And{ Not{ Id[y] } Id[z] } }");
     }
 }

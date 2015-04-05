@@ -54,8 +54,8 @@ bool find_plan(const Domain_Info* domain, Fact_Database* db, Planning_State* sta
 enum Find_Plan_Status
 {
     Find_Plan_Failed = 0,
-    Find_Plan_Succeeded = 1,
-    Find_Plan_In_Progress = 2,
+    Find_Plan_Succeeded,
+    Find_Plan_In_Progress,
 };
 
 // pushes the first composite task on the expansion stack.
