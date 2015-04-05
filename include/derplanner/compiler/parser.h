@@ -47,6 +47,9 @@ void insert_child(ast::Expr* after, ast::Expr* child);
 // unparent `node` from it's current parent.
 void unparent(ast::Expr* node);
 
+// returns the next node in preorder (visit node then visit it's children) traversal.
+ast::Expr* preorder_next(const ast::Expr* root, ast::Expr* current);
+
 }
 
 #endif

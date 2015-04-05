@@ -521,3 +521,25 @@ static ast::Expr* parse_conjunct(Parser& state)
     plnnrc_assert(false);
     return 0;
 }
+
+ast::Expr* plnnrc::preorder_next(const ast::Expr* root, ast::Expr* current)
+{
+    ast::Expr* node = current;
+
+    // visit children first.
+    if (node->child)
+    {
+        return node->child;
+    }
+
+    // leaf node -> go up until a node with siblings is found.
+    while (node != root && !node->next_sibling) { node = node->parent; }
+
+    // done traversal.
+    if (node == root)
+    {
+        return 0;
+    }
+
+    return node->next_sibling;
+}
