@@ -29,6 +29,7 @@ namespace plnnrc
 {
     extern ast::World*  parse_world(Parser& state);
     extern ast::Expr*   parse_precond(Parser& state);
+    extern void         flatten(ast::Expr* root);
 }
 
 namespace
@@ -86,35 +87,36 @@ namespace
         }
     }
 
+    struct Test_Compiler
+    {
+        plnnrc::Lexer lexer;
+        plnnrc::Parser parser;
+    };
+
+    void init(Test_Compiler& compiler, const char* input)
+    {
+        plnnrc::init(compiler.lexer, input);
+        plnnrc::init(compiler.parser, &compiler.lexer);
+        compiler.parser.token = plnnrc::lex(compiler.lexer);
+    }
+
     TEST(world_parsing)
     {
-        const char* str = "{ f1(int32) f2(float, int32) f3() }";
+        Test_Compiler compiler;
+        init(compiler, "{ f1(int32) f2(float, int32) f3() }");
         const char* expected = "f1[Int32] f2[Float, Int32] f3[]";
-
-        plnnrc::Lexer   lexer;
-        plnnrc::Parser  parser;
-        plnnrc::init(lexer, str);
-        plnnrc::init(parser, &lexer);
-
-        parser.token = plnnrc::lex(lexer);
-        plnnrc::ast::World* world = plnnrc::parse_world(parser);
+        plnnrc::ast::World* world = plnnrc::parse_world(compiler.parser);
         std::string world_str = to_string(world);
-
         CHECK_EQUAL(expected, world_str.c_str());
     }
 
     void check_expr(const char* input, const char* expected)
     {
-        plnnrc::Lexer   lexer;
-        plnnrc::Parser  parser;
-        plnnrc::init(lexer, input);
-        plnnrc::init(parser, &lexer);
-
-        parser.token = plnnrc::lex(lexer);
-        plnnrc::ast::Expr* expr = plnnrc::parse_precond(parser);
+        Test_Compiler compiler;
+        init(compiler, input);
+        plnnrc::ast::Expr* expr = plnnrc::parse_precond(compiler.parser);
         std::string actual;
         to_string(expr, actual);
-
         CHECK_EQUAL(expected, actual.c_str());
     }
 
@@ -124,5 +126,18 @@ namespace
         check_expr("( f(x, y, z) )", "Id[f]{ Id[x] Id[y] Id[z] }");
         check_expr("( ~(a & b) | c )", "Or{ Not{ And{ Id[a] Id[b] } } Id[c] }");
         check_expr("( a & (b & c) )", "And{ Id[a] And{ Id[b] Id[c] } }");
+    }
+
+    TEST(minimizing_expression_depth)
+    {
+        const char* input = "( ~(a & (b & (c | d | (e | f))) & (g & h)) )";
+        const char* expected = "Not{ And{ Id[a] Id[b] Or{ Id[c] Id[d] Id[e] Id[f] } Id[g] Id[h] } }";
+        Test_Compiler compiler;
+        init(compiler, input);
+        plnnrc::ast::Expr* expr = plnnrc::parse_precond(compiler.parser);
+        plnnrc::flatten(expr);
+        std::string actual;
+        to_string(expr, actual);
+        CHECK_EQUAL(expected, actual.c_str());
     }
 }
