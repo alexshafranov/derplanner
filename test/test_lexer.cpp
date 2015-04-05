@@ -37,14 +37,14 @@ namespace
         plnnrc::Lexer lexer;
         plnnrc::init(lexer, "id1");
         plnnrc::Token actual = plnnrc::lex(lexer);
-        CHECK_EQUAL(plnnrc::Token_Identifier, actual.type);
+        CHECK_EQUAL(plnnrc::Token_Id, actual.type);
     }
 
     TEST(test_ids_and_kws)
     {
         plnnrc::Lexer lexer;
         plnnrc::init(lexer, "id1 id2 domain id3");
-        plnnrc::Token_Type expected_types[] = { plnnrc::Token_Identifier, plnnrc::Token_Identifier, plnnrc::Token_Domain, plnnrc::Token_Identifier, plnnrc::Token_Eof };
+        plnnrc::Token_Type expected_types[] = { plnnrc::Token_Id, plnnrc::Token_Id, plnnrc::Token_Domain, plnnrc::Token_Id, plnnrc::Token_Eof };
         const char* expected_strings[] = { "id1", "id2", "domain", "id3", 0 };
 
         for (unsigned i = 0; i < sizeof(expected_types)/sizeof(expected_types[0]); ++i)

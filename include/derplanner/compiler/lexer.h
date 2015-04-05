@@ -42,7 +42,7 @@ Token lex(Lexer& state);
 bool has_value(const Token& tok);
 
 // gets token type name as a string to aid debugging.
-const char* get_token_name(Token_Type token_type);
+const char* get_type_name(Token_Type token_type);
 
 // is_<Token_Type>
 #define PLNNRC_TOKEN(TAG)                    \
@@ -79,7 +79,7 @@ inline plnnrc::Token_Value::Token_Value()
 
 inline bool plnnrc::has_value(const plnnrc::Token& tok)
 {
-    return tok.value.str != 0 && tok.value.length > 0;
+    return tok.value.length > 0;
 }
 
 // is_<Token_Type>

@@ -209,10 +209,10 @@ namespace ast
     {
         // could be operation or literal or fact/variable identifier.
         Token_Type      type;
-        // literal or identifier or operation name.
-        Token_Value     value;
         // inferred type for variables.
         Token_Type      inferred;
+        // literal or identifier or operation name.
+        Token_Value     value;
         // parent node.
         Expr*           parent;
         // first child node.

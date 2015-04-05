@@ -34,7 +34,7 @@ static const char* token_type_names[] =
     "None",
 };
 
-const char* plnnrc::get_token_name(Token_Type token_type)
+const char* plnnrc::get_type_name(Token_Type token_type)
 {
     return token_type_names[token_type];
 }
@@ -169,7 +169,7 @@ static inline Token lex_identifier(Lexer& state)
         consume_char(state);
     }
 
-    end_token(state, tok, Token_Identifier);
+    end_token(state, tok, Token_Id);
 
     // test if the token is actually keyword and modify type accordinly
     const Token_Type* keyword_type_ptr = get(state.keywords, tok.value.str, tok.value.length);

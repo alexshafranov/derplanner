@@ -33,6 +33,8 @@ namespace plnnrc
     ast::Task*  parse_task(Parser& state);
     ast::Expr*  parse_precond(Parser& state);
     ast::Expr*  parse_task_list(Parser& state);
+
+    void        flatten(Parser& state, ast::Expr* root);
 }
 
 using namespace plnnrc;
@@ -118,7 +120,7 @@ void plnnrc::parse(Parser& state)
     state.domain = allocate_node<ast::Domain>(state);
 
     expect(state, Token_Domain);
-    Token name = expect(state, Token_Identifier);
+    Token name = expect(state, Token_Id);
     state.domain->name = name.value;
     expect(state, Token_L_Curly);
 
@@ -166,7 +168,7 @@ ast::World* plnnrc::parse_world(Parser& state)
     for (;;)
     {
         ast::Fact_Type* fact = allocate_node<ast::Fact_Type>(state);
-        tok = expect(state, Token_Identifier);
+        tok = expect(state, Token_Id);
         fact->name = tok.value;
         last_fact->next = fact;
         last_fact = fact;
@@ -214,7 +216,7 @@ ast::World* plnnrc::parse_world(Parser& state)
 
 ast::Task* plnnrc::parse_task(Parser& state)
 {
-    Token tok = expect(state, Token_Identifier);
+    Token tok = expect(state, Token_Id);
 
     ast::Task* task = allocate_node<ast::Task>(state);
     task->name = tok.value;
@@ -227,7 +229,7 @@ ast::Task* plnnrc::parse_task(Parser& state)
         ast::Task_Param* last_param = &root_param;
         for (;;)
         {
-            tok = expect(state, Token_Identifier);
+            tok = expect(state, Token_Id);
             ast::Task_Param* task_param = allocate_node<ast::Task_Param>(state);
             task_param->name = tok.value;
             last_param->next = task_param;
@@ -380,6 +382,15 @@ static ast::Expr* parse_conjunct(Parser& state);
 ast::Expr* plnnrc::parse_precond(Parser& state)
 {
     expect(state, is_L_Paren);
+
+    // empty expression -> add dummy node.
+    if (is_R_Paren(peek(state)))
+    {
+        ast::Expr* node = allocate_node<ast::Expr>(state);
+        node->type = Token_And;
+        return node;
+    }
+
     ast::Expr* node_Expr = parse_expr(state);
     expect(state, is_R_Paren);
     return node_Expr;
@@ -479,13 +490,21 @@ static ast::Expr* parse_conjunct(Parser& state)
         return node_Literal;
     }
 
-    if (is_Identifier(tok))
+    if (is_Not(tok))
+    {
+        ast::Expr* node_Not = allocate_node<ast::Expr>(state);
+        node_Not->type = Token_Not;
+        ast::Expr* node = parse_conjunct(state);
+        plnnrc::append_child(node_Not, node);
+        return node_Not;
+    }
+
+    if (is_Id(tok))
     {
         ast::Expr* node_Fact = allocate_node<ast::Expr>(state);
         node_Fact->type = tok.type;
         node_Fact->value = tok.value;
 
-        // actually a fact if there's arguments.
         if (is_L_Paren(peek(state)))
         {
             eat(state);
@@ -494,7 +513,7 @@ static ast::Expr* parse_conjunct(Parser& state)
             {
                 for (;;)
                 {
-                    Token tok = expect(state, Token_Identifier);
+                    Token tok = expect(state, Token_Id);
                     ast::Expr* node_Var = allocate_node<ast::Expr>(state);
                     node_Var->type = tok.type;
                     node_Var->value = tok.value;
