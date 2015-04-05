@@ -34,7 +34,11 @@ namespace plnnrc
     ast::Expr*  parse_precond(Parser& state);
     ast::Expr*  parse_task_list(Parser& state);
 
-    void        flatten(Parser& state, ast::Expr* root);
+    /// Expression transformations.
+
+    // minimize expression tree depth by collapsing redundant operaion nodes, e.g.:
+    //      Op { <head...> Op{ <children...> }  <rest...> } -> Op { <head...> <children...> <rest...> }
+    void        flatten(ast::Expr* root);
 }
 
 using namespace plnnrc;
@@ -561,4 +565,54 @@ ast::Expr* plnnrc::preorder_next(const ast::Expr* root, ast::Expr* current)
     }
 
     return node->next_sibling;
+}
+
+void plnnrc::flatten(ast::Expr* root)
+{
+    plnnrc_assert(root);
+
+    for (ast::Expr* node_U = root; node_U != 0; node_U = preorder_next(root, node_U))
+    {
+        if (!is_And(node_U->type) && !is_Or(node_U->type))
+        {
+            continue;
+        }
+
+        for (;;)
+        {
+            bool collapsed = false;
+
+            for (ast::Expr* node_V = node_U->child; node_V != 0; )
+            {
+                ast::Expr* sibling = node_V->next_sibling;
+
+                // collapse: And{ Id[x] And{ Id[y] } Id[z] } -> And{ Id[x] Id[y] Id[z] }; Or{ Id[x] Or{ Id[y] } Id[z] } -> Or{ Id[x] Id[y] Id[z] }
+                if (node_V->type == node_U->type)
+                {
+                    ast::Expr* after = node_V;
+
+                    // re-parent all children of `node_V` under `node_U`.
+                    for (ast::Expr* child = node_V->child; child != 0; )
+                    {
+                        ast::Expr* next_child = child->next_sibling;
+                        plnnrc::unparent(child);
+                        plnnrc::insert_child(after, child);
+                        after = child;
+                        child = next_child;
+                    }
+
+                    // now when it's child-less remove `node_V` from the tree.
+                    plnnrc::unparent(node_V);
+                    collapsed = true;
+                }
+
+                node_V = sibling;
+            }
+
+            if (!collapsed)
+            {
+                break;
+            }
+        }
+    }
 }
