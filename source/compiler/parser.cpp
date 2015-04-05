@@ -34,17 +34,12 @@ namespace plnnrc
     ast::Expr*  parse_precond(Parser& state);
     ast::Expr*  parse_task_list(Parser& state);
 
-    /// Expression transformations.
-
     // minimize expression tree depth by collapsing redundant operaion nodes.
     // e.g.: Op { <head...> Op{ <children...> }  <rest...> } -> Op { <head...> <children...> <rest...> }
     void        flatten(ast::Expr* root);
 
-    // converts expression `root` to Negative-Normal-Form.
+    // converts expression `root` to Negation-Normal-Form.
     ast::Expr*  convert_to_nnf(Parser& state, ast::Expr* root);
-
-    // converts expression `root` to Disjunctive-Normal-Form.
-    ast::Expr*  convert_to_dnf(Parser& state, ast::Expr* root);
 }
 
 using namespace plnnrc;
@@ -586,7 +581,7 @@ void plnnrc::flatten(ast::Expr* root)
 
         for (;;)
         {
-            bool collapsed = false;
+            bool done = true;
 
             for (ast::Expr* node_V = node_U->child; node_V != 0; )
             {
@@ -609,13 +604,14 @@ void plnnrc::flatten(ast::Expr* root)
 
                     // now when it's child-less remove `node_V` from the tree.
                     plnnrc::unparent(node_V);
-                    collapsed = true;
+                    done = false;
                 }
 
                 node_V = sibling;
             }
 
-            if (!collapsed)
+            // no nodes where collapsed -> exit.
+            if (done)
             {
                 break;
             }
@@ -699,4 +695,154 @@ ast::Expr* plnnrc::convert_to_nnf(Parser& state, ast::Expr* root)
     }
 
     return new_root;
+}
+
+static bool         is_conjunct(ast::Expr* node);
+static void         distribute_and(Parser& state, ast::Expr* root);
+static ast::Expr*   convert_to_dnf_or(Parser& state, ast::Expr* root);
+
+ast::Expr* plnnrc::convert_to_dnf(Parser& state, ast::Expr* root)
+{
+    // convert `root` to Negative-Normal-Form and put it under a new Or node.
+    ast::Expr* nnf_root = convert_to_nnf(state, root);
+    ast::Expr* new_root = allocate_node<ast::Expr>(state);
+    new_root->type = Token_Or;
+    plnnrc::append_child(new_root, nnf_root);
+    flatten(new_root);
+
+    // now we have flattened Or expression
+    // convert it to DNF form:
+    // Expr = C0 | C1 | ... | CN, Ck (conjunct) = either ~X or X where X is variable or fact.
+    new_root = convert_to_dnf_or(state, new_root);
+    return new_root;
+}
+
+// convert Or expression to DNF by applying distributive law repeatedly, until no change could be made.
+static ast::Expr* convert_to_dnf_or(Parser& state, ast::Expr* root)
+{
+    plnnrc_assert(root && is_Or(root->type));
+
+    for (;;)
+    {
+        bool done = true;
+
+        for (ast::Expr* arg = root->child; arg != 0; )
+        {
+            ast::Expr* next_arg = arg->next_sibling;
+
+            if (!is_conjunct(arg))
+            {
+                done = false;
+                distribute_and(state, arg);
+            }
+
+            arg = next_arg;
+        }
+
+        // all arguments of root `Or` are conjuncts (literal or conjunction of literals) -> exit.
+        if (done)
+        {
+            break;
+        }
+    }
+
+    return root;
+}
+
+// check if trivial conjunct `~x` or `x`. expression is assumed to be in Negative-Normal-Form.
+static inline bool is_trivial_conjunct(ast::Expr* node)
+{
+    // assert NNF.
+    plnnrc_assert(!is_Not(node->type) || !is_Logical(node->child->type));
+    return is_Not(node->type) || is_Id(node->type);
+}
+
+static inline bool is_conjunct(ast::Expr* node)
+{
+    if (is_trivial_conjunct(node))
+    {
+        return true;
+    }
+
+    // check if conjunction trivials.
+    if (!is_And(node->type))
+    {
+        return false;
+    }
+
+    for (ast::Expr* arg = node->child; arg != 0; arg = arg->next_sibling)
+    {
+        if (!is_trivial_conjunct(arg))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static ast::Expr* clone_tree(Parser& state, ast::Expr* root)
+{
+    ast::Expr* root_clone = allocate_node<ast::Expr>(state);
+    root_clone->type = root->type;
+    root_clone->value = root->value;
+
+    for (ast::Expr* child = root->child; child != 0; child = child->next_sibling)
+    {
+        ast::Expr* child_clone = clone_tree(state, child);
+        plnnrc::append_child(root_clone, child_clone);
+    }
+
+    return root_clone;
+}
+
+// apply distributive law to make `Or` root of the expression.
+static void distribute_and(Parser& state, ast::Expr* node_And)
+{
+    plnnrc_assert(node_And && is_And(node_And->type));
+
+    // find the first `Or` argument of `node_And`.
+    ast::Expr* node_Or = node_And->child;
+    for ( ; node_Or != 0; node_Or = node_Or->next_sibling)
+    {
+        if (is_Or(node_Or->type))
+        {
+            break;
+        }
+    }
+
+    plnnrc_assert(node_Or);
+
+    ast::Expr* after = node_And;
+    for (ast::Expr* or_arg = node_Or->child; or_arg != 0; )
+    {
+        ast::Expr* next_or_arg = or_arg->next_sibling;
+        ast::Expr* new_And = allocate_node<ast::Expr>(state);
+        new_And->type = Token_And;
+
+        for (ast::Expr* and_arg = node_And->child; and_arg != 0; )
+        {
+            ast::Expr* next_and_arg = and_arg->next_sibling;
+
+            if (and_arg != node_Or)
+            {
+                ast::Expr* and_arg_clone = clone_tree(state, and_arg);
+                plnnrc::append_child(new_And, and_arg_clone);
+            }
+            else
+            {
+                plnnrc::unparent(or_arg);
+                plnnrc::append_child(new_And, or_arg);
+            }
+
+            and_arg = next_and_arg;
+        }
+
+        plnnrc::flatten(new_And);
+        plnnrc::insert_child(after, new_And);
+        after = new_And;
+        or_arg = next_or_arg;
+    }
+
+    plnnrc::unparent(node_And);
 }
