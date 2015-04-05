@@ -27,7 +27,8 @@
 // bring in parser implementation details.
 namespace plnnrc
 {
-    extern ast::World* parse_world(Parser& state);
+    extern ast::World*  parse_world(Parser& state);
+    extern ast::Expr*   parse_precond(Parser& state);
 }
 
 namespace
@@ -43,7 +44,7 @@ namespace
 
             for (plnnrc::ast::Fact_Param* param = fact->params; param != 0; param = param->next)
             {
-                const char* token_name = plnnrc::get_token_name(param->type);
+                const char* token_name = plnnrc::get_type_name(param->type);
                 output.append(token_name);
 
                 if (param->next != 0)
@@ -63,6 +64,28 @@ namespace
         return output;
     }
 
+    void to_string(const plnnrc::ast::Expr* expr, std::string& output)
+    {
+        output += plnnrc::get_type_name(expr->type);
+        if (expr->value.length > 0)
+        {
+            output += "[";
+            output.append(expr->value.str, expr->value.length);
+            output += "]";
+        }
+
+        if (expr->child)
+        {
+            output += "{ ";
+            for (plnnrc::ast::Expr* child = expr->child; child != 0; child = child->next_sibling)
+            {
+                to_string(child, output);
+                output += " ";
+            }
+            output += "}";
+        }
+    }
+
     TEST(world_parsing)
     {
         const char* str = "{ f1(int32) f2(float, int32) f3() }";
@@ -78,5 +101,28 @@ namespace
         std::string world_str = to_string(world);
 
         CHECK_EQUAL(expected, world_str.c_str());
+    }
+
+    void check_expr(const char* input, const char* expected)
+    {
+        plnnrc::Lexer   lexer;
+        plnnrc::Parser  parser;
+        plnnrc::init(lexer, input);
+        plnnrc::init(parser, &lexer);
+
+        parser.token = plnnrc::lex(lexer);
+        plnnrc::ast::Expr* expr = plnnrc::parse_precond(parser);
+        std::string actual;
+        to_string(expr, actual);
+
+        CHECK_EQUAL(expected, actual.c_str());
+    }
+
+    TEST(precondition_parsing)
+    {
+        check_expr("()", "And");
+        check_expr("( f(x, y, z) )", "Id[f]{ Id[x] Id[y] Id[z] }");
+        check_expr("( ~(a & b) | c )", "Or{ Not{ And{ Id[a] Id[b] } } Id[c] }");
+        check_expr("( a & (b & c) )", "And{ Id[a] And{ Id[b] Id[c] } }");
     }
 }

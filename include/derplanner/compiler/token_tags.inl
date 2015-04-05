@@ -39,7 +39,7 @@
 #endif
 
 PLNNRC_TOKEN(Eof)
-PLNNRC_TOKEN(Identifier)
+PLNNRC_TOKEN(Id)
 PLNNRC_TOKEN(Literal_Integer)
 PLNNRC_TOKEN(Literal_Float)
 

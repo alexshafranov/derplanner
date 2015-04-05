@@ -283,17 +283,17 @@ int main(int argc, char** argv)
         {
             if (plnnrc::has_value(tok))
             {
-                printf("%s[%.*s]\n", plnnrc::get_token_name(tok.type), (int)tok.value.length, tok.value.str);
+                printf("%s[%.*s]\n", plnnrc::get_type_name(tok.type), (int)tok.value.length, tok.value.str);
             }
             else
             {
-                printf("%s\n", plnnrc::get_token_name(tok.type));
+                printf("%s\n", plnnrc::get_type_name(tok.type));
             }
         }
 
         if (tok.type == plnnrc::Token_Eof)
         {
-            printf("%s\n", plnnrc::get_token_name(tok.type));
+            printf("%s\n", plnnrc::get_type_name(tok.type));
         }
     }
 
@@ -312,7 +312,7 @@ int main(int argc, char** argv)
             printf("%.*s[", (int)fact->name.length, fact->name.str);
             for (plnnrc::ast::Fact_Param* param = fact->params; param != 0; param = param->next)
             {
-                printf("%s", plnnrc::get_token_name(param->type));
+                printf("%s", plnnrc::get_type_name(param->type));
 
                 if (param->next != 0)
                 {
