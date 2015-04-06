@@ -35,6 +35,9 @@ void destroy(Lexer& state);
 // lex next token from the input buffer.
 Token lex(Lexer& state);
 
+// writes the nicely formatted token stream to `output`.
+void debug_output_tokens(const char* buffer, Writer* output);
+
 /// Token
 
 // checks if the given token has a string value attached.

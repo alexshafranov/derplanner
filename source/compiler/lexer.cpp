@@ -19,6 +19,7 @@
 //
 
 #include <string.h>
+#include "derplanner/compiler/io.h"
 #include "derplanner/compiler/array.h"
 #include "derplanner/compiler/id_table.h"
 #include "derplanner/compiler/lexer.h"
@@ -346,4 +347,46 @@ Token plnnrc::lex(Lexer& state)
     }
 
     return make_token(state, Token_Eof);
+}
+
+void plnnrc::debug_output_tokens(const char* buffer, Writer* output)
+{
+    Lexer lexer;
+    plnnrc::init(lexer, buffer);
+
+    Formatter fmtr;
+    plnnrc::init(fmtr, " ", "\n", 64*1024, output);
+
+    Token tok = plnnrc::lex(lexer);
+    uint32_t prev_line = tok.line;
+    plnnrc::newline(fmtr);
+
+    for (; tok.type != Token_Eof; tok = plnnrc::lex(lexer))
+    {
+        if (tok.line > prev_line)
+        {
+            plnnrc::newline(fmtr);
+        }
+
+        if (plnnrc::has_value(tok))
+        {
+            plnnrc::write(fmtr, "%s[%i] ", plnnrc::get_type_name(tok.type), tok.value);
+        }
+        else
+        {
+            plnnrc::write(fmtr, "%s ", plnnrc::get_type_name(tok.type));
+        }
+
+        prev_line = tok.line;
+    }
+
+    if (tok.type == plnnrc::Token_Eof)
+    {
+        if (tok.line > prev_line)
+        {
+            plnnrc::newline(fmtr);
+        }
+
+        plnnrc::write(fmtr, "%s\n", plnnrc::get_type_name(tok.type));
+    }
 }

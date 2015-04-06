@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "derplanner/compiler/io.h"
 #include "derplanner/compiler/memory.h"
 #include "derplanner/compiler/lexer.h"
 #include "derplanner/compiler/parser.h"
@@ -265,7 +266,7 @@ int main(int argc, char** argv)
     std::string output_name = get_output_name(normalize(input_path));
 
     size_t input_size = file_size(input_path.c_str());
-    Buffer_Context input_buffer(input_size+1);
+    Buffer_Context input_buffer(input_size + 1);
     {
         File_Context ctx(input_path.c_str(), "rb");
         size_t rb = fread(input_buffer.data, sizeof(char), input_size, ctx.fd);
@@ -274,28 +275,8 @@ int main(int argc, char** argv)
 
     input_buffer.data[input_size] = 0;
 
-    {
-        plnnrc::Lexer lexer;
-        plnnrc::init(lexer, input_buffer.data);
-
-        plnnrc::Token tok = plnnrc::lex(lexer);
-        for (; tok.type != plnnrc::Token_Eof; tok = plnnrc::lex(lexer))
-        {
-            if (plnnrc::has_value(tok))
-            {
-                printf("%s[%.*s]\n", plnnrc::get_type_name(tok.type), (int)tok.value.length, tok.value.str);
-            }
-            else
-            {
-                printf("%s\n", plnnrc::get_type_name(tok.type));
-            }
-        }
-
-        if (tok.type == plnnrc::Token_Eof)
-        {
-            printf("%s\n", plnnrc::get_type_name(tok.type));
-        }
-    }
+    plnnrc::Writer_Crt standard_output = plnnrc::make_stdout_writer();
+    plnnrc::debug_output_tokens(input_buffer.data, &standard_output);
 
     {
         plnnrc::Lexer lexer;
@@ -305,22 +286,6 @@ int main(int argc, char** argv)
         plnnrc::init(parser, &lexer);
 
         parse(parser);
-
-        printf("\n==Parsed World==\n\n");
-        for (plnnrc::ast::Fact_Type* fact = parser.world->facts; fact != 0; fact = fact->next)
-        {
-            printf("%.*s[", (int)fact->name.length, fact->name.str);
-            for (plnnrc::ast::Fact_Param* param = fact->params; param != 0; param = param->next)
-            {
-                printf("%s", plnnrc::get_type_name(param->type));
-
-                if (param->next != 0)
-                {
-                    printf(", ");
-                }
-            }
-            printf("]\n");
-        }
     }
 
     return 0;

@@ -25,7 +25,7 @@
 
 namespace plnnrc {
 
-// Array of POD types.
+// Dynamic array of POD types.
 template <typename T>
 struct Array
 {
@@ -40,7 +40,7 @@ struct Array
     T*          data;
 };
 
-// Open-addressing hash table, mapping constant strings to POD values.
+// Dynamic open-addressing hash table, maps constant C-strings to POD values.
 template <typename T>
 struct Id_Table
 {
@@ -246,6 +246,30 @@ struct Parser
     Pool*                       pool;
     // last lexed token.
     Token                       token;
+};
+
+class Writer;
+
+// Buffered output stream, supporting formatting operations.
+struct Formatter
+{
+    Formatter();
+    ~Formatter();
+
+    // number of `tab` symbols to put when a new line starts.
+    uint32_t        indent;
+    // constant string used for virtual tab symbol (e.g. 4 spaces).
+    const char*     tab;
+    // constant string used to start a new line.
+    const char*     newline;
+    // output buffer bottom.
+    uint8_t*        buffer;
+    // current position in output buffer.
+    uint8_t*        buffer_ptr;
+    // end of the output buffer, `buffer` <= `buffer_ptr` <= `buffer_end`.
+    uint8_t*        buffer_end;
+    // output interface used to flush buffer.
+    Writer*         output;
 };
 
 }
