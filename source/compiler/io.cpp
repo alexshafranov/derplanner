@@ -32,7 +32,7 @@ plnnrc::Formatter::Formatter()
 
 plnnrc::Formatter::~Formatter()
 {
-    if (buffer_ptr > buffer)
+    if (buffer)
     {
         plnnrc::flush(*this);
         plnnrc::destroy(*this);
