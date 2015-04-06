@@ -31,7 +31,7 @@ namespace plnnrc {
 
 /// Id_Table
 
-// creates id table.
+// initialize `Id_Table`.
 template <typename T>
 void init(Id_Table<T>& table, uint32_t max_size);
 
