@@ -232,20 +232,20 @@ struct Parser
     Parser();
     ~Parser();
 
-    // maps fact name -> index
-    Id_Table<uint32_t>  fact_ids;
-    // maps task name -> index.
-    Id_Table<uint32_t>  task_ids;
+    // maps fact name -> Fact_Type node.
+    Id_Table<ast::Fact_Type*>   fact_lookup;
+    // maps task name -> Task node.
+    Id_Table<ast::Task*>        task_lookup;
     // parsed `world`.
-    ast::World*         world;
+    ast::World*                 world;
     // parsed `domain`.
-    ast::Domain*        domain;
+    ast::Domain*                domain;
     // token source for parsing.
-    Lexer*              lexer;
+    Lexer*                      lexer;
     // memory pool `ast::*` types are allocated from.
-    Pool*               pool;
+    Pool*                       pool;
     // last lexed token.
-    Token               token;
+    Token                       token;
 };
 
 }

@@ -28,32 +28,33 @@ namespace plnnrc {
 /// Parser
 
 // create parsing state.
-void        init(Parser& state, Lexer* lexer);
-
+void                init(Parser& state, Lexer* lexer);
 // destroy parsing state.
-void        destroy(Parser& state);
+void                destroy(Parser& state);
 
 // parse token stream to abstract-syntax-tree.
-void        parse(Parser& state);
+void                parse(Parser& state);
+
+// lookup `ast::Fact_Type` node by name (`token_value`).
+ast::Fact_Type*     get_fact(Parser& state, const Token_Value& token_value);
+// lookup `ast::Task` node by name (`token_value`).
+ast::Task*          get_task(Parser& state, const Token_Value& token_value);
 
 /// ast::Expr
 
 // make node `child` the last child of node `parent`.
-void        append_child(ast::Expr* parent, ast::Expr* child);
-
+void                append_child(ast::Expr* parent, ast::Expr* child);
 // make `child` the next sibling of `after`.
-void        insert_child(ast::Expr* after, ast::Expr* child);
-
+void                insert_child(ast::Expr* after, ast::Expr* child);
 // unparent `node` from it's current parent.
-void        unparent(ast::Expr* node);
-
+void                unparent(ast::Expr* node);
 // returns the next node in pre-order (visit node then visit it's children) traversal.
-ast::Expr*  preorder_next(const ast::Expr* root, ast::Expr* current);
+ast::Expr*          preorder_next(const ast::Expr* root, ast::Expr* current);
 
 /// Expression transformations.
 
 // converts expression `root` to Disjunctive-Normal-Form.
-ast::Expr*  convert_to_dnf(Parser& state, ast::Expr* root);
+ast::Expr*          convert_to_dnf(Parser& state, ast::Expr* root);
 
 }
 
