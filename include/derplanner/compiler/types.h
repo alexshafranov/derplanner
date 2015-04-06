@@ -32,8 +32,8 @@ struct Array
     Array();
     ~Array();
 
-    T& operator[](uint32_t index);
-    const T& operator[](uint32_t index) const;
+    T&          operator[](uint32_t index);
+    const T&    operator[](uint32_t index) const;
 
     uint32_t    size;
     uint32_t    max_size;
