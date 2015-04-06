@@ -29,7 +29,6 @@ namespace plnnrc {
 
 // create lexer state.
 void init(Lexer& state, const char* buffer);
-
 // destroy lexer state.
 void destroy(Lexer& state);
 

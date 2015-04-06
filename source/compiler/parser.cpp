@@ -64,9 +64,9 @@ void plnnrc::init(Parser& state, Lexer* lexer)
     memset(&state, 0, sizeof(state));
 
     // randomly chosen initial number of facts.
-    init(state.fact_ids, 1024);
+    init(state.fact_lookup, 1024);
     // randomly chosen initial number of tasks.
-    init(state.task_ids, 1024);
+    init(state.task_lookup, 1024);
 
     state.lexer = lexer;
     // pool will have 1MB sized pages.
@@ -76,9 +76,33 @@ void plnnrc::init(Parser& state, Lexer* lexer)
 void plnnrc::destroy(Parser& state)
 {
     destroy(state.pool);
-    destroy(state.task_ids);
-    destroy(state.fact_ids);
+    destroy(state.task_lookup);
+    destroy(state.fact_lookup);
     memset(&state, 0, sizeof(Parser));
+}
+
+ast::Fact_Type* plnnrc::get_fact(Parser& state, const Token_Value& token_value)
+{
+    ast::Fact_Type* const* ptr = plnnrc::get(state.fact_lookup, token_value.str, token_value.length);
+
+    if (ptr)
+    {
+        return *ptr;
+    }
+
+    return 0;
+}
+
+ast::Task* plnnrc::get_task(Parser& state, const Token_Value& token_value)
+{
+    ast::Task* const* ptr = plnnrc::get(state.task_lookup, token_value.str, token_value.length);
+
+    if (ptr)
+    {
+        return *ptr;
+    }
+
+    return 0;
 }
 
 template <typename T>
@@ -161,6 +185,26 @@ void plnnrc::parse(Parser& state)
 
     state.domain->tasks = root_task.next;
     expect(state, Token_Eof);
+
+    // build lookups
+
+    if (state.world)
+    {
+        for (ast::Fact_Type* fact = state.world->facts; fact != 0; fact = fact->next)
+        {
+            plnnrc_assert(!plnnrc::get_fact(state, fact->name)); // error: fact is already defined.
+            plnnrc::set(state.fact_lookup, fact->name, fact);
+        }
+    }
+
+    if (state.domain)
+    {
+        for (ast::Task* task = state.domain->tasks; task != 0; task = task->next)
+        {
+            plnnrc_assert(!plnnrc::get_task(state, task->name)); // error: multiple definitions of task.
+            plnnrc::set(state.task_lookup, task->name, task);
+        }
+    }
 }
 
 ast::World* plnnrc::parse_world(Parser& state)

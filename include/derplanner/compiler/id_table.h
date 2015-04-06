@@ -44,12 +44,18 @@ template <typename T>
 void set(Id_Table<T>& table, const char* key, const T& value);
 
 template <typename T>
+void set(Id_Table<T>& table, const Token_Value& token_value, const T& value);
+
+template <typename T>
 void set(Id_Table<T>& table, const char* key, uint32_t length, const T& value);
 
 
 // returns pointer to value for the given key or null if it doesn't exist.
 template <typename T>
 const T* get(const Id_Table<T>& table, const char* key);
+
+template <typename T>
+const T* get(const Id_Table<T>& table, const Token_Value& token_value);
 
 template <typename T>
 const T* get(const Id_Table<T>& table, const char* key, uint32_t length);
@@ -268,6 +274,12 @@ void plnnrc::set(plnnrc::Id_Table<T>& table, const char* key, const T& value)
 }
 
 template <typename T>
+void plnnrc::set(plnnrc::Id_Table<T>& table, const plnnrc::Token_Value& token_value, const T& value)
+{
+    plnnrc::set<T>(table, token_value.str, token_value.length, value);
+}
+
+template <typename T>
 void plnnrc::set(plnnrc::Id_Table<T>& table, const char* key, uint32_t length, const T& value)
 {
     const uint32_t max_size = table.max_size;
@@ -286,6 +298,12 @@ const T* plnnrc::get(const plnnrc::Id_Table<T>& table, const char* key)
 {
     uint32_t length = (uint32_t)strlen(key);
     return plnnrc::get<T>(table, key, length);
+}
+
+template <typename T>
+const T* plnnrc::get(const plnnrc::Id_Table<T>& table, const plnnrc::Token_Value& token_value)
+{
+    return plnnrc::get<T>(table, token_value.str, token_value.length);
 }
 
 template <typename T>
