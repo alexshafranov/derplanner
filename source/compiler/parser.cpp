@@ -781,16 +781,50 @@ static inline bool is_conjunct(ast::Expr* node)
     return true;
 }
 
+static inline ast::Expr* clone_node(Parser& state, ast::Expr* node)
+{
+    ast::Expr* clone = allocate_node<ast::Expr>(state);
+    clone->type = node->type;
+    clone->value = node->value;
+    return clone;
+}
+
 static ast::Expr* clone_tree(Parser& state, ast::Expr* root)
 {
-    ast::Expr* root_clone = allocate_node<ast::Expr>(state);
-    root_clone->type = root->type;
-    root_clone->value = root->value;
+    ast::Expr* root_clone = clone_node(state, root);
 
-    for (ast::Expr* child = root->child; child != 0; child = child->next_sibling)
+    ast::Expr* node  = root;
+    ast::Expr* clone = root_clone;
+
+    for (;;)
     {
-        ast::Expr* child_clone = clone_tree(state, child);
-        plnnrc::append_child(root_clone, child_clone);
+        if (node->child)
+        {
+            ast::Expr* child = node->child;
+            ast::Expr* child_clone = clone_node(state, child);
+            plnnrc::append_child(clone, child_clone);
+            node = child;
+            clone = child_clone;
+            continue;
+        }
+
+        while (node != root && !node->next_sibling)
+        {
+            node = node->parent;
+            clone = clone->parent;
+        }
+
+        if (node == root)
+        {
+            break;
+        }
+
+        ast::Expr* sibling = node->next_sibling;
+        ast::Expr* sibling_clone = clone_node(state, sibling);
+        plnnrc::insert_child(clone, sibling_clone);
+
+        node = sibling;
+        clone = sibling_clone;
     }
 
     return root_clone;
