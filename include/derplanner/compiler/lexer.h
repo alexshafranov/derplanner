@@ -32,7 +32,7 @@ void init(Lexer& state, const char* buffer);
 // destroy lexer state.
 void destroy(Lexer& state);
 
-// returns next token from the input buffer.
+// lex next token from the input buffer.
 Token lex(Lexer& state);
 
 /// Token
