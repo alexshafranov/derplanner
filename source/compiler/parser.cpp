@@ -698,8 +698,8 @@ ast::Expr* plnnrc::convert_to_nnf(Parser& state, ast::Expr* root)
 }
 
 static bool         is_conjunct(ast::Expr* node);
-static void         distribute_and(Parser& state, ast::Expr* root);
-static ast::Expr*   convert_to_dnf_or(Parser& state, ast::Expr* root);
+static void         distribute_And_over_Or(Parser& state, ast::Expr* root);
+static ast::Expr*   convert_Or_to_dnf(Parser& state, ast::Expr* root);
 
 ast::Expr* plnnrc::convert_to_dnf(Parser& state, ast::Expr* root)
 {
@@ -713,12 +713,12 @@ ast::Expr* plnnrc::convert_to_dnf(Parser& state, ast::Expr* root)
     // now we have flattened Or expression
     // convert it to DNF form:
     // Expr = C0 | C1 | ... | CN, Ck (conjunct) = either ~X or X where X is variable or fact.
-    new_root = convert_to_dnf_or(state, new_root);
+    new_root = convert_Or_to_dnf(state, new_root);
     return new_root;
 }
 
 // convert Or expression to DNF by applying distributive law repeatedly, until no change could be made.
-static ast::Expr* convert_to_dnf_or(Parser& state, ast::Expr* root)
+static ast::Expr* convert_Or_to_dnf(Parser& state, ast::Expr* root)
 {
     plnnrc_assert(root && is_Or(root->type));
 
@@ -733,7 +733,7 @@ static ast::Expr* convert_to_dnf_or(Parser& state, ast::Expr* root)
             if (!is_conjunct(arg))
             {
                 done = false;
-                distribute_and(state, arg);
+                distribute_And_over_Or(state, arg);
             }
 
             arg = next_arg;
@@ -752,11 +752,12 @@ static ast::Expr* convert_to_dnf_or(Parser& state, ast::Expr* root)
 // check if trivial conjunct `~x` or `x`. expression is assumed to be in Negative-Normal-Form.
 static inline bool is_trivial_conjunct(ast::Expr* node)
 {
-    // assert NNF.
+    // assert expression is NNF.
     plnnrc_assert(!is_Not(node->type) || !is_Logical(node->child->type));
     return is_Not(node->type) || is_Id(node->type);
 }
 
+// check if expression is either trivial (~x, x) or conjunction of trivials.
 static inline bool is_conjunct(ast::Expr* node)
 {
     if (is_trivial_conjunct(node))
@@ -830,21 +831,26 @@ static ast::Expr* clone_tree(Parser& state, ast::Expr* root)
     return root_clone;
 }
 
+static inline ast::Expr* find_child(ast::Expr* root, Token_Type type)
+{
+    for (ast::Expr* node = root->child; node != 0; node = node->next_sibling)
+    {
+        if (node->type == type)
+        {
+            return node;
+        }
+    }
+
+    return 0;
+}
+
 // apply distributive law to make `Or` root of the expression.
-static void distribute_and(Parser& state, ast::Expr* node_And)
+static void distribute_And_over_Or(Parser& state, ast::Expr* node_And)
 {
     plnnrc_assert(node_And && is_And(node_And->type));
 
     // find the first `Or` argument of `node_And`.
-    ast::Expr* node_Or = node_And->child;
-    for ( ; node_Or != 0; node_Or = node_Or->next_sibling)
-    {
-        if (is_Or(node_Or->type))
-        {
-            break;
-        }
-    }
-
+    ast::Expr* node_Or = find_child(node_And, Token_Or);
     plnnrc_assert(node_Or);
 
     ast::Expr* after = node_And;
