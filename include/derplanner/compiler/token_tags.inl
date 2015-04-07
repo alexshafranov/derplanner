@@ -34,6 +34,10 @@
     #define PLNNRC_OPERATOR_TOKEN(TAG, STR) PLNNRC_TOKEN(TAG)
 #endif
 
+#ifndef PLNNRC_AST_TOKEN
+    #define PLNNRC_AST_TOKEN(TAG) PLNNRC_TOKEN(TAG)
+#endif
+
 #ifndef PLNNRC_TOKEN_GROUP
     #define PLNNRC_TOKEN_GROUP(GROUP_TAG, FIRST_TOKEN_TAG, LAST_TOKEN_TAG)
 #endif
@@ -67,12 +71,15 @@ PLNNRC_OPERATOR_TOKEN(Not,            "~")
 PLNNRC_OPERATOR_TOKEN(Plus,           "+")
 PLNNRC_OPERATOR_TOKEN(Minus,          "-")
 
+PLNNRC_AST_TOKEN(List)
+
 PLNNRC_TOKEN_GROUP(Keyword,   Domain, Float)
 PLNNRC_TOKEN_GROUP(Type,      Int32,  Float)
 PLNNRC_TOKEN_GROUP(Literal,   Literal_Integer, Literal_Float)
 PLNNRC_TOKEN_GROUP(Logical,   And,    Not)
 
 #undef PLNNRC_TOKEN_GROUP
+#undef PLNNRC_AST_TOKEN
 #undef PLNNRC_OPERATOR_TOKEN
 #undef PLNNRC_PUNCTUATOR_TOKEN
 #undef PLNNRC_KEYWORD_TOKEN

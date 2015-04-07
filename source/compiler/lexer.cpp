@@ -355,7 +355,7 @@ void plnnrc::debug_output_tokens(const char* buffer, Writer* output)
     plnnrc::init(lexer, buffer);
 
     Formatter fmtr;
-    plnnrc::init(fmtr, " ", "\n", 64*1024, output);
+    plnnrc::init(fmtr, "  ", "\n", 64*1024, output);
 
     Token tok = plnnrc::lex(lexer);
     uint32_t prev_line = tok.line;
@@ -370,7 +370,7 @@ void plnnrc::debug_output_tokens(const char* buffer, Writer* output)
 
         if (plnnrc::has_value(tok))
         {
-            plnnrc::write(fmtr, "%s[%i] ", plnnrc::get_type_name(tok.type), tok.value);
+            plnnrc::write(fmtr, "%s[%n] ", plnnrc::get_type_name(tok.type), tok.value);
         }
         else
         {
@@ -387,6 +387,7 @@ void plnnrc::debug_output_tokens(const char* buffer, Writer* output)
             plnnrc::newline(fmtr);
         }
 
-        plnnrc::write(fmtr, "%s\n", plnnrc::get_type_name(tok.type));
+        plnnrc::write(fmtr, "%s", plnnrc::get_type_name(tok.type));
+        plnnrc::newline(fmtr);
     }
 }

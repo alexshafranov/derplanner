@@ -21,9 +21,10 @@
 #include <string.h>
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/memory.h"
-#include "derplanner/compiler/parser.h"
+#include "derplanner/compiler/io.h"
 #include "derplanner/compiler/lexer.h"
 #include "derplanner/compiler/id_table.h"
+#include "derplanner/compiler/parser.h"
 #include "pool.h"
 
 // implementation (exposed for unit tests)
@@ -449,6 +450,7 @@ ast::Expr* plnnrc::parse_task_list(Parser& state)
 {
     expect(state, is_L_Square);
     ast::Expr* node_Task_List = allocate_node<ast::Expr>(state);
+    node_Task_List->type = Token_List;
 
     if (!is_R_Square(peek(state)))
     {
@@ -929,4 +931,87 @@ static void distribute_And_over_Or(Parser& state, ast::Expr* node_And)
     }
 
     plnnrc::unparent(node_And);
+}
+
+static void debug_output_expr(ast::Expr* root, Formatter& fmtr)
+{
+    plnnrc::write(fmtr, "%i%s", plnnrc::get_type_name(root->type));
+
+    if (root->value.str)
+    {
+        plnnrc::write(fmtr, "[%n]", root->value);
+    }
+
+    plnnrc::newline(fmtr);
+
+    for (ast::Expr* child = root->child; child != 0; child = child->next_sibling)
+    {
+        Indent s(fmtr);
+        debug_output_expr(child, fmtr);
+    }
+}
+
+void plnnrc::debug_output_ast(const Parser& state, Writer* output)
+{
+    Formatter fmtr;
+    plnnrc::init(fmtr, "  ", "\n", 64*1024, output);
+
+    if (state.world)
+    {
+        plnnrc::newline(fmtr);
+        plnnrc::writeln(fmtr, "World");
+
+        Indent s(fmtr);
+        for (ast::Fact_Type* fact = state.world->facts; fact != 0; fact = fact->next)
+        {
+            plnnrc::write(fmtr, "%i%n[", fact->name);
+            for (ast::Fact_Param* param = fact->params; param != 0; param = param->next)
+            {
+                plnnrc::write(fmtr, "%s", plnnrc::get_type_name(param->type));
+                if (param->next)
+                {
+                    plnnrc::write(fmtr, ", ");
+                }
+            }
+            plnnrc::write(fmtr, "]");
+            plnnrc::newline(fmtr);
+        }
+    }
+
+    if (state.domain)
+    {
+        plnnrc::newline(fmtr);
+        plnnrc::writeln(fmtr, "Domain[%n]", state.domain->name);
+
+        Indent s(fmtr);
+        for (ast::Task* task = state.domain->tasks; task != 0; task = task->next)
+        {
+            plnnrc::write(fmtr, "%iTask[%n]", task->name);
+            Indent s(fmtr);
+
+            if (task->params)
+            {
+                plnnrc::write(fmtr, " ");
+            }
+
+            for (ast::Task_Param* param = task->params; param != 0; param = param->next)
+            {
+                plnnrc::write(fmtr, "Param[%n] ", param->name);
+            }
+
+            plnnrc::newline(fmtr);
+
+            for (ast::Case* case_ = task->cases; case_ != 0; case_ = case_->next)
+            {
+                plnnrc::writeln(fmtr, "Case");
+                Indent s(fmtr);
+                debug_output_expr(case_->precond, fmtr);
+
+                for (ast::Expr* task_inst = case_->task_list; task_inst != 0; task_inst = task_inst->next_sibling)
+                {
+                    debug_output_expr(task_inst, fmtr);
+                }
+            }
+        }
+    }
 }

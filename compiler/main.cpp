@@ -278,15 +278,14 @@ int main(int argc, char** argv)
     plnnrc::Writer_Crt standard_output = plnnrc::make_stdout_writer();
     plnnrc::debug_output_tokens(input_buffer.data, &standard_output);
 
-    {
-        plnnrc::Lexer lexer;
-        plnnrc::init(lexer, input_buffer.data);
+    plnnrc::Lexer lexer;
+    plnnrc::init(lexer, input_buffer.data);
 
-        plnnrc::Parser parser;
-        plnnrc::init(parser, &lexer);
+    plnnrc::Parser parser;
+    plnnrc::init(parser, &lexer);
 
-        parse(parser);
-    }
+    parse(parser);
+    plnnrc::debug_output_ast(parser, &standard_output);
 
     return 0;
 }

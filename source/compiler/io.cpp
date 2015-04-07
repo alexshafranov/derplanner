@@ -35,6 +35,7 @@ plnnrc::Formatter::~Formatter()
     if (buffer)
     {
         plnnrc::flush(*this);
+        output->flush();
         plnnrc::destroy(*this);
     }
 }
@@ -99,10 +100,15 @@ void plnnrc::write(Formatter& formatter, const char* format, va_list arglist)
                 }
                 break;
             // Token_Value
-            case 'i':
+            case 'n':
                 {
                     Token_Value token_value = va_arg(arglist, Token_Value);
                     plnnrc::put_token(formatter, token_value);
+                }
+                break;
+            case 'i':
+                {
+                    plnnrc::put_indent(formatter, formatter.indent);
                 }
                 break;
             // %% -> %
