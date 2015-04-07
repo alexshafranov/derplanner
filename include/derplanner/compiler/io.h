@@ -37,6 +37,9 @@ public:
 
     // write `size` bytes of `data` and return actual amount of bytes written.
     virtual size_t write(const void* data, size_t size) = 0;
+
+    // flush all writes
+    virtual void flush() = 0;
 };
 
 // `FILE*` version of writer.
@@ -48,6 +51,11 @@ public:
     virtual size_t write(const void* data, size_t size)
     {
         return fwrite(data, 1, size, fd);
+    }
+
+    virtual void flush()
+    {
+        fflush(fd);
     }
 
     FILE* fd;
@@ -66,7 +74,7 @@ void destroy(Formatter& formatter);
 // write indentation symbols.
 void indent(Formatter& formatter);
 // write formatted string to the buffered output.
-// `format` has the following specifiers: %s = C string, %d = decimal, %i = Token_Value.
+// `format` has the following specifiers: %s = C string, %d = decimal, %n = Token_Value, %i = indentation.
 void write(Formatter& formatter, const char* format, ...);
 // start a new line.
 void newline(Formatter& formatter);
@@ -90,9 +98,23 @@ void put_token(Formatter& formatter, const Token_Value& token_value);
 void put_indent(Formatter& formatter, uint32_t level);
 
 // increase the current indentation level.
-void enter_scope(Formatter& formatter);
+void enter_indent_level(Formatter& formatter);
 // decrease the current indentation level.
-void exit_scope(Formatter& formatter);
+void exit_indent_level(Formatter& formatter);
+
+// Scoped `enter_indent_level`/`exit_indent_level`.
+struct Indent
+{
+    Formatter& formatter;
+
+    Indent(Formatter& formatter) :formatter(formatter) { plnnrc::enter_indent_level(formatter); }
+
+    ~Indent() { plnnrc::exit_indent_level(formatter); }
+
+    // silence VS warning C4512: 'plnnrc::Indent' : assignment operator could not be generated
+    Indent(const Indent&);
+    Indent& operator=(const Indent&);
+};
 
 }
 
@@ -101,12 +123,12 @@ inline plnnrc::Writer_Crt plnnrc::make_stdout_writer()
     return plnnrc::Writer_Crt(stdout);
 }
 
-inline void plnnrc::enter_scope(plnnrc::Formatter& formatter)
+inline void plnnrc::enter_indent_level(plnnrc::Formatter& formatter)
 {
     ++formatter.indent;
 }
 
-inline void plnnrc::exit_scope(plnnrc::Formatter& formatter)
+inline void plnnrc::exit_indent_level(plnnrc::Formatter& formatter)
 {
     --formatter.indent;
 }
