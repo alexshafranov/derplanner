@@ -20,27 +20,12 @@
 
 #include <stdlib.h>
 #include "unittestpp.h"
+#include "derplanner/compiler/array.h"
 #include "derplanner/compiler/lexer.h"
 
 namespace
 {
-    TEST(test_eof)
-    {
-        plnnrc::Lexer lexer;
-        plnnrc::init(lexer, "");
-        plnnrc::Token actual = plnnrc::lex(lexer);
-        CHECK_EQUAL(plnnrc::Token_Eof, actual.type);
-    }
-
-    TEST(test_id)
-    {
-        plnnrc::Lexer lexer;
-        plnnrc::init(lexer, "id1");
-        plnnrc::Token actual = plnnrc::lex(lexer);
-        CHECK_EQUAL(plnnrc::Token_Id, actual.type);
-    }
-
-    TEST(test_ids_and_kws)
+    TEST(ids_and_keywords)
     {
         plnnrc::Lexer lexer;
         plnnrc::init(lexer, "id1 id2 domain id3");
