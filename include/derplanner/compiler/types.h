@@ -256,14 +256,16 @@ struct Formatter
     Formatter();
     ~Formatter();
 
+    enum { Output_Buffer_Size = 4096 };
+
     // number of `tab` symbols to put when a new line starts.
     uint32_t        indent;
     // constant string used for virtual tab symbol (e.g. 4 spaces).
     const char*     tab;
     // constant string used to start a new line.
     const char*     newline;
-    // output buffer bottom.
-    uint8_t*        buffer;
+    // embedded output buffer.
+    uint8_t         buffer[Output_Buffer_Size];
     // current position in output buffer.
     uint8_t*        buffer_ptr;
     // end of the output buffer, `buffer` <= `buffer_ptr` <= `buffer_end`.

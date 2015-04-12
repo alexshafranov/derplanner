@@ -67,9 +67,7 @@ Writer_Crt make_stdout_writer();
 /// Formatter
 
 // initialize `Formatter`.
-void init(Formatter& formatter, const char* tab, const char* newline, uint32_t buffer_size, Writer* output);
-// destroy `Formatter`.
-void destroy(Formatter& formatter);
+void init(Formatter& formatter, const char* tab, const char* newline, Writer* output);
 
 // write indentation symbols.
 void indent(Formatter& formatter);

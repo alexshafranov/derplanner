@@ -32,29 +32,21 @@ plnnrc::Formatter::Formatter()
 
 plnnrc::Formatter::~Formatter()
 {
-    if (buffer)
+    if (output)
     {
         plnnrc::flush(*this);
         output->flush();
-        plnnrc::destroy(*this);
     }
 }
 
-void plnnrc::init(Formatter& formatter, const char* tab, const char* newline, uint32_t buffer_size, Writer* output)
+void plnnrc::init(Formatter& formatter, const char* tab, const char* newline, Writer* output)
 {
     formatter.indent = 0;
     formatter.tab = tab;
     formatter.newline = newline;
-    formatter.buffer = static_cast<uint8_t*>(plnnrc::allocate(buffer_size));
     formatter.buffer_ptr = formatter.buffer;
-    formatter.buffer_end = formatter.buffer + buffer_size;
+    formatter.buffer_end = formatter.buffer + Formatter::Output_Buffer_Size;
     formatter.output = output;
-}
-
-void plnnrc::destroy(Formatter& formatter)
-{
-    plnnrc::deallocate(formatter.buffer);
-    memset(&formatter, 0, sizeof(Formatter));
 }
 
 void plnnrc::flush(Formatter& formatter)
