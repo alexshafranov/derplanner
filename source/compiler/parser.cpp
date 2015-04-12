@@ -954,7 +954,7 @@ static void debug_output_expr(ast::Expr* root, Formatter& fmtr)
 void plnnrc::debug_output_ast(const Parser& state, Writer* output)
 {
     Formatter fmtr;
-    plnnrc::init(fmtr, "  ", "\n", 64*1024, output);
+    plnnrc::init(fmtr, "  ", "\n", output);
 
     if (state.world)
     {

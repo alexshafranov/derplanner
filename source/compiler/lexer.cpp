@@ -355,7 +355,7 @@ void plnnrc::debug_output_tokens(const char* buffer, Writer* output)
     plnnrc::init(lexer, buffer);
 
     Formatter fmtr;
-    plnnrc::init(fmtr, "  ", "\n", 64*1024, output);
+    plnnrc::init(fmtr, "  ", "\n", output);
 
     Token tok = plnnrc::lex(lexer);
     uint32_t prev_line = tok.line;
