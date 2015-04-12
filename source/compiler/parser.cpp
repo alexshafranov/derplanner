@@ -383,21 +383,23 @@ static ast::Expr* parse_conjunct(Parser& state)
 
     if (is_Id(tok))
     {
-        ast::Expr* node_Fact = create_expr(state.tree, tok.type);
-        node_Fact->value = tok.value;
+        ast::Expr* node = 0;
 
         if (is_L_Paren(peek(state)))
         {
             eat(state);
+
+            node = create_expr(state.tree, Token_Fact);
+            node->value = tok.value;
 
             if (!is_R_Paren(peek(state)))
             {
                 for (;;)
                 {
                     Token tok = expect(state, Token_Id);
-                    ast::Expr* node_Var = create_expr(state.tree, tok.type);
+                    ast::Expr* node_Var = create_expr(state.tree, Token_Var);
                     node_Var->value = tok.value;
-                    plnnrc::append_child(node_Fact, node_Var);
+                    plnnrc::append_child(node, node_Var);
 
                     if (!is_Comma(peek(state)))
                     {
@@ -413,8 +415,13 @@ static ast::Expr* parse_conjunct(Parser& state)
                 eat(state);
             }
         }
+        else
+        {
+            node = create_expr(state.tree, Token_Var);
+            node->value = tok.value;
+        }
 
-        return node_Fact;
+        return node;
     }
 
     plnnrc_assert(false);

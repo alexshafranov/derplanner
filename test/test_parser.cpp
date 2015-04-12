@@ -126,9 +126,9 @@ namespace
     TEST(precondition_parsing)
     {
         check_expr("()", "And");
-        check_expr("( f(x, y, z) )", "Id[f]{ Id[x] Id[y] Id[z] }");
-        check_expr("( ~(a & b) | c )", "Or{ Not{ And{ Id[a] Id[b] } } Id[c] }");
-        check_expr("( a & (b & c) )", "And{ Id[a] And{ Id[b] Id[c] } }");
+        check_expr("( f(x, y, z) )", "Fact[f]{ Var[x] Var[y] Var[z] }");
+        check_expr("( ~(a & b) | c )", "Or{ Not{ And{ Var[a] Var[b] } } Var[c] }");
+        check_expr("( a & (b & c) )", "And{ Var[a] And{ Var[b] Var[c] } }");
     }
 
     void check_flattened_expr(const char* input, const char* expected)
@@ -145,7 +145,7 @@ namespace
     TEST(minimizing_expression_depth)
     {
         check_flattened_expr("( ~(a & (b & (c | d | (e | f))) & (g & h)) )",
-                             "Not{ And{ Id[a] Id[b] Or{ Id[c] Id[d] Id[e] Id[f] } Id[g] Id[h] } }");
+                             "Not{ And{ Var[a] Var[b] Or{ Var[c] Var[d] Var[e] Var[f] } Var[g] Var[h] } }");
     }
 
     void check_nnf_expr(const char* input, const char* expected)
@@ -163,13 +163,13 @@ namespace
     {
         // trivial (already nnf).
         check_nnf_expr("(  )", "And");
-        check_nnf_expr("( ~x & ~y )", "And{ Not{ Id[x] } Not{ Id[y] } }");
+        check_nnf_expr("( ~x & ~y )", "And{ Not{ Var[x] } Not{ Var[y] } }");
         // double-negation.
-        check_nnf_expr("(   ~~x )", "Id[x]");
-        check_nnf_expr("( ~~~~x )", "Id[x]");
-        check_nnf_expr("(  ~~~x )", "Not{ Id[x] }");
+        check_nnf_expr("(   ~~x )", "Var[x]");
+        check_nnf_expr("( ~~~~x )", "Var[x]");
+        check_nnf_expr("(  ~~~x )", "Not{ Var[x] }");
         // De-Morgan's law.
-        check_nnf_expr("( ~(x & (y | ~z)) )", "Or{ Not{ Id[x] } And{ Not{ Id[y] } Id[z] } }");
+        check_nnf_expr("( ~(x & (y | ~z)) )", "Or{ Not{ Var[x] } And{ Not{ Var[y] } Var[z] } }");
     }
 
     void check_dnf_expr(const char* input, const char* expected)
@@ -187,14 +187,14 @@ namespace
     {
         // test trivial conversions.
         check_dnf_expr("( )", "Or{ And }");
-        check_dnf_expr("( x )", "Or{ Id[x] }");
-        check_dnf_expr("( ~x )", "Or{ Not{ Id[x] } }");
-        check_dnf_expr("( a | b )", "Or{ Id[a] Id[b] }");
+        check_dnf_expr("( x )", "Or{ Var[x] }");
+        check_dnf_expr("( ~x )", "Or{ Not{ Var[x] } }");
+        check_dnf_expr("( a | b )", "Or{ Var[a] Var[b] }");
         // test expression is converted to nnf.
-        check_dnf_expr("( a & ~(b | c) )", "Or{ And{ Id[a] Not{ Id[b] } Not{ Id[c] } } }");
+        check_dnf_expr("( a & ~(b | c) )", "Or{ And{ Var[a] Not{ Var[b] } Not{ Var[c] } } }");
         // distributive law.
-        check_dnf_expr("( t1 & (~t2 | (t2 & t3 & t4)) )", "Or{ And{ Id[t1] Not{ Id[t2] } } And{ Id[t1] Id[t2] Id[t3] Id[t4] } }");
+        check_dnf_expr("( t1 & (~t2 | (t2 & t3 & t4)) )", "Or{ And{ Var[t1] Not{ Var[t2] } } And{ Var[t1] Var[t2] Var[t3] Var[t4] } }");
         check_dnf_expr("( q1 & (r1 | r2) & q2 & (r3 | r4) & q3 )",
-                       "Or{ And{ Id[q1] Id[r1] Id[q2] Id[r3] Id[q3] } And{ Id[q1] Id[r1] Id[q2] Id[r4] Id[q3] } And{ Id[q1] Id[r2] Id[q2] Id[r3] Id[q3] } And{ Id[q1] Id[r2] Id[q2] Id[r4] Id[q3] } }");
+                       "Or{ And{ Var[q1] Var[r1] Var[q2] Var[r3] Var[q3] } And{ Var[q1] Var[r1] Var[q2] Var[r4] Var[q3] } And{ Var[q1] Var[r2] Var[q2] Var[r3] Var[q3] } And{ Var[q1] Var[r2] Var[q2] Var[r4] Var[q3] } }");
     }
 }
