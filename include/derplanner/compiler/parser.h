@@ -32,7 +32,7 @@ void init(Parser& state, Lexer* lexer);
 // destroy parsing state.
 void destroy(Parser& state);
 
-// parse token stream to abstract-syntax-tree.
+// parse token stream to Abstract-Syntax-Tree.
 void parse(Parser& state);
 
 }

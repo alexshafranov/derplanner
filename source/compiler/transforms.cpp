@@ -357,7 +357,7 @@ static inline bool is_trivial_conjunct(ast::Expr* node)
 {
     // assert expression is NNF.
     plnnrc_assert(!is_Not(node->type) || !is_Logical(node->child->type));
-    return is_Not(node->type) || is_Id(node->type);
+    return is_Not(node->type) || is_Var(node->type) || is_Fact(node->type);
 }
 
 // check if expression is either trivial (~x, x) or conjunction of trivials.

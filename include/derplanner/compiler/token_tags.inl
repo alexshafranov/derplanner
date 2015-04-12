@@ -71,7 +71,14 @@ PLNNRC_OPERATOR_TOKEN(Not,            "~")
 PLNNRC_OPERATOR_TOKEN(Plus,           "+")
 PLNNRC_OPERATOR_TOKEN(Minus,          "-")
 
+/// tokens used to mark high-level nodes in AST
+
+// parent node for task expansion list
 PLNNRC_AST_TOKEN(List)
+// node representing (predicate or function): Name(Var_1, ..., Var_N)
+PLNNRC_AST_TOKEN(Fact)
+// variable (symbol) as a parameter for predicate or function.
+PLNNRC_AST_TOKEN(Var)
 
 PLNNRC_TOKEN_GROUP(Keyword,   Domain, Float)
 PLNNRC_TOKEN_GROUP(Type,      Int32,  Float)
