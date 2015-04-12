@@ -33,7 +33,6 @@ namespace plnnrc
     // minimize expression tree depth by collapsing redundant operaion nodes.
     // e.g.: Op { <head...> Op{ <children...> }  <rest...> } -> Op { <head...> <children...> <rest...> }
     void        flatten(ast::Expr* root);
-
     // converts expression `root` to Negation-Normal-Form.
     ast::Expr*  convert_to_nnf(ast::Root& tree, ast::Expr* root);
 }
