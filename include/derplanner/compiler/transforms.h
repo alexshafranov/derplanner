@@ -69,6 +69,9 @@ ast::Expr*  preorder_next(const ast::Expr* root, ast::Expr* current);
 // converts expression `root` to Disjunctive-Normal-Form.
 ast::Expr* convert_to_dnf(ast::Root& tree, ast::Expr* root);
 
+// figure out types of parameters and variables.
+void infer_types(ast::Root& tree);
+
 }
 
 #endif
