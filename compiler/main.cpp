@@ -27,6 +27,7 @@
 #include "derplanner/compiler/memory.h"
 #include "derplanner/compiler/lexer.h"
 #include "derplanner/compiler/parser.h"
+#include "derplanner/compiler/transforms.h"
 
 using namespace plnnrc;
 
@@ -298,7 +299,7 @@ int main(int argc, char** argv)
         plnnrc::debug_output_tokens(input_buffer.data, &standard_output);
 
         parse(parser);
-        plnnrc::debug_output_ast(parser, &standard_output);
+        plnnrc::debug_output_ast(parser.tree, &standard_output);
     }
 
     return 0;
