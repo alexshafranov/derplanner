@@ -236,6 +236,10 @@ namespace ast
         Id_Table<Fact_Type*>    fact_lookup;
         // maps task name -> Task node.
         Id_Table<Task*>         task_lookup;
+        // all `Case` nodes in the order they appear in domain.
+        Array<Case*>            cases;
+        // `Token_Fact` nodes from all preconditions.
+        Array<Expr*>            fact_usages;
         // parsed `world` block.
         World*                  world;
         // parsed `domain` block.
@@ -252,11 +256,11 @@ struct Parser
     ~Parser();
 
     // token source for parsing.
-    Lexer*                      lexer;
+    Lexer*      lexer;
     // last lexed token.
-    Token                       token;
+    Token       token;
     // stores resulting AST.
-    ast::Root                   tree;
+    ast::Root   tree;
 };
 
 class Writer;

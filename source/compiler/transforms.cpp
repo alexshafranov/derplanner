@@ -20,6 +20,7 @@
 
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/io.h"
+#include "derplanner/compiler/array.h"
 #include "derplanner/compiler/id_table.h"
 #include "derplanner/compiler/lexer.h"
 #include "derplanner/compiler/transforms.h"
@@ -56,6 +57,10 @@ void plnnrc::init(ast::Root& root)
     init(root.fact_lookup, 1024);
     // randomly chosen initial number of tasks.
     init(root.task_lookup, 1024);
+
+    init(root.cases, 1024);
+    init(root.fact_usages, 1024);
+
     // pool will have 1MB sized pages.
     root.pool = create_paged_pool(1024*1024);
 }
@@ -63,6 +68,8 @@ void plnnrc::init(ast::Root& root)
 void plnnrc::destroy(ast::Root& root)
 {
     destroy(root.pool);
+    destroy(root.fact_usages);
+    destroy(root.cases);
     destroy(root.task_lookup);
     destroy(root.fact_lookup);
     memset(&root, 0, sizeof(root));
@@ -70,6 +77,7 @@ void plnnrc::destroy(ast::Root& root)
 
 void plnnrc::build_lookups(ast::Root& root)
 {
+    // lookup for world facts.
     if (root.world)
     {
         for (ast::Fact_Type* fact = root.world->facts; fact != 0; fact = fact->next)
@@ -79,12 +87,33 @@ void plnnrc::build_lookups(ast::Root& root)
         }
     }
 
+    // lookup for tasks.
     if (root.domain)
     {
         for (ast::Task* task = root.domain->tasks; task != 0; task = task->next)
         {
             plnnrc_assert(!plnnrc::get_task(root, task->name)); // error: multiple definitions of task.
             plnnrc::set(root.task_lookup, task->name, task);
+        }
+    }
+
+    // linar array of all cases.
+    if (root.domain)
+    {
+        for (ast::Task* task = root.domain->tasks; task != 0; task = task->next)
+        {
+            for (ast::Case* case_ = task->cases; case_ != 0; case_ = case_->next)
+            {
+                plnnrc::push_back(root.cases, case_);
+
+                for (ast::Expr* node = case_->precond; node != 0; node = plnnrc::preorder_next(case_->precond, node))
+                {
+                    if (is_Fact(node->type))
+                    {
+                        plnnrc::push_back(root.fact_usages, node);
+                    }
+                }
+            }
         }
     }
 }
@@ -593,6 +622,17 @@ ast::Expr* plnnrc::preorder_next(const ast::Expr* root, ast::Expr* current)
     }
 
     return node->next_sibling;
+}
+
+void plnnrc::infer_types(ast::Root& /*tree*/)
+{
+    // for (uint32_t i = 0; i < plnnrc::size(root.fact_usages); ++i)
+    // {
+    //     ast::Expr* fact = root.fact_usages[i];
+    //     ast::Fact_Type* fact_type = plnnrc::get_fact(tree, fact->value);
+    //     // unefined fact is used?
+    //     plnnrc_assert(fact_type != 0);
+    // }
 }
 
 static void debug_output_expr(ast::Expr* root, Formatter& fmtr)

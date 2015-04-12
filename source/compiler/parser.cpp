@@ -135,7 +135,21 @@ void plnnrc::parse(Parser& state)
     state.tree.domain->tasks = root_task.next;
     expect(state, Token_Eof);
 
-    build_lookups(state.tree);
+    // convert all preconditions to DNF form.
+    if (state.tree.domain)
+    {
+        for (ast::Task* task = state.tree.domain->tasks; task != 0; task = task->next)
+        {
+            for (ast::Case* case_ = task->cases; case_ != 0; case_ = case_->next)
+            {
+                ast::Expr* precond = case_->precond;
+                ast::Expr* precond_dnf = plnnrc::convert_to_dnf(state.tree, precond);
+                case_->precond = precond_dnf;
+            }
+        }
+    }
+
+    plnnrc::build_lookups(state.tree);
 }
 
 ast::World* plnnrc::parse_world(Parser& state)
