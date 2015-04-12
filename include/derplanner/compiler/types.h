@@ -119,19 +119,22 @@ struct Lexer
     Id_Table<Token_Type>    keywords;
 };
 
+// ast node pool handle.
+struct Pool;
+
 namespace ast
 {
     /// Abstract-Syntax-Tree nodes, produced by the parser.
+    struct Root;
+        struct World;
+            struct Fact_Type;
+                struct Fact_Param;
 
-    struct World;
-        struct Fact_Type;
-            struct Fact_Param;
-
-    struct Domain;
-        struct Task;
-            struct Task_Param;
-            struct Case;
-                struct Expr;
+        struct Domain;
+            struct Task;
+                struct Task_Param;
+                struct Case;
+                    struct Expr;
 
     // Parsed `world` block.
     struct World
@@ -222,9 +225,25 @@ namespace ast
         // previous sibling (forms cyclic list).
         Expr*           prev_sibling_cyclic;
     };
-}
 
-struct Pool;
+    // Root node of Abstract-Syntax-Tree.
+    struct Root
+    {
+        Root();
+        ~Root();
+
+        // maps fact name -> Fact_Type node.
+        Id_Table<Fact_Type*>    fact_lookup;
+        // maps task name -> Task node.
+        Id_Table<Task*>         task_lookup;
+        // parsed `world` block.
+        World*                  world;
+        // parsed `domain` block.
+        Domain*                 domain;
+        // paged memory pool ast nodes are allocated from.
+        Pool*                   pool;
+    };
+}
 
 // Parser state.
 struct Parser
@@ -232,20 +251,12 @@ struct Parser
     Parser();
     ~Parser();
 
-    // maps fact name -> Fact_Type node.
-    Id_Table<ast::Fact_Type*>   fact_lookup;
-    // maps task name -> Task node.
-    Id_Table<ast::Task*>        task_lookup;
-    // parsed `world`.
-    ast::World*                 world;
-    // parsed `domain`.
-    ast::Domain*                domain;
     // token source for parsing.
     Lexer*                      lexer;
-    // memory pool `ast::*` types are allocated from.
-    Pool*                       pool;
     // last lexed token.
     Token                       token;
+    // stores resulting AST.
+    ast::Root                   tree;
 };
 
 class Writer;

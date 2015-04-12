@@ -23,6 +23,7 @@
 #include "derplanner/compiler/array.h"
 #include "derplanner/compiler/lexer.h"
 #include "derplanner/compiler/parser.h"
+#include "derplanner/compiler/transforms.h"
 
 // bring in parser implementation details.
 namespace plnnrc
@@ -31,7 +32,7 @@ namespace plnnrc
     extern ast::Expr*   parse_precond(Parser& state);
 
     extern void         flatten(ast::Expr* root);
-    extern ast::Expr*   convert_to_nnf(Parser& state, ast::Expr* root);
+    extern ast::Expr*   convert_to_nnf(ast::Root& tree, ast::Expr* root);
 }
 
 namespace
@@ -152,7 +153,7 @@ namespace
         Test_Compiler compiler;
         init(compiler, input);
         plnnrc::ast::Expr* expr = plnnrc::parse_precond(compiler.parser);
-        expr = plnnrc::convert_to_nnf(compiler.parser, expr);
+        expr = plnnrc::convert_to_nnf(compiler.parser.tree, expr);
         std::string actual;
         to_string(expr, actual);
         CHECK_EQUAL(expected, actual.c_str());
@@ -176,7 +177,7 @@ namespace
         Test_Compiler compiler;
         init(compiler, input);
         plnnrc::ast::Expr* expr = plnnrc::parse_precond(compiler.parser);
-        expr = plnnrc::convert_to_dnf(compiler.parser, expr);
+        expr = plnnrc::convert_to_dnf(compiler.parser.tree, expr);
         std::string actual;
         to_string(expr, actual);
         CHECK_EQUAL(expected, actual.c_str());
