@@ -946,7 +946,7 @@ static void debug_output_expr(ast::Expr* root, Formatter& fmtr)
 
     for (ast::Expr* child = root->child; child != 0; child = child->next_sibling)
     {
-        Indent s(fmtr);
+        Indent_Scope s(fmtr);
         debug_output_expr(child, fmtr);
     }
 }
@@ -961,7 +961,7 @@ void plnnrc::debug_output_ast(const Parser& state, Writer* output)
         plnnrc::newline(fmtr);
         plnnrc::writeln(fmtr, "World");
 
-        Indent s(fmtr);
+        Indent_Scope s(fmtr);
         for (ast::Fact_Type* fact = state.world->facts; fact != 0; fact = fact->next)
         {
             plnnrc::write(fmtr, "%i%n[", fact->name);
@@ -983,11 +983,11 @@ void plnnrc::debug_output_ast(const Parser& state, Writer* output)
         plnnrc::newline(fmtr);
         plnnrc::writeln(fmtr, "Domain[%n]", state.domain->name);
 
-        Indent s(fmtr);
+        Indent_Scope s(fmtr);
         for (ast::Task* task = state.domain->tasks; task != 0; task = task->next)
         {
             plnnrc::write(fmtr, "%iTask[%n]", task->name);
-            Indent s(fmtr);
+            Indent_Scope s(fmtr);
 
             if (task->params)
             {
@@ -1004,7 +1004,7 @@ void plnnrc::debug_output_ast(const Parser& state, Writer* output)
             for (ast::Case* case_ = task->cases; case_ != 0; case_ = case_->next)
             {
                 plnnrc::writeln(fmtr, "Case");
-                Indent s(fmtr);
+                Indent_Scope s(fmtr);
                 debug_output_expr(case_->precond, fmtr);
 
                 for (ast::Expr* task_inst = case_->task_list; task_inst != 0; task_inst = task_inst->next_sibling)

@@ -100,7 +100,11 @@ void print_help()
 "       Custom header.\n"
 "\n"
 "   --help, -h\n"
-"       Print this help message and exit.\n");
+"       Print this help message and exit.\n"
+"\n"
+"   --debug, -d\n"
+"       Outputs lexer and parser debugging info.\n"
+"\n");
 }
 
 bool parse_argument(const char* argument, std::string& name, std::string& value)
@@ -171,6 +175,7 @@ int main(int argc, char** argv)
     std::string output_dir;
     std::string custom_header;
     std::string input_path;
+    bool enable_debug_info = false;
 
     for (int i = 1; i < argc; ++i)
     {
@@ -193,6 +198,12 @@ int main(int argc, char** argv)
             {
                 print_help();
                 return 1;
+            }
+
+            if (name == "d" || name == "debug")
+            {
+                enable_debug_info = true;
+                continue;
             }
 
             if (i + 1 >= argc || argv[i + 1][0] == '-')
@@ -275,17 +286,20 @@ int main(int argc, char** argv)
 
     input_buffer.data[input_size] = 0;
 
-    plnnrc::Writer_Crt standard_output = plnnrc::make_stdout_writer();
-    plnnrc::debug_output_tokens(input_buffer.data, &standard_output);
-
     plnnrc::Lexer lexer;
     plnnrc::init(lexer, input_buffer.data);
 
     plnnrc::Parser parser;
     plnnrc::init(parser, &lexer);
 
-    parse(parser);
-    plnnrc::debug_output_ast(parser, &standard_output);
+    if (enable_debug_info)
+    {
+        plnnrc::Writer_Crt standard_output = plnnrc::make_stdout_writer();
+        plnnrc::debug_output_tokens(input_buffer.data, &standard_output);
+
+        parse(parser);
+        plnnrc::debug_output_ast(parser, &standard_output);
+    }
 
     return 0;
 }

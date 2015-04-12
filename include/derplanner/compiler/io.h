@@ -103,17 +103,17 @@ void enter_indent_level(Formatter& formatter);
 void exit_indent_level(Formatter& formatter);
 
 // Scoped `enter_indent_level`/`exit_indent_level`.
-struct Indent
+struct Indent_Scope
 {
     Formatter& formatter;
 
-    Indent(Formatter& formatter) :formatter(formatter) { plnnrc::enter_indent_level(formatter); }
+    Indent_Scope(Formatter& formatter) :formatter(formatter) { plnnrc::enter_indent_level(formatter); }
 
-    ~Indent() { plnnrc::exit_indent_level(formatter); }
+    ~Indent_Scope() { plnnrc::exit_indent_level(formatter); }
 
-    // silence VS warning C4512: 'plnnrc::Indent' : assignment operator could not be generated
-    Indent(const Indent&);
-    Indent& operator=(const Indent&);
+    // silence VS warning C4512: 'plnnrc::Indent_Scope' : assignment operator could not be generated
+    Indent_Scope(const Indent_Scope&);
+    Indent_Scope& operator=(const Indent_Scope&);
 };
 
 }
