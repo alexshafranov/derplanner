@@ -18,8 +18,8 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef DERPLANNER_COMPILER_TRANSFORMS_H_
-#define DERPLANNER_COMPILER_TRANSFORMS_H_
+#ifndef DERPLANNER_COMPILER_AST_H_
+#define DERPLANNER_COMPILER_AST_H_
 
 #include "derplanner/compiler/types.h"
 

@@ -23,7 +23,7 @@
 #include "derplanner/compiler/array.h"
 #include "derplanner/compiler/lexer.h"
 #include "derplanner/compiler/parser.h"
-#include "derplanner/compiler/transforms.h"
+#include "derplanner/compiler/ast.h"
 
 // bring in parser implementation details.
 namespace plnnrc
