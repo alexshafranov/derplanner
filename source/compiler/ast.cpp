@@ -23,7 +23,7 @@
 #include "derplanner/compiler/array.h"
 #include "derplanner/compiler/id_table.h"
 #include "derplanner/compiler/lexer.h"
-#include "derplanner/compiler/transforms.h"
+#include "derplanner/compiler/ast.h"
 #include "pool.h"
 
 using namespace plnnrc;

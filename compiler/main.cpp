@@ -27,7 +27,7 @@
 #include "derplanner/compiler/memory.h"
 #include "derplanner/compiler/lexer.h"
 #include "derplanner/compiler/parser.h"
-#include "derplanner/compiler/transforms.h"
+#include "derplanner/compiler/ast.h"
 
 using namespace plnnrc;
 
