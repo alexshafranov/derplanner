@@ -403,7 +403,7 @@ static ast::Expr* parse_conjunct(Parser& state)
         {
             eat(state);
 
-            node = create_expr(state.tree, Token_Fact);
+            node = create_expr(state.tree, Token_Func);
             node->value = tok.value;
 
             if (!is_R_Paren(peek(state)))

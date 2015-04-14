@@ -61,7 +61,7 @@ void plnnrc::init(ast::Root& root)
     init(root.cases, 1024);
     init(root.fact_usages, 1024);
 
-    // pool will have 1MB sized pages.
+    // 1MB pages.
     root.pool = create_paged_pool(1024*1024);
 }
 
@@ -108,7 +108,7 @@ void plnnrc::build_lookups(ast::Root& root)
 
                 for (ast::Expr* node = case_->precond; node != 0; node = plnnrc::preorder_next(case_->precond, node))
                 {
-                    if (is_Fact(node->type))
+                    if (is_Func(node->type))
                     {
                         plnnrc::push_back(root.fact_usages, node);
                     }
@@ -385,7 +385,7 @@ static inline bool is_trivial_conjunct(ast::Expr* node)
 {
     // assert expression is NNF.
     plnnrc_assert(!is_Not(node->type) || !is_Logical(node->child->type));
-    return is_Not(node->type) || is_Var(node->type) || is_Fact(node->type);
+    return is_Not(node->type) || is_Var(node->type) || is_Func(node->type);
 }
 
 // check if expression is either trivial (~x, x) or conjunction of trivials.
@@ -626,13 +626,6 @@ ast::Expr* plnnrc::preorder_next(const ast::Expr* root, ast::Expr* current)
 
 void plnnrc::infer_types(ast::Root& /*tree*/)
 {
-    // for (uint32_t i = 0; i < plnnrc::size(root.fact_usages); ++i)
-    // {
-    //     ast::Expr* fact = root.fact_usages[i];
-    //     ast::Fact_Type* fact_type = plnnrc::get_fact(tree, fact->value);
-    //     // unefined fact is used?
-    //     plnnrc_assert(fact_type != 0);
-    // }
 }
 
 static void debug_output_expr(ast::Expr* root, Formatter& fmtr)

@@ -126,7 +126,7 @@ namespace
     TEST(precondition_parsing)
     {
         check_expr("()", "And");
-        check_expr("( f(x, y, z) )", "Fact[f]{ Var[x] Var[y] Var[z] }");
+        check_expr("( f(x, y, z) )", "Func[f]{ Var[x] Var[y] Var[z] }");
         check_expr("( ~(a & b) | c )", "Or{ Not{ And{ Var[a] Var[b] } } Var[c] }");
         check_expr("( a & (b & c) )", "And{ Var[a] And{ Var[b] Var[c] } }");
     }
