@@ -41,18 +41,28 @@ namespace plnnrc
 
 using namespace plnnrc;
 
+static Page* allocate_page(Pool* pool)
+{
+    uint8_t* memory = static_cast<uint8_t*>(plnnrc::allocate(pool->page_size));
+    plnnrc_assert(memory != 0);
+
+    Page* page = plnnrc::align<Page>(memory);
+    page->prev = pool->head;
+    page->memory = memory;
+    page->top = page->data;
+    pool->head = page;
+
+    return page;
+}
+
 plnnrc::Pool* plnnrc::create_paged_pool(size_t page_size)
 {
-    size_t worstcase_size = sizeof(Pool) + plnnrc_alignof(Pool) + sizeof(Page) + plnnrc_alignof(Page);
-    plnnrc_assert(page_size > worstcase_size);
-    (void)(worstcase_size);
+    const size_t bookkeeping_size = sizeof(Pool) + plnnrc_alignof(Pool) + sizeof(Page) + plnnrc_alignof(Page);
+    plnnrc_assert(page_size > bookkeeping_size);
+    (void)(bookkeeping_size);
 
     uint8_t* memory = static_cast<uint8_t*>(plnnrc::allocate(page_size));
-
-    if (!memory)
-    {
-        return 0;
-    }
+    plnnrc_assert(memory != 0);
 
     Pool* pool = plnnrc::align<Pool>(memory);
     Page* head = plnnrc::align<Page>(pool + 1);
@@ -70,25 +80,13 @@ plnnrc::Pool* plnnrc::create_paged_pool(size_t page_size)
 void* plnnrc::allocate(Pool* pool, size_t bytes, size_t alignment)
 {
     Page* p = pool->head;
+    plnnrc_assert(sizeof(Page) + plnnrc_alignof(Page) + bytes + alignment < pool->page_size);
 
     uint8_t* top = static_cast<uint8_t*>(plnnrc::align(p->top, alignment));
 
     if (top + bytes > p->memory + pool->page_size)
     {
-        uint8_t* memory = static_cast<uint8_t*>(plnnrc::allocate(pool->page_size));
-
-        if (!memory)
-        {
-            return 0;
-        }
-
-        p = plnnrc::align<Page>(memory);
-        p->prev = pool->head;
-        p->memory = memory;
-        p->top = p->data;
-
-        pool->head = p;
-
+        Page* p = allocate_page(pool);
         top = static_cast<uint8_t*>(plnnrc::align(p->top, alignment));
     }
 

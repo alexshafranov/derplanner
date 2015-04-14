@@ -75,9 +75,9 @@ PLNNRC_OPERATOR_TOKEN(Minus,          "-")
 
 // parent node for task expansion list
 PLNNRC_AST_TOKEN(List)
-// node representing (predicate or function): Name(Var_1, ..., Var_N)
-PLNNRC_AST_TOKEN(Fact)
-// variable (symbol) as a parameter for predicate or function.
+// node representing function syntax: Name(Var_1, ..., Var_N)
+PLNNRC_AST_TOKEN(Func)
+// variable as a parameter for predicate or function.
 PLNNRC_AST_TOKEN(Var)
 
 PLNNRC_TOKEN_GROUP(Keyword,   Domain, Float)
