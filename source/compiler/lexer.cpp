@@ -32,7 +32,7 @@ static const char* token_type_names[] =
     #define PLNNRC_TOKEN(TOKEN_TAG) #TOKEN_TAG,
     #include "derplanner/compiler/token_tags.inl"
     #undef PLNNRC_TOKEN
-    "None",
+    "Count",
 };
 
 const char* plnnrc::get_type_name(Token_Type token_type)

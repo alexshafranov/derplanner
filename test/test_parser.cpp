@@ -25,6 +25,8 @@
 #include "derplanner/compiler/parser.h"
 #include "derplanner/compiler/ast.h"
 
+using namespace plnnrc;
+
 // bring in parser implementation details.
 namespace plnnrc
 {
@@ -37,21 +39,25 @@ namespace plnnrc
 
 namespace
 {
-    std::string to_string(const plnnrc::ast::World* world)
+    std::string to_string(const ast::World* world)
     {
         std::string output;
 
-        for (plnnrc::ast::Fact_Type* fact = world->facts; fact != 0; fact = fact->next)
+        for (uint32_t i = 0; i < world->facts.size; ++i)
         {
+            const ast::Fact* fact = world->facts[i];
+
             output.append(fact->name.str, fact->name.length);
             output.append("[");
 
-            for (plnnrc::ast::Fact_Param* param = fact->params; param != 0; param = param->next)
+            for (uint32_t j = 0; j < fact->params.size; ++j)
             {
-                const char* token_name = plnnrc::get_type_name(param->type);
+                const ast::Data_Type* param = fact->params[j];
+
+                const char* token_name = plnnrc::get_type_name(param->data_type);
                 output.append(token_name);
 
-                if (param->next != 0)
+                if (j < fact->params.size - 1)
                 {
                     output.append(", ");
                 }
@@ -59,7 +65,7 @@ namespace
 
             output.append("]");
 
-            if (fact->next != 0)
+            if (i < world->facts.size - 1)
             {
                 output.append(" ");
             }
@@ -68,20 +74,34 @@ namespace
         return output;
     }
 
-    void to_string(const plnnrc::ast::Expr* expr, std::string& output)
+    void to_string(const ast::Expr* expr, std::string& output)
     {
         output += plnnrc::get_type_name(expr->type);
-        if (expr->value.length > 0)
+        Token_Value name;
+
+        switch (expr->type)
+        {
+        case ast::Node_Var:
+            name = static_cast<const ast::Var*>(expr)->name;
+            break;
+        case ast::Node_Func:
+            name = static_cast<const ast::Func*>(expr)->name;
+            break;
+        default:
+            break;
+        }
+
+        if (name.length > 0)
         {
             output += "[";
-            output.append(expr->value.str, expr->value.length);
+            output.append(name.str, name.length);
             output += "]";
         }
 
         if (expr->child)
         {
             output += "{ ";
-            for (plnnrc::ast::Expr* child = expr->child; child != 0; child = child->next_sibling)
+            for (ast::Expr* child = expr->child; child != 0; child = child->next_sibling)
             {
                 to_string(child, output);
                 output += " ";
@@ -92,8 +112,8 @@ namespace
 
     struct Test_Compiler
     {
-        plnnrc::Lexer   lexer;
-        plnnrc::Parser  parser;
+        Lexer   lexer;
+        Parser  parser;
     };
 
     void init(Test_Compiler& compiler, const char* input)
@@ -108,7 +128,7 @@ namespace
         Test_Compiler compiler;
         init(compiler, "{ f1(int32) f2(float, int32) f3() }");
         const char* expected = "f1[Int32] f2[Float, Int32] f3[]";
-        plnnrc::ast::World* world = plnnrc::parse_world(compiler.parser);
+        ast::World* world = plnnrc::parse_world(compiler.parser);
         std::string world_str = to_string(world);
         CHECK_EQUAL(expected, world_str.c_str());
     }
@@ -117,7 +137,7 @@ namespace
     {
         Test_Compiler compiler;
         init(compiler, input);
-        plnnrc::ast::Expr* expr = plnnrc::parse_precond(compiler.parser);
+        ast::Expr* expr = plnnrc::parse_precond(compiler.parser);
         std::string actual;
         to_string(expr, actual);
         CHECK_EQUAL(expected, actual.c_str());
@@ -135,7 +155,7 @@ namespace
     {
         Test_Compiler compiler;
         init(compiler, input);
-        plnnrc::ast::Expr* expr = plnnrc::parse_precond(compiler.parser);
+        ast::Expr* expr = plnnrc::parse_precond(compiler.parser);
         plnnrc::flatten(expr);
         std::string actual;
         to_string(expr, actual);
@@ -152,7 +172,7 @@ namespace
     {
         Test_Compiler compiler;
         init(compiler, input);
-        plnnrc::ast::Expr* expr = plnnrc::parse_precond(compiler.parser);
+        ast::Expr* expr = plnnrc::parse_precond(compiler.parser);
         expr = plnnrc::convert_to_nnf(compiler.parser.tree, expr);
         std::string actual;
         to_string(expr, actual);
@@ -176,7 +196,7 @@ namespace
     {
         Test_Compiler compiler;
         init(compiler, input);
-        plnnrc::ast::Expr* expr = plnnrc::parse_precond(compiler.parser);
+        ast::Expr* expr = plnnrc::parse_precond(compiler.parser);
         expr = plnnrc::convert_to_dnf(compiler.parser.tree, expr);
         std::string actual;
         to_string(expr, actual);

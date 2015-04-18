@@ -53,14 +53,11 @@ plnnrc::ast::Root::~Root()
 
 void plnnrc::init(ast::Root& root)
 {
+    memset(&root, 0, sizeof(root));
     // randomly chosen initial number of facts.
     init(root.fact_lookup, 1024);
     // randomly chosen initial number of tasks.
     init(root.task_lookup, 1024);
-
-    init(root.cases, 1024);
-    init(root.fact_usages, 1024);
-
     // 1MB pages.
     root.pool = create_paged_pool(1024*1024);
 }
@@ -68,58 +65,13 @@ void plnnrc::init(ast::Root& root)
 void plnnrc::destroy(ast::Root& root)
 {
     destroy(root.pool);
-    destroy(root.fact_usages);
-    destroy(root.cases);
     destroy(root.task_lookup);
     destroy(root.fact_lookup);
     memset(&root, 0, sizeof(root));
 }
 
-void plnnrc::build_lookups(ast::Root& root)
-{
-    // lookup for world facts.
-    if (root.world)
-    {
-        for (ast::Fact_Type* fact = root.world->facts; fact != 0; fact = fact->next)
-        {
-            plnnrc_assert(!plnnrc::get_fact(root, fact->name)); // error: fact is already defined.
-            plnnrc::set(root.fact_lookup, fact->name, fact);
-        }
-    }
-
-    // lookup for tasks.
-    if (root.domain)
-    {
-        for (ast::Task* task = root.domain->tasks; task != 0; task = task->next)
-        {
-            plnnrc_assert(!plnnrc::get_task(root, task->name)); // error: multiple definitions of task.
-            plnnrc::set(root.task_lookup, task->name, task);
-        }
-    }
-
-    // linar array of all cases.
-    if (root.domain)
-    {
-        for (ast::Task* task = root.domain->tasks; task != 0; task = task->next)
-        {
-            for (ast::Case* case_ = task->cases; case_ != 0; case_ = case_->next)
-            {
-                plnnrc::push_back(root.cases, case_);
-
-                for (ast::Expr* node = case_->precond; node != 0; node = plnnrc::preorder_next(case_->precond, node))
-                {
-                    if (is_Func(node->type))
-                    {
-                        plnnrc::push_back(root.fact_usages, node);
-                    }
-                }
-            }
-        }
-    }
-}
-
 template <typename T>
-static inline T* allocate_node(plnnrc::ast::Root& tree)
+static inline T* pool_alloc(plnnrc::ast::Root& tree)
 {
     T* result = static_cast<T*>(plnnrc::allocate(tree.pool, sizeof(T), plnnrc_alignof(T)));
     memset(result, 0, sizeof(T));
@@ -128,58 +80,93 @@ static inline T* allocate_node(plnnrc::ast::Root& tree)
 
 ast::World* plnnrc::create_world(ast::Root& tree)
 {
-    return allocate_node<ast::World>(tree);
-}
-
-ast::Fact_Type* plnnrc::create_fact_type(ast::Root& tree, ast::Fact_Type* previous)
-{
-    ast::Fact_Type* node = allocate_node<ast::Fact_Type>(tree);
-    if (previous) { previous->next = node; }
+    ast::World* node = pool_alloc<ast::World>(tree);
+    node->type = ast::Node_World;
     return node;
 }
 
-ast::Fact_Param* plnnrc::create_fact_param(ast::Root& tree, ast::Fact_Param* previous)
+ast::Fact* plnnrc::create_fact(ast::Root& tree, const Token_Value& name)
 {
-    ast::Fact_Param* node = allocate_node<ast::Fact_Param>(tree);
-    if (previous) { previous->next = node; }
+    ast::Fact* node = pool_alloc<ast::Fact>(tree);
+    node->type = ast::Node_Fact;
+    node->name = name;
     return node;
 }
 
-ast::Domain* plnnrc::create_domain(ast::Root& tree)
+ast::Param* plnnrc::create_param(ast::Root& tree, const Token_Value& name)
 {
-    return allocate_node<ast::Domain>(tree);
+    ast::Param* node = pool_alloc<ast::Param>(tree);
+    node->type = ast::Node_Param;
+    node->name = name;
+    return node;
+}
+
+ast::Domain* plnnrc::create_domain(ast::Root& tree, const Token_Value& name)
+{
+    ast::Domain* node = pool_alloc<ast::Domain>(tree);
+    node->type = ast::Node_Domain;
+    node->name = name;
+    return node;
 }
 
 ast::Task* plnnrc::create_task(ast::Root& tree, const Token_Value& name)
 {
-    ast::Task* node = allocate_node<ast::Task>(tree);
+    ast::Task* node = pool_alloc<ast::Task>(tree);
+    node->type = ast::Node_Task;
     node->name = name;
-    return node;
-}
-
-ast::Task_Param* plnnrc::create_task_param(ast::Root& tree, const Token_Value& name, ast::Task_Param* previous)
-{
-    ast::Task_Param* node = allocate_node<ast::Task_Param>(tree);
-    node->name = name;
-    if (previous) { previous->next = node; }
     return node;
 }
 
 ast::Case* plnnrc::create_case(ast::Root& tree)
 {
-    return allocate_node<ast::Case>(tree);
-}
-
-ast::Expr* plnnrc::create_expr(ast::Root& tree, Token_Type type)
-{
-    ast::Expr* node = allocate_node<ast::Expr>(tree);
-    node->type = type;
+    ast::Case* node = pool_alloc<ast::Case>(tree);
+    node->type = ast::Node_Case;
     return node;
 }
 
-ast::Fact_Type* plnnrc::get_fact(ast::Root& tree, const Token_Value& token_value)
+ast::Func* plnnrc::create_func(ast::Root& tree, const Token_Value& name)
 {
-    ast::Fact_Type* const* ptr = plnnrc::get(tree.fact_lookup, token_value.str, token_value.length);
+    ast::Func* node = pool_alloc<ast::Func>(tree);
+    node->type = ast::Node_Func;
+    node->name = name;
+    return node;
+}
+
+ast::Op* plnnrc::create_op(ast::Root& tree, ast::Node_Type operation)
+{
+    ast::Op* node = pool_alloc<ast::Op>(tree);
+    node->type = operation;
+    return node;
+}
+
+ast::Var* plnnrc::create_var(ast::Root& tree, const Token_Value& name)
+{
+    ast::Var* node = pool_alloc<ast::Var>(tree);
+    node->type = ast::Node_Var;
+    node->name = name;
+    return node;
+}
+
+ast::Data_Type* plnnrc::create_type(ast::Root& tree, Token_Type data_type)
+{
+    ast::Data_Type* node = pool_alloc<ast::Data_Type>(tree);
+    node->type = ast::Node_Data_Type;
+    node->data_type = data_type;
+    return node;
+}
+
+ast::Literal* plnnrc::create_literal(ast::Root& tree, const Token& token)
+{
+    ast::Literal* node = pool_alloc<ast::Literal>(tree);
+    node->type = ast::Node_Literal;
+    node->value = token.value;
+    node->data_type = token.type;
+    return node;
+}
+
+ast::Fact* plnnrc::get_fact(ast::Root& tree, const Token_Value& token_value)
+{
+    ast::Fact* const* ptr = plnnrc::get(tree.fact_lookup, token_value.str, token_value.length);
 
     if (ptr)
     {
@@ -301,7 +288,7 @@ ast::Expr* plnnrc::convert_to_nnf(ast::Root& tree, ast::Expr* root)
         {
             // node_Not becomes `And` or `Or`.
             ast::Expr* node_Op = node_Not;
-            node_Op->type = is_And(node_Logical->type) ? Token_Or : Token_And;
+            node_Op->type = is_And(node_Logical) ? ast::Node_Or : ast::Node_And;
 
             // all chilren of `node_Logical` are parented under a new `Not` which is parented under `node_Op`.
             ast::Expr* after = node_Logical;
@@ -310,7 +297,7 @@ ast::Expr* plnnrc::convert_to_nnf(ast::Root& tree, ast::Expr* root)
                 ast::Expr* next_expr = expr->next_sibling;
                 plnnrc::unparent(expr);
 
-                ast::Expr* new_Not = create_expr(tree, Token_Not);
+                ast::Expr* new_Not = create_op(tree, ast::Node_Not);
                 plnnrc::append_child(new_Not, expr);
                 plnnrc::insert_child(after, new_Not);
                 after = new_Not;
@@ -337,7 +324,7 @@ ast::Expr* plnnrc::convert_to_dnf(ast::Root& tree, ast::Expr* root)
 {
     // convert `root` to Negative-Normal-Form and put it under a new Or node.
     ast::Expr* nnf_root = convert_to_nnf(tree, root);
-    ast::Expr* new_root = create_expr(tree, Token_Or);
+    ast::Expr* new_root = create_op(tree, ast::Node_Or);
     plnnrc::append_child(new_root, nnf_root);
     flatten(new_root);
 
@@ -384,8 +371,8 @@ static ast::Expr* convert_Or_to_dnf(ast::Root& tree, ast::Expr* root)
 static inline bool is_trivial_conjunct(ast::Expr* node)
 {
     // assert expression is NNF.
-    plnnrc_assert(!is_Not(node->type) || !is_Logical(node->child->type));
-    return is_Not(node->type) || is_Var(node->type) || is_Func(node->type);
+    plnnrc_assert(!is_Not(node) || !is_Logical(node->child));
+    return is_Not(node) || is_Var(node) || is_Literal(node) || is_Func(node);
 }
 
 // check if expression is either trivial (~x, x) or conjunction of trivials.
@@ -397,7 +384,7 @@ static inline bool is_conjunct(ast::Expr* node)
     }
 
     // check if conjunction trivials.
-    if (!is_And(node->type))
+    if (!is_And(node))
     {
         return false;
     }
@@ -413,11 +400,43 @@ static inline bool is_conjunct(ast::Expr* node)
     return true;
 }
 
-static inline ast::Expr* clone_node(ast::Root& tree, ast::Expr* node)
+static inline ast::Expr* find_child(ast::Expr* root, ast::Node_Type type)
 {
-    ast::Expr* clone = create_expr(tree, node->type);
-    clone->value = node->value;
-    return clone;
+    for (ast::Expr* node = root->child; node != 0; node = node->next_sibling)
+    {
+        if (node->type == type)
+        {
+            return node;
+        }
+    }
+
+    return 0;
+}
+
+struct Clone_Visitor
+{
+    ast::Root* tree;
+    ast::Expr* result;
+
+    template <typename T>
+    inline ast::Expr* make_clone(const T* node)
+    {
+        T* clone = pool_alloc<T>(*tree);
+        *clone = *node;
+        return clone;
+    }
+
+    void visit(const ast::Func*   node)   { result = make_clone(node); }
+    void visit(const ast::Var*    node)   { result = make_clone(node); }
+    void visit(const ast::Op*     node)   { result = make_clone(node); }
+    void visit(const ast::Node*)          { plnnrc_assert(false); }
+};
+
+static ast::Expr* clone_node(ast::Root& tree, const ast::Expr* node)
+{
+    Clone_Visitor cloner = { &tree, 0 };
+    visit_node(node, &cloner);
+    return cloner.result;
 }
 
 static ast::Expr* clone_tree(ast::Root& tree, ast::Expr* root)
@@ -461,33 +480,20 @@ static ast::Expr* clone_tree(ast::Root& tree, ast::Expr* root)
     return root_clone;
 }
 
-static inline ast::Expr* find_child(ast::Expr* root, Token_Type type)
-{
-    for (ast::Expr* node = root->child; node != 0; node = node->next_sibling)
-    {
-        if (node->type == type)
-        {
-            return node;
-        }
-    }
-
-    return 0;
-}
-
 // apply distributive law to make `Or` root of the expression.
 static void distribute_And_over_Or(ast::Root& tree, ast::Expr* node_And)
 {
     plnnrc_assert(node_And && is_And(node_And->type));
 
     // find the first `Or` argument of `node_And`.
-    ast::Expr* node_Or = find_child(node_And, Token_Or);
+    ast::Expr* node_Or = find_child(node_And, ast::Node_Or);
     plnnrc_assert(node_Or);
 
     ast::Expr* after = node_And;
     for (ast::Expr* or_arg = node_Or->child; or_arg != 0; )
     {
         ast::Expr* next_or_arg = or_arg->next_sibling;
-        ast::Expr* new_And = create_expr(tree, Token_And);
+        ast::Expr* new_And = create_op(tree, ast::Node_And);
 
         for (ast::Expr* and_arg = node_And->child; and_arg != 0; )
         {
@@ -628,85 +634,83 @@ void plnnrc::infer_types(ast::Root& /*tree*/)
 {
 }
 
-static void debug_output_expr(ast::Expr* root, Formatter& fmtr)
+static const char* node_type_names[] =
 {
-    plnnrc::write(fmtr, "%i%s", plnnrc::get_type_name(root->type));
+    "None",
+    #define PLNNRC_NODE(TAG, TYPE) #TAG,
+    #include "derplanner/compiler/ast_tags.inl"
+    #undef PLNNRC_NODE
+    "Count",
+};
 
-    if (root->value.str)
-    {
-        plnnrc::write(fmtr, "[%n]", root->value);
-    }
-
-    plnnrc::newline(fmtr);
-
-    for (ast::Expr* child = root->child; child != 0; child = child->next_sibling)
-    {
-        Indent_Scope s(fmtr);
-        debug_output_expr(child, fmtr);
-    }
+const char* plnnrc::get_type_name(ast::Node_Type node_type)
+{
+    return node_type_names[node_type];
 }
+
+struct Debug_Output_Visitor
+{
+    Formatter* fmtr;
+
+    template <typename T>
+    inline void print_children(const ast::Nodes<T>& nodes)
+    {
+        for (uint32_t i = 0; i < nodes.size; ++i)
+        {
+            Indent_Scope s(*fmtr);
+            visit_node(nodes[i], this);
+        }
+    }
+
+    inline void print_children(const ast::Expr* node)
+    {
+        for (const ast::Expr* child = node->child; child != 0; child = child->next_sibling)
+        {
+            Indent_Scope s(*fmtr);
+            visit_node(child, this);
+        }
+    }
+
+    inline void print(const ast::Node* node) { plnnrc::writeln(*fmtr, "%s", get_type_name(node->type)); }
+
+    template <typename T>
+    inline void print_named(const T* node) { plnnrc::writeln(*fmtr, "%s[%n]", get_type_name(node->type), node->name); }
+
+    template <typename T>
+    inline void print_data_type(const T* node)
+    {
+        Indent_Scope s(*fmtr);
+        plnnrc::writeln(*fmtr, ":%s", get_type_name(node->data_type));
+    }
+
+    void visit(const ast::World* node) { print(node); print_children(node->facts); }
+    void visit(const ast::Domain* node) { print_named(node); print_children(node->tasks); }
+    void visit(const ast::Fact* node) { print_named(node); print_children(node->params); }
+    void visit(const ast::Task* node) { print_named(node); print_children(node->params); print_children(node->cases); }
+    void visit(const ast::Case* node) { print(node); print_children(node->precond); print_children(node->task_list); }
+    void visit(const ast::Param* node) { print_named(node); print_data_type(node); }
+    void visit(const ast::Var* node) { print_named(node); print_data_type(node); }
+    void visit(const ast::Func* node) { print_named(node); print_children(node); }
+    void visit(const ast::Expr* node) { print(node); print_children(node); }
+    void visit(const ast::Data_Type* node) { print(node); print_data_type(node); }
+    void visit(const ast::Literal* node) { print(node); }
+};
 
 void plnnrc::debug_output_ast(const ast::Root& tree, Writer* output)
 {
     Formatter fmtr;
     plnnrc::init(fmtr, "  ", "\n", output);
+    plnnrc::newline(fmtr);
+
+    Debug_Output_Visitor visitor = { &fmtr };
 
     if (tree.world)
     {
-        plnnrc::newline(fmtr);
-        plnnrc::writeln(fmtr, "World");
-
-        Indent_Scope s(fmtr);
-        for (ast::Fact_Type* fact = tree.world->facts; fact != 0; fact = fact->next)
-        {
-            plnnrc::write(fmtr, "%i%n[", fact->name);
-            for (ast::Fact_Param* param = fact->params; param != 0; param = param->next)
-            {
-                plnnrc::write(fmtr, "%s", plnnrc::get_type_name(param->type));
-                if (param->next)
-                {
-                    plnnrc::write(fmtr, ", ");
-                }
-            }
-            plnnrc::write(fmtr, "]");
-            plnnrc::newline(fmtr);
-        }
+        visit_node(tree.world, &visitor);
     }
 
     if (tree.domain)
     {
-        plnnrc::newline(fmtr);
-        plnnrc::writeln(fmtr, "Domain[%n]", tree.domain->name);
-
-        Indent_Scope s(fmtr);
-        for (ast::Task* task = tree.domain->tasks; task != 0; task = task->next)
-        {
-            plnnrc::write(fmtr, "%iTask[%n]", task->name);
-            Indent_Scope s(fmtr);
-
-            if (task->params)
-            {
-                plnnrc::write(fmtr, " ");
-            }
-
-            for (ast::Task_Param* param = task->params; param != 0; param = param->next)
-            {
-                plnnrc::write(fmtr, "Param[%n] ", param->name);
-            }
-
-            plnnrc::newline(fmtr);
-
-            for (ast::Case* case_ = task->cases; case_ != 0; case_ = case_->next)
-            {
-                plnnrc::writeln(fmtr, "Case");
-                Indent_Scope s(fmtr);
-                debug_output_expr(case_->precond, fmtr);
-
-                for (ast::Expr* task_inst = case_->task_list; task_inst != 0; task_inst = task_inst->next_sibling)
-                {
-                    debug_output_expr(task_inst, fmtr);
-                }
-            }
-        }
+        visit_node(tree.domain, &visitor);
     }
 }

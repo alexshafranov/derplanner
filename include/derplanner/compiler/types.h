@@ -65,7 +65,7 @@ enum Error_Type
     Error_Count,
 };
 
-// Token identifiers.
+// Token type tags.
 enum Token_Type
 {
     Token_Unknown = 0,
@@ -93,10 +93,10 @@ struct Token
 
     // type of the token.
     Token_Type      type;
-    // input buffer column.
-    uint32_t        column;
     // input buffer line.
     uint32_t        line;
+    // input buffer column.
+    uint32_t        column;
     // string value of the token.
     Token_Value     value;
 };
@@ -115,137 +115,182 @@ struct Lexer
     uint32_t                column;
     // current line.
     uint32_t                line;
-    // maps keyword strings to keyword types.
+    // maps keyword names to keyword types.
     Id_Table<Token_Type>    keywords;
 };
 
-// ast node pool handle.
+// Paged pool handle.
 struct Pool;
+// Visitor interface
+class Visitor;
+
+/// Abstract-Syntax-Tree nodes, produced by the parser.
 
 namespace ast
 {
-    /// Abstract-Syntax-Tree nodes, produced by the parser.
     struct Root;
-        struct World;
-            struct Fact_Type;
-                struct Fact_Param;
+        struct Node;
+            struct World;
+                struct Fact;
+                    struct Data_Type;
+            struct Domain;
+                struct Task;
+                    struct Param;
+                    struct Case;
+                        struct Expr;
+                            struct Var;
+                            struct Func;
+                            struct Op;
+                            struct Literal;
 
-        struct Domain;
-            struct Task;
-                struct Task_Param;
-                struct Case;
-                    struct Expr;
-
-    // Parsed `world` block.
-    struct World
+    // Node type tags.
+    enum Node_Type
     {
-        // fact type declarations.
-        Fact_Type*      facts;
+        Node_None = 0,
+        #define PLNNRC_NODE(TAG, TYPE) Node_##TAG,
+        #include "derplanner/compiler/ast_tags.inl"
+        #undef PLNNRC_NODE
+        Node_Count,
     };
 
-    // Database fact type declaration in `world` block.
-    struct Fact_Type
+    // AST base node.
+    struct Node
     {
-        // name of the fact.
-        Token_Value     name;
-        // list of parameter types.
-        Fact_Param*     params;
-        // next in a list.
-        Fact_Type*      next;
+        // type tag of the node.
+        Node_Type       type;
     };
 
-    // Parsed fact parameter type.
-    struct Fact_Param
+    // Array of node pointers.
+    template <typename T>
+    struct Nodes
     {
-        // parameter type. (one of the type tokens).
-        Token_Type      type;
-        // next parameter in a list.
-        Fact_Param*     next;
+        uint32_t        size;
+        T**             array;
+
+        T* operator[](uint32_t index);
+        const T* operator[](uint32_t index) const;
     };
 
-    // Parsed `domain` block.
-    struct Domain
-    {
-        // domain name.
-        Token_Value     name;
-        // list of tasks.
-        Task*           tasks;
-    };
-
-    // Parsed `task` block.
-    struct Task
-    {
-        // name of the task.
-        Token_Value     name;
-        // list of task parameters.
-        Task_Param*     params;
-        // list of expansion cases.
-        Case*           cases;
-        // next in a list.
-        Task*           next;
-    };
-
-    // Parsed task parameter.
-    struct Task_Param
-    {
-        // name of the parameter.
-        Token_Value     name;
-        // inferred type of the parameter.
-        Token_Type      inferred;
-        // next in a list.
-        Task_Param*     next;
-    };
-
-    // Parsed `case`.
-    struct Case
-    {
-        // precondition expression.
-        Expr*           precond;
-        // expression node for each task in task list.
-        Expr*           task_list;
-        // next in a list.
-        Case*           next;
-    };
-
-    // Parsed case precondition/task-list expression.
-    struct Expr
-    {
-        // could be operation or literal or fact/variable identifier.
-        Token_Type      type;
-        // inferred type for variables.
-        Token_Type      inferred;
-        // literal or identifier or operation name.
-        Token_Value     value;
-        // parent node.
-        Expr*           parent;
-        // first child node.
-        Expr*           child;
-        // next sibling.
-        Expr*           next_sibling;
-        // previous sibling (forms cyclic list).
-        Expr*           prev_sibling_cyclic;
-    };
-
-    // Root node of Abstract-Syntax-Tree.
+    // Root of the Abstract-Syntax-Tree.
     struct Root
     {
         Root();
         ~Root();
 
-        // maps fact name -> Fact_Type node.
-        Id_Table<Fact_Type*>    fact_lookup;
+        // maps fact name -> Fact node.
+        Id_Table<Fact*> fact_lookup;
         // maps task name -> Task node.
-        Id_Table<Task*>         task_lookup;
-        // all `Case` nodes in the order they appear in domain.
-        Array<Case*>            cases;
-        // `Token_Fact` nodes from all preconditions.
-        Array<Expr*>            fact_usages;
+        Id_Table<Task*> task_lookup;
         // parsed `world` block.
-        World*                  world;
+        World*          world;
         // parsed `domain` block.
-        Domain*                 domain;
+        Domain*         domain;
         // paged memory pool ast nodes are allocated from.
-        Pool*                   pool;
+        Pool*           pool;
+    };
+
+    // Parsed `world` block.
+    struct World : public Node
+    {
+        // fact declarations.
+        Nodes<Fact>         facts;
+    };
+
+    // Parsed `domain` block.
+    struct Domain : public Node
+    {
+        // domain name.
+        Token_Value         name;
+        // tasks.
+        Nodes<Task>         tasks;
+    };
+
+    // Fact: Id + Parameters.
+    struct Fact : public Node
+    {
+        // name of the fact.
+        Token_Value         name;
+        // parameters.
+        Nodes<Data_Type>    params;
+    };
+
+    // Fact parameter type.
+    struct Data_Type : public Node
+    {
+        // must be one of the type tokens.
+        Token_Type          data_type;
+    };
+
+    // Parsed `task` block.
+    struct Task : public Node
+    {
+        // name of the task.
+        Token_Value         name;
+        // task parameters.
+        Nodes<Param>        params;
+        // expansion cases.
+        Nodes<Case>         cases;
+    };
+
+    // Parsed `case` block.
+    struct Case : public Node
+    {
+        // precondition.
+        Expr*               precond;
+        // task list expressions.
+        Nodes<Expr>         task_list;
+    };
+
+    // Parameter: Id + Data type.
+    struct Param : public Node
+    {
+        // name of the parameter.
+        Token_Value         name;
+        // inferred or defined data type (one of the type tokens).
+        Token_Type          data_type;
+    };
+
+    // Parsed precondition expression or task list item.
+    struct Expr : public Node
+    {
+        // parent node.
+        Expr*               parent;
+        // first child node.
+        Expr*               child;
+        // next sibling.
+        Expr*               next_sibling;
+        // previous sibling (forms cyclic list).
+        Expr*               prev_sibling_cyclic;
+    };
+
+    // Operator, used in precondition expression.
+    struct Op : public Expr {};
+
+    // Variable, used in precondition and task list expressions.
+    struct Var : public Expr
+    {
+        // name of the variable.
+        Token_Value         name;
+        // first occurence of this variable, could be ast::Param or ast::Var.
+        Node*               definition;
+        // inferred data type for this variable.
+        Token_Type          data_type;
+    };
+
+    // Literal.
+    struct Literal : public Expr
+    {
+        // string value of the literal.
+        Token_Value         value;
+        // type of the literal.
+        Token_Type          data_type;
+    };
+
+    // Fact/function/task used in precondtition or task list.
+    struct Func : public Expr
+    {
+        // name of the fact/function/task.
+        Token_Value         name;
     };
 }
 
@@ -256,11 +301,13 @@ struct Parser
     ~Parser();
 
     // token source for parsing.
-    Lexer*      lexer;
+    Lexer*              lexer;
     // last lexed token.
-    Token       token;
+    Token               token;
     // stores resulting AST.
-    ast::Root   tree;
+    ast::Root           tree;
+    // scratch memory to store node pointers.
+    Array<ast::Node*>   scratch;
 };
 
 class Writer;

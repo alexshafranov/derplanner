@@ -26,6 +26,7 @@ namespace plnnrc
 {
     struct Page
     {
+        size_t      size;
         Page*       prev;
         uint8_t*    memory;
         uint8_t*    top;
@@ -34,16 +35,18 @@ namespace plnnrc
 
     struct Pool
     {
-        Page*   head;
         size_t  page_size;
+        Page*   head;
     };
 }
 
 using namespace plnnrc;
 
-static Page* allocate_page(Pool* pool)
+static const size_t bookkeeping_size = sizeof(Pool) + plnnrc_alignof(Pool) + sizeof(Page) + plnnrc_alignof(Page);
+
+static Page* allocate_page(Pool* pool, size_t size)
 {
-    uint8_t* memory = static_cast<uint8_t*>(plnnrc::allocate(pool->page_size));
+    uint8_t* memory = static_cast<uint8_t*>(plnnrc::allocate(size));
     plnnrc_assert(memory != 0);
 
     Page* page = plnnrc::align<Page>(memory);
@@ -57,9 +60,7 @@ static Page* allocate_page(Pool* pool)
 
 plnnrc::Pool* plnnrc::create_paged_pool(size_t page_size)
 {
-    const size_t bookkeeping_size = sizeof(Pool) + plnnrc_alignof(Pool) + sizeof(Page) + plnnrc_alignof(Page);
     plnnrc_assert(page_size > bookkeeping_size);
-    (void)(bookkeeping_size);
 
     uint8_t* memory = static_cast<uint8_t*>(plnnrc::allocate(page_size));
     plnnrc_assert(memory != 0);
@@ -67,6 +68,7 @@ plnnrc::Pool* plnnrc::create_paged_pool(size_t page_size)
     Pool* pool = plnnrc::align<Pool>(memory);
     Page* head = plnnrc::align<Page>(pool + 1);
 
+    head->size = page_size;
     head->prev = 0;
     head->memory = memory;
     head->top = head->data;
@@ -80,13 +82,17 @@ plnnrc::Pool* plnnrc::create_paged_pool(size_t page_size)
 void* plnnrc::allocate(Pool* pool, size_t bytes, size_t alignment)
 {
     Page* p = pool->head;
-    plnnrc_assert(sizeof(Page) + plnnrc_alignof(Page) + bytes + alignment < pool->page_size);
-
     uint8_t* top = static_cast<uint8_t*>(plnnrc::align(p->top, alignment));
 
-    if (top + bytes > p->memory + pool->page_size)
+    if (top + bytes > p->memory + p->size)
     {
-        Page* p = allocate_page(pool);
+        size_t new_page_size = pool->page_size;
+        if (bytes + alignment + bookkeeping_size > new_page_size)
+        {
+            new_page_size = bytes + alignment + bookkeeping_size;
+        }
+
+        p = allocate_page(pool, new_page_size);
         top = static_cast<uint8_t*>(plnnrc::align(p->top, alignment));
     }
 

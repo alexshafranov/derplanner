@@ -48,6 +48,9 @@ template <typename T>
 void push_back(Array<T>& array, const T* values, uint32_t count);
 
 template <typename T>
+void clear(Array<T>& array);
+
+template <typename T>
 uint32_t size(const Array<T>& array);
 
 }
@@ -134,6 +137,12 @@ inline const T& plnnrc::Array<T>::operator[](uint32_t index) const
 {
     plnnrc_assert(index < size);
     return data[index];
+}
+
+template <typename T>
+inline void plnnrc::clear(plnnrc::Array<T>& array)
+{
+    array.size = 0;
 }
 
 template <typename T>
