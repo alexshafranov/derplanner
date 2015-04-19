@@ -79,26 +79,24 @@ void newline(Formatter& formatter);
 
 // `write` variant with automatic indentation and newline.
 void writeln(Formatter& formatter, const char* format, ...);
-
 // `write` variant with `va_list`.
 void write(Formatter& formatter, const char* format, va_list args);
-
 // make sure the buffer is written to output.
 void flush(Formatter& formatter);
 
 /// Low-level interface.
 
-void put_char(Formatter& formatter, char c);
-void put_str(Formatter& formatter, const char* str);
-void put_str(Formatter& formatter, const char* str, size_t length);
-void put_int(Formatter& formatter, int n);
-void put_token(Formatter& formatter, const Token_Value& token_value);
-void put_indent(Formatter& formatter, uint32_t level);
+void    put_char(Formatter& formatter, char c);
+void    put_str(Formatter& formatter, const char* str);
+void    put_str(Formatter& formatter, const char* str, size_t length);
+void    put_int(Formatter& formatter, int n);
+void    put_token(Formatter& formatter, const Token_Value& token_value);
+void    put_indent(Formatter& formatter, uint32_t level);
 
 // increase the current indentation level.
-void enter_indent_level(Formatter& formatter);
+void    enter_indent_level(Formatter& formatter);
 // decrease the current indentation level.
-void exit_indent_level(Formatter& formatter);
+void    exit_indent_level(Formatter& formatter);
 
 // Scoped `enter_indent_level`/`exit_indent_level`.
 struct Indent_Scope
