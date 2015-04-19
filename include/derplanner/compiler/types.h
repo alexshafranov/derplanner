@@ -78,8 +78,6 @@ enum Token_Type
 // String value of the token.
 struct Token_Value
 {
-    Token_Value();
-
     // number of characters in the string.
     uint32_t        length;
     // pointer to the beginning of the string in an input buffer.
