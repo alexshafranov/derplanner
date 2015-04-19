@@ -50,6 +50,7 @@ static Page* allocate_page(Pool* pool, size_t size)
 {
     uint8_t* memory = static_cast<uint8_t*>(plnnrc::allocate(size));
     plnnrc_assert(memory != 0);
+    pool->total_allocated += size;
 
     Page* page = plnnrc::align<Page>(memory);
     page->prev = pool->head;
@@ -78,7 +79,7 @@ plnnrc::Pool* plnnrc::create_paged_pool(size_t page_size)
     pool->head = head;
     pool->page_size = page_size;
     pool->total_requested = 0;
-    pool->total_allocated = 0;
+    pool->total_allocated = page_size;
 
     return pool;
 }
@@ -114,4 +115,14 @@ void plnnrc::destroy(const Pool* pool)
         plnnrc::deallocate(p->memory);
         p = n;
     }
+}
+
+size_t plnnrc::get_total_allocated(const Pool* handle)
+{
+    return handle->total_allocated;
+}
+
+size_t plnnrc::get_total_requested(const Pool* handle)
+{
+    return handle->total_requested;
 }
