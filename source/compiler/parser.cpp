@@ -24,6 +24,7 @@
 #include "derplanner/compiler/lexer.h"
 #include "derplanner/compiler/array.h"
 #include "derplanner/compiler/ast.h"
+#include "derplanner/compiler/id_table.h"
 #include "derplanner/compiler/parser.h"
 #include "pool.h"
 
@@ -180,6 +181,35 @@ void plnnrc::parse(Parser& state)
     }
 
     expect(state, Token_Eof);
+
+    // builds look-ups
+    {
+        ast::World* world = state.tree.world;
+        if (world)
+        {
+            const uint32_t num_facts = plnnrc::size(world->facts);
+            plnnrc::init(state.tree.fact_lookup, num_facts);
+
+            for (uint32_t i = 0; i < num_facts; ++i)
+            {
+                ast::Fact* fact = world->facts[i];
+                plnnrc::set(state.tree.fact_lookup, fact->name, fact);
+            }
+        }
+
+        ast::Domain* domain = state.tree.domain;
+        if (domain)
+        {
+            const uint32_t num_tasks = plnnrc::size(domain->tasks);
+            plnnrc::init(state.tree.task_lookup, num_tasks);
+
+            for (uint32_t i = 0; i < num_tasks; ++i)
+            {
+                ast::Task* task = domain->tasks[i];
+                plnnrc::set(state.tree.task_lookup, task->name, task);
+            }
+        }
+    }
 }
 
 ast::World* plnnrc::parse_world(Parser& state)

@@ -57,7 +57,7 @@ namespace
                 const char* token_name = plnnrc::get_type_name(param->data_type);
                 output.append(token_name);
 
-                if (j < fact->params.size - 1)
+                if (j < plnnrc::size(fact->params) - 1)
                 {
                     output.append(", ");
                 }
@@ -65,7 +65,7 @@ namespace
 
             output.append("]");
 
-            if (i < world->facts.size - 1)
+            if (i < plnnrc::size(world->facts) - 1)
             {
                 output.append(" ");
             }

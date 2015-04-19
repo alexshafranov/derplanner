@@ -54,10 +54,6 @@ plnnrc::ast::Root::~Root()
 void plnnrc::init(ast::Root& root)
 {
     memset(&root, 0, sizeof(root));
-    // randomly chosen initial number of facts.
-    init(root.fact_lookup, 1024);
-    // randomly chosen initial number of tasks.
-    init(root.task_lookup, 1024);
     // 32kb pages.
     root.pool = create_paged_pool(32*1024);
 }
