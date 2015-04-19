@@ -121,8 +121,6 @@ struct Lexer
 
 // Paged pool handle.
 struct Pool;
-// Visitor interface
-class Visitor;
 
 /// Abstract-Syntax-Tree nodes, produced by the parser.
 
