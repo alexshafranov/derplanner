@@ -129,7 +129,7 @@ inline const T* plnnrc::ast::Nodes<T>::operator[](uint32_t index) const
 }
 
 template <typename Visitor_Type>
-inline void plnnrc::visit_node<Visitor_Type>(plnnrc::ast::Node* node, Visitor_Type* visitor)
+inline void plnnrc::visit_node(plnnrc::ast::Node* node, Visitor_Type* visitor)
 {
     switch (node->type)
     {
@@ -142,7 +142,7 @@ inline void plnnrc::visit_node<Visitor_Type>(plnnrc::ast::Node* node, Visitor_Ty
 }
 
 template <typename Visitor_Type>
-inline void plnnrc::visit_node<Visitor_Type>(const plnnrc::ast::Node* node, Visitor_Type* visitor)
+inline void plnnrc::visit_node(const plnnrc::ast::Node* node, Visitor_Type* visitor)
 {
     switch (node->type)
     {
