@@ -77,7 +77,7 @@ namespace
     void to_string(const ast::Expr* expr, std::string& output)
     {
         output += plnnrc::get_type_name(expr->type);
-        Token_Value name;
+        Token_Value name = { 0, 0 };
 
         switch (expr->type)
         {
