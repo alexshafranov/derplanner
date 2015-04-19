@@ -2,6 +2,7 @@ language: cpp
 
 compiler:
     - gcc
+    - clang
 
 script:
     - ./premake5 gmake

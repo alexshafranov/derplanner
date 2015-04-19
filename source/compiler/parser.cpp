@@ -39,18 +39,18 @@ namespace plnnrc
 using namespace plnnrc;
 
 template <typename T>
-struct Nodes_Builder
+struct Children_Builder
 {
-    Parser*         state;
-    ast::Nodes<T>*  output;
-    uint32_t        scratch_rewind;
+    Parser*             state;
+    ast::Children<T>*   output;
+    uint32_t            scratch_rewind; 
 
-    Nodes_Builder(Parser* state, ast::Nodes<T>* output) : state(state), output(output)
+    Children_Builder(Parser* state, ast::Children<T>* output) : state(state), output(output)
     {
         scratch_rewind = plnnrc::size(state->scratch);
     }
 
-    ~Nodes_Builder()
+    ~Children_Builder()
     {
         const uint32_t scratch_size = plnnrc::size(state->scratch);
         plnnrc_assert(scratch_size >= scratch_rewind);
@@ -150,7 +150,7 @@ void plnnrc::parse(Parser& state)
 
     // parse world & tasks.
     {
-        Nodes_Builder<ast::Task> nb(&state, &domain->tasks);
+        Children_Builder<ast::Task> cb(&state, &domain->tasks);
 
         for (;;)
         {
@@ -171,7 +171,7 @@ void plnnrc::parse(Parser& state)
             if (is_Task(tok))
             {
                 ast::Task* task = parse_task(state);
-                nb.push_back(task);
+                cb.push_back(task);
                 continue;
             }
 
@@ -186,14 +186,14 @@ ast::World* plnnrc::parse_world(Parser& state)
 {
     ast::World* world = create_world(state.tree);
     Token tok = expect(state, Token_L_Curly);
-    Nodes_Builder<ast::Fact> nb(&state, &world->facts);
+    Children_Builder<ast::Fact> cb(&state, &world->facts);
 
     for (;;)
     {
         tok = expect(state, Token_Id);
         ast::Fact* fact = create_fact(state.tree, tok.value);
-        nb.push_back(fact);
-        Nodes_Builder<ast::Data_Type> nb(&state, &fact->params);
+        cb.push_back(fact);
+        Children_Builder<ast::Data_Type> cb(&state, &fact->params);
 
         // parse parameters
         expect(state, Token_L_Paren);
@@ -203,7 +203,7 @@ ast::World* plnnrc::parse_world(Parser& state)
             {
                 tok = expect(state, is_Type);
                 ast::Data_Type* param = create_type(state.tree, tok.type);
-                nb.push_back(param);
+                cb.push_back(param);
 
                 if (!is_Comma(peek(state)))
                 {
@@ -238,13 +238,13 @@ ast::Task* plnnrc::parse_task(Parser& state)
     expect(state, Token_L_Paren);
     if (!is_R_Paren(peek(state)))
     {
-        Nodes_Builder<ast::Param> nb(&state, &task->params);
+        Children_Builder<ast::Param> cb(&state, &task->params);
 
         for (;;)
         {
             tok = expect(state, Token_Id);
             ast::Param* task_param = create_param(state.tree, tok.value);
-            nb.push_back(task_param);
+            cb.push_back(task_param);
 
             if (!is_Comma(peek(state)))
             {
@@ -264,13 +264,13 @@ ast::Task* plnnrc::parse_task(Parser& state)
     expect(state, Token_L_Curly);
     if (!is_R_Curly(peek(state)))
     {
-        Nodes_Builder<ast::Case> nb(&state, &task->cases);
+        Children_Builder<ast::Case> cb(&state, &task->cases);
 
         for (;;)
         {
             expect(state, Token_Case);
             ast::Case* case_ = create_case(state.tree);
-            nb.push_back(case_);
+            cb.push_back(case_);
 
             ast::Expr* precond = parse_precond(state);
             case_->precond = precond;
@@ -314,14 +314,14 @@ ast::Expr* plnnrc::parse_precond(Parser& state)
 void plnnrc::parse_task_list(Parser& state, ast::Case* case_)
 {
     expect(state, is_L_Square);
-    Nodes_Builder<ast::Expr> nb(&state, &case_->task_list);
+    Children_Builder<ast::Expr> cb(&state, &case_->task_list);
     
     if (!is_R_Square(peek(state)))
     {
         for (;;)
         {
             ast::Expr* node_Task = parse_conjunct(state);
-            nb.push_back(node_Task);
+            cb.push_back(node_Task);
 
             if (!is_Comma(peek(state)))
             {

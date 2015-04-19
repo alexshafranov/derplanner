@@ -158,9 +158,9 @@ namespace ast
         Node_Type       type;
     };
 
-    // Array of node pointers.
+    // Array of children nodes.
     template <typename T>
-    struct Nodes
+    struct Children
     {
         uint32_t        size;
         T**             array;
@@ -191,7 +191,7 @@ namespace ast
     struct World : public Node
     {
         // fact declarations.
-        Nodes<Fact>         facts;
+        Children<Fact>      facts;
     };
 
     // Parsed `domain` block.
@@ -200,7 +200,7 @@ namespace ast
         // domain name.
         Token_Value         name;
         // tasks.
-        Nodes<Task>         tasks;
+        Children<Task>      tasks;
     };
 
     // Fact: Id + Parameters.
@@ -209,7 +209,7 @@ namespace ast
         // name of the fact.
         Token_Value         name;
         // parameters.
-        Nodes<Data_Type>    params;
+        Children<Data_Type> params;
     };
 
     // Fact parameter type.
@@ -225,9 +225,9 @@ namespace ast
         // name of the task.
         Token_Value         name;
         // task parameters.
-        Nodes<Param>        params;
+        Children<Param>     params;
         // expansion cases.
-        Nodes<Case>         cases;
+        Children<Case>      cases;
     };
 
     // Parsed `case` block.
@@ -236,7 +236,7 @@ namespace ast
         // precondition.
         Expr*               precond;
         // task list expressions.
-        Nodes<Expr>         task_list;
+        Children<Expr>      task_list;
     };
 
     // Parameter: Id + Data type.
