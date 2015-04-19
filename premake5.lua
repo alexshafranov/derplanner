@@ -11,6 +11,9 @@ solution "derplanner"
         flags "Symbols"
 
     configuration "release"
+        flags "Symbols"
+
+    configuration "release"
         optimize "Speed"
         defines { "NDEBUG" }
 
