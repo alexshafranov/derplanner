@@ -302,7 +302,7 @@ struct Parser
     Token               token;
     // stores resulting AST.
     ast::Root           tree;
-    // scratch memory to store node pointers.
+    // temporary storage for created AST nodes.
     Array<ast::Node*>   scratch;
 };
 
