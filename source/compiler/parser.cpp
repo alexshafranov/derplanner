@@ -96,7 +96,7 @@ void plnnrc::init(Parser& state, Lexer* lexer)
     memset(&state, 0, sizeof(state));
     state.lexer = lexer;
     plnnrc::init(state.tree);
-    plnnrc::init(state.scratch, 1024);
+    plnnrc::init(state.scratch, plnnrc::get_default_allocator(), 1024);
 }
 
 void plnnrc::destroy(Parser& state)

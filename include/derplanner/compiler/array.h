@@ -30,7 +30,7 @@
 namespace plnnrc {
 
 template <typename T>
-void init(Array<T>& array, uint32_t max_size);
+void init(Array<T>& array, Memory* mem, uint32_t max_size);
 
 template <typename T>
 void destroy(Array<T>& array);
@@ -56,26 +56,32 @@ uint32_t size(const Array<T>& array);
 }
 
 template <typename T>
-inline plnnrc::Array<T>::Array() : size(0), max_size(0), data(0) {}
+inline plnnrc::Array<T>::Array() : size(0), max_size(0), data(0), memory(0) {}
 
 template <typename T>
 inline plnnrc::Array<T>::~Array()
 {
-    destroy(*this);
+    if (memory)
+    {
+        destroy(*this);
+    }
 }
 
 template <typename T>
-void plnnrc::init(plnnrc::Array<T>& result, uint32_t max_size)
+void plnnrc::init(plnnrc::Array<T>& result, Memory* mem, uint32_t max_size)
 {
     result.size = 0;
     result.max_size = max_size;
-    result.data = static_cast<T*>(plnnrc::allocate(sizeof(T) * max_size));
+    result.data = plnnrc::allocate<T>(mem, max_size);
+    result.memory = mem;
 }
 
 template <typename T>
 inline void plnnrc::destroy(plnnrc::Array<T>& array)
 {
-    plnnrc::deallocate(array.data);
+    plnnrc::Memory* mem = array.memory;
+    plnnrc_assert(mem != 0);
+    mem->deallocate(array.data);
     array.size = 0;
     array.max_size = 0;
 }
@@ -94,10 +100,12 @@ inline void plnnrc::resize(plnnrc::Array<T>& array, uint32_t new_size)
 template <typename T>
 inline void plnnrc::grow(plnnrc::Array<T>& array, uint32_t new_max_size)
 {
+    plnnrc::Memory* mem = array.memory;
+    plnnrc_assert(mem != 0);
     plnnrc_assert(array.max_size < new_max_size);
-    T* new_data = static_cast<T*>(plnnrc::allocate(sizeof(T) * new_max_size));
+    T* new_data = plnnrc::allocate<T>(mem, new_max_size);
     memcpy(new_data, array.data, sizeof(T) * array.size);
-    plnnrc::deallocate(array.data);
+    mem->deallocate(array.data);
     array.data = new_data;
     array.max_size = new_max_size;
 }

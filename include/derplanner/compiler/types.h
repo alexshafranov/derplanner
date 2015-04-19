@@ -25,6 +25,9 @@
 
 namespace plnnrc {
 
+// Memory allocator base interface.
+class Memory;
+
 // Dynamic array of POD types.
 template <typename T>
 struct Array
@@ -38,6 +41,7 @@ struct Array
     uint32_t    size;
     uint32_t    max_size;
     T*          data;
+    Memory*     memory;
 };
 
 // Dynamic open-addressing hash table, maps constant C-strings to POD values.
