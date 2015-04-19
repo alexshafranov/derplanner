@@ -43,14 +43,14 @@ namespace
     {
         std::string output;
 
-        for (uint32_t i = 0; i < world->facts.size; ++i)
+        for (uint32_t i = 0; i < size(world->facts); ++i)
         {
             const ast::Fact* fact = world->facts[i];
 
             output.append(fact->name.str, fact->name.length);
             output.append("[");
 
-            for (uint32_t j = 0; j < fact->params.size; ++j)
+            for (uint32_t j = 0; j < size(fact->params); ++j)
             {
                 const ast::Data_Type* param = fact->params[j];
 
