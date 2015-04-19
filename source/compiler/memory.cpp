@@ -36,6 +36,8 @@ namespace
 
     plnnrc::Allocate*   alloc_f   = default_alloc;
     plnnrc::Deallocate* dealloc_f = default_dealloc;
+
+    plnnrc::Memory_Default default_allocator;
 }
 
 void plnnrc::set_memory_functions(Allocate* a, Deallocate* f)
@@ -54,4 +56,46 @@ void plnnrc::deallocate(void* ptr)
 {
     plnnrc_assert(dealloc_f != 0);
     dealloc_f(ptr);
+}
+
+plnnrc::Memory* plnnrc::get_default_allocator()
+{
+    return &default_allocator;
+}
+
+void* plnnrc::Memory_Default::allocate(size_t size, size_t alignment)
+{
+    alignment = (alignment < sizeof(uint32_t)) ? sizeof(uint32_t) : alignment;
+    void* p = plnnrc::allocate(sizeof(uint32_t) + alignment + size);
+
+    uint32_t* pad = static_cast<uint32_t*>(p);
+    pad[0] = 0;
+    ++pad;
+
+    uint32_t* data = static_cast<uint32_t*>(align(pad, alignment));
+
+    for (; pad < data; ++pad)
+    {
+        pad[0] = 0xffffffff;
+    }
+
+    return data;
+}
+
+void plnnrc::Memory_Default::deallocate(void* ptr)
+{
+    if (!ptr)
+    {
+        return;
+    }
+
+    uint32_t* p = reinterpret_cast<uint32_t*>(ptr);
+
+    do
+    {
+        --p;
+    }
+    while (p[0] == 0xffffffff);
+
+    plnnrc::deallocate(p);
 }

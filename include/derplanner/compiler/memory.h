@@ -30,6 +30,8 @@
 
 namespace plnnrc {
 
+enum { default_alignment = 16 };
+
 typedef void* Allocate(size_t bytes);
 typedef void  Deallocate(void* ptr);
 
@@ -41,6 +43,40 @@ void* allocate(size_t bytes);
 
 // deallocates memory block pointed previously obtained by `allocate`.
 void deallocate(void* ptr);
+
+// Allocator interface.
+class Memory
+{
+public:
+    virtual ~Memory() {}
+    virtual void* allocate(size_t size, size_t alignment=default_alignment) = 0;
+    virtual void  deallocate(void* ptr) = 0;
+};
+
+// Default allocator, uses `plnnrc::allocate` and `plnnrc::deallocate`.
+class Memory_Default : public Memory
+{
+public:
+    virtual void* allocate(size_t size, size_t alignment=default_alignment);
+    virtual void  deallocate(void* ptr);
+};
+
+// returns static `Memory_Default` instance.
+Memory* get_default_allocator();
+
+// allocate an array of type `T` using specified alignment.
+template <typename T>
+inline T* allocate(Memory* mem, size_t count, size_t alignment)
+{
+    return static_cast<T*>(mem->allocate(count*sizeof(T), alignment));
+}
+
+// allocate an array of type `T` with compiler specified alignment for type `T`.
+template <typename T>
+inline T* allocate(Memory* mem, size_t count)
+{
+    return allocate<T>(mem, count, plnnrc_alignof(T));
+}
 
 // align size.
 inline size_t align(size_t value, size_t alignment)
