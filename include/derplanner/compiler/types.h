@@ -57,6 +57,7 @@ struct Id_Table
     const char**    keys;
     uint32_t*       lengths;
     T*              values;
+    Memory*         memory;
 };
 
 // Error/Warning IDs.

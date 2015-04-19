@@ -20,6 +20,7 @@
 
 #include <string.h>
 #include "derplanner/compiler/io.h"
+#include "derplanner/compiler/memory.h"
 #include "derplanner/compiler/array.h"
 #include "derplanner/compiler/id_table.h"
 #include "derplanner/compiler/lexer.h"
@@ -59,10 +60,10 @@ void plnnrc::init(Lexer& result, const char* buffer)
     result.buffer_ptr = buffer;
     result.column = 1;
     result.line = 1;
-    init(result.keywords, 16);
+    plnnrc::init(result.keywords, plnnrc::get_default_allocator(), 16);
 
-#define PLNNRC_KEYWORD_TOKEN(TOKEN_TAG, TOKEN_STR)      \
-    set(result.keywords, TOKEN_STR, Token_##TOKEN_TAG); \
+#define PLNNRC_KEYWORD_TOKEN(TOKEN_TAG, TOKEN_STR)              \
+    plnnrc::set(result.keywords, TOKEN_STR, Token_##TOKEN_TAG); \
 
     #include "derplanner/compiler/token_tags.inl"
 #undef PLNNRC_KEYWORD_TOKEN
@@ -70,7 +71,7 @@ void plnnrc::init(Lexer& result, const char* buffer)
 
 void plnnrc::destroy(Lexer& state)
 {
-    destroy(state.keywords);
+    plnnrc::destroy(state.keywords);
 }
 
 static inline char get_char(const Lexer& state)

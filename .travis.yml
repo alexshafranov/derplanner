@@ -12,3 +12,9 @@ script:
     # - ./bin/x64/release/derplannerc --out examples examples/blocks.domain
     - ./bin/x64/release/example-travel
     # - ./bin/x64/release/example-blocks
+    - make config=debug_x64
+    - ./bin/x64/debug/tests
+    # - ./bin/x64/release/derplannerc --out examples examples/travel.domain
+    # - ./bin/x64/release/derplannerc --out examples examples/blocks.domain
+    - ./bin/x64/debug/example-travel
+    # - ./bin/x64/release/example-blocks

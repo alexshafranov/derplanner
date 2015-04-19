@@ -79,7 +79,7 @@ namespace
     TEST(insert_and_find)
     {
         plnnrc::Id_Table<int*> table;
-        plnnrc::init(table, num_keys);
+        plnnrc::init(table, plnnrc::get_default_allocator(), num_keys);
 
         int values[num_keys] = {0};
 
@@ -100,7 +100,7 @@ namespace
     TEST(lookup_non_existing_keys)
     {
         plnnrc::Id_Table<int*> table;
-        plnnrc::init(table, num_keys);
+        plnnrc::init(table, plnnrc::get_default_allocator(), num_keys);
 
         int values[num_keys] = {0};
 
@@ -119,7 +119,7 @@ namespace
     TEST(insert_twice)
     {
         plnnrc::Id_Table<int*> table;
-        plnnrc::init(table, 1);
+        plnnrc::init(table, plnnrc::get_default_allocator(), 1);
 
         const char* key = "the_key";
         int value1 = 0;
@@ -138,7 +138,7 @@ namespace
     {
         plnnrc::Id_Table<int*> table;
         // allocate for 2 elems initially
-        plnnrc::init(table, 2);
+        plnnrc::init(table, plnnrc::get_default_allocator(), 2);
 
         // but insert much more
         int values[num_keys];
