@@ -300,6 +300,11 @@ int main(int argc, char** argv)
 
         parse(parser);
         plnnrc::debug_output_ast(parser.tree, &standard_output);
+
+        const size_t ast_size = plnnrc::debug_bytes_allocated(parser.tree);
+        const size_t pool_size = plnnrc::debug_pool_size(parser.tree);
+        printf("ast_size  = %d\n", (uint32_t)ast_size);
+        printf("pool_size = %d\n", (uint32_t)pool_size);
     }
 
     return 0;

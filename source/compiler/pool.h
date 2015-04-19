@@ -40,6 +40,9 @@ void destroy(const Pool* handle);
 
 void* allocate(Pool* handle, size_t bytes, size_t alignment);
 
+size_t get_total_allocated(const Pool* handle);
+size_t get_total_requested(const Pool* handle);
+
 }
 
 #endif

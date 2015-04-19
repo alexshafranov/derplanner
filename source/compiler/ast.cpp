@@ -715,4 +715,16 @@ void plnnrc::debug_output_ast(const ast::Root& tree, Writer* output)
     {
         visit_node<void>(tree.domain, &visitor);
     }
+
+    plnnrc::newline(fmtr);
+}
+
+size_t plnnrc::debug_bytes_allocated(const ast::Root& root)
+{
+    return plnnrc::get_total_requested(root.pool);
+}
+
+size_t plnnrc::debug_pool_size(const ast::Root& root)
+{
+    return plnnrc::get_total_allocated(root.pool);
 }
