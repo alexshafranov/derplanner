@@ -36,6 +36,8 @@ namespace plnnrc
     struct Pool
     {
         size_t  page_size;
+        size_t  total_requested;
+        size_t  total_allocated;
         Page*   head;
     };
 }
@@ -75,6 +77,8 @@ plnnrc::Pool* plnnrc::create_paged_pool(size_t page_size)
 
     pool->head = head;
     pool->page_size = page_size;
+    pool->total_requested = 0;
+    pool->total_allocated = 0;
 
     return pool;
 }
@@ -97,6 +101,7 @@ void* plnnrc::allocate(Pool* pool, size_t bytes, size_t alignment)
     }
 
     p->top = top + bytes;
+    pool->total_requested += bytes;
 
     return top;
 }

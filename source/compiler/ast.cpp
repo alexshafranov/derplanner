@@ -58,8 +58,8 @@ void plnnrc::init(ast::Root& root)
     init(root.fact_lookup, 1024);
     // randomly chosen initial number of tasks.
     init(root.task_lookup, 1024);
-    // 1MB pages.
-    root.pool = create_paged_pool(1024*1024);
+    // 32kb pages.
+    root.pool = create_paged_pool(32*1024);
 }
 
 void plnnrc::destroy(ast::Root& root)
@@ -194,7 +194,7 @@ void plnnrc::flatten(ast::Expr* root)
 
     for (ast::Expr* node_U = root; node_U != 0; node_U = preorder_next(root, node_U))
     {
-        if (!is_And(node_U->type) && !is_Or(node_U->type))
+        if (!is_And(node_U) && !is_Or(node_U))
         {
             continue;
         }
@@ -230,7 +230,7 @@ void plnnrc::flatten(ast::Expr* root)
                 node_V = sibling;
             }
 
-            // no nodes where collapsed -> exit.
+            // no nodes were collapsed -> exit.
             if (done)
             {
                 break;
@@ -246,7 +246,7 @@ ast::Expr* plnnrc::convert_to_nnf(ast::Root& tree, ast::Expr* root)
     // iterate over all `Not` nodes where argument (i.e. child node) is a logical operation.
     for (ast::Expr* node_Not = root; node_Not != 0; )
     {
-        if (!is_Not(node_Not->type))
+        if (!is_Not(node_Not))
         {
             node_Not = preorder_next(new_root, node_Not);
             continue;
@@ -256,7 +256,7 @@ ast::Expr* plnnrc::convert_to_nnf(ast::Root& tree, ast::Expr* root)
         plnnrc_assert(node_Logical != 0);
 
         // eliminate double negation: Not { Not { <expr...> } } -> <expr...>
-        if (is_Not(node_Logical->type))
+        if (is_Not(node_Logical))
         {
             ast::Expr* expr = node_Logical->child;
             plnnrc_assert(expr != 0);
@@ -284,7 +284,7 @@ ast::Expr* plnnrc::convert_to_nnf(ast::Root& tree, ast::Expr* root)
         // De-Morgan's law:
         //      Not{ Or{ <x...> <y...> } }  -> And{ Not{ <x...> } Not{ <y...> } }
         //      Not{ And{ <x...> <y...> } } ->  Or{ Not{ <x...> } Not{ <y...> } }
-        if (is_And(node_Logical->type) || is_Or(node_Logical->type))
+        if (is_And(node_Logical) || is_Or(node_Logical))
         {
             // node_Not becomes `And` or `Or`.
             ast::Expr* node_Op = node_Not;
@@ -413,30 +413,32 @@ static inline ast::Expr* find_child(ast::Expr* root, ast::Node_Type type)
     return 0;
 }
 
-struct Clone_Visitor
+struct Cloner
 {
     ast::Root* tree;
-    ast::Expr* result;
 
     template <typename T>
     inline ast::Expr* make_clone(const T* node)
     {
         T* clone = pool_alloc<T>(*tree);
-        *clone = *node;
+        memcpy(clone, node, sizeof(T));
+        clone->parent = 0;
+        clone->child = 0;
+        clone->next_sibling = 0;
+        clone->prev_sibling_cyclic = 0;
         return clone;
     }
 
-    void visit(const ast::Func*   node)   { result = make_clone(node); }
-    void visit(const ast::Var*    node)   { result = make_clone(node); }
-    void visit(const ast::Op*     node)   { result = make_clone(node); }
-    void visit(const ast::Node*)          { plnnrc_assert(false); }
+    inline ast::Expr* visit(const ast::Func*   node)    { return make_clone(node); }
+    inline ast::Expr* visit(const ast::Var*    node)    { return make_clone(node); }
+    inline ast::Expr* visit(const ast::Op*     node)    { return make_clone(node); }
+    inline ast::Expr* visit(const ast::Node*)           { plnnrc_assert(false); return 0; }
 };
 
 static ast::Expr* clone_node(ast::Root& tree, const ast::Expr* node)
 {
-    Clone_Visitor cloner = { &tree, 0 };
-    visit_node(node, &cloner);
-    return cloner.result;
+    Cloner cloner = { &tree };
+    return visit_node<ast::Expr*>(node, &cloner);
 }
 
 static ast::Expr* clone_tree(ast::Root& tree, ast::Expr* root)
@@ -483,7 +485,7 @@ static ast::Expr* clone_tree(ast::Root& tree, ast::Expr* root)
 // apply distributive law to make `Or` root of the expression.
 static void distribute_And_over_Or(ast::Root& tree, ast::Expr* node_And)
 {
-    plnnrc_assert(node_And && is_And(node_And->type));
+    plnnrc_assert(node_And && is_And(node_And));
 
     // find the first `Or` argument of `node_And`.
     ast::Expr* node_Or = find_child(node_And, ast::Node_Or);
@@ -653,12 +655,12 @@ struct Debug_Output_Visitor
     Formatter* fmtr;
 
     template <typename T>
-    inline void print_children(const ast::Nodes<T>& nodes)
+    inline void print_children(const ast::Children<T>& nodes)
     {
         for (uint32_t i = 0; i < nodes.size; ++i)
         {
             Indent_Scope s(*fmtr);
-            visit_node(nodes[i], this);
+            visit_node<void>(nodes[i], this);
         }
     }
 
@@ -667,7 +669,7 @@ struct Debug_Output_Visitor
         for (const ast::Expr* child = node->child; child != 0; child = child->next_sibling)
         {
             Indent_Scope s(*fmtr);
-            visit_node(child, this);
+            visit_node<void>(child, this);
         }
     }
 
@@ -706,11 +708,11 @@ void plnnrc::debug_output_ast(const ast::Root& tree, Writer* output)
 
     if (tree.world)
     {
-        visit_node(tree.world, &visitor);
+        visit_node<void>(tree.world, &visitor);
     }
 
     if (tree.domain)
     {
-        visit_node(tree.domain, &visitor);
+        visit_node<void>(tree.domain, &visitor);
     }
 }

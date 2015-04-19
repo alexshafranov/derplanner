@@ -63,11 +63,11 @@ void        unparent(ast::Expr* node);
 ast::Expr*  preorder_next(const ast::Expr* root, ast::Expr* current);
 
 // calls a proper `visit` method overload depending on the node type.
-template <typename Visitor_Type>
-void visit_node(ast::Node* node, Visitor_Type* visitor);
+template <typename Return_Type, typename Visitor_Type>
+Return_Type visit_node(ast::Node* node, Visitor_Type* visitor);
 
-template <typename Visitor_Type>
-void visit_node(const ast::Node* node, Visitor_Type* visitor);
+template <typename Return_Type, typename Visitor_Type>
+Return_Type visit_node(const ast::Node* node, Visitor_Type* visitor);
 
 /// Expression transformations.
 
@@ -115,41 +115,43 @@ void        debug_output_ast(const ast::Root& root, Writer* output);
 #endif
 
 template <typename T>
-inline T* plnnrc::ast::Nodes<T>::operator[](uint32_t index)
+inline T* plnnrc::ast::Children<T>::operator[](uint32_t index)
 {
     plnnrc_assert(index < size);
     return array[index];
 }
 
 template <typename T>
-inline const T* plnnrc::ast::Nodes<T>::operator[](uint32_t index) const
+inline const T* plnnrc::ast::Children<T>::operator[](uint32_t index) const
 {
     plnnrc_assert(index < size);
     return array[index];
 }
 
-template <typename Visitor_Type>
-inline void plnnrc::visit_node(plnnrc::ast::Node* node, Visitor_Type* visitor)
+template <typename Return_Type, typename Visitor_Type>
+inline Return_Type plnnrc::visit_node(plnnrc::ast::Node* node, Visitor_Type* visitor)
 {
     switch (node->type)
     {
-    #define PLNNRC_NODE(TAG, TYPE) case plnnrc::ast::Node_##TAG: visitor->visit(static_cast<TYPE*>(node)); break;
+    #define PLNNRC_NODE(TAG, TYPE) case plnnrc::ast::Node_##TAG: return visitor->visit(static_cast<TYPE*>(node));
     #include "derplanner/compiler/ast_tags.inl"
     #undef PLNNRC_NODE
     default:
         plnnrc_assert(false);
+        return Return_Type();
     }
 }
 
-template <typename Visitor_Type>
-inline void plnnrc::visit_node(const plnnrc::ast::Node* node, Visitor_Type* visitor)
+template <typename Return_Type, typename Visitor_Type>
+inline Return_Type plnnrc::visit_node(const plnnrc::ast::Node* node, Visitor_Type* visitor)
 {
     switch (node->type)
     {
-    #define PLNNRC_NODE(TAG, TYPE) case plnnrc::ast::Node_##TAG: visitor->visit(static_cast<const TYPE*>(node)); break;
+    #define PLNNRC_NODE(TAG, TYPE) case plnnrc::ast::Node_##TAG: return visitor->visit(static_cast<const TYPE*>(node));
     #include "derplanner/compiler/ast_tags.inl"
     #undef PLNNRC_NODE
     default:
         plnnrc_assert(false);
+        return Return_Type();
     }
 }
