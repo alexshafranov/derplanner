@@ -33,7 +33,7 @@ namespace plnnrc {
 
 // initialize `Id_Table`.
 template <typename T>
-void init(Id_Table<T>& table, uint32_t max_size);
+void init(Id_Table<T>& table, Memory* mem, uint32_t max_size);
 
 // destroys id table.
 template <typename T>
@@ -63,6 +63,9 @@ const T* get(const Id_Table<T>& table, const char* key, uint32_t length);
 
 template <typename T>
 uint32_t size(const Id_Table<T>& table);
+
+template <typename T>
+uint32_t max_size(const Id_Table<T>& table);
 
 }
 
@@ -187,10 +190,13 @@ namespace id_table
         plnnrc_assert(new_max_size > table.max_size);
         new_max_size = id_table::required_size(new_max_size);
 
-        uint32_t* new_hashes = static_cast<uint32_t*>(plnnrc::allocate(new_max_size * sizeof(uint32_t)));
-        const char** new_keys = static_cast<const char**>(plnnrc::allocate(new_max_size * sizeof(void*)));
-        uint32_t* new_lengths = static_cast<uint32_t*>(plnnrc::allocate(new_max_size * sizeof(uint32_t)));
-        T* new_values = static_cast<T*>(plnnrc::allocate(new_max_size * sizeof(T)));
+        plnnrc::Memory* mem = table.memory;
+        plnnrc_assert(mem != 0);
+
+        uint32_t* new_hashes = plnnrc::allocate<uint32_t>(mem, new_max_size);
+        const char** new_keys = plnnrc::allocate<const char*>(mem, new_max_size);
+        uint32_t* new_lengths = plnnrc::allocate<uint32_t>(mem, new_max_size);
+        T* new_values = plnnrc::allocate<T>(mem, new_max_size);
         // null key means empty cell.
         memset(new_keys, 0, sizeof(new_keys)*new_max_size);
 
@@ -219,10 +225,10 @@ namespace id_table
             }
         }
 
-        plnnrc::deallocate(old_values);
-        plnnrc::deallocate(old_lengths);
-        plnnrc::deallocate(old_keys);
-        plnnrc::deallocate(old_hashes);
+        mem->deallocate(old_values);
+        mem->deallocate(old_lengths);
+        mem->deallocate(old_keys);
+        mem->deallocate(old_hashes);
     }
 }
 
@@ -234,35 +240,42 @@ inline plnnrc::Id_Table<T>::Id_Table()
     , keys(0)
     , lengths(0)
     , values(0)
+    , memory(0)
 {
 }
 
 template <typename T>
 inline plnnrc::Id_Table<T>::~Id_Table()
 {
-    destroy(*this);
+    if (memory)
+    {
+        destroy(*this);
+    }
 }
 
 template <typename T>
-void plnnrc::init(plnnrc::Id_Table<T>& table, uint32_t max_size)
+void plnnrc::init(plnnrc::Id_Table<T>& table, plnnrc::Memory* mem, uint32_t max_size)
 {
     max_size = id_table::required_size(max_size);
     table.size = 0;
     table.max_size = max_size;
-    table.hashes = static_cast<uint32_t*>(plnnrc::allocate(max_size * sizeof(uint32_t)));
-    table.keys = static_cast<const char**>(plnnrc::allocate(max_size * sizeof(void*)));
-    table.lengths = static_cast<uint32_t*>(plnnrc::allocate(max_size * sizeof(uint32_t)));
-    table.values = static_cast<T*>(plnnrc::allocate(max_size * sizeof(T)));
+    table.hashes = plnnrc::allocate<uint32_t>(mem, max_size);
+    table.keys = plnnrc::allocate<const char*>(mem, max_size);
+    table.lengths = plnnrc::allocate<uint32_t>(mem, max_size);
+    table.values = plnnrc::allocate<T>(mem, max_size);
+    table.memory = mem;
     memset(table.keys, 0, sizeof(table.keys[0])*max_size);
 }
 
 template <typename T>
 void plnnrc::destroy(plnnrc::Id_Table<T>& table)
 {
-    plnnrc::deallocate(table.values);
-    plnnrc::deallocate(table.lengths);
-    plnnrc::deallocate(table.keys);
-    plnnrc::deallocate(table.hashes);
+    plnnrc::Memory* mem = table.memory;
+    plnnrc_assert(mem != 0);
+    mem->deallocate(table.values);
+    mem->deallocate(table.lengths);
+    mem->deallocate(table.keys);
+    mem->deallocate(table.hashes);
     memset(&table, 0, sizeof(table));
 }
 
@@ -352,6 +365,12 @@ template <typename T>
 inline uint32_t plnnrc::size(const Id_Table<T>& table)
 {
     return table.size;
+}
+
+template <typename T>
+uint32_t plnnrc::max_size(const Id_Table<T>& table)
+{
+    return table.max_size;
 }
 
 #endif

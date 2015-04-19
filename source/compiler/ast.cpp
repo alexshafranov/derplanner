@@ -61,8 +61,17 @@ void plnnrc::init(ast::Root& root)
 void plnnrc::destroy(ast::Root& root)
 {
     destroy(root.pool);
-    destroy(root.task_lookup);
-    destroy(root.fact_lookup);
+
+    if (plnnrc::max_size(root.task_lookup) > 0)
+    {
+        destroy(root.task_lookup);
+    }
+
+    if (plnnrc::max_size(root.fact_lookup) > 0)
+    {
+        destroy(root.fact_lookup);
+    }
+
     memset(&root, 0, sizeof(root));
 }
 
