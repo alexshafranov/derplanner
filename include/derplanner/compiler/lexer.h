@@ -66,7 +66,7 @@ const char* get_type_name(Token_Type token_type);
 
 /// Inline Code.
 
-inline plnnrc::Token::Token() : type(plnnrc::Token_Unknown), column(0), line(0) {}
+inline plnnrc::Token::Token() : type(plnnrc::Token_Unknown), line(0), column(0) {}
 
 inline plnnrc::Token_Value::Token_Value() : length(0), str(0) {}
 
