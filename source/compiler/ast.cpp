@@ -435,7 +435,7 @@ struct Cloner
     inline ast::Expr* visit(const ast::Node*)           { plnnrc_assert(false); return 0; }
 };
 
-static ast::Expr* clone_node(ast::Root& tree, const ast::Expr* node)
+static inline ast::Expr* clone_node(ast::Root& tree, const ast::Expr* node)
 {
     Cloner cloner = { &tree };
     return visit_node<ast::Expr*>(node, &cloner);
