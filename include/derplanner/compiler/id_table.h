@@ -114,50 +114,6 @@ namespace id_table
     }
 
     template <typename T>
-    inline void _grow(plnnrc::Id_Table<T>& table, uint32_t new_max_size)
-    {
-        plnnrc_assert(new_max_size > table.max_size);
-        new_max_size = id_table::required_size(new_max_size);
-
-        uint32_t* new_hashes = static_cast<uint32_t*>(plnnrc::allocate(new_max_size * sizeof(uint32_t)));
-        const char** new_keys = static_cast<const char**>(plnnrc::allocate(new_max_size * sizeof(void*)));
-        uint32_t* new_lengths = static_cast<uint32_t*>(plnnrc::allocate(new_max_size * sizeof(uint32_t)));
-        T* new_values = static_cast<T*>(plnnrc::allocate(new_max_size * sizeof(T)));
-        // null key means empty cell.
-        memset(new_keys, 0, sizeof(new_keys)*new_max_size);
-
-        const uint32_t old_max = table.max_size;
-        uint32_t* old_hashes = table.hashes;
-        const char** old_keys = table.keys;
-        uint32_t* old_lengths = table.lengths;
-        T* old_values = table.values;
-
-        table.size = 0;
-        table.max_size = new_max_size;
-        table.hashes = new_hashes;
-        table.keys = new_keys;
-        table.lengths = new_lengths;
-        table.values = new_values;
-
-        for (uint32_t i = 0; i < old_max; ++i)
-        {
-            const char* key = old_keys[i];
-            uint32_t length = old_lengths[i];
-            const T& value = old_values[i];
-
-            if (key != 0)
-            {
-                _set(table, key, length, value);
-            }
-        }
-
-        plnnrc::deallocate(old_values);
-        plnnrc::deallocate(old_lengths);
-        plnnrc::deallocate(old_keys);
-        plnnrc::deallocate(old_hashes);
-    }
-
-    template <typename T>
     void _set(plnnrc::Id_Table<T>& table, const char* key, uint32_t length, const T& value)
     {
         uint32_t max_size = table.max_size;
@@ -223,6 +179,50 @@ namespace id_table
 
         // only possible when table is full.
         plnnrc_assert(false);
+    }
+
+    template <typename T>
+    inline void _grow(plnnrc::Id_Table<T>& table, uint32_t new_max_size)
+    {
+        plnnrc_assert(new_max_size > table.max_size);
+        new_max_size = id_table::required_size(new_max_size);
+
+        uint32_t* new_hashes = static_cast<uint32_t*>(plnnrc::allocate(new_max_size * sizeof(uint32_t)));
+        const char** new_keys = static_cast<const char**>(plnnrc::allocate(new_max_size * sizeof(void*)));
+        uint32_t* new_lengths = static_cast<uint32_t*>(plnnrc::allocate(new_max_size * sizeof(uint32_t)));
+        T* new_values = static_cast<T*>(plnnrc::allocate(new_max_size * sizeof(T)));
+        // null key means empty cell.
+        memset(new_keys, 0, sizeof(new_keys)*new_max_size);
+
+        const uint32_t old_max = table.max_size;
+        uint32_t* old_hashes = table.hashes;
+        const char** old_keys = table.keys;
+        uint32_t* old_lengths = table.lengths;
+        T* old_values = table.values;
+
+        table.size = 0;
+        table.max_size = new_max_size;
+        table.hashes = new_hashes;
+        table.keys = new_keys;
+        table.lengths = new_lengths;
+        table.values = new_values;
+
+        for (uint32_t i = 0; i < old_max; ++i)
+        {
+            const char* key = old_keys[i];
+            uint32_t length = old_lengths[i];
+            const T& value = old_values[i];
+
+            if (key != 0)
+            {
+                _set(table, key, length, value);
+            }
+        }
+
+        plnnrc::deallocate(old_values);
+        plnnrc::deallocate(old_lengths);
+        plnnrc::deallocate(old_keys);
+        plnnrc::deallocate(old_hashes);
     }
 }
 
