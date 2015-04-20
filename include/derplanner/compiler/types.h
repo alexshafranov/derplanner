@@ -161,17 +161,6 @@ namespace ast
         Node_Type       type;
     };
 
-    // Array of children nodes.
-    template <typename T>
-    struct Children
-    {
-        uint32_t        size;
-        T**             array;
-
-        T* operator[](uint32_t index);
-        const T* operator[](uint32_t index) const;
-    };
-
     // Root of the Abstract-Syntax-Tree.
     struct Root
     {
@@ -194,7 +183,7 @@ namespace ast
     struct World : public Node
     {
         // fact declarations.
-        Children<Fact>      facts;
+        Array<Fact*>        facts;
     };
 
     // Parsed `domain` block.
@@ -203,7 +192,7 @@ namespace ast
         // domain name.
         Token_Value         name;
         // tasks.
-        Children<Task>      tasks;
+        Array<Task*>        tasks;
     };
 
     // Fact: Id + Parameters.
@@ -212,7 +201,7 @@ namespace ast
         // name of the fact.
         Token_Value         name;
         // parameters.
-        Children<Data_Type> params;
+        Array<Data_Type*>   params;
     };
 
     // Fact parameter type.
@@ -228,9 +217,9 @@ namespace ast
         // name of the task.
         Token_Value         name;
         // task parameters.
-        Children<Param>     params;
+        Array<Param*>       params;
         // expansion cases.
-        Children<Case>      cases;
+        Array<Case*>        cases;
     };
 
     // Parsed `case` block.
@@ -239,7 +228,7 @@ namespace ast
         // precondition.
         Expr*               precond;
         // task list expressions.
-        Children<Expr>      task_list;
+        Array<Expr*>        task_list;
     };
 
     // Parameter: Id + Data type.
