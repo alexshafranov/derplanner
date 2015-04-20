@@ -299,6 +299,8 @@ int main(int argc, char** argv)
         plnnrc::debug_output_tokens(input_buffer.data, &standard_output);
 
         parse(parser);
+        infer_types(parser.tree);
+
         plnnrc::debug_output_ast(parser.tree, &standard_output);
 
         const size_t ast_size = plnnrc::debug_bytes_allocated(parser.tree);

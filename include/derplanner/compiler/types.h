@@ -227,12 +227,16 @@ namespace ast
     // Parsed `case` block.
     struct Case : public Node
     {
+        // a pointer to the task this case is part of.
+        Task*               task;
         // precondition.
         Expr*               precond;
         // task list expressions.
         Array<Expr*>        task_list;
         // maps variable names to the first occurence in precondition.
-        Id_Table<ast::Var*> vars;
+        Id_Table<ast::Var*> var_lookup;
+        // array of all vars in precondition.
+        Array<ast::Var*>    vars;
     };
 
     // Parameter: Id + Data type.

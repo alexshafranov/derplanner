@@ -660,14 +660,14 @@ void plnnrc::build_lookups(ast::Root& tree)
         for (uint32_t i = 0; i < plnnrc::size(tree.cases); ++i)
         {
             ast::Case* case_ = tree.cases[i];
+            plnnrc::init(case_->var_lookup, tree.pool, 8);
             plnnrc::init(case_->vars, tree.pool, 8);
 
             for (ast::Expr* node = case_->precond; node != 0; node = plnnrc::preorder_next(case_->precond, node))
             {
-                if (plnnrc::is_Var(node))
+                if (ast::Var* var = plnnrc::as_Var(node))
                 {
-                    ast::Var* var = as_Var(node);
-                    ast::Var* def = plnnrc::get(case_->vars, var->name);
+                    ast::Var* def = plnnrc::get(case_->var_lookup, var->name);
                     if (def != 0)
                     {
                         plnnrc_assert(!var->definition);
@@ -675,15 +675,60 @@ void plnnrc::build_lookups(ast::Root& tree)
                         continue;
                     }
 
-                    plnnrc::set(case_->vars, var->name, var);
+                    plnnrc::set(case_->var_lookup, var->name, var);
+                    plnnrc::push_back(case_->vars, var);
                 }
             }
         }
     }
 }
 
-void plnnrc::infer_types(ast::Root& /*tree*/)
+void plnnrc::infer_types(ast::Root& tree)
 {
+    if (!tree.domain || !tree.world) { return; }
+
+    // seed types using fact declarations.
+    for (uint32_t caseIdx = 0; caseIdx < plnnrc::size(tree.cases); ++caseIdx)
+    {
+        ast::Case* case_ = tree.cases[caseIdx];
+        for (ast::Expr* node = case_->precond; node != 0; node = plnnrc::preorder_next(case_->precond, node))
+        {
+            if (ast::Func* func = plnnrc::as_Func(node))
+            {
+                ast::Fact* fact = plnnrc::get_fact(tree, func->name);
+                plnnrc_assert(fact);
+                // currently assuming all children are vars.
+                ast::Var* var = plnnrc::as_Var(func->child);
+                for (uint32_t paramIdx = 0; paramIdx < plnnrc::size(fact->params); ++paramIdx)
+                {
+                    plnnrc_assert(var);
+                    ast::Data_Type* param_type = fact->params[paramIdx];
+                    var->data_type = param_type->data_type;
+                    var = plnnrc::as_Var(var->next_sibling);
+                }
+
+                plnnrc_assert(!var);
+            }
+        }
+    }
+
+    // set task parameter types.
+    for (uint32_t caseIdx = 0; caseIdx < plnnrc::size(tree.cases); ++caseIdx)
+    {
+        ast::Case* case_ = tree.cases[caseIdx];
+        ast::Task* task = case_->task;
+        if (!plnnrc::size(case_->var_lookup)) { continue; }
+
+        for (uint32_t paramIdx = 0; paramIdx < plnnrc::size(task->params); ++paramIdx)
+        {
+            ast::Param* param = task->params[paramIdx];
+            ast::Var* var = plnnrc::get(case_->var_lookup, param->name);
+            plnnrc_assert(!var->definition);
+            var->definition = param;
+            plnnrc_assert(param->data_type == Token_Unknown || param->data_type == var->data_type);
+            param->data_type = var->data_type;
+        }
+    }
 }
 
 static const char* node_type_names[] =
