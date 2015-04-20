@@ -80,13 +80,19 @@ enum Token_Type
     Token_Count,
 };
 
-// String value of the token.
-struct Token_Value
+// Needed to avoid warnings when passing `Token_Value` to vararg functions.
+struct Token_Value_Data
 {
     // number of characters in the string.
     uint32_t        length;
     // pointer to the beginning of the string in an input buffer.
     const char*     str;
+};
+
+// String value of the token.
+struct Token_Value : public Token_Value_Data
+{
+    Token_Value();
 };
 
 // Token data returned by the lexer.
