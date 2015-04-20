@@ -59,7 +59,7 @@ struct Children_Builder
 
         if (nodes_size > 0)
         {
-            T** nodes = static_cast<T**>(plnnrc::allocate(state->tree.pool, sizeof(T*)*nodes_size, plnnrc_alignof(T*)));
+            T** nodes = plnnrc::allocate<T*>(state->tree.pool, nodes_size);
 
             for (uint32_t i = scratch_rewind; i < scratch_size; ++i)
             {

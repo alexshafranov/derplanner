@@ -90,7 +90,7 @@ void    put_char(Formatter& formatter, char c);
 void    put_str(Formatter& formatter, const char* str);
 void    put_str(Formatter& formatter, const char* str, size_t length);
 void    put_int(Formatter& formatter, int n);
-void    put_token(Formatter& formatter, const Token_Value_Data& token_value);
+void    put_token(Formatter& formatter, const Token_Value& token_value);
 void    put_indent(Formatter& formatter, uint32_t level);
 
 // increase the current indentation level.
