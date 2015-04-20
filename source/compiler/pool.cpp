@@ -93,6 +93,7 @@ static plnnrc::Page* allocate_page(plnnrc::Pool* pool, size_t size)
     pool->total_allocated += size;
 
     plnnrc::Page* page = plnnrc::align<plnnrc::Page>(blob);
+    page->size = size;
     page->prev = pool->head;
     page->blob = blob;
     page->top = page->data;
@@ -124,7 +125,7 @@ void* plnnrc::Pool::allocate(size_t size, size_t alignment)
     return top;
 }
 
-void plnnrc::Pool::deallocate(void*) { /* this allocator only deallocates en masse */ }
+void plnnrc::Pool::deallocate(void*) { /* this allocator deallocates en masse */ }
 
 size_t plnnrc::get_total_allocated(const plnnrc::Memory* handle)
 {

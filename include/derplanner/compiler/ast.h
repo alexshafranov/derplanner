@@ -74,6 +74,9 @@ Return_Type visit_node(const ast::Node* node, Visitor_Type* visitor);
 // converts expression `root` to Disjunctive-Normal-Form.
 ast::Expr* convert_to_dnf(ast::Root& tree, ast::Expr* root);
 
+// builds tree look-ups and traversal info.
+void build_lookups(ast::Root& tree);
+
 // figure out types of parameters and variables.
 void infer_types(ast::Root& tree);
 
@@ -86,9 +89,11 @@ size_t      debug_bytes_allocated(const ast::Root& root);
 // total number of bytes the node pool has allocated.
 size_t      debug_pool_size(const ast::Root& root);
 
-#define PLNNRC_NODE(TAG, TYPE)              \
-    bool is_##TAG(ast::Node_Type type);     \
-    bool is_##TAG(const ast::Node* node);   \
+#define PLNNRC_NODE(TAG, TYPE)                          \
+    bool            is_##TAG(ast::Node_Type type);      \
+    bool            is_##TAG(const ast::Node* node);    \
+    TYPE*           as_##TAG(ast::Node* node);          \
+    const TYPE*     as_##TAG(const ast::Node* node);    \
 
     #include "derplanner/compiler/ast_tags.inl"
 #undef PLNNRC_NODE
@@ -104,9 +109,11 @@ size_t      debug_pool_size(const ast::Root& root);
 
 /// Inline Code.
 
-#define PLNNRC_NODE(TAG, TYPE)                                                                      \
-    inline bool plnnrc::is_##TAG(ast::Node_Type type) { return type == plnnrc::ast::Node_##TAG; }   \
-    inline bool plnnrc::is_##TAG(const ast::Node* node) { return plnnrc::is_##TAG(node->type); }    \
+#define PLNNRC_NODE(TAG, TYPE)                                                                              \
+    inline bool plnnrc::is_##TAG(ast::Node_Type type) { return type == plnnrc::ast::Node_##TAG; }           \
+    inline bool plnnrc::is_##TAG(const ast::Node* node) { return plnnrc::is_##TAG(node->type); }            \
+    inline TYPE* plnnrc::as_##TAG(ast::Node* node) { return static_cast<TYPE*>(node); }                     \
+    inline const TYPE* plnnrc::as_##TAG(const ast::Node* node) { return static_cast<const TYPE*>(node); }   \
 
     #include "derplanner/compiler/ast_tags.inl"
 #undef PLNNRC_NODE

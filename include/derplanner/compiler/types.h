@@ -171,6 +171,8 @@ namespace ast
         Id_Table<Fact*> fact_lookup;
         // maps task name -> Task node.
         Id_Table<Task*> task_lookup;
+        // all cases in the order of definition.
+        Array<Case*>    cases;
         // parsed `world` block.
         World*          world;
         // parsed `domain` block.
@@ -229,6 +231,8 @@ namespace ast
         Expr*               precond;
         // task list expressions.
         Array<Expr*>        task_list;
+        // maps variable names to the first occurence in precondition.
+        Id_Table<ast::Var*> vars;
     };
 
     // Parameter: Id + Data type.

@@ -52,13 +52,23 @@ void set(Id_Table<T>& table, const char* key, uint32_t length, const T& value);
 
 // returns pointer to value for the given key or null if it doesn't exist.
 template <typename T>
-const T* get(const Id_Table<T>& table, const char* key);
+T* get(Id_Table<T>& table, const char* key);
 
 template <typename T>
-const T* get(const Id_Table<T>& table, const Token_Value& token_value);
+T* get(Id_Table<T>& table, const Token_Value& token_value);
 
 template <typename T>
-const T* get(const Id_Table<T>& table, const char* key, uint32_t length);
+T* get(Id_Table<T>& table, const char* key, uint32_t length);
+
+// specializations for `T*`
+template <typename T>
+T* get(Id_Table<T*>& table, const char* key, uint32_t length);
+
+template <typename T>
+T* get(Id_Table<T*>& table, const char* key);
+
+template <typename T>
+T* get(Id_Table<T*>& table, const Token_Value& token_value);
 
 
 template <typename T>
@@ -234,15 +244,7 @@ namespace id_table
 
 template <typename T>
 inline plnnrc::Id_Table<T>::Id_Table()
-    : size(0)
-    , max_size(0)
-    , hashes(0)
-    , keys(0)
-    , lengths(0)
-    , values(0)
-    , memory(0)
-{
-}
+    : size(0), max_size(0), hashes(0), keys(0), lengths(0), values(0), memory(0) {}
 
 template <typename T>
 inline plnnrc::Id_Table<T>::~Id_Table()
@@ -280,20 +282,20 @@ void plnnrc::destroy(plnnrc::Id_Table<T>& table)
 }
 
 template <typename T>
-void plnnrc::set(plnnrc::Id_Table<T>& table, const char* key, const T& value)
+inline void plnnrc::set(plnnrc::Id_Table<T>& table, const char* key, const T& value)
 {
     uint32_t length = (uint32_t)strlen(key);
     plnnrc::set<T>(table, key, length, value);
 }
 
 template <typename T>
-void plnnrc::set(plnnrc::Id_Table<T>& table, const plnnrc::Token_Value& token_value, const T& value)
+inline void plnnrc::set(plnnrc::Id_Table<T>& table, const plnnrc::Token_Value& token_value, const T& value)
 {
     plnnrc::set<T>(table, token_value.str, token_value.length, value);
 }
 
 template <typename T>
-void plnnrc::set(plnnrc::Id_Table<T>& table, const char* key, uint32_t length, const T& value)
+inline void plnnrc::set(plnnrc::Id_Table<T>& table, const char* key, uint32_t length, const T& value)
 {
     const uint32_t max_size = table.max_size;
     const uint32_t grow_threshold = (max_size * id_table::load_factor_pct) / 100;
@@ -307,20 +309,20 @@ void plnnrc::set(plnnrc::Id_Table<T>& table, const char* key, uint32_t length, c
 }
 
 template <typename T>
-const T* plnnrc::get(const plnnrc::Id_Table<T>& table, const char* key)
+inline T* plnnrc::get(plnnrc::Id_Table<T>& table, const char* key)
 {
     uint32_t length = (uint32_t)strlen(key);
     return plnnrc::get<T>(table, key, length);
 }
 
 template <typename T>
-const T* plnnrc::get(const plnnrc::Id_Table<T>& table, const plnnrc::Token_Value& token_value)
+inline T* plnnrc::get(plnnrc::Id_Table<T>& table, const plnnrc::Token_Value& token_value)
 {
     return plnnrc::get<T>(table, token_value.str, token_value.length);
 }
 
 template <typename T>
-const T* plnnrc::get(const plnnrc::Id_Table<T>& table, const char* key, uint32_t length)
+inline T* plnnrc::get(plnnrc::Id_Table<T>& table, const char* key, uint32_t length)
 {
     const uint32_t max_size = table.max_size;
 
@@ -362,13 +364,33 @@ const T* plnnrc::get(const plnnrc::Id_Table<T>& table, const char* key, uint32_t
 }
 
 template <typename T>
-inline uint32_t plnnrc::size(const Id_Table<T>& table)
+inline T* plnnrc::get(plnnrc::Id_Table<T*>& table, const char* key, uint32_t length)
+{
+    T** ptr = plnnrc::get<T*>(table, key, length);
+    return ptr ? *ptr : 0;
+}
+
+template <typename T>
+inline T* plnnrc::get(plnnrc::Id_Table<T*>& table, const char* key)
+{
+    uint32_t length = (uint32_t)strlen(key);
+    return plnnrc::get<T>(table, key, length);
+}
+
+template <typename T>
+inline T* plnnrc::get(plnnrc::Id_Table<T*>& table, const plnnrc::Token_Value& token_value)
+{
+    return plnnrc::get<T>(table, token_value.str, token_value.length);
+}
+
+template <typename T>
+inline uint32_t plnnrc::size(const plnnrc::Id_Table<T>& table)
 {
     return table.size;
 }
 
 template <typename T>
-uint32_t plnnrc::max_size(const Id_Table<T>& table)
+inline uint32_t plnnrc::max_size(const plnnrc::Id_Table<T>& table)
 {
     return table.max_size;
 }
