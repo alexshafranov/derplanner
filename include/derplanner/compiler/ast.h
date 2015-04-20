@@ -109,18 +109,18 @@ size_t      debug_pool_size(const ast::Root& root);
 
 /// Inline Code.
 
-#define PLNNRC_NODE(TAG, TYPE)                                                                              \
-    inline bool plnnrc::is_##TAG(ast::Node_Type type) { return type == plnnrc::ast::Node_##TAG; }           \
-    inline bool plnnrc::is_##TAG(const ast::Node* node) { return plnnrc::is_##TAG(node->type); }            \
-    inline TYPE* plnnrc::as_##TAG(ast::Node* node) { return static_cast<TYPE*>(node); }                     \
-    inline const TYPE* plnnrc::as_##TAG(const ast::Node* node) { return static_cast<const TYPE*>(node); }   \
+#define PLNNRC_NODE(TAG, TYPE)                                                                                                                      \
+    inline bool plnnrc::is_##TAG(ast::Node_Type type) { return type == plnnrc::ast::Node_##TAG; }                                                   \
+    inline bool plnnrc::is_##TAG(const ast::Node* node) { return plnnrc::is_##TAG(node->type); }                                                    \
+    inline TYPE* plnnrc::as_##TAG(ast::Node* node) { return (node && plnnrc::is_##TAG(node)) ? static_cast<TYPE*>(node) : 0; }                      \
+    inline const TYPE* plnnrc::as_##TAG(const ast::Node* node) { return (node && plnnrc::is_##TAG(node)) ? static_cast<const TYPE*>(node) : 0; }    \
 
     #include "derplanner/compiler/ast_tags.inl"
 #undef PLNNRC_NODE
 
-#define PLNNRC_NODE_GROUP(GROUP_TAG, FIRST_NODE_TAG, LAST_NODE_TAG)                                                                                                 \
-    inline bool plnnrc::is_##GROUP_TAG(ast::Node_Type type) { return type >= plnnrc::ast::Node_##FIRST_NODE_TAG && type <= plnnrc::ast::Node_##LAST_NODE_TAG; }     \
-    inline bool plnnrc::is_##GROUP_TAG(const ast::Node* node) { return is_##GROUP_TAG(node->type); }                                                                \
+#define PLNNRC_NODE_GROUP(GROUP_TAG, FIRST_NODE_TAG, LAST_NODE_TAG)                                                                                             \
+    inline bool plnnrc::is_##GROUP_TAG(ast::Node_Type type) { return type >= plnnrc::ast::Node_##FIRST_NODE_TAG && type <= plnnrc::ast::Node_##LAST_NODE_TAG; } \
+    inline bool plnnrc::is_##GROUP_TAG(const ast::Node* node) { return is_##GROUP_TAG(node->type); }                                                            \
 
     #include "derplanner/compiler/ast_tags.inl"
 #endif

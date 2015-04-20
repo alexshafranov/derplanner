@@ -275,6 +275,7 @@ ast::Task* plnnrc::parse_task(Parser& state)
             expect(state, Token_Case);
             ast::Case* case_ = create_case(state.tree);
             cb.push_back(case_);
+            case_->task = task;
 
             ast::Expr* precond = parse_precond(state);
             case_->precond = precond;
