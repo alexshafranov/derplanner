@@ -42,11 +42,11 @@ using namespace plnnrc;
 template <typename T>
 struct Children_Builder
 {
-    Parser*             state;
-    ast::Children<T>*   output;
-    uint32_t            scratch_rewind; 
+    Parser*                 state;
+    plnnrc::Array<T*>*      output;
+    uint32_t                scratch_rewind; 
 
-    Children_Builder(Parser* state, ast::Children<T>* output) : state(state), output(output)
+    Children_Builder(Parser* state, plnnrc::Array<T*>* output) : state(state), output(output)
     {
         scratch_rewind = plnnrc::size(state->scratch);
     }
@@ -66,8 +66,9 @@ struct Children_Builder
                 nodes[i - scratch_rewind] = static_cast<T*>(state->scratch[i]);
             }
 
-            output->size = nodes_size;
-            output->array = nodes;
+            plnnrc::init(*output, state->tree.pool, nodes_size);
+            plnnrc::push_back(*output, nodes, nodes_size);
+
             plnnrc::resize(state->scratch, scratch_rewind);
         }
     }

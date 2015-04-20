@@ -69,11 +69,6 @@ Return_Type visit_node(ast::Node* node, Visitor_Type* visitor);
 template <typename Return_Type, typename Visitor_Type>
 Return_Type visit_node(const ast::Node* node, Visitor_Type* visitor);
 
-/// ast::Children
-
-template <typename T>
-uint32_t size(const ast::Children<T>& children);
-
 /// Expression transformations.
 
 // converts expression `root` to Disjunctive-Normal-Form.
@@ -123,20 +118,6 @@ size_t      debug_pool_size(const ast::Root& root);
     #include "derplanner/compiler/ast_tags.inl"
 #endif
 
-template <typename T>
-inline T* plnnrc::ast::Children<T>::operator[](uint32_t index)
-{
-    plnnrc_assert(index < size);
-    return array[index];
-}
-
-template <typename T>
-inline const T* plnnrc::ast::Children<T>::operator[](uint32_t index) const
-{
-    plnnrc_assert(index < size);
-    return array[index];
-}
-
 template <typename Return_Type, typename Visitor_Type>
 inline Return_Type plnnrc::visit_node(plnnrc::ast::Node* node, Visitor_Type* visitor)
 {
@@ -163,10 +144,4 @@ inline Return_Type plnnrc::visit_node(const plnnrc::ast::Node* node, Visitor_Typ
         plnnrc_assert(false);
         return Return_Type();
     }
-}
-
-template <typename T>
-inline uint32_t plnnrc::size(const plnnrc::ast::Children<T>& children)
-{
-    return children.size;
 }

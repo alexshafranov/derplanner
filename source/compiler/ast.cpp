@@ -660,9 +660,9 @@ struct Debug_Output_Visitor
     Formatter* fmtr;
 
     template <typename T>
-    inline void print_children(const ast::Children<T>& nodes)
+    inline void print_children(const plnnrc::Array<T*>& nodes)
     {
-        for (uint32_t i = 0; i < nodes.size; ++i)
+        for (uint32_t i = 0; i < plnnrc::size(nodes); ++i)
         {
             Indent_Scope s(*fmtr);
             visit_node<void>(nodes[i], this);
