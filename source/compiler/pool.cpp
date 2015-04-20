@@ -18,8 +18,8 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
+#include <new>
 #include "derplanner/compiler/assert.h"
-#include "derplanner/compiler/memory.h"
 #include "pool.h"
 
 namespace plnnrc
@@ -28,13 +28,17 @@ namespace plnnrc
     {
         size_t      size;
         Page*       prev;
-        uint8_t*    memory;
+        uint8_t*    blob;
         uint8_t*    top;
         uint8_t     data[1];
     };
 
-    struct Pool
+    class Pool : public Memory
     {
+    public:
+        virtual void* allocate(size_t size, size_t alignment);
+        virtual void  deallocate(void* ptr);
+
         size_t  page_size;
         size_t  total_requested;
         size_t  total_allocated;
@@ -46,34 +50,20 @@ using namespace plnnrc;
 
 static const size_t bookkeeping_size = sizeof(Pool) + plnnrc_alignof(Pool) + sizeof(Page) + plnnrc_alignof(Page);
 
-static Page* allocate_page(Pool* pool, size_t size)
-{
-    uint8_t* memory = static_cast<uint8_t*>(plnnrc::allocate(size));
-    plnnrc_assert(memory != 0);
-    pool->total_allocated += size;
-
-    Page* page = plnnrc::align<Page>(memory);
-    page->prev = pool->head;
-    page->memory = memory;
-    page->top = page->data;
-    pool->head = page;
-
-    return page;
-}
-
-plnnrc::Pool* plnnrc::create_paged_pool(size_t page_size)
+plnnrc::Memory* plnnrc::create_paged_pool(size_t page_size)
 {
     plnnrc_assert(page_size > bookkeeping_size);
 
-    uint8_t* memory = static_cast<uint8_t*>(plnnrc::allocate(page_size));
-    plnnrc_assert(memory != 0);
+    uint8_t* blob = static_cast<uint8_t*>(plnnrc::allocate(page_size));
+    plnnrc_assert(blob != 0);
 
-    Pool* pool = plnnrc::align<Pool>(memory);
-    Page* head = plnnrc::align<Page>(pool + 1);
+    // create Pool & Page on the blob itself.
+    plnnrc::Pool* pool = new(plnnrc::align<plnnrc::Pool>(blob)) Pool;
+    plnnrc::Page* head = plnnrc::align<plnnrc::Page>(pool + 1);
 
     head->size = page_size;
     head->prev = 0;
-    head->memory = memory;
+    head->blob = blob;
     head->top = head->data;
 
     pool->head = head;
@@ -84,45 +74,66 @@ plnnrc::Pool* plnnrc::create_paged_pool(size_t page_size)
     return pool;
 }
 
-void* plnnrc::allocate(Pool* pool, size_t bytes, size_t alignment)
+void plnnrc::destroy(Memory* handle)
 {
-    Page* p = pool->head;
-    uint8_t* top = static_cast<uint8_t*>(plnnrc::align(p->top, alignment));
+    plnnrc::Pool* pool = static_cast<plnnrc::Pool*>(handle);
 
-    if (top + bytes > p->memory + p->size)
-    {
-        size_t new_page_size = pool->page_size;
-        if (bytes + alignment + bookkeeping_size > new_page_size)
-        {
-            new_page_size = bytes + alignment + bookkeeping_size;
-        }
-
-        p = allocate_page(pool, new_page_size);
-        top = static_cast<uint8_t*>(plnnrc::align(p->top, alignment));
-    }
-
-    p->top = top + bytes;
-    pool->total_requested += bytes;
-
-    return top;
-}
-
-void plnnrc::destroy(const Pool* pool)
-{
     for (Page* p = pool->head; p != 0;)
     {
         Page* n = p->prev;
-        plnnrc::deallocate(p->memory);
+        plnnrc::deallocate(p->blob);
         p = n;
     }
 }
 
-size_t plnnrc::get_total_allocated(const Pool* handle)
+static plnnrc::Page* allocate_page(plnnrc::Pool* pool, size_t size)
 {
-    return handle->total_allocated;
+    uint8_t* blob = static_cast<uint8_t*>(plnnrc::allocate(size));
+    plnnrc_assert(blob != 0);
+    pool->total_allocated += size;
+
+    plnnrc::Page* page = plnnrc::align<plnnrc::Page>(blob);
+    page->prev = pool->head;
+    page->blob = blob;
+    page->top = page->data;
+    pool->head = page;
+
+    return page;
 }
 
-size_t plnnrc::get_total_requested(const Pool* handle)
+void* plnnrc::Pool::allocate(size_t size, size_t alignment)
 {
-    return handle->total_requested;
+    Page* p = head;
+    uint8_t* top = static_cast<uint8_t*>(plnnrc::align(p->top, alignment));
+
+    if (top + size > p->blob + p->size)
+    {
+        size_t new_page_size = page_size;
+        if (size + alignment + bookkeeping_size > new_page_size)
+        {
+            new_page_size = size + alignment + bookkeeping_size;
+        }
+
+        p = allocate_page(this, new_page_size);
+        top = static_cast<uint8_t*>(plnnrc::align(p->top, alignment));
+    }
+
+    p->top = top + size;
+    total_requested += size;
+
+    return top;
+}
+
+void plnnrc::Pool::deallocate(void*) { /* this allocator only deallocates en masse */ }
+
+size_t plnnrc::get_total_allocated(const plnnrc::Memory* handle)
+{
+    const plnnrc::Pool* pool = static_cast<const plnnrc::Pool*>(handle);
+    return pool->total_allocated;
+}
+
+size_t plnnrc::get_total_requested(const plnnrc::Memory* handle)
+{
+    const plnnrc::Pool* pool = static_cast<const plnnrc::Pool*>(handle);
+    return pool->total_requested;
 }

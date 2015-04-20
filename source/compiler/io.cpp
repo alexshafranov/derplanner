@@ -94,7 +94,7 @@ void plnnrc::write(Formatter& formatter, const char* format, va_list arglist)
             // Token_Value
             case 'n':
                 {
-                    Token_Value_Data token_value = va_arg(arglist, Token_Value_Data);
+                    Token_Value token_value = va_arg(arglist, Token_Value);
                     plnnrc::put_token(formatter, token_value);
                 }
                 break;
@@ -171,7 +171,7 @@ void plnnrc::put_str(Formatter& formatter, const char* str, size_t length)
     formatter.buffer_ptr += length;
 }
 
-void plnnrc::put_token(Formatter& formatter, const Token_Value_Data& token_value)
+void plnnrc::put_token(Formatter& formatter, const Token_Value& token_value)
 {
     plnnrc::put_str(formatter, token_value.str, token_value.length);
 }

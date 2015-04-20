@@ -73,7 +73,7 @@ inline T* allocate(Memory* mem, size_t count, size_t alignment)
 
 // allocate an array of type `T` with compiler specified alignment for type `T`.
 template <typename T>
-inline T* allocate(Memory* mem, size_t count)
+inline T* allocate(Memory* mem, size_t count = 1)
 {
     return allocate<T>(mem, count, plnnrc_alignof(T));
 }

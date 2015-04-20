@@ -22,6 +22,7 @@
 #define DERPLANNER_COMPILER_POOL_H_
 
 #include <stddef.h> // size_t
+#include "derplanner/compiler/memory.h"
 
 namespace plnnrc {
 
@@ -32,16 +33,12 @@ namespace plnnrc {
 /// There's no `deallocate` function as the pool can only grow. All pages are freed at once in `destroy`.
 ///
 
-struct Pool;
+Memory* create_paged_pool(size_t page_size);
 
-Pool* create_paged_pool(size_t page_size);
+void destroy(Memory* handle);
 
-void destroy(const Pool* handle);
-
-void* allocate(Pool* handle, size_t bytes, size_t alignment);
-
-size_t get_total_allocated(const Pool* handle);
-size_t get_total_requested(const Pool* handle);
+size_t get_total_allocated(const Memory* handle);
+size_t get_total_requested(const Memory* handle);
 
 }
 

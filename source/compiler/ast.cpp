@@ -78,7 +78,7 @@ void plnnrc::destroy(ast::Root& root)
 template <typename T>
 static inline T* pool_alloc(plnnrc::ast::Root& tree)
 {
-    T* result = static_cast<T*>(plnnrc::allocate(tree.pool, sizeof(T), plnnrc_alignof(T)));
+    T* result = plnnrc::allocate<T>(tree.pool);
     memset(result, 0, sizeof(T));
     return result;
 }
