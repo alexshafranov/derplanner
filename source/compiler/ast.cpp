@@ -54,24 +54,13 @@ plnnrc::ast::Root::~Root()
 void plnnrc::init(ast::Root& root)
 {
     memset(&root, 0, sizeof(root));
-    // 32kb pages.
-    root.pool = create_paged_pool(32*1024);
+    root.pool = create_paged_pool(32*1024); // 32 kb pages.
 }
 
 void plnnrc::destroy(ast::Root& root)
 {
+    // all tree data is allocated from pool and wiped at once.
     destroy(root.pool);
-
-    if (plnnrc::max_size(root.task_lookup) > 0)
-    {
-        destroy(root.task_lookup);
-    }
-
-    if (plnnrc::max_size(root.fact_lookup) > 0)
-    {
-        destroy(root.fact_lookup);
-    }
-
     memset(&root, 0, sizeof(root));
 }
 
@@ -171,26 +160,12 @@ ast::Literal* plnnrc::create_literal(ast::Root& tree, const Token& token)
 
 ast::Fact* plnnrc::get_fact(ast::Root& tree, const Token_Value& token_value)
 {
-    ast::Fact* const* ptr = plnnrc::get(tree.fact_lookup, token_value.str, token_value.length);
-
-    if (ptr)
-    {
-        return *ptr;
-    }
-
-    return 0;
+    return plnnrc::get(tree.fact_lookup, token_value);
 }
 
 ast::Task* plnnrc::get_task(ast::Root& tree, const Token_Value& token_value)
 {
-    ast::Task* const* ptr = plnnrc::get(tree.task_lookup, token_value.str, token_value.length);
-
-    if (ptr)
-    {
-        return *ptr;
-    }
-
-    return 0;
+    return plnnrc::get(tree.task_lookup, token_value);
 }
 
 void plnnrc::flatten(ast::Expr* root)
@@ -635,6 +610,76 @@ ast::Expr* plnnrc::preorder_next(const ast::Expr* root, ast::Expr* current)
     }
 
     return node->next_sibling;
+}
+
+void plnnrc::build_lookups(ast::Root& tree)
+{
+    ast::World* world = tree.world;
+    if (world)
+    {
+        const uint32_t num_facts = plnnrc::size(world->facts);
+        plnnrc::init(tree.fact_lookup, tree.pool, num_facts);
+
+        for (uint32_t i = 0; i < num_facts; ++i)
+        {
+            ast::Fact* fact = world->facts[i];
+            plnnrc::set(tree.fact_lookup, fact->name, fact);
+        }
+    }
+
+    ast::Domain* domain = tree.domain;
+    if (domain)
+    {
+        const uint32_t num_tasks = plnnrc::size(domain->tasks);
+        plnnrc::init(tree.task_lookup, tree.pool, num_tasks);
+
+        uint32_t num_cases = 0;
+        for (uint32_t i = 0; i < num_tasks; ++i)
+        {
+            ast::Task* task = domain->tasks[i];
+            num_cases += plnnrc::size(task->cases);
+            plnnrc::set(tree.task_lookup, task->name, task);
+        }
+
+        // collect all `ast::Case` nodes.
+        if (num_cases > 0)
+        {
+            plnnrc::init(tree.cases, tree.pool, num_cases);
+            for (uint32_t i = 0; i < num_tasks; ++i)
+            {
+                ast::Task* task = domain->tasks[i];
+                for (uint32_t j = 0; j < plnnrc::size(task->cases); ++j)
+                {
+                    ast::Case* case_ = task->cases[j];
+                    plnnrc::push_back(tree.cases, case_);
+                }
+            }
+        }
+
+        // build ast::Var lookups for each case.
+        for (uint32_t i = 0; i < plnnrc::size(tree.cases); ++i)
+        {
+            ast::Case* case_ = tree.cases[i];
+            plnnrc::init(case_->vars, tree.pool, 8);
+
+            for (ast::Expr* node = case_->precond; node != 0; node = plnnrc::preorder_next(case_->precond, node))
+            {
+                if (plnnrc::is_Var(node))
+                {
+                    ast::Var* var = as_Var(node);
+                    ast::Var* def = plnnrc::get(case_->vars, var->name);
+                    if (def != 0)
+                    {
+                        plnnrc_assert(!var->definition);
+                        var->definition = def;
+                        continue;
+                    }
+
+                    plnnrc::set(case_->vars, var->name, var);
+                }
+            }
+        }
+    }
 }
 
 void plnnrc::infer_types(ast::Root& /*tree*/)

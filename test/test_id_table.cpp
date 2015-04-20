@@ -90,8 +90,8 @@ namespace
 
         for (unsigned i = 0; i < num_keys; ++i)
         {
-            int* const* actual = plnnrc::get(table, keys[i]);
-            CHECK(*actual == &values[i]);
+            const int* actual = plnnrc::get(table, keys[i]);
+            CHECK(actual == &values[i]);
         }
 
         CHECK_EQUAL(num_keys, plnnrc::size(table));
@@ -111,7 +111,7 @@ namespace
 
         for (unsigned i = num_keys / 2; i < num_keys; ++i)
         {
-            int* const* actual = plnnrc::get(table, keys[i]);
+            const int* actual = plnnrc::get(table, keys[i]);
             CHECK(!actual);
         }
     }
@@ -128,9 +128,9 @@ namespace
         plnnrc::set(table, key, &value1);
         plnnrc::set(table, key, &value2);
 
-        int* const* actual = plnnrc::get(table, key);
+        const int* actual = plnnrc::get(table, key);
 
-        CHECK_EQUAL(&value2, *actual);
+        CHECK_EQUAL(&value2, actual);
         CHECK_EQUAL(1u, size(table));
     }
 
@@ -150,8 +150,8 @@ namespace
 
         for (unsigned i = 0; i < num_keys; ++i)
         {
-            int* const* actual = plnnrc::get(table, keys[i]);
-            CHECK(*actual == &values[i]);
+            const int* actual = plnnrc::get(table, keys[i]);
+            CHECK(actual == &values[i]);
         }
 
         CHECK_EQUAL(num_keys, size(table));
