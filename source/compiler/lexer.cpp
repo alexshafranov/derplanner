@@ -100,6 +100,14 @@ static inline void consume_char(Lexer& state)
     state.buffer_ptr++;
 }
 
+static inline void unconsume_char(Lexer& state)
+{
+    plnnrc_assert(state.column >= 1);
+    plnnrc_assert(state.buffer_start <= state.buffer_ptr - 1);
+    --state.column;
+    --state.buffer_ptr;
+}
+
 static inline void consume_newline(Lexer& state)
 {
     char c1 = get_char(state);
@@ -121,6 +129,19 @@ static inline void consume_until_whitespace(Lexer& state)
     {
         // whitespace
         if (is_whitespace(c))
+        {
+            return;
+        }
+
+        consume_char(state);
+    }
+}
+
+static inline void consume_until_newline(Lexer& state)
+{
+    while (char c = get_char(state))
+    {
+        if (c == '\n' || c == '\r')
         {
             return;
         }
@@ -269,6 +290,18 @@ Token plnnrc::lex(Lexer& state)
     {
         switch (c)
         {
+        // single line C-style comments
+        case '/':
+            consume_char(state);
+            if (get_char(state) == '/')
+            {
+                consume_char(state);
+                consume_until_newline(state);
+                break;
+            }
+
+            unconsume_char(state);
+            return lex_unknown(state);
         // whitespace
         case ' ': case '\f': case '\t': case '\v':
             consume_char(state);
