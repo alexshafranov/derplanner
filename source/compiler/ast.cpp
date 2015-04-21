@@ -612,6 +612,27 @@ ast::Expr* plnnrc::preorder_next(const ast::Expr* root, ast::Expr* current)
     return node->next_sibling;
 }
 
+static void build_var_lookup(ast::Case* case_, ast::Expr* expr)
+{
+    for (ast::Expr* node = expr; node != 0; node = plnnrc::preorder_next(expr, node))
+    {
+        if (ast::Var* var = plnnrc::as_Var(node))
+        {
+            plnnrc::push_back(case_->vars, var);
+
+            ast::Var* def = plnnrc::get(case_->var_lookup, var->name);
+            if (def != 0)
+            {
+                plnnrc_assert(!var->definition);
+                var->definition = def;
+                continue;
+            }
+
+            plnnrc::set(case_->var_lookup, var->name, var);
+        }
+    }
+}
+
 void plnnrc::build_lookups(ast::Root& tree)
 {
     ast::World* world = tree.world;
@@ -663,21 +684,12 @@ void plnnrc::build_lookups(ast::Root& tree)
             plnnrc::init(case_->var_lookup, tree.pool, 8);
             plnnrc::init(case_->vars, tree.pool, 8);
 
-            for (ast::Expr* node = case_->precond; node != 0; node = plnnrc::preorder_next(case_->precond, node))
-            {
-                if (ast::Var* var = plnnrc::as_Var(node))
-                {
-                    ast::Var* def = plnnrc::get(case_->var_lookup, var->name);
-                    if (def != 0)
-                    {
-                        plnnrc_assert(!var->definition);
-                        var->definition = def;
-                        continue;
-                    }
+            build_var_lookup(case_, case_->precond);
 
-                    plnnrc::set(case_->var_lookup, var->name, var);
-                    plnnrc::push_back(case_->vars, var);
-                }
+            for (uint32_t taskIdx = 0; taskIdx < plnnrc::size(case_->task_list); ++taskIdx)
+            {
+                ast::Expr* task_expr = case_->task_list[taskIdx];
+                build_var_lookup(case_, task_expr);
             }
         }
     }
@@ -727,6 +739,36 @@ void plnnrc::infer_types(ast::Root& tree)
             var->definition = param;
             plnnrc_assert(param->data_type == Token_Unknown || param->data_type == var->data_type);
             param->data_type = var->data_type;
+        }
+    }
+
+    // propagate types "down" to task lists.
+    for (uint32_t caseIdx = 0; caseIdx < plnnrc::size(tree.cases); ++caseIdx)
+    {
+        ast::Case* case_ = tree.cases[caseIdx];
+        for (uint32_t taskIdx = 0; taskIdx < plnnrc::size(case_->task_list); ++taskIdx)
+        {
+            ast::Func* func = as_Func(case_->task_list[taskIdx]);
+            plnnrc_assert(func);
+            ast::Task* task = get_task(tree, func->name);
+
+            uint32_t paramIdx = 0;
+            for (ast::Expr* node = func->child; node != 0; node = node->next_sibling)
+            {
+                ast::Var* var = plnnrc::as_Var(node);
+                plnnrc_assert(var && var->definition);
+                ast::Node* def = var->definition;
+                Token_Type data_type = as_Param(def) ? as_Param(def)->data_type : as_Var(def)->data_type;
+                var->data_type = data_type;
+
+                if (task)
+                {
+                    ast::Param* param = task->params[paramIdx];
+                    param->data_type = data_type;
+                }
+
+                ++paramIdx;
+            }
         }
     }
 }
