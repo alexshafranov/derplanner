@@ -42,11 +42,11 @@ using namespace plnnrc;
 template <typename T>
 struct Children_Builder
 {
-    Parser*                 state;
-    plnnrc::Array<T*>*      output;
-    uint32_t                scratch_rewind; 
+    Parser*     state;
+    Array<T*>*  output;
+    uint32_t    scratch_rewind; 
 
-    Children_Builder(Parser* state, plnnrc::Array<T*>* output) : state(state), output(output)
+    Children_Builder(Parser* state, Array<T*>* output) : state(state), output(output)
     {
         scratch_rewind = plnnrc::size(state->scratch);
     }
@@ -144,7 +144,7 @@ void plnnrc::parse(Parser& state)
 
     expect(state, Token_Domain);
     Token name = expect(state, Token_Id);
-    ast::Domain* domain = create_domain(state.tree, name.value);
+    ast::Domain* domain = plnnrc::create_domain(state.tree, name.value);
     state.tree.domain = domain;
     expect(state, Token_L_Curly);
 
@@ -188,14 +188,14 @@ void plnnrc::parse(Parser& state)
 
 ast::World* plnnrc::parse_world(Parser& state)
 {
-    ast::World* world = create_world(state.tree);
+    ast::World* world = plnnrc::create_world(state.tree);
     Token tok = expect(state, Token_L_Curly);
     Children_Builder<ast::Fact> cb(&state, &world->facts);
 
     for (;;)
     {
         tok = expect(state, Token_Id);
-        ast::Fact* fact = create_fact(state.tree, tok.value);
+        ast::Fact* fact = plnnrc::create_fact(state.tree, tok.value);
         cb.push_back(fact);
         Children_Builder<ast::Data_Type> cb(&state, &fact->params);
 
@@ -206,7 +206,7 @@ ast::World* plnnrc::parse_world(Parser& state)
             for (;;)
             {
                 tok = expect(state, is_Type);
-                ast::Data_Type* param = create_type(state.tree, tok.type);
+                ast::Data_Type* param = plnnrc::create_type(state.tree, tok.type);
                 cb.push_back(param);
 
                 if (!is_Comma(peek(state)))
@@ -247,7 +247,7 @@ ast::Task* plnnrc::parse_task(Parser& state)
         for (;;)
         {
             tok = expect(state, Token_Id);
-            ast::Param* task_param = create_param(state.tree, tok.value);
+            ast::Param* task_param = plnnrc::create_param(state.tree, tok.value);
             cb.push_back(task_param);
 
             if (!is_Comma(peek(state)))
@@ -273,7 +273,7 @@ ast::Task* plnnrc::parse_task(Parser& state)
         for (;;)
         {
             expect(state, Token_Case);
-            ast::Case* case_ = create_case(state.tree);
+            ast::Case* case_ = plnnrc::create_case(state.tree);
             cb.push_back(case_);
             case_->task = task;
 
@@ -349,7 +349,7 @@ static ast::Expr* parse_expr(Parser& state)
 
     if (is_Or(peek(state)))
     {
-        ast::Expr* node_Or = create_op(state.tree, ast::Node_Or);
+        ast::Expr* node_Or = plnnrc::create_op(state.tree, ast::Node_Or);
         plnnrc::append_child(node_Or, node);
 
         while (is_Or(peek(state)))
@@ -371,7 +371,7 @@ static ast::Expr* parse_disjunct(Parser& state)
 
     if (is_And(peek(state)))
     {
-        ast::Expr* node_And = create_op(state.tree, ast::Node_And);
+        ast::Expr* node_And = plnnrc::create_op(state.tree, ast::Node_And);
         plnnrc::append_child(node_And, node);
 
         while (is_And(peek(state)))
@@ -400,12 +400,12 @@ static ast::Expr* parse_conjunct(Parser& state)
 
     if (is_Literal(tok))
     {
-        return create_literal(state.tree, tok);
+        return plnnrc::create_literal(state.tree, tok);
     }
 
     if (is_Not(tok))
     {
-        ast::Expr* node_Not = create_op(state.tree, ast::Node_Not);
+        ast::Expr* node_Not = plnnrc::create_op(state.tree, ast::Node_Not);
         ast::Expr* node = parse_conjunct(state);
         plnnrc::append_child(node_Not, node);
         return node_Not;
@@ -417,14 +417,14 @@ static ast::Expr* parse_conjunct(Parser& state)
         {
             eat(state);
 
-            ast::Func* node = create_func(state.tree, tok.value);
+            ast::Func* node = plnnrc::create_func(state.tree, tok.value);
 
             if (!is_R_Paren(peek(state)))
             {
                 for (;;)
                 {
                     Token tok = expect(state, Token_Id);
-                    ast::Expr* node_Var = create_var(state.tree, tok.value);
+                    ast::Expr* node_Var = plnnrc::create_var(state.tree, tok.value);
                     plnnrc::append_child(node, node_Var);
 
                     if (!is_Comma(peek(state)))
@@ -444,7 +444,7 @@ static ast::Expr* parse_conjunct(Parser& state)
             return node;
         }
 
-        return create_var(state.tree, tok.value);
+        return plnnrc::create_var(state.tree, tok.value);
     }
 
     plnnrc_assert(false);

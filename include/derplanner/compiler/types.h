@@ -334,6 +334,15 @@ struct Formatter
     Writer*         output;
 };
 
+// C++ code generator state.
+struct Codegen
+{
+    // input AST.
+    ast::Root*      tree;
+    // formatter used to write files.
+    Formatter       fmtr;
+};
+
 }
 
 #endif
