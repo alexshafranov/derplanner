@@ -26,8 +26,9 @@
 #include "derplanner/compiler/io.h"
 #include "derplanner/compiler/memory.h"
 #include "derplanner/compiler/lexer.h"
-#include "derplanner/compiler/parser.h"
 #include "derplanner/compiler/ast.h"
+#include "derplanner/compiler/parser.h"
+#include "derplanner/compiler/codegen.h"
 
 using namespace plnnrc;
 
@@ -307,6 +308,16 @@ int main(int argc, char** argv)
         const size_t pool_size = plnnrc::debug_pool_size(parser.tree);
         printf("ast_size  = %d\n", (uint32_t)ast_size);
         printf("pool_size = %d\n", (uint32_t)pool_size);
+    }
+
+    // generate header.
+    {
+        File_Context header_context((output_dir + "/" + output_name + ".h").c_str(), "wb");
+        plnnrc::Writer_Crt header_writer(header_context.fd);
+        plnnrc::Codegen codegen;
+        plnnrc::init(codegen, &parser.tree);
+
+        plnnrc::generate_header(codegen, (output_name + "_H_").c_str(), &header_writer);
     }
 
     return 0;
