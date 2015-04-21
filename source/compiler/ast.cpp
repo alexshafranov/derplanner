@@ -748,9 +748,9 @@ void plnnrc::infer_types(ast::Root& tree)
         ast::Case* case_ = tree.cases[caseIdx];
         for (uint32_t taskIdx = 0; taskIdx < plnnrc::size(case_->task_list); ++taskIdx)
         {
-            ast::Func* func = as_Func(case_->task_list[taskIdx]);
+            ast::Func* func = plnnrc::as_Func(case_->task_list[taskIdx]);
             plnnrc_assert(func);
-            ast::Task* task = get_task(tree, func->name);
+            ast::Task* task = plnnrc::get_task(tree, func->name);
 
             uint32_t paramIdx = 0;
             for (ast::Expr* node = func->child; node != 0; node = node->next_sibling)
@@ -758,7 +758,7 @@ void plnnrc::infer_types(ast::Root& tree)
                 ast::Var* var = plnnrc::as_Var(node);
                 plnnrc_assert(var && var->definition);
                 ast::Node* def = var->definition;
-                Token_Type data_type = as_Param(def) ? as_Param(def)->data_type : as_Var(def)->data_type;
+                Token_Type data_type = plnnrc::as_Param(def) ? plnnrc::as_Param(def)->data_type : plnnrc::as_Var(def)->data_type;
                 var->data_type = data_type;
 
                 if (task)

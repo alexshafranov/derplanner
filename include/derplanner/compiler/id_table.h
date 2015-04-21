@@ -123,7 +123,7 @@ namespace id_table
     {
         uint32_t ideal_slot = hash_code & (max_size - 1);
         uint32_t distance = (slot + max_size - ideal_slot) & (max_size - 1);
-        return distance;        
+        return distance;
     }
 
     template <typename T>
