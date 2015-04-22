@@ -43,6 +43,11 @@ Token_Value get(const String_Buffer& buffer, uint32_t index);
 // number of strings stored.
 uint32_t size(const String_Buffer& buffer);
 
+// low-level string building
+void begin_string(String_Buffer& buffer);
+void put_chars(String_Buffer& buffer, const char* chars, uint32_t count);
+void end_string(String_Buffer& buffer);
+
 }
 
 inline void plnnrc::init(plnnrc::String_Buffer& buffer, Memory* mem, uint32_t max_size, uint32_t max_chars)
@@ -84,5 +89,22 @@ inline plnnrc::Token_Value plnnrc::get(const String_Buffer& buffer, uint32_t ind
 }
 
 inline uint32_t plnnrc::size(const plnnrc::String_Buffer& buffer) { return plnnrc::size(buffer.lengths); }
+
+inline void plnnrc::begin_string(plnnrc::String_Buffer& buffer)
+{
+    uint32_t offset = plnnrc::size(buffer.buffer);
+    plnnrc::push_back(buffer.offsets, offset);
+}
+
+inline void plnnrc::put_chars(plnnrc::String_Buffer& buffer, const char* chars, uint32_t count)
+{
+    plnnrc::push_back(buffer.buffer, chars, count);
+}
+
+inline void plnnrc::end_string(plnnrc::String_Buffer& buffer)
+{
+    uint32_t length = plnnrc::size(buffer.buffer) - plnnrc::back(buffer.offsets);
+    plnnrc::push_back(buffer.lengths, length);
+}
 
 #endif
