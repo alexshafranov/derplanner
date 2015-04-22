@@ -53,6 +53,9 @@ void clear(Array<T>& array);
 template <typename T>
 uint32_t size(const Array<T>& array);
 
+template <typename T>
+uint32_t back(const Array<T>& array);
+
 }
 
 template <typename T>
@@ -157,6 +160,12 @@ template <typename T>
 inline uint32_t plnnrc::size(const plnnrc::Array<T>& array)
 {
     return array.size;
+}
+
+template <typename T>
+inline uint32_t plnnrc::back(const Array<T>& array)
+{
+    return array[array.size - 1];
 }
 
 #endif
