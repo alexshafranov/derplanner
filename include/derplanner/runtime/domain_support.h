@@ -28,7 +28,13 @@
 #include "derplanner/runtime/database.h"
 #include "derplanner/runtime/planning.h"
 
-/// This header contains functions used from auto-generated domain code.
+/// This header contains functions & macro used in auto-generated domain code.
+
+#define plnnr_static_array_size(array) sizeof(array)/sizeof(array[0])
+
+#define plnnr_coroutine_begin(state, label) switch (state->label) { case 0:
+#define plnnr_coroutine_yield(state, label, value) state->label = value; return true; case value:;
+#define plnnr_coroutine_end() } return false
 
 namespace plnnr {
 

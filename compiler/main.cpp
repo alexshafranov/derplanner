@@ -310,14 +310,20 @@ int main(int argc, char** argv)
         printf("pool_size = %d\n", (uint32_t)pool_size);
     }
 
-    // generate header.
+    // generate source code.
     {
-        File_Context header_context((output_dir + "/" + output_name + ".h").c_str(), "wb");
+        std::string header_name = output_name + ".h";
+        File_Context header_context((output_dir + "/" + header_name).c_str(), "wb");
         plnnrc::Writer_Crt header_writer(header_context.fd);
+
+        File_Context source_context((output_dir + "/" + output_name + ".cpp").c_str(), "wb");
+        plnnrc::Writer_Crt source_writer(source_context.fd);
+
         plnnrc::Codegen codegen;
         plnnrc::init(codegen, &parser.tree);
 
         plnnrc::generate_header(codegen, (output_name + "_H_").c_str(), &header_writer);
+        plnnrc::generate_source(codegen, header_name.c_str(), &source_writer);
     }
 
     return 0;

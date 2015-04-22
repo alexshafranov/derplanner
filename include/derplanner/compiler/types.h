@@ -60,6 +60,17 @@ struct Id_Table
     Memory*         memory;
 };
 
+// A bunch of strings stored in a single buffer.
+struct String_Buffer
+{
+    // linear string storage, trailing zeros are excluded.
+    Array<char>     buffer;
+    // string start offsets in `buffer`.
+    Array<uint32_t> offsets;
+    // length of each string.
+    Array<uint32_t> lengths;
+};
+
 // Error/Warning IDs.
 enum Error_Type
 {
@@ -122,9 +133,6 @@ struct Lexer
     Id_Table<Token_Type>    keywords;
 };
 
-// Paged pool handle.
-struct Pool;
-
 /// Abstract-Syntax-Tree nodes, produced by the parser.
 
 namespace ast
@@ -158,7 +166,7 @@ namespace ast
     struct Node
     {
         // type tag of the node.
-        Node_Type       type;
+        Node_Type           type;
     };
 
     // Root of the Abstract-Syntax-Tree.
@@ -168,17 +176,17 @@ namespace ast
         ~Root();
 
         // maps fact name -> Fact node.
-        Id_Table<Fact*> fact_lookup;
+        Id_Table<Fact*>     fact_lookup;
         // maps task name -> Task node.
-        Id_Table<Task*> task_lookup;
+        Id_Table<Task*>     task_lookup;
         // all cases in the order of definition.
-        Array<Case*>    cases;
+        Array<Case*>        cases;
         // parsed `world` block.
-        World*          world;
+        World*              world;
         // parsed `domain` block.
-        Domain*         domain;
+        Domain*             domain;
         // paged memory pool ast nodes are allocated from.
-        Memory*         pool;
+        Memory*             pool;
     };
 
     // Parsed `world` block.
@@ -337,10 +345,15 @@ struct Formatter
 // C++ code generator state.
 struct Codegen
 {
+    Codegen();
+    ~Codegen();
+
     // input AST.
     ast::Root*      tree;
     // formatter used to write files.
     Formatter       fmtr;
+    // paged pool for codegen data.
+    Memory*         pool;
 };
 
 }
