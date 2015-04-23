@@ -34,17 +34,18 @@ void destroy(ast::Root& root);
 
 /// `create_*` functions for `ast` node types.
 
-ast::World*     create_world(ast::Root& tree);
-ast::Fact*      create_fact(ast::Root& tree, const Token_Value& name);
-ast::Param*     create_param(ast::Root& tree, const Token_Value& name);
-ast::Domain*    create_domain(ast::Root& tree, const Token_Value& name);
-ast::Task*      create_task(ast::Root& tree, const Token_Value& name);
-ast::Case*      create_case(ast::Root& tree);
-ast::Func*      create_func(ast::Root& tree, const Token_Value& name);
-ast::Op*        create_op(ast::Root& tree, ast::Node_Type operation_type);
-ast::Var*       create_var(ast::Root& tree, const Token_Value& name);
-ast::Data_Type* create_type(ast::Root& tree, Token_Type data_type);
-ast::Literal*   create_literal(ast::Root& tree, const Token& token);
+ast::World*         create_world(ast::Root& tree);
+ast::Primitive*     create_primitive(ast::Root& tree);
+ast::Fact*          create_fact(ast::Root& tree, const Token_Value& name);
+ast::Param*         create_param(ast::Root& tree, const Token_Value& name);
+ast::Domain*        create_domain(ast::Root& tree, const Token_Value& name);
+ast::Task*          create_task(ast::Root& tree, const Token_Value& name);
+ast::Case*          create_case(ast::Root& tree);
+ast::Func*          create_func(ast::Root& tree, const Token_Value& name);
+ast::Op*            create_op(ast::Root& tree, ast::Node_Type operation_type);
+ast::Var*           create_var(ast::Root& tree, const Token_Value& name);
+ast::Data_Type*     create_type(ast::Root& tree, Token_Type data_type);
+ast::Literal*       create_literal(ast::Root& tree, const Token& token);
 
 // lookup `ast::Task` node by name (`token_value`).
 ast::Task*      get_task(ast::Root& tree, const Token_Value& token_value);

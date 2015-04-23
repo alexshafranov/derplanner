@@ -87,6 +87,7 @@ inline void plnnrc::destroy(plnnrc::Array<T>& array)
     mem->deallocate(array.data);
     array.size = 0;
     array.max_size = 0;
+    array.memory = 0;
 }
 
 template <typename T>

@@ -26,6 +26,10 @@
     #define PLNNRC_KEYWORD_TOKEN(TAG, STR) PLNNRC_TOKEN(TAG)
 #endif
 
+#ifndef PLNNRC_TYPE_KEYWORD_TOKEN
+    #define PLNNRC_TYPE_KEYWORD_TOKEN(TAG, STR) PLNNRC_KEYWORD_TOKEN(TAG, STR)
+#endif
+
 #ifndef PLNNRC_PUNCTUATOR_TOKEN
     #define PLNNRC_PUNCTUATOR_TOKEN(TAG, STR) PLNNRC_TOKEN(TAG)
 #endif
@@ -45,11 +49,12 @@ PLNNRC_TOKEN(Literal_Float)
 
 PLNNRC_KEYWORD_TOKEN(Domain,          "domain")
 PLNNRC_KEYWORD_TOKEN(World,           "world")
+PLNNRC_KEYWORD_TOKEN(Primitive,       "primitive")
 PLNNRC_KEYWORD_TOKEN(Task,            "task")
 PLNNRC_KEYWORD_TOKEN(Case,            "case")
 
-PLNNRC_KEYWORD_TOKEN(Int32,           "int32")
-PLNNRC_KEYWORD_TOKEN(Float,           "float")
+PLNNRC_TYPE_KEYWORD_TOKEN(Int32,      "int32")
+PLNNRC_TYPE_KEYWORD_TOKEN(Float,      "float")
 
 PLNNRC_PUNCTUATOR_TOKEN(L_Curly,      "{")
 PLNNRC_PUNCTUATOR_TOKEN(R_Curly,      "}")
@@ -74,5 +79,6 @@ PLNNRC_TOKEN_GROUP(Literal,   Literal_Integer, Literal_Float)
 #undef PLNNRC_TOKEN_GROUP
 #undef PLNNRC_OPERATOR_TOKEN
 #undef PLNNRC_PUNCTUATOR_TOKEN
+#undef PLNNRC_TYPE_KEYWORD_TOKEN
 #undef PLNNRC_KEYWORD_TOKEN
 #undef PLNNRC_TOKEN

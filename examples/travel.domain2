@@ -10,6 +10,12 @@ domain travel
         airport( int32, int32 )
     }
 
+    primitive
+    {
+        !taxi( int32, int32 )
+        !plane( int32, int32 )
+    }
+
     task root()
     {
         case( start(s) & finish(f) ) -> [ travel(s, f) ]

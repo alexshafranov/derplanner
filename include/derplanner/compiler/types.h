@@ -142,6 +142,7 @@ namespace ast
             struct World;
                 struct Fact;
                     struct Data_Type;
+            struct Primitive;
             struct Domain;
                 struct Task;
                     struct Param;
@@ -179,10 +180,14 @@ namespace ast
         Id_Table<Fact*>     fact_lookup;
         // maps task name -> Task node.
         Id_Table<Task*>     task_lookup;
+        // maps primitive task name -> Fact node.
+        Id_Table<Fact*>     primitive_lookup;
         // all cases in the order of definition.
         Array<Case*>        cases;
         // parsed `world` block.
         World*              world;
+        // parsed `primitive` block.
+        Primitive*          primitive;
         // parsed `domain` block.
         Domain*             domain;
         // paged memory pool ast nodes are allocated from.
@@ -194,6 +199,12 @@ namespace ast
     {
         // fact declarations.
         Array<Fact*>        facts;
+    };
+
+    // Parsed `primitive` block.
+    struct Primitive : public Node
+    {
+        Array<Fact*>        tasks;
     };
 
     // Parsed `domain` block.
@@ -352,6 +363,8 @@ struct Codegen
     ast::Root*      tree;
     // formatter used to write files.
     Formatter       fmtr;
+    // generated expand function names.
+    String_Buffer   expand_names;
     // paged pool for codegen data.
     Memory*         pool;
 };

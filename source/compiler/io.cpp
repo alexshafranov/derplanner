@@ -21,6 +21,7 @@
 #include <string.h>
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/memory.h"
+#include "derplanner/compiler/array.h"
 #include "derplanner/compiler/io.h"
 
 using namespace plnnrc;
@@ -59,65 +60,171 @@ void plnnrc::flush(Formatter& formatter)
     }
 }
 
+namespace io
+{
+    static inline void put_char(Formatter& formatter, char c)
+    {
+        if (formatter.buffer_ptr + 1 > formatter.buffer_end)
+        {
+            plnnrc::flush(formatter);
+        }
+
+        *(formatter.buffer_ptr++) = c;
+    }
+
+    static inline void put_char(Array<char>& buffer, char c)
+    {
+        plnnrc::push_back(buffer, c);
+    }
+
+    static inline void put_str(Formatter& formatter, const char* str, uint32_t length)
+    {
+        if (formatter.buffer_ptr + length > formatter.buffer_end)
+        {
+            plnnrc::flush(formatter);
+
+            if (formatter.buffer_ptr + length > formatter.buffer_end)
+            {
+                formatter.output->write(str, length);
+                return;
+            }
+        }
+
+        memcpy(formatter.buffer_ptr, str, length);
+        formatter.buffer_ptr += length;
+    }
+
+    static inline void put_str(Array<char>& buffer, const char* str, uint32_t length)
+    {
+        plnnrc::push_back(buffer, str, length);
+    }
+
+    template <typename T>
+    static inline void put_str(T& output, const char* str)
+    {
+        uint32_t length = (uint32_t)strlen(str);
+        io::put_str(output, str, length);
+    }
+
+    template <typename T>
+    static inline void put_int(T& output, int n)
+    {
+        const char* digits = "0123456789";
+        int t = n;
+
+        if (n < 0)
+        {
+            io::put_char(output, '-');
+            t = -n;
+        }
+
+        int num_digits = 0;
+
+        if (t == 0)
+        {
+            num_digits = 1;
+        }
+
+        while (t)
+        {
+            num_digits++;
+            t /= 10;
+        }
+
+        for (int i = 0; i < num_digits; ++i)
+        {
+            int p = 1;
+
+            for (int j = 1; j < num_digits-i; ++j)
+            {
+                p *= 10;
+            }
+
+            io::put_char(output, digits[(n / p) % 10]);
+        }
+    }
+
+    template <typename T>
+    static inline void put_token(T& output, const Token_Value& token)
+    {
+        io::put_str(output, token.str, token.length);
+    }
+
+    template <typename T>
+    static inline void put_indent(T& output, const char* tab, uint32_t level)
+    {
+        for (uint32_t i = 0; i < level; ++i)
+        {
+            put_str(output, tab);
+        }
+    }
+
+    template <typename T>
+    static inline void write(T& output, const char* tab, uint32_t indent, const char* format, va_list arglist)
+    {
+        while (*format)
+        {
+            if (*format == '%')
+            {
+                switch (*++format)
+                {
+                // decimal number
+                case 'd':
+                    {
+                        int n = va_arg(arglist, int);
+                        io::put_int(output, n);
+                    }
+                    break;
+                // string
+                case 's':
+                    {
+                        const char* s = va_arg(arglist, const char*);
+                        io::put_str(output, s);
+                    }
+                    break;
+                // Token_Value
+                case 'n':
+                    {
+                        Token_Value token_value = va_arg(arglist, Token_Value);
+                        io::put_token(output, token_value);
+                    }
+                    break;
+                case 'i':
+                    {
+                        io::put_indent(output, tab, indent);
+                    }
+                    break;
+                // %% -> %
+                case '%':
+                    {
+                        io::put_char(output, *format);
+                    }
+                    break;
+                }
+            }
+            else
+            {
+                io::put_char(output, *format);
+            }
+
+            ++format;
+        }
+    }
+}
+
 void plnnrc::indent(Formatter& formatter)
 {
-    plnnrc::put_indent(formatter, formatter.indent);
+    io::put_indent(formatter, formatter.tab, formatter.indent);
 }
 
 void plnnrc::newline(Formatter& formatter)
 {
-    plnnrc::put_str(formatter, formatter.newline);
+    io::put_str(formatter, formatter.newline);
 }
 
-void plnnrc::write(Formatter& formatter, const char* format, va_list arglist)
+void plnnrc::write(Formatter& formatter, const char* format, va_list args)
 {
-    while (*format)
-    {
-        if (*format == '%')
-        {
-            switch (*++format)
-            {
-            // decimal number
-            case 'd':
-                {
-                    int n = va_arg(arglist, int);
-                    plnnrc::put_int(formatter, n);
-                }
-                break;
-            // string
-            case 's':
-                {
-                    const char* s = va_arg(arglist, const char*);
-                    plnnrc::put_str(formatter, s);
-                }
-                break;
-            // Token_Value
-            case 'n':
-                {
-                    Token_Value token_value = va_arg(arglist, Token_Value);
-                    plnnrc::put_token(formatter, token_value);
-                }
-                break;
-            case 'i':
-                {
-                    plnnrc::put_indent(formatter, formatter.indent);
-                }
-                break;
-            // %% -> %
-            case '%':
-                {
-                    plnnrc::put_char(formatter, *format);
-                }
-                break;
-            }
-        }
-        else
-        {
-            plnnrc::put_char(formatter, *format);
-        }
-
-        ++format;
-    }
+    io::write(formatter, formatter.tab, formatter.indent, format, args);
 }
 
 void plnnrc::write(Formatter& formatter, const char* format, ...)
@@ -130,7 +237,7 @@ void plnnrc::write(Formatter& formatter, const char* format, ...)
 
 void plnnrc::writeln(Formatter& formatter, const char* format, ...)
 {
-    plnnrc::put_indent(formatter, formatter.indent);
+    io::put_indent(formatter, formatter.tab, formatter.indent);
     va_list arglist;
     va_start(arglist, format);
     plnnrc::write(formatter, format, arglist);
@@ -138,85 +245,10 @@ void plnnrc::writeln(Formatter& formatter, const char* format, ...)
     plnnrc::newline(formatter);
 }
 
-void plnnrc::put_char(Formatter& formatter, char c)
+void plnnrc::write(Array<char>& buffer, const char* format, ...)
 {
-    if (formatter.buffer_ptr + 1 > formatter.buffer_end)
-    {
-        plnnrc::flush(formatter);
-    }
-
-    *(formatter.buffer_ptr++) = c;
-}
-
-void plnnrc::put_str(Formatter& formatter, const char* str)
-{
-    size_t length = strlen(str);
-    plnnrc::put_str(formatter, str, length);
-}
-
-void plnnrc::put_str(Formatter& formatter, const char* str, size_t length)
-{
-    if (formatter.buffer_ptr + length > formatter.buffer_end)
-    {
-        plnnrc::flush(formatter);
-
-        if (formatter.buffer_ptr + length > formatter.buffer_end)
-        {
-            formatter.output->write(str, length);
-            return;
-        }
-    }
-
-    memcpy(formatter.buffer_ptr, str, length);
-    formatter.buffer_ptr += length;
-}
-
-void plnnrc::put_token(Formatter& formatter, const Token_Value& token_value)
-{
-    plnnrc::put_str(formatter, token_value.str, token_value.length);
-}
-
-void plnnrc::put_int(Formatter& formatter, int n)
-{
-    const char* digits = "0123456789";
-    int t = n;
-
-    if (n < 0)
-    {
-        plnnrc::put_char(formatter, '-');
-        t = -n;
-    }
-
-    int num_digits = 0;
-
-    if (t == 0)
-    {
-        num_digits = 1;
-    }
-
-    while (t)
-    {
-        num_digits++;
-        t /= 10;
-    }
-
-    for (int i = 0; i < num_digits; ++i)
-    {
-        int p = 1;
-
-        for (int j = 1; j < num_digits-i; ++j)
-        {
-            p *= 10;
-        }
-
-        plnnrc::put_char(formatter, digits[(n / p) % 10]);
-    }
-}
-
-void plnnrc::put_indent(Formatter& formatter, uint32_t level)
-{
-    for (uint32_t i = 0; i < level; ++i)
-    {
-        plnnrc::put_str(formatter, formatter.tab);
-    }
+    va_list arglist;
+    va_start(arglist, format);
+    io::write(buffer, "", 0, format, arglist);
+    va_end(arglist);
 }
