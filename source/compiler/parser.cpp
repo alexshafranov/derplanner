@@ -239,7 +239,7 @@ static void parse_facts(Parser& state, Children_Builder<ast::Fact>& builder)
 ast::World* plnnrc::parse_world(Parser& state)
 {
     ast::World* world = plnnrc::create_world(state.tree);
-    Token tok = expect(state, Token_L_Curly);
+    expect(state, Token_L_Curly);
     Children_Builder<ast::Fact> cb(&state, &world->facts);
     parse_facts(state, cb);
     return world;
@@ -248,7 +248,7 @@ ast::World* plnnrc::parse_world(Parser& state)
 ast::Primitive* plnnrc::parse_primitive(Parser& state)
 {
     ast::Primitive* prim = plnnrc::create_primitive(state.tree);
-    Token tok = expect(state, Token_L_Curly);
+    expect(state, Token_L_Curly);
     Children_Builder<ast::Fact> cb(&state, &prim->tasks);
     parse_facts(state, cb);
     return prim;
