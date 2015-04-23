@@ -79,6 +79,13 @@ ast::World* plnnrc::create_world(ast::Root& tree)
     return node;
 }
 
+ast::Primitive* plnnrc::create_primitive(ast::Root& tree)
+{
+    ast::Primitive* node = pool_alloc<ast::Primitive>(tree);
+    node->type = ast::Node_Primitive;
+    return node;
+}
+
 ast::Fact* plnnrc::create_fact(ast::Root& tree, const Token_Value& name)
 {
     ast::Fact* node = pool_alloc<ast::Fact>(tree);
@@ -648,6 +655,19 @@ void plnnrc::build_lookups(ast::Root& tree)
         }
     }
 
+    ast::Primitive* prim = tree.primitive;
+    if (prim)
+    {
+        const uint32_t num_tasks = plnnrc::size(prim->tasks);
+        plnnrc::init(tree.primitive_lookup, tree.pool, num_tasks);
+
+        for (uint32_t i = 0; i < num_tasks; ++i)
+        {
+            ast::Fact* task = prim->tasks[i];
+            plnnrc::set(tree.primitive_lookup, task->name, task);
+        }
+    }
+
     ast::Domain* domain = tree.domain;
     if (domain)
     {
@@ -823,6 +843,7 @@ struct Debug_Output_Visitor
     }
 
     void visit(const ast::World* node) { print(node); print_children(node->facts); }
+    void visit(const ast::Primitive* node) { print(node); print_children(node->tasks); }
     void visit(const ast::Domain* node) { print_named(node); print_children(node->tasks); }
     void visit(const ast::Fact* node) { print_named(node); print_children(node->params); }
     void visit(const ast::Task* node) { print_named(node); print_children(node->params); print_children(node->cases); }
@@ -846,6 +867,11 @@ void plnnrc::debug_output_ast(const ast::Root& tree, Writer* output)
     if (tree.world)
     {
         visit_node<void>(tree.world, &visitor);
+    }
+
+    if (tree.primitive)
+    {
+        visit_node<void>(tree.primitive, &visitor);
     }
 
     if (tree.domain)

@@ -293,14 +293,13 @@ int main(int argc, char** argv)
 
     plnnrc::Parser parser;
     plnnrc::init(parser, &lexer);
+    plnnrc::parse(parser);
+    plnnrc::infer_types(parser.tree);
 
     if (enable_debug_info)
     {
         plnnrc::Writer_Crt standard_output = plnnrc::make_stdout_writer();
         plnnrc::debug_output_tokens(input_buffer.data, &standard_output);
-
-        parse(parser);
-        infer_types(parser.tree);
 
         plnnrc::debug_output_ast(parser.tree, &standard_output);
 

@@ -31,10 +31,11 @@
 // implementation (exposed for unit tests)
 namespace plnnrc
 {
-    ast::World* parse_world(Parser& state);
-    ast::Task*  parse_task(Parser& state);
-    ast::Expr*  parse_precond(Parser& state);
-    void        parse_task_list(Parser& state, ast::Case* case_);
+    ast::World*         parse_world(Parser& state);
+    ast::Primitive*     parse_primitive(Parser& state);
+    ast::Task*          parse_task(Parser& state);
+    ast::Expr*          parse_precond(Parser& state);
+    void                parse_task_list(Parser& state, ast::Case* case_);
 }
 
 using namespace plnnrc;
@@ -170,6 +171,14 @@ void plnnrc::parse(Parser& state)
                 continue;
             }
 
+            if (is_Primitive(tok))
+            {
+                ast::Primitive* prim = parse_primitive(state);
+                plnnrc_assert(!state.tree.primitive);
+                state.tree.primitive = prim;
+                continue;
+            }
+
             if (is_Task(tok))
             {
                 ast::Task* task = parse_task(state);
@@ -186,19 +195,15 @@ void plnnrc::parse(Parser& state)
     plnnrc::build_lookups(state.tree);
 }
 
-ast::World* plnnrc::parse_world(Parser& state)
+static void parse_facts(Parser& state, Children_Builder<ast::Fact>& builder)
 {
-    ast::World* world = plnnrc::create_world(state.tree);
-    Token tok = expect(state, Token_L_Curly);
-    Children_Builder<ast::Fact> cb(&state, &world->facts);
-
     for (;;)
     {
-        tok = expect(state, Token_Id);
+        Token tok = expect(state, Token_Id);
         ast::Fact* fact = plnnrc::create_fact(state.tree, tok.value);
-        cb.push_back(fact);
-        Children_Builder<ast::Data_Type> cb(&state, &fact->params);
+        builder.push_back(fact);
 
+        Children_Builder<ast::Data_Type> cb(&state, &fact->params);
         // parse parameters
         expect(state, Token_L_Paren);
         if (!is_R_Paren(peek(state)))
@@ -229,8 +234,24 @@ ast::World* plnnrc::parse_world(Parser& state)
             break;
         }
     }
+}
 
+ast::World* plnnrc::parse_world(Parser& state)
+{
+    ast::World* world = plnnrc::create_world(state.tree);
+    Token tok = expect(state, Token_L_Curly);
+    Children_Builder<ast::Fact> cb(&state, &world->facts);
+    parse_facts(state, cb);
     return world;
+}
+
+ast::Primitive* plnnrc::parse_primitive(Parser& state)
+{
+    ast::Primitive* prim = plnnrc::create_primitive(state.tree);
+    Token tok = expect(state, Token_L_Curly);
+    Children_Builder<ast::Fact> cb(&state, &prim->tasks);
+    parse_facts(state, cb);
+    return prim;
 }
 
 ast::Task* plnnrc::parse_task(Parser& state)
