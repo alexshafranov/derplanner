@@ -54,7 +54,10 @@ template <typename T>
 uint32_t size(const Array<T>& array);
 
 template <typename T>
-uint32_t back(const Array<T>& array);
+T& back(Array<T>& array);
+
+template <typename T>
+const T& back(const Array<T>& array);
 
 }
 
@@ -164,7 +167,13 @@ inline uint32_t plnnrc::size(const plnnrc::Array<T>& array)
 }
 
 template <typename T>
-inline uint32_t plnnrc::back(const Array<T>& array)
+inline const T& plnnrc::back(const Array<T>& array)
+{
+    return array[array.size - 1];
+}
+
+template <typename T>
+inline T& plnnrc::back(Array<T>& array)
 {
     return array[array.size - 1];
 }

@@ -706,9 +706,9 @@ void plnnrc::build_lookups(ast::Root& tree)
 
             build_var_lookup(case_, case_->precond);
 
-            for (uint32_t taskIdx = 0; taskIdx < plnnrc::size(case_->task_list); ++taskIdx)
+            for (uint32_t task_idx = 0; task_idx < plnnrc::size(case_->task_list); ++task_idx)
             {
-                ast::Expr* task_expr = case_->task_list[taskIdx];
+                ast::Expr* task_expr = case_->task_list[task_idx];
                 build_var_lookup(case_, task_expr);
             }
         }
@@ -720,9 +720,9 @@ void plnnrc::infer_types(ast::Root& tree)
     if (!tree.domain || !tree.world) { return; }
 
     // seed types using fact declarations.
-    for (uint32_t caseIdx = 0; caseIdx < plnnrc::size(tree.cases); ++caseIdx)
+    for (uint32_t case_idx = 0; case_idx < plnnrc::size(tree.cases); ++case_idx)
     {
-        ast::Case* case_ = tree.cases[caseIdx];
+        ast::Case* case_ = tree.cases[case_idx];
         for (ast::Expr* node = case_->precond; node != 0; node = plnnrc::preorder_next(case_->precond, node))
         {
             if (ast::Func* func = plnnrc::as_Func(node))
@@ -731,10 +731,10 @@ void plnnrc::infer_types(ast::Root& tree)
                 plnnrc_assert(fact);
                 // currently assuming all children are vars.
                 ast::Var* var = plnnrc::as_Var(func->child);
-                for (uint32_t paramIdx = 0; paramIdx < plnnrc::size(fact->params); ++paramIdx)
+                for (uint32_t param_idx = 0; param_idx < plnnrc::size(fact->params); ++param_idx)
                 {
                     plnnrc_assert(var);
-                    ast::Data_Type* param_type = fact->params[paramIdx];
+                    ast::Data_Type* param_type = fact->params[param_idx];
                     var->data_type = param_type->data_type;
                     var = plnnrc::as_Var(var->next_sibling);
                 }
@@ -745,15 +745,15 @@ void plnnrc::infer_types(ast::Root& tree)
     }
 
     // set task parameter types.
-    for (uint32_t caseIdx = 0; caseIdx < plnnrc::size(tree.cases); ++caseIdx)
+    for (uint32_t case_idx = 0; case_idx < plnnrc::size(tree.cases); ++case_idx)
     {
-        ast::Case* case_ = tree.cases[caseIdx];
+        ast::Case* case_ = tree.cases[case_idx];
         ast::Task* task = case_->task;
         if (!plnnrc::size(case_->var_lookup)) { continue; }
 
-        for (uint32_t paramIdx = 0; paramIdx < plnnrc::size(task->params); ++paramIdx)
+        for (uint32_t param_idx = 0; param_idx < plnnrc::size(task->params); ++param_idx)
         {
-            ast::Param* param = task->params[paramIdx];
+            ast::Param* param = task->params[param_idx];
             ast::Var* var = plnnrc::get(case_->var_lookup, param->name);
             plnnrc_assert(!var->definition);
             var->definition = param;
@@ -763,16 +763,16 @@ void plnnrc::infer_types(ast::Root& tree)
     }
 
     // propagate types "down" to task lists.
-    for (uint32_t caseIdx = 0; caseIdx < plnnrc::size(tree.cases); ++caseIdx)
+    for (uint32_t case_idx = 0; case_idx < plnnrc::size(tree.cases); ++case_idx)
     {
-        ast::Case* case_ = tree.cases[caseIdx];
-        for (uint32_t taskIdx = 0; taskIdx < plnnrc::size(case_->task_list); ++taskIdx)
+        ast::Case* case_ = tree.cases[case_idx];
+        for (uint32_t task_idx = 0; task_idx < plnnrc::size(case_->task_list); ++task_idx)
         {
-            ast::Func* func = plnnrc::as_Func(case_->task_list[taskIdx]);
+            ast::Func* func = plnnrc::as_Func(case_->task_list[task_idx]);
             plnnrc_assert(func);
             ast::Task* task = plnnrc::get_task(tree, func->name);
 
-            uint32_t paramIdx = 0;
+            uint32_t param_idx = 0;
             for (ast::Expr* node = func->child; node != 0; node = node->next_sibling)
             {
                 ast::Var* var = plnnrc::as_Var(node);
@@ -783,11 +783,11 @@ void plnnrc::infer_types(ast::Root& tree)
 
                 if (task)
                 {
-                    ast::Param* param = task->params[paramIdx];
+                    ast::Param* param = task->params[param_idx];
                     param->data_type = data_type;
                 }
 
-                ++paramIdx;
+                ++param_idx;
             }
         }
     }
