@@ -91,6 +91,18 @@ enum Token_Type
     Token_Count,
 };
 
+// Token group ranges: <Group>_First, <Group>_Last
+enum Token_Groups
+{
+    #define PLNNRC_TOKEN_GROUP(GROUP_TAG, FIRST_TOKEN_TAG, LAST_TOKEN_TAG) Token_Group_##GROUP_TAG##_First = Token_##FIRST_TOKEN_TAG,
+    #include "derplanner/compiler/token_tags.inl"
+    #undef PLNNRC_TOKEN_GROUP
+
+    #define PLNNRC_TOKEN_GROUP(GROUP_TAG, FIRST_TOKEN_TAG, LAST_TOKEN_TAG) Token_Group_##GROUP_TAG##_Last = Token_##LAST_TOKEN_TAG,
+    #include "derplanner/compiler/token_tags.inl"
+    #undef PLNNRC_TOKEN_GROUP
+};
+
 // String value of the token.
 struct Token_Value
 {

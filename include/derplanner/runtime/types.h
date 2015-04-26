@@ -216,7 +216,7 @@ struct Param_Layout
     Type*       types;
     // size in bytes needed for this layout.
     size_t      size;
-    // offset in memory of each parameter from the first one.
+    // offset in bytes for each parameter.
     size_t*     offsets;
 };
 

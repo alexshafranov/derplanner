@@ -20,6 +20,7 @@
 
 #include "derplanner/compiler/io.h"
 #include "derplanner/compiler/array.h"
+#include "derplanner/compiler/lexer.h"
 #include "derplanner/compiler/codegen.h"
 #include "derplanner/compiler/string_buffer.h"
 #include "pool.h"
@@ -72,13 +73,13 @@ void plnnrc::generate_header(Codegen& state, const char* header_guard, Writer* o
 
 static void build_expand_names(String_Buffer& expand_names, ast::Domain* domain)
 {
-    for (uint32_t taskIdx = 0; taskIdx < plnnrc::size(domain->tasks); ++taskIdx)
+    for (uint32_t task_idx = 0; task_idx < plnnrc::size(domain->tasks); ++task_idx)
     {
-        ast::Task* task = domain->tasks[taskIdx];
-        for (uint32_t caseIdx = 0; caseIdx < plnnrc::size(task->cases); ++caseIdx)
+        ast::Task* task = domain->tasks[task_idx];
+        for (uint32_t case_idx = 0; case_idx < plnnrc::size(task->cases); ++case_idx)
         {
             begin_string(expand_names);
-            write(expand_names.buffer, "%n_case_%d", task->name, caseIdx);
+            write(expand_names.buffer, "%n_case_%d", task->name, case_idx);
             end_string(expand_names);
         }
     }
@@ -93,8 +94,134 @@ static const char* s_type_names[] =
 
 static inline const char* get_runtime_type_name(Token_Type token_type)
 {
-    plnnrc_assert(token_type >= Token_Int32);
-    return s_type_names[token_type - Token_Int32];
+    plnnrc_assert(token_type >= Token_Group_Type_First);
+    return s_type_names[token_type - Token_Group_Type_First];
+}
+
+// Hashed type tuples (task & precondition output signatures)
+struct Signature_Table
+{
+    // compacted signature types.
+    Array<uint8_t>      types;
+    // hash of each signature.
+    Array<uint32_t>     hashes;
+    // offset to `types` for each signature.
+    Array<uint32_t>     offsets;
+    // length (number of params) for each signature.
+    Array<uint32_t>     lengths;
+    // maps signature index to compacted signature arrays.
+    Array<uint32_t>     remap;
+};
+
+static void init(Signature_Table& table, Memory* mem, uint32_t max_signatures)
+{
+    init(table.types, mem, max_signatures * 4); // allocate for average 4 params per signature.
+    init(table.hashes, mem, max_signatures);
+    init(table.offsets, mem, max_signatures);
+    init(table.lengths, mem, max_signatures);
+    init(table.remap, mem, max_signatures);
+}
+
+static inline uint32_t get_signature_offset(const Signature_Table& table, uint32_t index)
+{
+    const uint32_t compact_index = table.remap[index];
+    return table.offsets[compact_index];
+}
+
+static inline uint32_t get_signature_length(const Signature_Table& table, uint32_t index)
+{
+    const uint32_t compact_index = table.remap[index];
+    return table.lengths[compact_index];
+}
+
+static inline uint32_t hash(Signature_Table& table, uint32_t signature_index)
+{
+    const uint32_t offset = table.offsets[signature_index];
+    const uint32_t length = table.lengths[signature_index];
+
+    // FNV-1a
+    uint32_t result = 0x811c9dc5;
+
+    for (uint32_t i = 0; i < length; ++i)
+    {
+        uint8_t c = table.types[i + offset];
+        result ^= c;
+        result *= 0x01000193;
+    }
+
+    return result;
+}
+
+static inline bool equal(Signature_Table& table, uint32_t index_a, uint32_t index_b)
+{
+    const uint32_t offset_a = table.offsets[index_a];
+    const uint32_t offset_b = table.offsets[index_b];
+    const uint32_t length_a = table.lengths[index_a];
+    const uint32_t length_b = table.lengths[index_b];
+
+    if (length_a != length_b)
+    {
+        return false;
+    }
+
+    for (uint32_t i = 0; i < length_a; ++i)
+    {
+        const uint8_t type_a = table.types[i + offset_a];
+        const uint8_t type_b = table.types[i + offset_b];
+
+        if (type_a != type_b)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// begin building signature.
+static void begin_signature(Signature_Table& table)
+{
+    const uint32_t new_index = size(table.offsets);
+    const uint32_t new_offset = size(table.types);
+    push_back(table.remap, new_index);
+    push_back(table.offsets, new_offset);
+}
+
+// add parameter type to the currenly built signature.
+static void add_param(Signature_Table& table, Token_Type type)
+{
+    plnnrc_assert(is_Type(type));
+    plnnrc_assert(Token_Group_Type_Last - Token_Group_Type_First <= 255);
+    const uint8_t value = (uint8_t)(type - Token_Group_Type_First);
+    push_back(table.types, value);
+}
+
+// end building signature, compactify if the same signature was already built.
+static void end_signature(Signature_Table& table)
+{
+    const uint32_t new_index = back(table.remap);
+    const uint32_t new_offset = back(table.offsets);
+    const uint32_t new_length = size(table.types) - new_offset;
+    push_back(table.lengths, new_length);
+
+    const uint32_t new_hash = hash(table, new_index);
+    for (uint32_t i = 0; i < new_index; ++i)
+    {
+        const uint32_t hash = table.hashes[i];
+        if (hash == new_hash)
+        {
+            if (equal(table, i, new_index))
+            {
+                back(table.remap) = i;
+                resize(table.offsets, new_index);
+                resize(table.lengths, new_index);
+                resize(table.types, new_offset);
+                return;
+            }
+        }
+    }
+
+    push_back(table.hashes, new_hash);
 }
 
 void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* output)
@@ -107,87 +234,293 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
     Formatter& fmtr = state.fmtr;
     String_Buffer& expand_names = state.expand_names;
 
-    writeln(fmtr, "// generated by derplanner [http://www.github.com/alexshafranov/derplanner]");
-    writeln(fmtr, "#include \"derplanner/runtime/domain_support.h\"");
-    writeln(fmtr, "#include \"%s\"", domain_header);
-    newline(fmtr);
-    writeln(fmtr, "using namespace plnnr;");
-    newline(fmtr);
-    writeln(fmtr, "#ifdef __GNUC__");
-    writeln(fmtr, "#pragma GCC diagnostic ignored \"-Wunused-parameter\"");
-    writeln(fmtr, "#pragma GCC diagnostic ignored \"-Wunused-variable\"");
-    writeln(fmtr, "#endif");
-    newline(fmtr);
-    writeln(fmtr, "#ifdef _MSC_VER");
-    writeln(fmtr, "#pragma warning(disable: 4100) // unreferenced formal parameter");
-    writeln(fmtr, "#pragma warning(disable: 4189) // local variable is initialized but not referenced");
-    writeln(fmtr, "#endif");
-    newline(fmtr);
+    // includes & pragmas
+    {
+        writeln(fmtr, "// generated by derplanner [http://www.github.com/alexshafranov/derplanner]");
+        writeln(fmtr, "#include \"derplanner/runtime/domain_support.h\"");
+        writeln(fmtr, "#include \"%s\"", domain_header);
+        newline(fmtr);
+        writeln(fmtr, "using namespace plnnr;");
+        newline(fmtr);
+        writeln(fmtr, "#ifdef __GNUC__");
+        writeln(fmtr, "#pragma GCC diagnostic ignored \"-Wunused-parameter\"");
+        writeln(fmtr, "#pragma GCC diagnostic ignored \"-Wunused-variable\"");
+        writeln(fmtr, "#endif");
+        newline(fmtr);
+        writeln(fmtr, "#ifdef _MSC_VER");
+        writeln(fmtr, "#pragma warning(disable: 4100) // unreferenced formal parameter");
+        writeln(fmtr, "#pragma warning(disable: 4189) // local variable is initialized but not referenced");
+        writeln(fmtr, "#endif");
+        newline(fmtr);
+    }
 
     build_expand_names(expand_names, domain);
 
-    for (uint32_t caseIdx = 0; caseIdx < size(expand_names); ++caseIdx)
+    // expand forward declarations
     {
-        Token_Value name = get(expand_names, caseIdx);
-        writeln(fmtr, "static bool %n(Planning_State*, Expansion_Frame*, Fact_Database*);", name);
-    }
-    newline(fmtr);
-
-    writeln(fmtr, "static Composite_Task_Expand* s_task_expands[] = {");
-    for (uint32_t caseIdx = 0; caseIdx < size(expand_names); ++caseIdx)
-    {
-        Token_Value name = get(expand_names, caseIdx);
-        Indent_Scope s(fmtr);
-        writeln(fmtr, "%n,", name);
-    }
-    writeln(fmtr, "};");
-    newline(fmtr);
-
-    writeln(fmtr, "static const char* s_fact_names[] = {");
-    for (uint32_t factIdx = 0; factIdx < size(world->facts); ++factIdx)
-    {
-        Indent_Scope s(fmtr);
-        ast::Fact* fact = world->facts[factIdx];
-        writeln(fmtr, "\"%n\"", fact->name);
-    }
-    writeln(fmtr, " };");
-    newline(fmtr);
-
-    writeln(fmtr, "static const char* s_task_names[] = {");
-    // primitive tasks go first.
-    for (uint32_t primIdx = 0; primIdx < size(prim->tasks); ++primIdx)
-    {
-        Indent_Scope s(fmtr);
-        ast::Fact* task = prim->tasks[primIdx];
-        writeln(fmtr, "\"%n\"", task->name);
-    }
-    // composite tasks after.
-    for (uint32_t taskIdx = 0; taskIdx < size(domain->tasks); ++taskIdx)
-    {
-        Indent_Scope s(fmtr);
-        ast::Task* task = domain->tasks[taskIdx];
-        writeln(fmtr, "\"%n\"", task->name);
-    }
-    writeln(fmtr, " };");
-    newline(fmtr);
-
-    writeln(fmtr, "static Fact_Type s_fact_types[] = {");
-    for (uint32_t factIdx = 0; factIdx < size(world->facts); ++factIdx)
-    {
-        ast::Fact* fact = world->facts[factIdx];
-        uint32_t num_params = size(fact->params);
-        Indent_Scope s(fmtr);
-        write(fmtr, "%i{ %d, {", num_params);
-        for (uint32_t paramIdx = 0; paramIdx < num_params; ++paramIdx)
+        for (uint32_t case_idx = 0; case_idx < size(expand_names); ++case_idx)
         {
-            const char* type_name = get_runtime_type_name(fact->params[paramIdx]->data_type);
-            write(fmtr, "%s, ", type_name);
+            Token_Value name = get(expand_names, case_idx);
+            writeln(fmtr, "static bool %n(Planning_State*, Expansion_Frame*, Fact_Database*);", name);
         }
-        write(fmtr, "} }");
         newline(fmtr);
     }
-    writeln(fmtr, "};");
-    newline(fmtr);
+
+    // s_task_expands
+    {
+        writeln(fmtr, "static Composite_Task_Expand* s_task_expands[] = {");
+        for (uint32_t case_idx = 0; case_idx < size(expand_names); ++case_idx)
+        {
+            Token_Value name = get(expand_names, case_idx);
+            Indent_Scope s(fmtr);
+            writeln(fmtr, "%n,", name);
+        }
+        writeln(fmtr, "};");
+        newline(fmtr);
+    }
+
+    // s_fact_names
+    {
+        writeln(fmtr, "static const char* s_fact_names[] = {");
+        for (uint32_t fact_idx = 0; fact_idx < size(world->facts); ++fact_idx)
+        {
+            Indent_Scope s(fmtr);
+            ast::Fact* fact = world->facts[fact_idx];
+            writeln(fmtr, "\"%n\"", fact->name);
+        }
+        writeln(fmtr, " };");
+        newline(fmtr);
+    }
+
+    // s_task_names
+    {
+        writeln(fmtr, "static const char* s_task_names[] = {");
+        // primitive tasks go first.
+        for (uint32_t prim_idx = 0; prim_idx < size(prim->tasks); ++prim_idx)
+        {
+            Indent_Scope s(fmtr);
+            ast::Fact* task = prim->tasks[prim_idx];
+            writeln(fmtr, "\"%n\"", task->name);
+        }
+        // composite tasks after.
+        for (uint32_t task_idx = 0; task_idx < size(domain->tasks); ++task_idx)
+        {
+            Indent_Scope s(fmtr);
+            ast::Task* task = domain->tasks[task_idx];
+            writeln(fmtr, "\"%n\"", task->name);
+        }
+        writeln(fmtr, " };");
+        newline(fmtr);
+    }
+
+    // s_fact_types
+    {
+        writeln(fmtr, "static Fact_Type s_fact_types[] = {");
+        for (uint32_t fact_idx = 0; fact_idx < size(world->facts); ++fact_idx)
+        {
+            ast::Fact* fact = world->facts[fact_idx];
+            uint32_t num_params = size(fact->params);
+            Indent_Scope s(fmtr);
+            write(fmtr, "%i{ %d, {", num_params);
+            for (uint32_t param_idx = 0; param_idx < num_params; ++param_idx)
+            {
+                const char* type_name = get_runtime_type_name(fact->params[param_idx]->data_type);
+                write(fmtr, "%s, ", type_name);
+            }
+            write(fmtr, "} }");
+            newline(fmtr);
+        }
+        writeln(fmtr, "};");
+        newline(fmtr);
+    }
+
+    Signature_Table signatures;
+    const uint32_t approx_num_sigs = size(tree->cases) + size(domain->tasks);
+    init(signatures, state.pool, approx_num_sigs);
+
+    // build signatures.
+    {
+        // primitive task signatures.
+        for (uint32_t task_idx = 0; task_idx < size(prim->tasks); ++task_idx)
+        {
+            ast::Fact* task = prim->tasks[task_idx];
+
+            begin_signature(signatures);
+            for (uint32_t param_idx = 0; param_idx < size(task->params); ++param_idx)
+            {
+                add_param(signatures, task->params[param_idx]->data_type);
+            }
+            end_signature(signatures);
+        }
+
+        // compisite task signatures.
+        for (uint32_t task_idx = 0; task_idx < size(domain->tasks); ++task_idx)
+        {
+            ast::Task* task = domain->tasks[task_idx];
+
+            begin_signature(signatures);
+            for (uint32_t param_idx = 0; param_idx < size(task->params); ++param_idx)
+            {
+                add_param(signatures, task->params[param_idx]->data_type);
+            }
+            end_signature(signatures);
+        }
+
+        // precondition output
+        for (uint32_t case_idx = 0; case_idx < size(tree->cases); ++case_idx)
+        {
+            ast::Case* case_ = tree->cases[case_idx];
+
+            begin_signature(signatures);
+            for (uint32_t var_idx = 0; var_idx < size(case_->vars); ++var_idx)
+            {
+                ast::Var* var = case_->vars[var_idx];
+                // skip bound vars
+                if (var->definition != 0) { continue; }
+                // save types of "output" vars
+                add_param(signatures, var->data_type);
+            }
+            end_signature(signatures);
+        }
+    }
+
+    // s_layout_types, s_layout_offsets
+    if (size(signatures.types) > 0)
+    {
+        writeln(fmtr, "static Type s_layout_types[] = {");
+        for (uint32_t type_idx = 0; type_idx < size(signatures.types); ++type_idx)
+        {
+            Token_Type type = (Token_Type)(signatures.types[type_idx] + Token_Group_Type_First);
+            Indent_Scope s(fmtr);
+            writeln(fmtr, "%s,", get_runtime_type_name(type));
+        }
+        writeln(fmtr, "};");
+        newline(fmtr);
+
+        writeln(fmtr, "static size_t s_layout_offsets[%d];", size(signatures.types));
+        newline(fmtr);
+    }
+
+    // s_task_parameters & s_precond_results.
+    {
+        struct Format_Param_Layout
+        {
+            void operator()(Formatter& fmtr, Signature_Table& signatures, uint32_t signature_index)
+            {
+                uint32_t length = get_signature_length(signatures, signature_index);
+                uint32_t offset = get_signature_offset(signatures, signature_index);
+                Indent_Scope s(fmtr);
+                if (length > 0)
+                {
+                    writeln(fmtr, "{ %d, s_layout_types + %d, 0, s_layout_offsets + 0 },", length, offset);
+                }
+                else
+                {
+                    writeln(fmtr, "{ 0, 0, 0, 0 },");
+                }
+            }
+        };
+
+        const uint32_t num_tasks = size(prim->tasks) + size(domain->tasks);
+
+        writeln(fmtr, "static Param_Layout s_task_parameters[] = {");
+        for (uint32_t sig_idx = 0; sig_idx < num_tasks; ++sig_idx)
+        {
+            Format_Param_Layout()(fmtr, signatures, sig_idx);
+        }
+        writeln(fmtr, "};");
+        newline(fmtr);
+
+        writeln(fmtr, "static Param_Layout s_precond_results[] = {");
+        for (uint32_t sig_idx = num_tasks; sig_idx < size(signatures.remap); ++sig_idx)
+        {
+            Format_Param_Layout()(fmtr, signatures, sig_idx);
+        }
+        writeln(fmtr, "};");
+        newline(fmtr);
+    }
+
+    // s_num_cases
+    {
+        writeln(fmtr, "static uint32_t s_num_cases[] = {");
+        for (uint32_t task_idx = 0; task_idx < size(domain->tasks); ++task_idx)
+        {
+            ast::Task* task = domain->tasks[task_idx];
+            Indent_Scope s(fmtr);
+            writeln(fmtr, "%d, ", size(task->cases));
+        }
+        writeln(fmtr, "};");
+        newline(fmtr);
+    }
+
+    // s_size_hints
+    {
+        writeln(fmtr, "static uint32_t s_size_hints[] = {");
+        for (uint32_t fact_idx = 0; fact_idx < size(world->facts); ++fact_idx)
+        {
+            Indent_Scope s(fmtr);
+            writeln(fmtr, "0, ");
+        }
+        writeln(fmtr, "};");
+        newline(fmtr);
+    }
+
+    // s_hashes
+    {
+        writeln(fmtr, "static uint32_t s_hashes[] = {");
+        for (uint32_t fact_idx = 0; fact_idx < size(world->facts); ++fact_idx)
+        {
+            Indent_Scope s(fmtr);
+            writeln(fmtr, "0, ");
+        }
+        writeln(fmtr, "};");
+        newline(fmtr);
+    }
+
+    // s_domain_info
+    {
+        const uint32_t num_tasks = size(prim->tasks) + size(domain->tasks);
+        const uint32_t num_primitive = size(prim->tasks);
+        const uint32_t num_composite = size(domain->tasks);
+        writeln(fmtr, "static Domain_Info s_domain_info = {");
+        {
+            Indent_Scope s(fmtr);
+            // task_info
+            writeln(fmtr, "{ %d, %d, %d, s_num_cases, 0, s_task_names, s_task_parameters, s_precond_results, s_task_expands },", num_tasks, num_primitive, num_composite);
+            // database_req
+            writeln(fmtr, "{ %d, s_size_hints, s_fact_types, s_hashes, s_fact_names },", size(world->facts));
+        }
+        writeln(fmtr, "};");
+        newline(fmtr);
+    }
+
+    // init_domain_info & get_domain_info
+    {
+        writeln(fmtr, "void %n_init_domain_info()", domain->name);
+        writeln(fmtr, "{");
+        {
+            Indent_Scope s(fmtr);
+            writeln(fmtr, "for (size_t i = 0; i < plnnr_static_array_size(s_task_parameters); ++i) {");
+            {
+                Indent_Scope s(fmtr);
+                writeln(fmtr, "compute_offsets_and_size(s_task_parameters[i]);");
+            }
+            writeln(fmtr, "}");
+            newline(fmtr);
+
+            writeln(fmtr, "for (size_t i = 0; i < plnnr_static_array_size(s_precond_results); ++i) {");
+            {
+                Indent_Scope s(fmtr);
+                writeln(fmtr, "compute_offsets_and_size(s_precond_results[i]);");
+            }
+            writeln(fmtr, "}");
+        }
+        writeln(fmtr, "}");
+        newline(fmtr);
+
+        writeln(fmtr, "const Domain_Info* %n_get_domain_info() { return &s_domain_info; }", domain->name);
+        newline(fmtr);
+    }
 
     flush(fmtr);
 }
