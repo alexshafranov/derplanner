@@ -94,7 +94,7 @@ static const char* s_type_names[] =
 
 static inline const char* get_runtime_type_name(Token_Type token_type)
 {
-    plnnrc_assert(token_type >= Token_Group_Type_First);
+    plnnrc_assert(token_type >= (Token_Type)Token_Group_Type_First);
     return s_type_names[token_type - Token_Group_Type_First];
 }
 
