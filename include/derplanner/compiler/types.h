@@ -71,6 +71,21 @@ struct String_Buffer
     Array<uint32_t> lengths;
 };
 
+// Hashed type tuples.
+struct Signature_Table
+{
+    // compacted signature types.
+    Array<uint8_t>      types;
+    // hash of each signature.
+    Array<uint32_t>     hashes;
+    // offset to `types` for each signature.
+    Array<uint32_t>     offsets;
+    // length (number of params) for each signature.
+    Array<uint32_t>     lengths;
+    // maps signature index to index into `hashes`, `offsets` & `lengths` arrays.
+    Array<uint32_t>     remap;
+};
+
 // Error/Warning IDs.
 enum Error_Type
 {
@@ -365,7 +380,7 @@ struct Formatter
     Writer*         output;
 };
 
-// C++ code generator state.
+// Code generator state.
 struct Codegen
 {
     Codegen();
@@ -375,8 +390,6 @@ struct Codegen
     ast::Root*      tree;
     // formatter used to write files.
     Formatter       fmtr;
-    // generated expand function names.
-    String_Buffer   expand_names;
     // paged pool for codegen data.
     Memory*         pool;
 };

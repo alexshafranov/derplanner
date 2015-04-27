@@ -23,6 +23,7 @@
 #include "derplanner/compiler/lexer.h"
 #include "derplanner/compiler/codegen.h"
 #include "derplanner/compiler/string_buffer.h"
+#include "derplanner/compiler/signature_table.h"
 #include "pool.h"
 
 using namespace plnnrc;
@@ -31,12 +32,10 @@ void plnnrc::init(Codegen& state, ast::Root* tree)
 {
     state.tree = tree;
     state.pool = create_paged_pool(32*1024);
-    init(state.expand_names, state.pool, 64, 4096);
 }
 
 void plnnrc::destroy(Codegen& state)
 {
-    destroy(state.expand_names);
     destroy(state.pool);
 }
 
@@ -98,132 +97,6 @@ static inline const char* get_runtime_type_name(Token_Type token_type)
     return s_type_names[token_type - Token_Group_Type_First];
 }
 
-// Hashed type tuples (task & precondition output signatures)
-struct Signature_Table
-{
-    // compacted signature types.
-    Array<uint8_t>      types;
-    // hash of each signature.
-    Array<uint32_t>     hashes;
-    // offset to `types` for each signature.
-    Array<uint32_t>     offsets;
-    // length (number of params) for each signature.
-    Array<uint32_t>     lengths;
-    // maps signature index to compacted signature arrays.
-    Array<uint32_t>     remap;
-};
-
-static void init(Signature_Table& table, Memory* mem, uint32_t max_signatures)
-{
-    init(table.types, mem, max_signatures * 4); // allocate for average 4 params per signature.
-    init(table.hashes, mem, max_signatures);
-    init(table.offsets, mem, max_signatures);
-    init(table.lengths, mem, max_signatures);
-    init(table.remap, mem, max_signatures);
-}
-
-static inline uint32_t get_signature_offset(const Signature_Table& table, uint32_t index)
-{
-    const uint32_t compact_index = table.remap[index];
-    return table.offsets[compact_index];
-}
-
-static inline uint32_t get_signature_length(const Signature_Table& table, uint32_t index)
-{
-    const uint32_t compact_index = table.remap[index];
-    return table.lengths[compact_index];
-}
-
-static inline uint32_t hash(Signature_Table& table, uint32_t signature_index)
-{
-    const uint32_t offset = table.offsets[signature_index];
-    const uint32_t length = table.lengths[signature_index];
-
-    // FNV-1a
-    uint32_t result = 0x811c9dc5;
-
-    for (uint32_t i = 0; i < length; ++i)
-    {
-        uint8_t c = table.types[i + offset];
-        result ^= c;
-        result *= 0x01000193;
-    }
-
-    return result;
-}
-
-static inline bool equal(Signature_Table& table, uint32_t index_a, uint32_t index_b)
-{
-    const uint32_t offset_a = table.offsets[index_a];
-    const uint32_t offset_b = table.offsets[index_b];
-    const uint32_t length_a = table.lengths[index_a];
-    const uint32_t length_b = table.lengths[index_b];
-
-    if (length_a != length_b)
-    {
-        return false;
-    }
-
-    for (uint32_t i = 0; i < length_a; ++i)
-    {
-        const uint8_t type_a = table.types[i + offset_a];
-        const uint8_t type_b = table.types[i + offset_b];
-
-        if (type_a != type_b)
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-// begin building signature.
-static void begin_signature(Signature_Table& table)
-{
-    const uint32_t new_index = size(table.offsets);
-    const uint32_t new_offset = size(table.types);
-    push_back(table.remap, new_index);
-    push_back(table.offsets, new_offset);
-}
-
-// add parameter type to the currenly built signature.
-static void add_param(Signature_Table& table, Token_Type type)
-{
-    plnnrc_assert(is_Type(type));
-    plnnrc_assert(Token_Group_Type_Last - Token_Group_Type_First <= 255);
-    const uint8_t value = (uint8_t)(type - Token_Group_Type_First);
-    push_back(table.types, value);
-}
-
-// end building signature, compactify if the same signature was already built.
-static void end_signature(Signature_Table& table)
-{
-    const uint32_t new_index = back(table.remap);
-    const uint32_t new_offset = back(table.offsets);
-    const uint32_t new_length = size(table.types) - new_offset;
-    push_back(table.lengths, new_length);
-
-    const uint32_t new_hash = hash(table, new_index);
-    for (uint32_t i = 0; i < new_index; ++i)
-    {
-        const uint32_t hash = table.hashes[i];
-        if (hash == new_hash)
-        {
-            if (equal(table, i, new_index))
-            {
-                back(table.remap) = i;
-                resize(table.offsets, new_index);
-                resize(table.lengths, new_index);
-                resize(table.types, new_offset);
-                return;
-            }
-        }
-    }
-
-    push_back(table.hashes, new_hash);
-}
-
 void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* output)
 {
     init(state.fmtr, "  ", "\n", output);
@@ -232,7 +105,9 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
     ast::Primitive* prim = tree->primitive;
     ast::Domain* domain = tree->domain;
     Formatter& fmtr = state.fmtr;
-    String_Buffer& expand_names = state.expand_names;
+
+    String_Buffer expand_names;
+    init(expand_names, state.pool, 64, 4096);
 
     // includes & pragmas
     {
