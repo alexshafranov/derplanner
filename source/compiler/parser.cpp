@@ -191,8 +191,6 @@ void plnnrc::parse(Parser& state)
     }
 
     expect(state, Token_Eof);
-
-    plnnrc::build_lookups(state.tree);
 }
 
 static void parse_facts(Parser& state, Children_Builder<ast::Fact>& builder)

@@ -75,6 +75,9 @@ Return_Type visit_node(const ast::Node* node, Visitor_Type* visitor);
 // converts expression `root` to Disjunctive-Normal-Form.
 ast::Expr* convert_to_dnf(ast::Root& tree, ast::Expr* root);
 
+// converts all preconditions to DNF.
+void convert_to_dnf(ast::Root& tree);
+
 // builds tree look-ups and traversal info.
 void build_lookups(ast::Root& tree);
 

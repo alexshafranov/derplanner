@@ -619,6 +619,22 @@ ast::Expr* plnnrc::preorder_next(const ast::Expr* root, ast::Expr* current)
     return node->next_sibling;
 }
 
+void plnnrc::convert_to_dnf(ast::Root& tree)
+{
+    ast::Domain* domain = tree.domain;
+
+    for (uint32_t task_idx = 0; task_idx < plnnrc::size(domain->tasks); ++task_idx)
+    {
+        ast::Task* task = domain->tasks[task_idx];
+        for (uint32_t case_idx = 0; case_idx < plnnrc::size(task->cases); ++case_idx)
+        {
+            ast::Case* case_ = task->cases[case_idx];
+            ast::Expr* precond = case_->precond;
+            case_->precond = convert_to_dnf(tree, precond);
+        }
+    }
+}
+
 static void build_var_lookup(ast::Case* case_, ast::Expr* expr)
 {
     for (ast::Expr* node = expr; node != 0; node = plnnrc::preorder_next(expr, node))
