@@ -293,7 +293,11 @@ int main(int argc, char** argv)
 
     plnnrc::Parser parser;
     plnnrc::init(parser, &lexer);
+
     plnnrc::parse(parser);
+
+    plnnrc::convert_to_dnf(parser.tree);
+    plnnrc::build_lookups(parser.tree);
     plnnrc::infer_types(parser.tree);
 
     if (enable_debug_info)
