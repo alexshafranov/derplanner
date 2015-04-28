@@ -28,7 +28,7 @@ namespace
     TEST(ids_and_keywords)
     {
         plnnrc::Lexer lexer;
-        plnnrc::init(lexer, "id1 id2 domain id3");
+        plnnrc::init(lexer, "id1 id2 domain id3", plnnrc::get_default_allocator());
         plnnrc::Token_Type expected_types[] = { plnnrc::Token_Id, plnnrc::Token_Id, plnnrc::Token_Domain, plnnrc::Token_Id, plnnrc::Token_Eof };
         const char* expected_strings[] = { "id1", "id2", "domain", "id3", 0 };
 
@@ -46,7 +46,7 @@ namespace
     TEST(location)
     {
         plnnrc::Lexer lexer;
-        plnnrc::init(lexer, "id1 \n id2");
+        plnnrc::init(lexer, "id1 \n id2", plnnrc::get_default_allocator());
         plnnrc::Token tok1 = plnnrc::lex(lexer);
         plnnrc::Token tok2 = plnnrc::lex(lexer);
         CHECK_EQUAL(1u, tok1.line);
@@ -58,7 +58,7 @@ namespace
     TEST(unknown_token)
     {
         plnnrc::Lexer lexer;
-        plnnrc::init(lexer, "$");
+        plnnrc::init(lexer, "$", plnnrc::get_default_allocator());
         plnnrc::Token tok = plnnrc::lex(lexer);
         CHECK_EQUAL(plnnrc::Token_Unknown, tok.type);
     }
@@ -66,7 +66,7 @@ namespace
     void check_number(const char* str, plnnrc::Token_Type expected)
     {
         plnnrc::Lexer lexer;
-        plnnrc::init(lexer, str);
+        plnnrc::init(lexer, str, plnnrc::get_default_allocator());
         plnnrc::Token tok = plnnrc::lex(lexer);
         CHECK_EQUAL(expected, tok.type);
     }
@@ -74,7 +74,7 @@ namespace
     void check_number(const char* str, float expected)
     {
         plnnrc::Lexer lexer;
-        plnnrc::init(lexer, str);
+        plnnrc::init(lexer, str, plnnrc::get_default_allocator());
         plnnrc::Token tok = plnnrc::lex(lexer);
         float actual = (float)strtod(tok.value.str, 0);
         CHECK_EQUAL(expected, actual);
@@ -83,7 +83,7 @@ namespace
     void check_number(const char* str, int expected)
     {
         plnnrc::Lexer lexer;
-        plnnrc::init(lexer, str);
+        plnnrc::init(lexer, str, plnnrc::get_default_allocator());
         plnnrc::Token tok = plnnrc::lex(lexer);
         int actual = (int)strtol(tok.value.str, 0, 10);
         CHECK_EQUAL(expected, actual);

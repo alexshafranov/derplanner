@@ -46,21 +46,27 @@ plnnrc::Lexer::Lexer()
     , buffer_ptr(0)
     , column(0)
     , line(0)
+    , memory(0)
 {
 }
 
 plnnrc::Lexer::~Lexer()
 {
-    destroy(*this);
+    if (memory)
+    {
+        destroy(*this);
+    }
 }
 
-void plnnrc::init(Lexer& result, const char* buffer)
+void plnnrc::init(Lexer& result, const char* buffer, Memory* mem)
 {
     result.buffer_start = buffer;
     result.buffer_ptr = buffer;
     result.column = 1;
     result.line = 1;
-    plnnrc::init(result.keywords, plnnrc::get_default_allocator(), 16);
+    const uint32_t num_keywords = (uint32_t)(Token_Group_Keyword_Last - Token_Group_Keyword_First);
+    plnnrc::init(result.keywords, mem, num_keywords);
+    result.memory = mem;
 
 #define PLNNRC_KEYWORD_TOKEN(TOKEN_TAG, TOKEN_STR)              \
     plnnrc::set(result.keywords, TOKEN_STR, Token_##TOKEN_TAG); \
@@ -72,6 +78,7 @@ void plnnrc::init(Lexer& result, const char* buffer)
 void plnnrc::destroy(Lexer& state)
 {
     plnnrc::destroy(state.keywords);
+    memset(&state, 0, sizeof(state));
 }
 
 static inline char get_char(const Lexer& state)
@@ -386,7 +393,7 @@ Token plnnrc::lex(Lexer& state)
 void plnnrc::debug_output_tokens(const char* buffer, Writer* output)
 {
     Lexer lexer;
-    plnnrc::init(lexer, buffer);
+    plnnrc::init(lexer, buffer, get_default_allocator());
 
     Formatter fmtr;
     plnnrc::init(fmtr, "  ", "\n", output);

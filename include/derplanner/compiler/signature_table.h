@@ -40,6 +40,8 @@ void end_signature(Signature_Table& table);
 uint32_t get_signature_offset(const Signature_Table& table, uint32_t index);
 // gets number of parameters in signature.
 uint32_t get_signature_length(const Signature_Table& table, uint32_t index);
+// get type of parameter.
+Token_Type get_param_type(const Signature_Table& table, uint32_t index, uint32_t param_index);
 
 }
 

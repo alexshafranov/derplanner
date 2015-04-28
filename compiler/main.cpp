@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "derplanner/compiler/pool.h"
 #include "derplanner/compiler/io.h"
 #include "derplanner/compiler/memory.h"
 #include "derplanner/compiler/lexer.h"
@@ -31,22 +32,6 @@
 #include "derplanner/compiler/codegen.h"
 
 using namespace plnnrc;
-
-struct Buffer_Context
-{
-    Buffer_Context(size_t bytes)
-        : data(0)
-    {
-        data = static_cast<char*>(plnnrc::allocate(bytes));
-    }
-
-    ~Buffer_Context()
-    {
-        plnnrc::deallocate(data);
-    }
-
-    char* data;
-};
 
 struct File_Context
 {
@@ -278,40 +263,29 @@ int main(int argc, char** argv)
 
     std::string output_name = get_output_name(normalize(input_path));
 
+    plnnrc::Memory* pool = plnnrc::create_paged_pool(32 * 1024);
+
     size_t input_size = file_size(input_path.c_str());
-    Buffer_Context input_buffer(input_size + 1);
+    char*  input_buffer = static_cast<char*>(pool->allocate(input_size + 1));
     {
         File_Context ctx(input_path.c_str(), "rb");
-        size_t rb = fread(input_buffer.data, sizeof(char), input_size, ctx.fd);
+        size_t rb = fread(input_buffer, sizeof(char), input_size, ctx.fd);
         (void)rb;
     }
 
-    input_buffer.data[input_size] = 0;
+    input_buffer[input_size] = 0;
 
     plnnrc::Lexer lexer;
-    plnnrc::init(lexer, input_buffer.data);
+    plnnrc::init(lexer, input_buffer, pool);
 
     plnnrc::Parser parser;
-    plnnrc::init(parser, &lexer);
+    plnnrc::init(parser, &lexer, pool);
 
     plnnrc::parse(parser);
 
     plnnrc::convert_to_dnf(parser.tree);
     plnnrc::build_lookups(parser.tree);
     plnnrc::infer_types(parser.tree);
-
-    if (enable_debug_info)
-    {
-        plnnrc::Writer_Crt standard_output = plnnrc::make_stdout_writer();
-        plnnrc::debug_output_tokens(input_buffer.data, &standard_output);
-
-        plnnrc::debug_output_ast(parser.tree, &standard_output);
-
-        const size_t ast_size = plnnrc::debug_bytes_allocated(parser.tree);
-        const size_t pool_size = plnnrc::debug_pool_size(parser.tree);
-        printf("ast_size  = %d\n", (uint32_t)ast_size);
-        printf("pool_size = %d\n", (uint32_t)pool_size);
-    }
 
     // generate source code.
     {
@@ -323,10 +297,23 @@ int main(int argc, char** argv)
         plnnrc::Writer_Crt source_writer(source_context.fd);
 
         plnnrc::Codegen codegen;
-        plnnrc::init(codegen, &parser.tree);
+        plnnrc::init(codegen, &parser.tree, pool);
 
         plnnrc::generate_header(codegen, (output_name + "_H_").c_str(), &header_writer);
         plnnrc::generate_source(codegen, header_name.c_str(), &source_writer);
+    }
+
+    if (enable_debug_info)
+    {
+        plnnrc::Writer_Crt standard_output = plnnrc::make_stdout_writer();
+        plnnrc::debug_output_tokens(input_buffer, &standard_output);
+
+        plnnrc::debug_output_ast(parser.tree, &standard_output);
+
+        const size_t requested_size = plnnrc::get_total_requested(pool);
+        const size_t pool_size = plnnrc::get_total_allocated(pool);
+        printf("req_size  = %d\n", (uint32_t)requested_size);
+        printf("pool_size = %d\n", (uint32_t)pool_size);
     }
 
     return 0;

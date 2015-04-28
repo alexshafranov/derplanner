@@ -20,6 +20,7 @@
 
 #include <string>
 #include "unittestpp.h"
+#include "derplanner/compiler/pool.h"
 #include "derplanner/compiler/array.h"
 #include "derplanner/compiler/lexer.h"
 #include "derplanner/compiler/parser.h"
@@ -112,14 +113,28 @@ namespace
 
     struct Test_Compiler
     {
+        Test_Compiler() : pool(0) {}
+
+        ~Test_Compiler()
+        {
+            if (pool)
+            {
+                destroy(parser);
+                destroy(lexer);
+                destroy(pool);
+            }
+        }
+
+        Memory* pool;
         Lexer   lexer;
         Parser  parser;
     };
 
     void init(Test_Compiler& compiler, const char* input)
     {
-        plnnrc::init(compiler.lexer, input);
-        plnnrc::init(compiler.parser, &compiler.lexer);
+        compiler.pool = plnnrc::create_paged_pool(1024);
+        init(compiler.lexer, input, compiler.pool);
+        init(compiler.parser, &compiler.lexer, compiler.pool);
         compiler.parser.token = plnnrc::lex(compiler.lexer);
     }
 

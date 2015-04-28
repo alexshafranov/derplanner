@@ -131,3 +131,12 @@ static inline bool equal(Signature_Table& table, uint32_t index_a, uint32_t inde
 
     return true;
 }
+
+Token_Type plnnrc::get_param_type(const Signature_Table& table, uint32_t index, uint32_t param_index)
+{
+    uint32_t offset = get_signature_offset(table, index);
+    plnnrc_assert(param_index < get_signature_length(table, index));
+    uint8_t type = table.types[offset + param_index];
+    Token_Type result = (Token_Type)(type + Token_Group_Type_First);
+    return result;
+}

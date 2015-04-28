@@ -22,21 +22,20 @@
 #include "derplanner/compiler/array.h"
 #include "derplanner/compiler/lexer.h"
 #include "derplanner/compiler/codegen.h"
+#include "derplanner/compiler/id_table.h"
 #include "derplanner/compiler/string_buffer.h"
 #include "derplanner/compiler/signature_table.h"
-#include "pool.h"
 
 using namespace plnnrc;
 
-void plnnrc::init(Codegen& state, ast::Root* tree)
+void plnnrc::init(Codegen& state, ast::Root* tree, Memory* mem)
 {
     state.tree = tree;
-    state.pool = create_paged_pool(32*1024);
+    state.pool = mem;
 }
 
-void plnnrc::destroy(Codegen& state)
+void plnnrc::destroy(Codegen& /*state*/)
 {
-    destroy(state.pool);
 }
 
 plnnrc::Codegen::Codegen() : pool(0) {}
@@ -84,18 +83,33 @@ static void build_expand_names(String_Buffer& expand_names, ast::Domain* domain)
     }
 }
 
-static const char* s_type_names[] =
+static const char* s_runtime_type_tags[] =
 {
-    #define PLNNRC_TYPE_KEYWORD_TOKEN(TAG, STR) "Type_" #TAG,
-    #include "derplanner/compiler/token_tags.inl"
-    #undef PLNNRC_TYPE_KEYWORD_TOKEN
+    #define PLNNR_TYPE(TAG, TYPE) "Type_" #TAG,
+    #include "derplanner/runtime/type_tags.inl"
+    #undef PLNNR_TYPE
 };
+
+static const char* s_runtime_type_name[] =
+{
+    #define PLNNR_TYPE(TAG, TYPE) #TYPE,
+    #include "derplanner/runtime/type_tags.inl"
+    #undef PLNNR_TYPE
+};
+
+static inline const char* get_runtime_type_tag(Token_Type token_type)
+{
+    plnnrc_assert(token_type >= (Token_Type)Token_Group_Type_First);
+    return s_runtime_type_tags[token_type - Token_Group_Type_First];
+}
 
 static inline const char* get_runtime_type_name(Token_Type token_type)
 {
     plnnrc_assert(token_type >= (Token_Type)Token_Group_Type_First);
-    return s_type_names[token_type - Token_Group_Type_First];
+    return s_runtime_type_name[token_type - Token_Group_Type_First];
 }
+
+static void generate_precondition(Codegen& state, ast::Case* case_, uint32_t case_idx, Formatter& fmtr, const Signature_Table& signatures);
 
 void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* output)
 {
@@ -199,7 +213,7 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
             write(fmtr, "%i{ %d, {", num_params);
             for (uint32_t param_idx = 0; param_idx < num_params; ++param_idx)
             {
-                const char* type_name = get_runtime_type_name(fact->params[param_idx]->data_type);
+                const char* type_name = get_runtime_type_tag(fact->params[param_idx]->data_type);
                 write(fmtr, "%s, ", type_name);
             }
             write(fmtr, "} }");
@@ -209,9 +223,13 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         newline(fmtr);
     }
 
+    // task parameters & precondition output signatures.
     Signature_Table signatures;
-    const uint32_t approx_num_sigs = size(tree->cases) + size(domain->tasks);
-    init(signatures, state.pool, approx_num_sigs);
+    init(signatures, state.pool, size(domain->tasks) + size(tree->cases));
+
+    // signature table for precondition inputs.
+    Signature_Table precond_input_signatures;
+    init(precond_input_signatures, state.pool, size(tree->cases));
 
     // build signatures.
     {
@@ -247,15 +265,32 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
             ast::Case* case_ = tree->cases[case_idx];
 
             begin_signature(signatures);
-            for (uint32_t var_idx = 0; var_idx < size(case_->vars); ++var_idx)
+            for (uint32_t var_idx = 0; var_idx < size(case_->precond_vars); ++var_idx)
             {
-                ast::Var* var = case_->vars[var_idx];
+                ast::Var* var = case_->precond_vars[var_idx];
                 // skip bound vars
                 if (var->definition != 0) { continue; }
                 // save types of "output" vars
                 add_param(signatures, var->data_type);
             }
             end_signature(signatures);
+        }
+
+        // precondition inputs (stored in a separate table)
+        for (uint32_t case_idx = 0; case_idx < size(tree->cases); ++case_idx)
+        {
+            ast::Case* case_ = tree->cases[case_idx];
+            ast::Task* task = case_->task;
+
+            begin_signature(precond_input_signatures);
+            for (uint32_t param_idx = 0; param_idx < size(task->params); ++param_idx)
+            {
+                ast::Param* param = task->params[param_idx];
+                ast::Var* var = get(case_->precond_var_lookup, param->name);
+                if (!var) { continue; }
+                add_param(precond_input_signatures, var->data_type);
+            }
+            end_signature(precond_input_signatures);
         }
     }
 
@@ -267,7 +302,7 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         {
             Token_Type type = (Token_Type)(signatures.types[type_idx] + Token_Group_Type_First);
             Indent_Scope s(fmtr);
-            writeln(fmtr, "%s,", get_runtime_type_name(type));
+            writeln(fmtr, "%s,", get_runtime_type_tag(type));
         }
         writeln(fmtr, "};");
         newline(fmtr);
@@ -397,5 +432,39 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         newline(fmtr);
     }
 
+    // precondition iterators
+    for (uint32_t case_idx = 0; case_idx < size(tree->cases); ++case_idx)
+    {
+        ast::Case* case_ = tree->cases[case_idx];
+        generate_precondition(state, case_, case_idx, fmtr, precond_input_signatures);
+    }
+
     flush(fmtr);
+}
+
+static void generate_precondition(Codegen& /*state*/, ast::Case* /*case_*/, uint32_t case_idx, Formatter& fmtr, const Signature_Table& signatures)
+{
+    uint32_t num_inputs = get_signature_length(signatures, case_idx);
+    if (num_inputs > 0)
+    {
+        writeln(fmtr, "struct p%d_input {", case_idx);
+        for (uint32_t param_idx = 0; param_idx < num_inputs; ++param_idx)
+        {
+            Indent_Scope s(fmtr);
+            Token_Type param_type = get_param_type(signatures, case_idx, param_idx);
+            const char* type_name = get_runtime_type_name(param_type);
+            writeln(fmtr, "%s _%d;", type_name, param_idx);
+        }
+        writeln(fmtr, "};");
+        newline(fmtr);
+        writeln(fmtr, "static bool p%d_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, const p%d_input* args)", case_idx, case_idx);
+    }
+    else
+    {
+        writeln(fmtr, "static bool p%d_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)", case_idx);
+    }
+
+    writeln(fmtr, "{");
+    writeln(fmtr, "}");
+    newline(fmtr);
 }

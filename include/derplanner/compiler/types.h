@@ -158,6 +158,8 @@ struct Lexer
     uint32_t                line;
     // maps keyword names to keyword types.
     Id_Table<Token_Type>    keywords;
+    // allocator used for lexer memory.
+    Memory*                 memory;
 };
 
 /// Abstract-Syntax-Tree nodes, produced by the parser.
@@ -268,6 +270,8 @@ namespace ast
         Array<Param*>       params;
         // expansion cases.
         Array<Case*>        cases;
+        // param name -> node.
+        Id_Table<Param*>    param_lookup;
     };
 
     // Parsed `case` block.
@@ -279,10 +283,14 @@ namespace ast
         Expr*               precond;
         // task list expressions.
         Array<Expr*>        task_list;
-        // maps variable names to the first occurence in precondition.
-        Id_Table<ast::Var*> var_lookup;
+        // precondition variable name -> first occurence.
+        Id_Table<ast::Var*> precond_var_lookup;
         // array of all vars in precondition.
-        Array<ast::Var*>    vars;
+        Array<ast::Var*>    precond_vars;
+        // task list variable name -> first occurence.
+        Id_Table<ast::Var*> task_list_var_lookup;
+        // array of all vars in task list.
+        Array<ast::Var*>    task_list_vars;
     };
 
     // Parameter: Id + Data type.
@@ -352,6 +360,8 @@ struct Parser
     ast::Root           tree;
     // temporary storage for created AST nodes.
     Array<ast::Node*>   scratch;
+    // allocator used for parsed data.
+    Memory*             memory;
 };
 
 class Writer;

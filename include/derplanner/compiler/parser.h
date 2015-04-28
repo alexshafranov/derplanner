@@ -28,7 +28,7 @@ namespace plnnrc {
 /// Parser
 
 // create parsing state.
-void init(Parser& state, Lexer* lexer);
+void init(Parser& state, Lexer* lexer, Memory* pool);
 // destroy parsing state.
 void destroy(Parser& state);
 
