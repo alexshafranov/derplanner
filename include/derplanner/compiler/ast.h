@@ -27,7 +27,7 @@
 namespace plnnrc {
 
 // create AST.
-void init(ast::Root& root);
+void init(ast::Root& root, Memory* mem);
 
 // destroy AST.
 void destroy(ast::Root& root);
@@ -88,10 +88,6 @@ void infer_types(ast::Root& tree);
 const char* get_type_name(ast::Node_Type token_type);
 // writes formatted Abstract-Syntax-Tree to `output`.
 void        debug_output_ast(const ast::Root& root, Writer* output);
-// number of bytes the AST has taken from node pool.
-size_t      debug_bytes_allocated(const ast::Root& root);
-// total number of bytes the node pool has allocated.
-size_t      debug_pool_size(const ast::Root& root);
 
 #define PLNNRC_NODE(TAG, TYPE)                          \
     bool            is_##TAG(ast::Node_Type type);      \

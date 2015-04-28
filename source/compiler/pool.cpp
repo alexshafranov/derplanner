@@ -20,7 +20,7 @@
 
 #include <new>
 #include "derplanner/compiler/assert.h"
-#include "pool.h"
+#include "derplanner/compiler/pool.h"
 
 namespace plnnrc
 {

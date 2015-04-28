@@ -24,7 +24,6 @@
 #include "derplanner/compiler/id_table.h"
 #include "derplanner/compiler/lexer.h"
 #include "derplanner/compiler/ast.h"
-#include "pool.h"
 
 using namespace plnnrc;
 
@@ -51,16 +50,14 @@ plnnrc::ast::Root::~Root()
     }
 }
 
-void plnnrc::init(ast::Root& root)
+void plnnrc::init(ast::Root& root, Memory* mem)
 {
     memset(&root, 0, sizeof(root));
-    root.pool = create_paged_pool(32*1024); // 32 kb pages.
+    root.pool = mem;
 }
 
 void plnnrc::destroy(ast::Root& root)
 {
-    // all tree data is allocated from pool and wiped at once.
-    destroy(root.pool);
     memset(&root, 0, sizeof(root));
 }
 
@@ -635,15 +632,15 @@ void plnnrc::convert_to_dnf(ast::Root& tree)
     }
 }
 
-static void build_var_lookup(ast::Case* case_, ast::Expr* expr)
+static void build_var_lookup(ast::Expr* expr, Array<ast::Var*>& out_vars, Id_Table<ast::Var*>& out_lookup)
 {
     for (ast::Expr* node = expr; node != 0; node = plnnrc::preorder_next(expr, node))
     {
         if (ast::Var* var = plnnrc::as_Var(node))
         {
-            plnnrc::push_back(case_->vars, var);
+            plnnrc::push_back(out_vars, var);
 
-            ast::Var* def = plnnrc::get(case_->var_lookup, var->name);
+            ast::Var* def = plnnrc::get(out_lookup, var->name);
             if (def != 0)
             {
                 plnnrc_assert(!var->definition);
@@ -651,7 +648,7 @@ static void build_var_lookup(ast::Case* case_, ast::Expr* expr)
                 continue;
             }
 
-            plnnrc::set(case_->var_lookup, var->name, var);
+            plnnrc::set(out_lookup, var->name, var);
         }
     }
 }
@@ -661,71 +658,108 @@ void plnnrc::build_lookups(ast::Root& tree)
     ast::World* world = tree.world;
     if (world)
     {
-        const uint32_t num_facts = plnnrc::size(world->facts);
-        plnnrc::init(tree.fact_lookup, tree.pool, num_facts);
+        const uint32_t num_facts = size(world->facts);
+        init(tree.fact_lookup, tree.pool, num_facts);
 
         for (uint32_t i = 0; i < num_facts; ++i)
         {
             ast::Fact* fact = world->facts[i];
-            plnnrc::set(tree.fact_lookup, fact->name, fact);
+            set(tree.fact_lookup, fact->name, fact);
         }
     }
 
     ast::Primitive* prim = tree.primitive;
     if (prim)
     {
-        const uint32_t num_tasks = plnnrc::size(prim->tasks);
-        plnnrc::init(tree.primitive_lookup, tree.pool, num_tasks);
+        const uint32_t num_tasks = size(prim->tasks);
+        init(tree.primitive_lookup, tree.pool, num_tasks);
 
         for (uint32_t i = 0; i < num_tasks; ++i)
         {
             ast::Fact* task = prim->tasks[i];
-            plnnrc::set(tree.primitive_lookup, task->name, task);
+            set(tree.primitive_lookup, task->name, task);
         }
     }
 
     ast::Domain* domain = tree.domain;
     if (domain)
     {
-        const uint32_t num_tasks = plnnrc::size(domain->tasks);
-        plnnrc::init(tree.task_lookup, tree.pool, num_tasks);
+        const uint32_t num_tasks = size(domain->tasks);
+        init(tree.task_lookup, tree.pool, num_tasks);
 
         uint32_t num_cases = 0;
         for (uint32_t i = 0; i < num_tasks; ++i)
         {
             ast::Task* task = domain->tasks[i];
-            num_cases += plnnrc::size(task->cases);
-            plnnrc::set(tree.task_lookup, task->name, task);
+            num_cases += size(task->cases);
+            set(tree.task_lookup, task->name, task);
         }
 
         // collect all `ast::Case` nodes.
         if (num_cases > 0)
         {
-            plnnrc::init(tree.cases, tree.pool, num_cases);
+            init(tree.cases, tree.pool, num_cases);
             for (uint32_t i = 0; i < num_tasks; ++i)
             {
                 ast::Task* task = domain->tasks[i];
-                for (uint32_t j = 0; j < plnnrc::size(task->cases); ++j)
+                for (uint32_t j = 0; j < size(task->cases); ++j)
                 {
                     ast::Case* case_ = task->cases[j];
-                    plnnrc::push_back(tree.cases, case_);
+                    push_back(tree.cases, case_);
                 }
             }
         }
 
-        // build ast::Var lookups for each case.
-        for (uint32_t i = 0; i < plnnrc::size(tree.cases); ++i)
+        // build param_lookup for each task.
+        for (uint32_t task_idx = 0; task_idx < size(domain->tasks); ++task_idx)
         {
-            ast::Case* case_ = tree.cases[i];
-            plnnrc::init(case_->var_lookup, tree.pool, 8);
-            plnnrc::init(case_->vars, tree.pool, 8);
+            ast::Task* task = domain->tasks[task_idx];
+            init(task->param_lookup, tree.pool, 8);
 
-            build_var_lookup(case_, case_->precond);
+            for (uint32_t param_idx = 0; param_idx < size(task->params); ++param_idx)
+            {
+                ast::Param* param = task->params[param_idx];
+                set(task->param_lookup, param->name, param);
+            }
+        }
 
-            for (uint32_t task_idx = 0; task_idx < plnnrc::size(case_->task_list); ++task_idx)
+        // build ast::Var lookups for each case.
+        for (uint32_t case_idx = 0; case_idx < size(tree.cases); ++case_idx)
+        {
+            ast::Case* case_ = tree.cases[case_idx];
+            ast::Task* task = case_->task;
+
+            init(case_->precond_var_lookup, tree.pool, 8);
+            init(case_->precond_vars, tree.pool, 8);
+            init(case_->task_list_var_lookup, tree.pool, 8);
+            init(case_->task_list_vars, tree.pool, 8);
+
+            build_var_lookup(case_->precond, case_->precond_vars, case_->precond_var_lookup);
+
+            for (uint32_t task_idx = 0; task_idx < size(case_->task_list); ++task_idx)
             {
                 ast::Expr* task_expr = case_->task_list[task_idx];
-                build_var_lookup(case_, task_expr);
+                build_var_lookup(task_expr, case_->task_list_vars, case_->task_list_var_lookup);
+            }
+
+            // set task list var definitions.
+            for (uint32_t var_idx = 0; var_idx < size(case_->task_list_vars); ++var_idx)
+            {
+                ast::Var* var = case_->task_list_vars[var_idx];
+                if (ast::Var* def = get(case_->precond_var_lookup, var->name))
+                {
+                    var->definition = def;
+                    continue;
+                }
+
+                if (ast::Param* def = get(task->param_lookup, var->name))
+                {
+                    var->definition = def;
+                    continue;
+                }
+
+                // unbound var used in task list.
+                plnnrc_assert(false);
             }
         }
     }
@@ -735,7 +769,7 @@ void plnnrc::infer_types(ast::Root& tree)
 {
     if (!tree.domain || !tree.world) { return; }
 
-    // seed types using fact declarations.
+    // seed types in preconditions using fact declarations.
     for (uint32_t case_idx = 0; case_idx < plnnrc::size(tree.cases); ++case_idx)
     {
         ast::Case* case_ = tree.cases[case_idx];
@@ -760,17 +794,17 @@ void plnnrc::infer_types(ast::Root& tree)
         }
     }
 
-    // set task parameter types.
+    // set task parameter types based on their usage in preconditions.
     for (uint32_t case_idx = 0; case_idx < plnnrc::size(tree.cases); ++case_idx)
     {
         ast::Case* case_ = tree.cases[case_idx];
         ast::Task* task = case_->task;
-        if (!plnnrc::size(case_->var_lookup)) { continue; }
+        if (!plnnrc::size(case_->precond_var_lookup)) { continue; }
 
         for (uint32_t param_idx = 0; param_idx < plnnrc::size(task->params); ++param_idx)
         {
             ast::Param* param = task->params[param_idx];
-            ast::Var* var = plnnrc::get(case_->var_lookup, param->name);
+            ast::Var* var = plnnrc::get(case_->precond_var_lookup, param->name);
             plnnrc_assert(!var->definition);
             var->definition = param;
             plnnrc_assert(param->data_type == Token_Unknown || param->data_type == var->data_type);
@@ -896,14 +930,4 @@ void plnnrc::debug_output_ast(const ast::Root& tree, Writer* output)
     }
 
     plnnrc::newline(fmtr);
-}
-
-size_t plnnrc::debug_bytes_allocated(const ast::Root& root)
-{
-    return plnnrc::get_total_requested(root.pool);
-}
-
-size_t plnnrc::debug_pool_size(const ast::Root& root)
-{
-    return plnnrc::get_total_allocated(root.pool);
 }

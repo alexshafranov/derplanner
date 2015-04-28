@@ -26,7 +26,6 @@
 #include "derplanner/compiler/ast.h"
 #include "derplanner/compiler/id_table.h"
 #include "derplanner/compiler/parser.h"
-#include "pool.h"
 
 // implementation (exposed for unit tests)
 namespace plnnrc
@@ -82,6 +81,7 @@ struct Children_Builder
 
 plnnrc::Parser::Parser()
     : lexer(0)
+    , memory(0)
 {
     memset(&tree, 0, sizeof(tree));
     memset(&token, 0, sizeof(token));
@@ -89,16 +89,21 @@ plnnrc::Parser::Parser()
 
 plnnrc::Parser::~Parser()
 {
-    destroy(*this);
+    if (memory)
+    {
+        destroy(*this);
+    }
 }
 
-void plnnrc::init(Parser& state, Lexer* lexer)
+void plnnrc::init(Parser& state, Lexer* lexer, Memory* pool)
 {
-    plnnrc_assert(lexer != 0);
+    plnnrc_assert(lexer);
+    plnnrc_assert(pool);
     memset(&state, 0, sizeof(state));
     state.lexer = lexer;
-    plnnrc::init(state.tree);
-    plnnrc::init(state.scratch, plnnrc::get_default_allocator(), 1024);
+    state.memory = pool;
+    plnnrc::init(state.tree, pool);
+    plnnrc::init(state.scratch, pool, 1024);
 }
 
 void plnnrc::destroy(Parser& state)
