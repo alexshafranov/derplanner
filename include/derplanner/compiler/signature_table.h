@@ -37,24 +37,35 @@ void add_param(Signature_Table& table, Token_Type type);
 void end_signature(Signature_Table& table);
 
 // gets offset in `types` array.
-uint32_t get_signature_offset(const Signature_Table& table, uint32_t index);
+uint32_t get_offset(const Signature_Table& table, uint32_t compact_index);
 // gets number of parameters in signature.
-uint32_t get_signature_length(const Signature_Table& table, uint32_t index);
+uint32_t get_length(const Signature_Table& table, uint32_t compact_index);
 // get type of parameter.
-Token_Type get_param_type(const Signature_Table& table, uint32_t index, uint32_t param_index);
-
+Token_Type get_param_type(const Signature_Table& table, uint32_t compact_index, uint32_t param_index);
+// translate index to compact (unique) index in signature table.
+uint32_t get_compact_index(const Signature_Table& table, uint32_t index);
+// number of unique signatures in the table.
+uint32_t get_num_unique(const Signature_Table& table);
 }
 
-inline uint32_t plnnrc::get_signature_offset(const plnnrc::Signature_Table& table, uint32_t index)
+inline uint32_t plnnrc::get_offset(const plnnrc::Signature_Table& table, uint32_t compact_index)
 {
-    const uint32_t compact_index = table.remap[index];
     return table.offsets[compact_index];
 }
 
-inline uint32_t plnnrc::get_signature_length(const plnnrc::Signature_Table& table, uint32_t index)
+inline uint32_t plnnrc::get_length(const plnnrc::Signature_Table& table, uint32_t compact_index)
 {
-    const uint32_t compact_index = table.remap[index];
     return table.lengths[compact_index];
+}
+
+inline uint32_t plnnrc::get_compact_index(const Signature_Table& table, uint32_t index)
+{
+    return table.remap[index];
+}
+
+inline uint32_t plnnrc::get_num_unique(const Signature_Table& table)
+{
+    return size(table.offsets);
 }
 
 #endif
