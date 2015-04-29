@@ -317,8 +317,8 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         {
             void operator()(Formatter& fmtr, Signature_Table& signatures, uint32_t signature_index)
             {
-                uint32_t length = get_signature_length(signatures, signature_index);
-                uint32_t offset = get_signature_offset(signatures, signature_index);
+                uint32_t length = get_length(signatures, get_compact_index(signatures, signature_index));
+                uint32_t offset = get_offset(signatures, get_compact_index(signatures, signature_index));
                 Indent_Scope s(fmtr);
                 if (length > 0)
                 {
@@ -432,6 +432,26 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         newline(fmtr);
     }
 
+    // precondition input structs
+    {
+        for (uint32_t input_idx = 0; input_idx < get_num_unique(precond_input_signatures); ++input_idx)
+        {
+            uint32_t num_inputs = get_length(precond_input_signatures, input_idx);
+            if (num_inputs == 0) { continue; }
+
+            writeln(fmtr, "struct input_%d {", input_idx);
+            for (uint32_t param_idx = 0; param_idx < num_inputs; ++param_idx)
+            {
+                Indent_Scope s(fmtr);
+                Token_Type param_type = get_param_type(precond_input_signatures, input_idx, param_idx);
+                const char* type_name = get_runtime_type_name(param_type);
+                writeln(fmtr, "%s _%d;", type_name, param_idx);
+            }
+            writeln(fmtr, "};");
+            newline(fmtr);
+        }
+    }
+
     // precondition iterators
     for (uint32_t case_idx = 0; case_idx < size(tree->cases); ++case_idx)
     {
@@ -444,20 +464,11 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
 
 static void generate_precondition(Codegen& /*state*/, ast::Case* /*case_*/, uint32_t case_idx, Formatter& fmtr, const Signature_Table& signatures)
 {
-    uint32_t num_inputs = get_signature_length(signatures, case_idx);
+    uint32_t input_idx = get_compact_index(signatures, case_idx);
+    uint32_t num_inputs = get_length(signatures, input_idx);
     if (num_inputs > 0)
     {
-        writeln(fmtr, "struct p%d_input {", case_idx);
-        for (uint32_t param_idx = 0; param_idx < num_inputs; ++param_idx)
-        {
-            Indent_Scope s(fmtr);
-            Token_Type param_type = get_param_type(signatures, case_idx, param_idx);
-            const char* type_name = get_runtime_type_name(param_type);
-            writeln(fmtr, "%s _%d;", type_name, param_idx);
-        }
-        writeln(fmtr, "};");
-        newline(fmtr);
-        writeln(fmtr, "static bool p%d_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, const p%d_input* args)", case_idx, case_idx);
+        writeln(fmtr, "static bool p%d_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, const input_%d* args)", case_idx, input_idx);
     }
     else
     {
