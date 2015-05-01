@@ -42,9 +42,6 @@ void plnnrc::destroy(Signature_Table& table)
     destroy(table.remap);
 }
 
-static inline uint32_t hash(Signature_Table& table, uint32_t signature_index);
-static inline bool equal(Signature_Table& table, uint32_t index_a, uint32_t index_b);
-
 void plnnrc::begin_signature(Signature_Table& table)
 {
     const uint32_t new_index = size(table.offsets);
@@ -56,9 +53,51 @@ void plnnrc::begin_signature(Signature_Table& table)
 void plnnrc::add_param(Signature_Table& table, Token_Type type)
 {
     plnnrc_assert(is_Type(type));
-    plnnrc_assert(Token_Group_Type_Last - Token_Group_Type_First <= 255);
-    const uint8_t value = (uint8_t)(type - Token_Group_Type_First);
-    push_back(table.types, value);
+    push_back(table.types, type);
+}
+
+static inline uint32_t hash(Signature_Table& table, uint32_t signature_index)
+{
+    const uint32_t offset = table.offsets[signature_index];
+    const uint32_t length = table.lengths[signature_index];
+
+    // FNV-1a
+    uint32_t result = 0x811c9dc5;
+
+    for (uint32_t i = 0; i < length; ++i)
+    {
+        uint8_t c = (uint8_t)(table.types[i + offset] - Token_Group_Type_First);
+        result ^= c;
+        result *= 0x01000193;
+    }
+
+    return result;
+}
+
+static inline bool equal(Signature_Table& table, uint32_t index_a, uint32_t index_b)
+{
+    const uint32_t offset_a = table.offsets[index_a];
+    const uint32_t offset_b = table.offsets[index_b];
+    const uint32_t length_a = table.lengths[index_a];
+    const uint32_t length_b = table.lengths[index_b];
+
+    if (length_a != length_b)
+    {
+        return false;
+    }
+
+    for (uint32_t i = 0; i < length_a; ++i)
+    {
+        const Token_Type type_a = table.types[i + offset_a];
+        const Token_Type type_b = table.types[i + offset_b];
+
+        if (type_a != type_b)
+        {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 void plnnrc::end_signature(Signature_Table& table)
@@ -86,57 +125,4 @@ void plnnrc::end_signature(Signature_Table& table)
     }
 
     push_back(table.hashes, new_hash);
-}
-
-static inline uint32_t hash(Signature_Table& table, uint32_t signature_index)
-{
-    const uint32_t offset = table.offsets[signature_index];
-    const uint32_t length = table.lengths[signature_index];
-
-    // FNV-1a
-    uint32_t result = 0x811c9dc5;
-
-    for (uint32_t i = 0; i < length; ++i)
-    {
-        uint8_t c = table.types[i + offset];
-        result ^= c;
-        result *= 0x01000193;
-    }
-
-    return result;
-}
-
-static inline bool equal(Signature_Table& table, uint32_t index_a, uint32_t index_b)
-{
-    const uint32_t offset_a = table.offsets[index_a];
-    const uint32_t offset_b = table.offsets[index_b];
-    const uint32_t length_a = table.lengths[index_a];
-    const uint32_t length_b = table.lengths[index_b];
-
-    if (length_a != length_b)
-    {
-        return false;
-    }
-
-    for (uint32_t i = 0; i < length_a; ++i)
-    {
-        const uint8_t type_a = table.types[i + offset_a];
-        const uint8_t type_b = table.types[i + offset_b];
-
-        if (type_a != type_b)
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-Token_Type plnnrc::get_param_type(const Signature_Table& table, uint32_t compact_index, uint32_t param_index)
-{
-    uint32_t offset = get_offset(table, compact_index);
-    plnnrc_assert(param_index < get_length(table, compact_index));
-    uint8_t type = table.types[offset + param_index];
-    Token_Type result = (Token_Type)(type + Token_Group_Type_First);
-    return result;
 }

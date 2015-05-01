@@ -71,21 +71,6 @@ struct String_Buffer
     Array<uint32_t> lengths;
 };
 
-// Hashed type tuples.
-struct Signature_Table
-{
-    // compacted signature types.
-    Array<uint8_t>      types;
-    // hash of each signature.
-    Array<uint32_t>     hashes;
-    // offset to `types` for each signature.
-    Array<uint32_t>     offsets;
-    // length (number of params) for each signature.
-    Array<uint32_t>     lengths;
-    // maps signature index to index into `hashes`, `offsets` & `lengths` arrays.
-    Array<uint32_t>     remap;
-};
-
 // Error/Warning IDs.
 enum Error_Type
 {
@@ -116,6 +101,30 @@ enum Token_Groups
     #define PLNNRC_TOKEN_GROUP(GROUP_TAG, FIRST_TOKEN_TAG, LAST_TOKEN_TAG) Token_Group_##GROUP_TAG##_Last = Token_##LAST_TOKEN_TAG,
     #include "derplanner/compiler/token_tags.inl"
     #undef PLNNRC_TOKEN_GROUP
+};
+
+// Reference to signature (tuple of types) stored `Signature_Table`.
+struct Signature
+{
+    // type of each parameter.
+    const Token_Type*   types;
+    // number of types.
+    uint32_t            length;
+};
+
+// Collection of hashed signatures.
+struct Signature_Table
+{
+    // compacted signature types.
+    Array<Token_Type>   types;
+    // hash of each signature.
+    Array<uint32_t>     hashes;
+    // offset to `types` for each signature.
+    Array<uint32_t>     offsets;
+    // length (number of params) for each signature.
+    Array<uint32_t>     lengths;
+    // maps signature index to index into `hashes`, `offsets` & `lengths` arrays.
+    Array<uint32_t>     remap;
 };
 
 // String value of the token.

@@ -313,7 +313,7 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         writeln(fmtr, "static Type s_layout_types[] = {");
         for (uint32_t type_idx = 0; type_idx < size(signatures.types); ++type_idx)
         {
-            Token_Type type = (Token_Type)(signatures.types[type_idx] + Token_Group_Type_First);
+            Token_Type type = signatures.types[type_idx];
             Indent_Scope s(fmtr);
             writeln(fmtr, "%s,", get_runtime_type_tag(type));
         }
@@ -328,14 +328,15 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
     {
         struct Format_Param_Layout
         {
-            void operator()(Formatter& fmtr, Signature_Table& signatures, uint32_t signature_index)
+            void operator()(Formatter& fmtr, Signature_Table& signatures, uint32_t sig_idx)
             {
-                uint32_t length = get_length(signatures, get_compact_index(signatures, signature_index));
-                uint32_t offset = get_offset(signatures, get_compact_index(signatures, signature_index));
+                Signature sig = get_sparse(signatures, sig_idx);
+
                 Indent_Scope s(fmtr);
-                if (length > 0)
+                if (sig.length > 0)
                 {
-                    writeln(fmtr, "{ %d, s_layout_types + %d, 0, s_layout_offsets + 0 },", length, offset);
+                    uint32_t offset = (uint32_t)(sig.types - &signatures.types[0]);
+                    writeln(fmtr, "{ %d, s_layout_types + %d, 0, s_layout_offsets + 0 },", sig.length, offset);
                 }
                 else
                 {
@@ -447,16 +448,16 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
 
     // precondition input structs
     {
-        for (uint32_t input_idx = 0; input_idx < get_num_unique(precond_input_signatures); ++input_idx)
+        for (uint32_t input_idx = 0; input_idx < size_dense(precond_input_signatures); ++input_idx)
         {
-            uint32_t num_inputs = get_length(precond_input_signatures, input_idx);
-            if (num_inputs == 0) { continue; }
+            Signature input_sig = get_dense(precond_input_signatures, input_idx);
+            if (input_sig.length == 0) { continue; }
 
             writeln(fmtr, "struct input_%d {", input_idx);
-            for (uint32_t param_idx = 0; param_idx < num_inputs; ++param_idx)
+            for (uint32_t param_idx = 0; param_idx < input_sig.length; ++param_idx)
             {
                 Indent_Scope s(fmtr);
-                Token_Type param_type = get_param_type(precond_input_signatures, input_idx, param_idx);
+                Token_Type param_type = input_sig.types[param_idx];
                 const char* type_name = get_runtime_type_name(param_type);
                 writeln(fmtr, "%s _%d;", type_name, param_idx);
             }
@@ -477,10 +478,10 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
 
 static void generate_precondition(Codegen& /*state*/, ast::Case* case_, uint32_t case_idx, Formatter& fmtr, const Signature_Table& signatures)
 {
-    uint32_t input_idx = get_compact_index(signatures, case_idx);
-    uint32_t num_inputs = get_length(signatures, input_idx);
-    if (num_inputs > 0)
+    Signature input_sig = get_sparse(signatures, case_idx);
+    if (input_sig.length > 0)
     {
+        uint32_t input_idx = get_dense_index(signatures, case_idx);
         writeln(fmtr, "static bool p%d_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, const input_%d* args)", case_idx, input_idx);
     }
     else
