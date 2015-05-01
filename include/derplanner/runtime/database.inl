@@ -61,7 +61,7 @@ inline Fact_Handle first(const Fact_Database* db, uint32_t table_index)
     Fact_Handle handle;
     handle.table = table_index;
     handle.entry = 0;
-    handle.generation = (table.num_entries > 0) ? table.generations[0] : invalid_generation_id;
+    handle.generation = (table.num_entries > 0) ? table.generations[0] : (uint64_t) invalid_generation_id;
 
     return handle;
 }
