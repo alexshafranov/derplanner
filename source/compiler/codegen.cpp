@@ -109,7 +109,7 @@ static inline const char* get_runtime_type_name(Token_Type token_type)
     return s_runtime_type_name[token_type - Token_Group_Type_First];
 }
 
-static void generate_precondition(Codegen& state, ast::Case* case_, uint32_t case_idx, Formatter& fmtr, const Signature_Table& signatures);
+static void generate_precondition(ast::Case* case_, uint32_t case_idx, uint32_t input_idx, Signature input_sig, Signature output_sig, Formatter& fmtr);
 
 void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* output)
 {
@@ -335,8 +335,7 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
                 Indent_Scope s(fmtr);
                 if (sig.length > 0)
                 {
-                    uint32_t offset = (uint32_t)(sig.types - &signatures.types[0]);
-                    writeln(fmtr, "{ %d, s_layout_types + %d, 0, s_layout_offsets + 0 },", sig.length, offset);
+                    writeln(fmtr, "{ %d, s_layout_types + %d, 0, s_layout_offsets + 0 },", sig.length, sig.offset);
                 }
                 else
                 {
@@ -470,18 +469,19 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
     for (uint32_t case_idx = 0; case_idx < size(tree->cases); ++case_idx)
     {
         ast::Case* case_ = tree->cases[case_idx];
-        generate_precondition(state, case_, case_idx, fmtr, precond_input_signatures);
+        Signature input_sig = get_sparse(precond_input_signatures, case_idx);
+        Signature output_sig = get_sparse(signatures, size(domain->tasks) + size(prim->tasks) + case_idx);
+        uint32_t input_idx = get_dense_index(precond_input_signatures, case_idx);
+        generate_precondition(case_, case_idx, input_idx, input_sig, output_sig, fmtr);
     }
 
     flush(fmtr);
 }
 
-static void generate_precondition(Codegen& /*state*/, ast::Case* case_, uint32_t case_idx, Formatter& fmtr, const Signature_Table& signatures)
+static void generate_precondition(ast::Case* case_, uint32_t case_idx, uint32_t input_idx, Signature input_sig, Signature output_sig, Formatter& fmtr)
 {
-    Signature input_sig = get_sparse(signatures, case_idx);
     if (input_sig.length > 0)
     {
-        uint32_t input_idx = get_dense_index(signatures, case_idx);
         writeln(fmtr, "static bool p%d_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, const input_%d* args)", case_idx, input_idx);
     }
     else
@@ -501,6 +501,13 @@ static void generate_precondition(Codegen& /*state*/, ast::Case* case_, uint32_t
         {
             writeln(fmtr, "handles = allocate_precond_handles(state, frame, %d);", num_fact_handles);
         }
+
+        if (output_sig.length > 0)
+        {
+            writeln(fmtr, "allocate_precond_result(state, frame, s_precond_results[%d]);", case_idx);
+        }
+
+        newline(fmtr);
     }
     writeln(fmtr, "}");
     newline(fmtr);

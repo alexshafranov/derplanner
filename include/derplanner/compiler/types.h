@@ -110,6 +110,8 @@ struct Signature
     const Token_Type*   types;
     // number of types.
     uint32_t            length;
+    // offset in types array in `Signature_Table`.
+    uint32_t            offset;
 };
 
 // Collection of hashed signatures.

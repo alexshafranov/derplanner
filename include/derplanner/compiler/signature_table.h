@@ -71,7 +71,7 @@ inline plnnrc::Signature plnnrc::get_dense(const plnnrc::Signature_Table& table,
 {
     uint32_t offset = table.offsets[dense_index];
     uint32_t length = table.lengths[dense_index];
-    plnnrc::Signature result = { length > 0 ? &table.types[offset] : 0, length };
+    plnnrc::Signature result = { length > 0 ? &table.types[offset] : 0, length, offset };
     return result;
 }
 
