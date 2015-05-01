@@ -124,6 +124,7 @@ static inline const char* get_runtime_type_name(Token_Type token_type)
 }
 
 static void generate_precondition(ast::Case* case_, uint32_t case_idx, uint32_t input_idx, Signature input_sig, Signature output_sig, Formatter& fmtr);
+static void generate_expansion(ast::Case* case_, uint32_t case_idx, const String_Buffer& expand_names, Formatter& fmtr);
 
 void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* output)
 {
@@ -252,7 +253,7 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
 
     // task parameters & precondition output signatures.
     Signature_Table signatures;
-    init(signatures, state.pool, size(domain->tasks) + size(tree->cases));
+    init(signatures, state.pool, size(prim->tasks) + size(domain->tasks) + size(tree->cases));
 
     // signature table for precondition inputs.
     Signature_Table precond_input_signatures;
@@ -489,6 +490,13 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         generate_precondition(case_, case_idx, input_idx, input_sig, output_sig, fmtr);
     }
 
+    // case expansions
+    for (uint32_t case_idx = 0; case_idx < size(tree->cases); ++case_idx)
+    {
+        ast::Case* case_ = tree->cases[case_idx];
+        generate_expansion(case_, case_idx, expand_names, fmtr);
+    }
+
     flush(fmtr);
 }
 
@@ -637,4 +645,29 @@ static void generate_literal_chain(ast::Case* case_, ast::Expr* literal, uint32_
     }
 
     writeln(fmtr, "}");
+}
+
+static void generate_expansion(ast::Case* /*case_*/, uint32_t case_idx, const String_Buffer& expand_names, Formatter& fmtr)
+{
+    // static bool root_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
+    // {
+    //     plnnr_coroutine_begin(frame, expand_label);
+
+    //     while (p0_next(state, frame, db))
+    //     {
+    //         begin_composite(state, 3, travel_case_0, s_task_parameters[3]);
+    //         set_composite_arg(state, s_task_parameters[3], 0, as_Int32(frame->precond_result, s_precond_results[0], 0));
+    //         set_composite_arg(state, s_task_parameters[3], 1, as_Int32(frame->precond_result, s_precond_results[0], 1));
+    //         frame->flags |= Expansion_Frame::Flags_Expanded;
+    //         plnnr_coroutine_yield(frame, expand_label, 1);
+    //     }
+
+    //     plnnr_coroutine_end();
+    // }
+    Token_Value name = get(expand_names, case_idx);
+
+    writeln(fmtr, "static bool %n(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)", name);
+    writeln(fmtr, "{");
+    writeln(fmtr, "}");
+    newline(fmtr);
 }
