@@ -78,11 +78,18 @@ ast::Expr* convert_to_dnf(ast::Root& tree, ast::Expr* root);
 // converts all preconditions to DNF.
 void convert_to_dnf(ast::Root& tree);
 
-// builds tree look-ups and traversal info.
-void build_lookups(ast::Root& tree);
+// build various look-ups and traversal info.
+void annotate(ast::Root& tree);
 
 // figure out types of parameters and variables.
 void infer_types(ast::Root& tree);
+
+// true is `var` is wasn't defined (first occurence in scope).
+bool is_bound(ast::Var* var);
+// true if all arguments are bound.
+bool all_bound(ast::Func* node);
+// true if all arguments are unbound.
+bool all_unbound(ast::Func* node);
 
 // gets token type name as a string to aid debugging.
 const char* get_type_name(ast::Node_Type token_type);
@@ -151,4 +158,41 @@ inline Return_Type plnnrc::visit_node(const plnnrc::ast::Node* node, Visitor_Typ
         plnnrc_assert(false);
         return Return_Type();
     }
+}
+
+inline bool plnnrc::is_bound(plnnrc::ast::Var* var)
+{
+    return var->definition != 0;
+}
+
+inline bool plnnrc::all_bound(plnnrc::ast::Func* node)
+{
+    for (ast::Expr* n = node->child; n != 0; n = preorder_next(node, n))
+    {
+        if (ast::Var* var = as_Var(n))
+        {
+            if (!is_bound(var))
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+inline bool plnnrc::all_unbound(plnnrc::ast::Func* node)
+{
+    for (ast::Expr* n = node->child; n != 0; n = preorder_next(node, n))
+    {
+        if (ast::Var* var = as_Var(n))
+        {
+            if (is_bound(var))
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }

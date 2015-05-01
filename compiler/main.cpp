@@ -284,7 +284,7 @@ int main(int argc, char** argv)
     plnnrc::parse(parser);
 
     plnnrc::convert_to_dnf(parser.tree);
-    plnnrc::build_lookups(parser.tree);
+    plnnrc::annotate(parser.tree);
     plnnrc::infer_types(parser.tree);
 
     // generate source code.

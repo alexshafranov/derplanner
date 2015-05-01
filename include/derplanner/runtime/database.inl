@@ -23,7 +23,7 @@
 
 namespace plnnr {
 
-static const uint64_t INVALID_GENERATION_ID = 0x0000000000ffffff;
+enum { invalid_generation_id = 0x0000000000ffffffull };
 
 inline Fact_Database::Fact_Database()
     : memory(0)
@@ -61,7 +61,7 @@ inline Fact_Handle first(const Fact_Database* db, uint32_t table_index)
     Fact_Handle handle;
     handle.table = table_index;
     handle.entry = 0;
-    handle.generation = (table.num_entries > 0) ? table.generations[0] : INVALID_GENERATION_ID;
+    handle.generation = (table.num_entries > 0) ? table.generations[0] : invalid_generation_id;
 
     return handle;
 }
@@ -83,7 +83,7 @@ inline Fact_Handle next(const Fact_Database* db, Fact_Handle handle)
     else
     {
         result.entry = 0;
-        result.generation = INVALID_GENERATION_ID;
+        result.generation = invalid_generation_id;
     }
 
     return result;

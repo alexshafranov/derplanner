@@ -114,7 +114,7 @@ struct Signature
     uint32_t            offset;
 };
 
-// Collection of hashed signatures.
+// Collection of hashed signatures (type tuples).
 struct Signature_Table
 {
     // compacted signature types.
@@ -336,10 +336,18 @@ namespace ast
     {
         // name of the variable.
         Token_Value         name;
-        // first occurence of this variable, could be ast::Param or ast::Var.
+        // `ast::Param` or `ast::Var` when this variable was first bound (i.e. the first occurence in expression)
         Node*               definition;
         // inferred data type for this variable.
         Token_Type          data_type;
+
+        union
+        {
+            // index of the variable in the input signature.
+            uint32_t        input_index;
+            // index of the variable in the output signature.
+            uint32_t        output_index;
+        };
     };
 
     // Literal.
