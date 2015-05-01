@@ -27,7 +27,7 @@
 
 using namespace plnnrc;
 
-static const char* token_type_names[] =
+static const char* s_token_type_names[] =
 {
     "Unknown",
     #define PLNNRC_TOKEN(TOKEN_TAG) #TOKEN_TAG,
@@ -38,7 +38,7 @@ static const char* token_type_names[] =
 
 const char* plnnrc::get_type_name(Token_Type token_type)
 {
-    return token_type_names[token_type];
+    return s_token_type_names[token_type];
 }
 
 plnnrc::Lexer::Lexer()
