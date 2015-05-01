@@ -291,6 +291,8 @@ namespace ast
         Id_Table<ast::Var*> task_list_var_lookup;
         // array of all vars in task list.
         Array<ast::Var*>    task_list_vars;
+        // ast::Fact for each ast::Func instance. 
+        Array<ast::Fact*>   precond_facts;
     };
 
     // Parameter: Id + Data type.

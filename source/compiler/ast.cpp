@@ -761,6 +761,17 @@ void plnnrc::build_lookups(ast::Root& tree)
                 // unbound var used in task list.
                 plnnrc_assert(false);
             }
+
+            // build `precond_facts`
+            init(case_->precond_facts, tree.pool, 8);
+            for (ast::Expr* node = case_->precond; node != 0; node = plnnrc::preorder_next(case_->precond, node))
+            {
+                if (ast::Func* func = as_Func(node))
+                {
+                    ast::Fact* fact = get(tree.fact_lookup, func->name);
+                    push_back(case_->precond_facts, fact);
+                }
+            }
         }
     }
 }
