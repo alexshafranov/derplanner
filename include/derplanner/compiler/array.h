@@ -59,6 +59,9 @@ T& back(Array<T>& array);
 template <typename T>
 const T& back(const Array<T>& array);
 
+template <typename T>
+uint32_t index_of(const Array<T>& array, const T& value);
+
 }
 
 template <typename T>
@@ -167,15 +170,29 @@ inline uint32_t plnnrc::size(const plnnrc::Array<T>& array)
 }
 
 template <typename T>
-inline const T& plnnrc::back(const Array<T>& array)
+inline const T& plnnrc::back(const plnnrc::Array<T>& array)
 {
     return array[array.size - 1];
 }
 
 template <typename T>
-inline T& plnnrc::back(Array<T>& array)
+inline T& plnnrc::back(plnnrc::Array<T>& array)
 {
     return array[array.size - 1];
+}
+
+template <typename T>
+inline uint32_t plnnrc::index_of(const plnnrc::Array<T>& array, const T& value)
+{
+    for (uint32_t i = 0; i < size(array); ++i)
+    {
+        if (value == array[i])
+        {
+            return i;
+        }
+    }
+
+    return size(array);
 }
 
 #endif

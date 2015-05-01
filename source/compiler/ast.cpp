@@ -777,13 +777,14 @@ void plnnrc::annotate(ast::Root& tree)
             for (uint32_t var_idx = 0; var_idx < size(case_->task_list_vars); ++var_idx)
             {
                 ast::Var* var = case_->task_list_vars[var_idx];
-                if (ast::Var* def = get(case_->precond_var_lookup, var->name))
+
+                if (ast::Param* def = get(task->param_lookup, var->name))
                 {
                     var->definition = def;
                     continue;
                 }
 
-                if (ast::Param* def = get(task->param_lookup, var->name))
+                if (ast::Var* def = get(case_->precond_var_lookup, var->name))
                 {
                     var->definition = def;
                     continue;
