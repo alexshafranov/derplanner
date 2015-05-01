@@ -36,36 +36,48 @@ void add_param(Signature_Table& table, Token_Type type);
 // end building signature, compactify if the same signature was already built.
 void end_signature(Signature_Table& table);
 
-// gets offset in `types` array.
-uint32_t get_offset(const Signature_Table& table, uint32_t compact_index);
-// gets number of parameters in signature.
-uint32_t get_length(const Signature_Table& table, uint32_t compact_index);
-// get type of parameter.
-Token_Type get_param_type(const Signature_Table& table, uint32_t compact_index, uint32_t param_index);
-// translate index to compact (unique) index in signature table.
-uint32_t get_compact_index(const Signature_Table& table, uint32_t index);
-// number of unique signatures in the table.
-uint32_t get_num_unique(const Signature_Table& table);
+// total number of signatures stored in the `table`.
+uint32_t size_sparse(const Signature_Table& table);
+// the number of unique signatures stored in the `table`.
+uint32_t size_dense(const Signature_Table& table);
+
+// returns signature reference given the sparse index.
+Signature get_sparse(const Signature_Table& table, uint32_t sparse_index);
+// returns signature reference given the dense index.
+Signature get_dense(const Signature_Table& table, uint32_t dense_index);
+
+// maps sparse index to dense index.
+uint32_t get_dense_index(const Signature_Table& table, uint32_t sparse_index);
+
 }
 
-inline uint32_t plnnrc::get_offset(const plnnrc::Signature_Table& table, uint32_t compact_index)
+inline uint32_t plnnrc::size_sparse(const plnnrc::Signature_Table& table)
 {
-    return table.offsets[compact_index];
+    return plnnrc::size(table.remap);
 }
 
-inline uint32_t plnnrc::get_length(const plnnrc::Signature_Table& table, uint32_t compact_index)
+inline uint32_t plnnrc::size_dense(const plnnrc::Signature_Table& table)
 {
-    return table.lengths[compact_index];
+    return plnnrc::size(table.hashes);
 }
 
-inline uint32_t plnnrc::get_compact_index(const Signature_Table& table, uint32_t index)
+inline plnnrc::Signature plnnrc::get_sparse(const plnnrc::Signature_Table& table, uint32_t sparse_index)
 {
-    return table.remap[index];
+    uint32_t dense_index = table.remap[sparse_index];
+    return plnnrc::get_dense(table, dense_index);
 }
 
-inline uint32_t plnnrc::get_num_unique(const Signature_Table& table)
+inline plnnrc::Signature plnnrc::get_dense(const plnnrc::Signature_Table& table, uint32_t dense_index)
 {
-    return size(table.offsets);
+    uint32_t offset = table.offsets[dense_index];
+    uint32_t length = table.lengths[dense_index];
+    plnnrc::Signature result = { length > 0 ? &table.types[offset] : 0, length };
+    return result;
+}
+
+inline uint32_t plnnrc::get_dense_index(const plnnrc::Signature_Table& table, uint32_t sparse_index)
+{
+    return table.remap[sparse_index];
 }
 
 #endif
