@@ -91,7 +91,7 @@ inline Fact_Handle* allocate_precond_handles(Planning_State* state, Expansion_Fr
     return frame->handles;
 }
 
-inline void allocate_precond_result(Planning_State* state, Expansion_Frame* frame, const Param_Layout& output_type)
+inline void allocate_precond_output(Planning_State* state, Expansion_Frame* frame, const Param_Layout& output_type)
 {
     Linear_Blob* blob = &state->expansion_blob;
     uint8_t* bytes = allocate_with_layout(blob, output_type);
@@ -158,7 +158,7 @@ inline void set_task_arg(Planning_State* state, const Param_Layout& layout, uint
 }
 
 template <typename T>
-inline void set_precond_result(Expansion_Frame* frame, const Param_Layout& layout, uint32_t param_index, const T& value)
+inline void set_precond_output(Expansion_Frame* frame, const Param_Layout& layout, uint32_t param_index, const T& value)
 {
     set_arg(frame->precond_result, layout, param_index, value);
 }

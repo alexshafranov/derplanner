@@ -50,10 +50,12 @@ void plnnrc::begin_signature(Signature_Table& table)
     push_back(table.offsets, new_offset);
 }
 
-void plnnrc::add_param(Signature_Table& table, Token_Type type)
+uint32_t plnnrc::add_param(Signature_Table& table, Token_Type type)
 {
     plnnrc_assert(is_Type(type));
+    uint32_t offset = back(table.offsets);
     push_back(table.types, type);
+    return size(table.types) - offset - 1;
 }
 
 static inline uint32_t hash(Signature_Table& table, uint32_t signature_index)

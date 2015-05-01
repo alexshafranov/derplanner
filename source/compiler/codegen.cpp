@@ -21,10 +21,11 @@
 #include "derplanner/compiler/io.h"
 #include "derplanner/compiler/array.h"
 #include "derplanner/compiler/lexer.h"
-#include "derplanner/compiler/codegen.h"
 #include "derplanner/compiler/id_table.h"
 #include "derplanner/compiler/string_buffer.h"
 #include "derplanner/compiler/signature_table.h"
+#include "derplanner/compiler/ast.h"
+#include "derplanner/compiler/codegen.h"
 
 using namespace plnnrc;
 
@@ -83,7 +84,14 @@ static void build_expand_names(String_Buffer& expand_names, ast::Domain* domain)
     }
 }
 
-static const char* s_runtime_type_tags[] =
+static const char* s_runtime_type_tag[] =
+{
+    #define PLNNR_TYPE(TAG, TYPE) #TAG,
+    #include "derplanner/runtime/type_tags.inl"
+    #undef PLNNR_TYPE
+};
+
+static const char* s_runtime_type_enum[] =
 {
     #define PLNNR_TYPE(TAG, TYPE) "Type_" #TAG,
     #include "derplanner/runtime/type_tags.inl"
@@ -100,7 +108,13 @@ static const char* s_runtime_type_name[] =
 static inline const char* get_runtime_type_tag(Token_Type token_type)
 {
     plnnrc_assert(token_type >= (Token_Type)Token_Group_Type_First);
-    return s_runtime_type_tags[token_type - Token_Group_Type_First];
+    return s_runtime_type_tag[token_type - Token_Group_Type_First];
+}
+
+static inline const char* get_runtime_type_enum(Token_Type token_type)
+{
+    plnnrc_assert(token_type >= (Token_Type)Token_Group_Type_First);
+    return s_runtime_type_enum[token_type - Token_Group_Type_First];
 }
 
 static inline const char* get_runtime_type_name(Token_Type token_type)
@@ -226,7 +240,7 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
             write(fmtr, "%i{ %d, {", num_params);
             for (uint32_t param_idx = 0; param_idx < num_params; ++param_idx)
             {
-                const char* type_name = get_runtime_type_tag(fact->params[param_idx]->data_type);
+                const char* type_name = get_runtime_type_enum(fact->params[param_idx]->data_type);
                 write(fmtr, "%s, ", type_name);
             }
             write(fmtr, "} }");
@@ -284,7 +298,7 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
                 // skip bound vars
                 if (var->definition != 0) { continue; }
                 // save types of "output" vars
-                add_param(signatures, var->data_type);
+                var->output_index = add_param(signatures, var->data_type);
             }
             end_signature(signatures);
         }
@@ -301,7 +315,7 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
                 ast::Param* param = task->params[param_idx];
                 ast::Var* var = get(case_->precond_var_lookup, param->name);
                 if (!var) { continue; }
-                add_param(precond_input_signatures, var->data_type);
+                var->input_index = add_param(precond_input_signatures, var->data_type);
             }
             end_signature(precond_input_signatures);
         }
@@ -315,7 +329,7 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         {
             Token_Type type = signatures.types[type_idx];
             Indent_Scope s(fmtr);
-            writeln(fmtr, "%s,", get_runtime_type_tag(type));
+            writeln(fmtr, "%s,", get_runtime_type_enum(type));
         }
         writeln(fmtr, "};");
         newline(fmtr);
@@ -324,7 +338,7 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         newline(fmtr);
     }
 
-    // s_task_parameters & s_precond_results.
+    // s_task_parameters & s_precond_output.
     {
         struct Format_Param_Layout
         {
@@ -354,7 +368,7 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         writeln(fmtr, "};");
         newline(fmtr);
 
-        writeln(fmtr, "static Param_Layout s_precond_results[] = {");
+        writeln(fmtr, "static Param_Layout s_precond_output[] = {");
         for (uint32_t sig_idx = num_tasks; sig_idx < size(signatures.remap); ++sig_idx)
         {
             Format_Param_Layout()(fmtr, signatures, sig_idx);
@@ -409,7 +423,7 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         {
             Indent_Scope s(fmtr);
             // task_info
-            writeln(fmtr, "{ %d, %d, %d, s_num_cases, 0, s_task_names, s_task_parameters, s_precond_results, s_task_expands },", num_tasks, num_primitive, num_composite);
+            writeln(fmtr, "{ %d, %d, %d, s_num_cases, 0, s_task_names, s_task_parameters, s_precond_output, s_task_expands },", num_tasks, num_primitive, num_composite);
             // database_req
             writeln(fmtr, "{ %d, s_size_hints, s_fact_types, s_hashes, s_fact_names },", size(world->facts));
         }
@@ -431,10 +445,10 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
             writeln(fmtr, "}");
             newline(fmtr);
 
-            writeln(fmtr, "for (size_t i = 0; i < plnnr_static_array_size(s_precond_results); ++i) {");
+            writeln(fmtr, "for (size_t i = 0; i < plnnr_static_array_size(s_precond_output); ++i) {");
             {
                 Indent_Scope s(fmtr);
-                writeln(fmtr, "compute_offsets_and_size(s_precond_results[i]);");
+                writeln(fmtr, "compute_offsets_and_size(s_precond_output[i]);");
             }
             writeln(fmtr, "}");
         }
@@ -478,6 +492,8 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
     flush(fmtr);
 }
 
+static void generate_literal_chain(ast::Case* case_, ast::Expr* node, uint32_t& handle_id, uint32_t yield_id, Formatter& fmtr);
+
 static void generate_precondition(ast::Case* case_, uint32_t case_idx, uint32_t input_idx, Signature input_sig, Signature output_sig, Formatter& fmtr)
 {
     if (input_sig.length > 0)
@@ -489,10 +505,29 @@ static void generate_precondition(ast::Case* case_, uint32_t case_idx, uint32_t 
         writeln(fmtr, "static bool p%d_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)", case_idx);
     }
 
+    ast::Expr* precond = case_->precond;
+    plnnrc_assert(is_Or(precond));
+
+    // trivial precondition expression.
+    if (!precond->child)
+    {
+        writeln(fmtr, "{");
+        {
+            Indent_Scope s(fmtr);
+            writeln(fmtr, "plnnr_coroutine_begin(frame, precond_label);");
+            writeln(fmtr, "plnnr_coroutine_yield(frame, precond_label, 1);");
+            writeln(fmtr, "plnnr_coroutine_end();");
+        }
+        writeln(fmtr, "}");
+        newline(fmtr);
+        return;
+    }
+
     writeln(fmtr, "{");
     {
         Indent_Scope s(fmtr);
         writeln(fmtr, "Fact_Handle* handles = frame->handles;");
+        writeln(fmtr, "const Param_Layout& output_layout = s_precond_output[%d];", case_idx);
         newline(fmtr);
         writeln(fmtr, "plnnr_coroutine_begin(frame, precond_label);");
 
@@ -504,11 +539,102 @@ static void generate_precondition(ast::Case* case_, uint32_t case_idx, uint32_t 
 
         if (output_sig.length > 0)
         {
-            writeln(fmtr, "allocate_precond_result(state, frame, s_precond_results[%d]);", case_idx);
+            writeln(fmtr, "allocate_precond_output(state, frame, output_layout);");
+        }
+        newline(fmtr);
+
+        uint32_t handle_id = 0;
+        uint32_t yield_id = 1;
+        for (ast::Expr* conjunct = precond->child; conjunct != 0; conjunct = conjunct->next_sibling)
+        {
+            if (is_And(conjunct))
+            {
+                generate_literal_chain(case_, conjunct->child, handle_id, yield_id, fmtr);
+                continue;
+            }
+
+            generate_literal_chain(case_, conjunct, handle_id, yield_id, fmtr);
         }
 
         newline(fmtr);
+        writeln(fmtr, "plnnr_coroutine_end();");
     }
+
     writeln(fmtr, "}");
     newline(fmtr);
+}
+
+static void generate_literal_chain(ast::Case* case_, ast::Expr* literal, uint32_t& handle_id, uint32_t yield_id, Formatter& fmtr)
+{
+    ast::Func* func = is_Not(literal) ? as_Func(literal->child) : as_Func(literal);
+    plnnrc_assert(func);
+    writeln(fmtr, "for (handles[%d] = first(db, Fact_%n); is_valid(db, handles[%d]); handles[%d] = next(db, handles[%d])) {",
+        handle_id, func->name, handle_id, handle_id, handle_id);
+    {
+        Indent_Scope indent_scope(fmtr);
+
+        const char* comparison_op = is_Not(literal) ? "==" : "!=";
+        uint32_t fact_param_idx = 0;
+        for (ast::Expr* arg = func->child; arg != 0; arg = arg->next_sibling, ++fact_param_idx)
+        {
+            ast::Var* var = as_Var(arg);
+            plnnrc_assert(var);
+            Token_Type data_type = var->data_type;
+            const char* data_type_tag = get_runtime_type_tag(data_type);
+
+            ast::Node* def = var->definition;
+            // output variable -> skip
+            if (!def) { continue; }
+
+            // parameter -> use `args` struct
+            if (ast::Param* param = as_Param(def))
+            {
+                ast::Var* first = get(case_->precond_var_lookup, param->name);
+                writeln(fmtr, "if (args->_%d %s as_%s(db, handles[%d], %d)) {",
+                    first->input_index, comparison_op, data_type_tag, handle_id, fact_param_idx);
+                {
+                    Indent_Scope s(fmtr);
+                    writeln(fmtr, "continue");
+                }
+                writeln(fmtr, "}");
+                newline(fmtr);
+                continue;
+            }
+
+            // variable -> compare handle to handle
+            plnnrc_assert(false);
+        }
+
+        fact_param_idx = 0;
+        uint32_t output_idx = 0;
+        for (ast::Expr* arg = func->child; arg != 0; arg = arg->next_sibling, ++fact_param_idx)
+        {
+            ast::Var* var = as_Var(arg);
+            plnnrc_assert(var);
+            Token_Type data_type = var->data_type;
+            const char* data_type_tag = get_runtime_type_tag(data_type);
+
+            ast::Node* def = var->definition;
+            if (def) { continue; }
+
+            writeln(fmtr, "set_precond_output(frame, output_layout, %d, as_%s(db, handles[%d], %d));",
+                output_idx, data_type_tag, handle_id, fact_param_idx);
+
+            ++output_idx;
+        }
+
+        ++handle_id;
+
+        if (!literal->next_sibling)
+        {
+            writeln(fmtr, "plnnr_coroutine_yield(frame, precond_label, %d);", yield_id);
+            ++yield_id;
+        }
+        else
+        {
+            generate_literal_chain(case_, literal->next_sibling, handle_id, yield_id, fmtr);
+        }
+    }
+
+    writeln(fmtr, "}");
 }

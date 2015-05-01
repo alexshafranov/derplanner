@@ -238,7 +238,7 @@ struct Task_Info
     // format of task parameters.
     Param_Layout*               parameters;
     // format of the bindings created by composite task preconditions.
-    Param_Layout*               precondition_results;
+    Param_Layout*               precond_output;
     // pointer to generated expand function for each composite task.
     Composite_Task_Expand**     expands;
 };

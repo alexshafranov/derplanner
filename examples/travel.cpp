@@ -108,14 +108,14 @@ static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 
 	plnnr_coroutine_begin(frame, precond_label);
 	handles = allocate_precond_handles(state, frame, 2);
-	allocate_precond_result(state, frame, s_precond_results[0]);
+	allocate_precond_output(state, frame, s_precond_results[0]);
 
 	for (handles[0] = first(db, 0); is_valid(db, handles[0]); handles[0] = next(db, handles[0]))
 	{
 		for (handles[1] = first(db, 1); is_valid(db, handles[1]); handles[1] = next(db, handles[1]))
 		{
-			set_precond_result(frame, s_precond_results[0], 0, as_Int32(db, handles[0], 0));
-			set_precond_result(frame, s_precond_results[0], 1, as_Int32(db, handles[1], 0));
+			set_precond_output(frame, s_precond_results[0], 0, as_Int32(db, handles[0], 0));
+			set_precond_output(frame, s_precond_results[0], 1, as_Int32(db, handles[1], 0));
 
 			plnnr_coroutine_yield(frame, precond_label, 1);
 		}
@@ -189,7 +189,7 @@ static bool p3_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 
 	plnnr_coroutine_begin(frame, precond_label);
 	handles = allocate_precond_handles(state, frame, 2);
-	allocate_precond_result(state, frame, s_precond_results[3]);
+	allocate_precond_output(state, frame, s_precond_results[3]);
 
 	for (handles[0] = first(db, 4); is_valid(db, handles[0]); handles[0] = next(db, handles[0]))
 	{
@@ -205,8 +205,8 @@ static bool p3_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 				continue;
 			}
 
-			set_precond_result(frame, s_precond_results[3], 0, as_Int32(db, handles[0], 1));
-			set_precond_result(frame, s_precond_results[3], 1, as_Int32(db, handles[1], 1));
+			set_precond_output(frame, s_precond_results[3], 0, as_Int32(db, handles[0], 1));
+			set_precond_output(frame, s_precond_results[3], 1, as_Int32(db, handles[1], 1));
 
 			plnnr_coroutine_yield(frame, precond_label, 1);
 		}

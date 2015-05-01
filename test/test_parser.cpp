@@ -221,7 +221,7 @@ namespace
     TEST(dnf_conversion)
     {
         // test trivial conversions.
-        check_dnf_expr("( )", "Or{ And }");
+        check_dnf_expr("( )", "Or");
         check_dnf_expr("( x )", "Or{ Var[x] }");
         check_dnf_expr("( ~x )", "Or{ Not{ Var[x] } }");
         check_dnf_expr("( a | b )", "Or{ Var[a] Var[b] }");

@@ -37,6 +37,23 @@ void destroy(Fact_Table& t);
 void init(Fact_Database& db, Memory* mem, const Database_Format& format);
 void destroy(Fact_Database& db);
 
+// returns a handle to the first entry in database table.
+Fact_Handle first(const Fact_Database* db, uint32_t table_index);
+// advances handle to the next entry.
+Fact_Handle next(const Fact_Database* db, Fact_Handle handle);
+
+/// Fact_Handle
+
+bool is_valid(const Fact_Database& db, Fact_Handle handle);
+bool is_valid(const Fact_Database* db, Fact_Handle handle);
+
+/// Type
+
+// returns size of the type `t`.
+size_t get_type_size(Type t);
+// returns alignment of the type `t`.
+size_t get_type_alignment(Type t);
+
 }
 
 #include "derplanner/runtime/database.inl"

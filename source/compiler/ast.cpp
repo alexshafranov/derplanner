@@ -306,13 +306,20 @@ static ast::Expr*   convert_Or_to_dnf(ast::Root& tree, ast::Expr* root);
 
 ast::Expr* plnnrc::convert_to_dnf(ast::Root& tree, ast::Expr* root)
 {
+    ast::Expr* new_root = create_op(tree, ast::Node_Or);
+
+    // empty expression.
+    if (is_And(root) && !root->child)
+    {
+        return new_root;
+    }
+
     // convert `root` to Negative-Normal-Form and put it under a new Or node.
     ast::Expr* nnf_root = convert_to_nnf(tree, root);
-    ast::Expr* new_root = create_op(tree, ast::Node_Or);
     plnnrc::append_child(new_root, nnf_root);
     flatten(new_root);
 
-    // now we have flattened Or expression
+    // now we have a flattened Or expression
     // convert it to DNF form:
     // Expr = C0 | C1 | ... | CN, Ck (conjunct) = either ~X or X where X is variable or fact.
     new_root = convert_Or_to_dnf(tree, new_root);
@@ -367,7 +374,7 @@ static inline bool is_conjunct(ast::Expr* node)
         return true;
     }
 
-    // check if conjunction trivials.
+    // check if expression is conjunction of trivials.
     if (!is_And(node))
     {
         return false;
@@ -653,7 +660,7 @@ static void build_var_lookup(ast::Expr* expr, Array<ast::Var*>& out_vars, Id_Tab
     }
 }
 
-void plnnrc::build_lookups(ast::Root& tree)
+void plnnrc::annotate(ast::Root& tree)
 {
     ast::World* world = tree.world;
     if (world)
@@ -742,6 +749,30 @@ void plnnrc::build_lookups(ast::Root& tree)
                 build_var_lookup(task_expr, case_->task_list_vars, case_->task_list_var_lookup);
             }
 
+            // set `definition` for vars referencing task parameters.
+            for (uint32_t param_idx = 0; param_idx < size(task->params); ++param_idx)
+            {
+                ast::Param* param = task->params[param_idx];
+                ast::Var* var = get(case_->precond_var_lookup, param->name);
+                plnnrc_assert(!var->definition);
+                var->definition = param;
+                plnnrc_assert(param->data_type == Token_Unknown || param->data_type == var->data_type);
+            }
+
+            for (ast::Expr* node = case_->precond; node != 0; node = preorder_next(case_->precond, node))
+            {
+                if (ast::Var* var = as_Var(node))
+                {
+                    if (ast::Var* def = as_Var(var->definition))
+                    {
+                        if (ast::Param* param = as_Param(def->definition))
+                        {
+                            var->definition = param;
+                        }
+                    }
+                }
+            }
+
             // set task list var definitions.
             for (uint32_t var_idx = 0; var_idx < size(case_->task_list_vars); ++var_idx)
             {
@@ -781,23 +812,23 @@ void plnnrc::infer_types(ast::Root& tree)
     if (!tree.domain || !tree.world) { return; }
 
     // seed types in preconditions using fact declarations.
-    for (uint32_t case_idx = 0; case_idx < plnnrc::size(tree.cases); ++case_idx)
+    for (uint32_t case_idx = 0; case_idx < size(tree.cases); ++case_idx)
     {
         ast::Case* case_ = tree.cases[case_idx];
-        for (ast::Expr* node = case_->precond; node != 0; node = plnnrc::preorder_next(case_->precond, node))
+        for (ast::Expr* node = case_->precond; node != 0; node = preorder_next(case_->precond, node))
         {
-            if (ast::Func* func = plnnrc::as_Func(node))
+            if (ast::Func* func = as_Func(node))
             {
-                ast::Fact* fact = plnnrc::get_fact(tree, func->name);
+                ast::Fact* fact = get_fact(tree, func->name);
                 plnnrc_assert(fact);
                 // currently assuming all children are vars.
-                ast::Var* var = plnnrc::as_Var(func->child);
-                for (uint32_t param_idx = 0; param_idx < plnnrc::size(fact->params); ++param_idx)
+                ast::Var* var = as_Var(func->child);
+                for (uint32_t param_idx = 0; param_idx < size(fact->params); ++param_idx)
                 {
                     plnnrc_assert(var);
                     ast::Data_Type* param_type = fact->params[param_idx];
                     var->data_type = param_type->data_type;
-                    var = plnnrc::as_Var(var->next_sibling);
+                    var = as_Var(var->next_sibling);
                 }
 
                 plnnrc_assert(!var);
@@ -806,20 +837,18 @@ void plnnrc::infer_types(ast::Root& tree)
     }
 
     // set task parameter types based on their usage in preconditions.
-    for (uint32_t case_idx = 0; case_idx < plnnrc::size(tree.cases); ++case_idx)
+    for (uint32_t case_idx = 0; case_idx < size(tree.cases); ++case_idx)
     {
         ast::Case* case_ = tree.cases[case_idx];
         ast::Task* task = case_->task;
-        if (!plnnrc::size(case_->precond_var_lookup)) { continue; }
 
-        for (uint32_t param_idx = 0; param_idx < plnnrc::size(task->params); ++param_idx)
+        for (uint32_t param_idx = 0; param_idx < size(task->params); ++param_idx)
         {
             ast::Param* param = task->params[param_idx];
-            ast::Var* var = plnnrc::get(case_->precond_var_lookup, param->name);
-            plnnrc_assert(!var->definition);
-            var->definition = param;
-            plnnrc_assert(param->data_type == Token_Unknown || param->data_type == var->data_type);
-            param->data_type = var->data_type;
+            if (ast::Var* var = get(case_->precond_var_lookup, param->name))
+            {
+                param->data_type = var->data_type;
+            }
         }
     }
 

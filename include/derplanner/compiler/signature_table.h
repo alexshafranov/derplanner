@@ -31,8 +31,8 @@ void destroy(Signature_Table& table);
 
 // begin building signature.
 void begin_signature(Signature_Table& table);
-// add parameter type to the currenly built signature.
-void add_param(Signature_Table& table, Token_Type type);
+// add parameter type to the currenly built signature, parameter index in tuple is returned.
+uint32_t add_param(Signature_Table& table, Token_Type type);
 // end building signature, compactify if the same signature was already built.
 void end_signature(Signature_Table& table);
 
