@@ -181,6 +181,19 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         newline(fmtr);
     }
 
+    // fact ids enum
+    {
+        writeln(fmtr, "enum Fact_Id {");
+        for (uint32_t fact_idx = 0; fact_idx < size(world->facts); ++fact_idx)
+        {
+            Indent_Scope s(fmtr);
+            ast::Fact* fact = world->facts[fact_idx];
+            writeln(fmtr, "Fact_%n,", fact->name);
+        }
+        writeln(fmtr, "};");
+        newline(fmtr);
+    }
+
     // s_task_names
     {
         writeln(fmtr, "static const char* s_task_names[] = {");
@@ -462,7 +475,7 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
     flush(fmtr);
 }
 
-static void generate_precondition(Codegen& /*state*/, ast::Case* /*case_*/, uint32_t case_idx, Formatter& fmtr, const Signature_Table& signatures)
+static void generate_precondition(Codegen& /*state*/, ast::Case* case_, uint32_t case_idx, Formatter& fmtr, const Signature_Table& signatures)
 {
     uint32_t input_idx = get_compact_index(signatures, case_idx);
     uint32_t num_inputs = get_length(signatures, input_idx);
@@ -476,6 +489,18 @@ static void generate_precondition(Codegen& /*state*/, ast::Case* /*case_*/, uint
     }
 
     writeln(fmtr, "{");
+    {
+        Indent_Scope s(fmtr);
+        writeln(fmtr, "Fact_Handle* handles = frame->handles;");
+        newline(fmtr);
+        writeln(fmtr, "plnnr_coroutine_begin(frame, precond_label);");
+
+        const uint32_t num_fact_handles = size(case_->precond_facts);
+        if (num_fact_handles > 0)
+        {
+            writeln(fmtr, "handles = allocate_precond_handles(state, frame, %d);", num_fact_handles);
+        }
+    }
     writeln(fmtr, "}");
     newline(fmtr);
 }
