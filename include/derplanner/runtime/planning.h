@@ -78,7 +78,10 @@ template <typename T>
 void push(Stack<T>& stack, const T& value);
 
 template <typename T>
-uint32_t size(Stack<T>& stack);
+uint32_t size(const Stack<T>& stack);
+
+template <typename T>
+uint32_t max_size(const Stack<T>& stack);
 
 }
 
