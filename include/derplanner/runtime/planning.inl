@@ -64,14 +64,20 @@ inline T* plnnr::pop(plnnr::Stack<T>& stack)
 template <typename T>
 inline void plnnr::push(plnnr::Stack<T>& stack, const T& value)
 {
-    plnnr_assert(stack.size < stack.max_size);
+    plnnr_assert(size(stack) < max_size(stack));
     stack.frames[stack.size++] = value;
 }
 
 template <typename T>
-inline uint32_t plnnr::size(plnnr::Stack<T>& stack)
+inline uint32_t plnnr::size(const plnnr::Stack<T>& stack)
 {
     return stack.size;
+}
+
+template <typename T>
+inline uint32_t plnnr::max_size(const plnnr::Stack<T>& stack)
+{
+    return stack.max_size;
 }
 
 #endif
