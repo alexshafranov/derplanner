@@ -42,6 +42,7 @@ Fact_Handle first(const Fact_Database* db, uint32_t table_index);
 // advances handle to the next entry.
 Fact_Handle next(const Fact_Database* db, Fact_Handle handle);
 
+// search for table by fact name hash.
 Fact_Table* find_table(Fact_Database& db, const char* fact_name);
 const Fact_Table* find_table(const Fact_Database& db, const char* fact_name);
 

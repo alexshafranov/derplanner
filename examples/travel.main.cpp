@@ -58,11 +58,11 @@ int main()
     plnnr::Fact_Database db;
     plnnr::init(db, &default_mem, domain->database_req);
 
-    plnnr::Fact_Table* start = plnnr::find_table(db, "start");
-    plnnr::Fact_Table* finish = plnnr::find_table(db, "finish");
-    plnnr::Fact_Table* short_distance = plnnr::find_table(db, "short_distance");
-    plnnr::Fact_Table* long_distance = plnnr::find_table(db, "long_distance");
-    plnnr::Fact_Table* airport = plnnr::find_table(db, "airport");
+    plnnr::Fact_Table* start            = plnnr::find_table(db, "start");
+    plnnr::Fact_Table* finish           = plnnr::find_table(db, "finish");
+    plnnr::Fact_Table* short_distance   = plnnr::find_table(db, "short_distance");
+    plnnr::Fact_Table* long_distance    = plnnr::find_table(db, "long_distance");
+    plnnr::Fact_Table* airport          = plnnr::find_table(db, "airport");
 
     plnnr::add_entry(*start, SPB);
     plnnr::add_entry(*finish, MSC);
