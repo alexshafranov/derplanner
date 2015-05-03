@@ -86,17 +86,17 @@ static uint32_t s_size_hints[] = {
   0, 
 };
 
-static uint32_t s_hashes[] = {
-  0, 
-  0, 
-  0, 
-  0, 
-  0, 
+static uint32_t s_fact_name_hashes[] = {
+  1582309657, 
+  1878359220, 
+  2043850409, 
+  2181535055, 
+  3449045131, 
 };
 
 static Domain_Info s_domain_info = {
   { 5, 2, 3, s_num_cases, 0, s_task_names, s_task_parameters, s_precond_output, s_task_expands },
-  { 5, s_size_hints, s_fact_types, s_hashes, s_fact_names },
+  { 5, 0, s_size_hints, s_fact_types, s_fact_name_hashes, s_fact_names },
 };
 
 void travel_init_domain_info()

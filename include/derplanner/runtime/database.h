@@ -42,6 +42,9 @@ Fact_Handle first(const Fact_Database* db, uint32_t table_index);
 // advances handle to the next entry.
 Fact_Handle next(const Fact_Database* db, Fact_Handle handle);
 
+Fact_Table* find_table(Fact_Database& db, const char* fact_name);
+const Fact_Table* find_table(const Fact_Database& db, const char* fact_name);
+
 /// Fact_Handle
 
 bool is_valid(const Fact_Database& db, Fact_Handle handle);
@@ -53,6 +56,9 @@ bool is_valid(const Fact_Database* db, Fact_Handle handle);
 size_t get_type_size(Type t);
 // returns alignment of the type `t`.
 size_t get_type_alignment(Type t);
+
+// Murmur2 hash function used by compiler and runtime to generate hashes for the names used in domain (e.g. facts).
+uint32_t murmur2_32(const void* key, uint32_t len, uint32_t seed);
 
 }
 

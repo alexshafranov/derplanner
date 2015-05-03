@@ -21,7 +21,57 @@
 #ifndef DERPLANNER_RUNTIME_DATABASE_INL_
 #define DERPLANNER_RUNTIME_DATABASE_INL_
 
+#include <string.h>
+
 namespace plnnr {
+
+// MurmurHash2 was written by Austin Appleby, and is placed in the public
+// domain. The author hereby disclaims copyright to this source code.
+inline uint32_t murmur2_32(const void* key, uint32_t len, uint32_t seed)
+{
+    // 'm' and 'r' are mixing constants generated offline.
+    // They're not really 'magic', they just happen to work well.
+    const uint32_t m = 0x5bd1e995;
+    const int r = 24;
+
+    // Initialize the hash to a 'random' value
+    uint32_t h = seed ^ len;
+
+    // Mix 4 bytes at a time into the hash
+    const uint8_t* data = (const uint8_t*)key;
+
+    while(len >= 4)
+    {
+        uint32_t k = *(uint32_t*)data;
+
+        k *= m;
+        k ^= k >> r;
+        k *= m;
+
+        h *= m;
+        h ^= k;
+
+        data += 4;
+        len -= 4;
+    }
+
+    // Handle the last few bytes of the input array
+    switch(len)
+    {
+    case 3: h ^= data[2] << 16;
+    case 2: h ^= data[1] << 8;
+    case 1: h ^= data[0];
+        h *= m;
+    };
+
+    // Do a few final mixes of the hash to ensure the last few
+    // bytes are well-incorporated.
+    h ^= h >> 13;
+    h *= m;
+    h ^= h >> 15;
+
+    return h;
+} 
 
 enum { invalid_generation_id = 0x0000000000ffffffull };
 
@@ -87,6 +137,44 @@ inline Fact_Handle next(const Fact_Database* db, Fact_Handle handle)
     }
 
     return result;
+}
+
+inline const Fact_Table* find_table(const Fact_Database& db, const char* fact_name)
+{
+    const uint32_t seed = db.hash_seed;
+    const uint32_t hash = murmur2_32(fact_name, (uint32_t)strlen(fact_name), seed);
+    const uint32_t* db_hashes = db.hashes;
+    const uint32_t num_hashes = db.num_tables;
+    const Fact_Table* db_tables = db.tables;
+
+    for (uint32_t i = 0; i < num_hashes; ++i)
+    {
+        if (hash == db_hashes[i])
+        {
+            return &db_tables[i];
+        }
+    }
+
+    return 0;
+}
+
+inline Fact_Table* find_table(Fact_Database& db, const char* fact_name)
+{
+    const uint32_t seed = db.hash_seed;
+    const uint32_t hash = murmur2_32(fact_name, (uint32_t)strlen(fact_name), seed);
+    const uint32_t* db_hashes = db.hashes;
+    const uint32_t num_hashes = db.num_tables;
+    Fact_Table* db_tables = db.tables;
+
+    for (uint32_t i = 0; i < num_hashes; ++i)
+    {
+        if (hash == db_hashes[i])
+        {
+            return &db_tables[i];
+        }
+    }
+
+    return 0;
 }
 
 // returns size of type given type enum value
