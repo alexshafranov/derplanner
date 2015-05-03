@@ -95,7 +95,7 @@ inline void allocate_precond_output(Planning_State* state, Expansion_Frame* fram
 {
     Linear_Blob* blob = &state->expansion_blob;
     uint8_t* bytes = allocate_with_layout(blob, output_type);
-    frame->precond_result = bytes;
+    frame->precond_output = bytes;
 }
 
 inline void begin_composite(Planning_State* state, uint32_t id, Composite_Task_Expand* expand, const Param_Layout& args_layout)
@@ -160,7 +160,7 @@ inline void set_task_arg(Planning_State* state, const Param_Layout& layout, uint
 template <typename T>
 inline void set_precond_output(Expansion_Frame* frame, const Param_Layout& layout, uint32_t param_index, const T& value)
 {
-    set_arg(frame->precond_result, layout, param_index, value);
+    set_arg(frame->precond_output, layout, param_index, value);
 }
 
 }

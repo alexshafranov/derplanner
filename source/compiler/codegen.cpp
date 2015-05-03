@@ -293,7 +293,7 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         {
             Indent_Scope s(fmtr);
             ast::Fact* fact = world->facts[fact_idx];
-            writeln(fmtr, "\"%n\"", fact->name);
+            writeln(fmtr, "\"%n\",", fact->name);
         }
         writeln(fmtr, " };");
         newline(fmtr);
@@ -307,14 +307,14 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         {
             Indent_Scope s(fmtr);
             ast::Fact* task = prim->tasks[prim_idx];
-            writeln(fmtr, "\"%n\"", task->name);
+            writeln(fmtr, "\"%n\",", task->name);
         }
         // composite tasks after.
         for (uint32_t task_idx = 0; task_idx < size(domain->tasks); ++task_idx)
         {
             Indent_Scope s(fmtr);
             ast::Task* task = domain->tasks[task_idx];
-            writeln(fmtr, "\"%n\"", task->name);
+            writeln(fmtr, "\"%n\",", task->name);
         }
         writeln(fmtr, " };");
         newline(fmtr);
@@ -334,7 +334,7 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
                 const char* type_name = get_runtime_type_enum(fact->params[param_idx]->data_type);
                 write(fmtr, "%s, ", type_name);
             }
-            write(fmtr, "} }");
+            write(fmtr, "} },");
             newline(fmtr);
         }
         writeln(fmtr, "};");
@@ -626,7 +626,7 @@ static void generate_literal_chain(Codegen& state, ast::Case* case_, ast::Expr* 
                     first->input_index, comparison_op, data_type_tag, handle_id, fact_param_idx);
                 {
                     Indent_Scope s(fmtr);
-                    writeln(fmtr, "continue");
+                    writeln(fmtr, "continue;");
                 }
                 writeln(fmtr, "}");
                 newline(fmtr);
@@ -650,7 +650,7 @@ static void generate_literal_chain(Codegen& state, ast::Case* case_, ast::Expr* 
             if (def) { continue; }
 
             writeln(fmtr, "set_precond_output(frame, output_layout, %d, as_%s(db, handles[%d], %d));",
-                output_idx, data_type_tag, handle_id, fact_param_idx);
+                handle_id + output_idx, data_type_tag, handle_id, fact_param_idx);
 
             ++output_idx;
         }
@@ -671,11 +671,45 @@ static void generate_literal_chain(Codegen& state, ast::Case* case_, ast::Expr* 
     writeln(fmtr, "}");
 }
 
+static void generate_arg_setters(Codegen& state, const char* set_arg_name, ast::Func* task_list_item, ast::Case* case_, uint32_t target_task_index, Formatter& fmtr)
+{
+    ast::Task* task = case_->task;
+    uint32_t case_index = index_of(state.tree->cases, case_);
+    uint32_t task_params_idx = size(state.tree->primitive->tasks) + index_of(state.tree->domain->tasks, task);
+
+    uint32_t arg_index = 0;
+    for (ast::Expr* arg_node = task_list_item->child; arg_node != 0; arg_node = arg_node->next_sibling, ++arg_index)
+    {
+        ast::Var* arg_var = as_Var(arg_node);
+        plnnrc_assert(arg_var);
+
+        if (ast::Var* def_var = as_Var(arg_var->definition))
+        {
+            const char* data_type_tag = get_runtime_type_tag(def_var->data_type);
+            writeln(fmtr, "%s(state, s_task_parameters[%d], %d, as_%s(frame->precond_output, s_precond_output[%d], %d));",
+                set_arg_name, target_task_index, arg_index, data_type_tag, case_index, def_var->output_index);
+            continue;
+        }
+
+        if (ast::Param* def_param = as_Param(arg_var->definition))
+        {
+            const char* data_type_tag = get_runtime_type_tag(def_param->data_type);
+            uint32_t task_param_idx = index_of(task->params, def_param);
+            writeln(fmtr, "%s(state, s_task_parameters[%d], %d, as_%s(frame->arguments, s_task_parameters[%d], %d));",
+                set_arg_name, target_task_index, arg_index, data_type_tag, task_params_idx, task_param_idx);
+            continue;
+        }
+
+        plnnrc_assert(false);
+    }
+}
+
 static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_idx, Formatter& fmtr)
 {
     ast::Task* task = case_->task;
     Token_Value name = get(state.expand_names, case_idx);
     uint32_t task_params_idx = size(state.tree->primitive->tasks) + index_of(state.tree->domain->tasks, task);
+    uint32_t yield_id = 1;
 
     Signature task_sig = get_composite_task_signature(state, task);
     Signature precond_input_sig = get_precond_input_signature(state, case_);
@@ -711,25 +745,37 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
 
         if (precond_input_sig.length > 0)
         {
-            writeln(fmtr, "while (p%d_next(state, frame, db, &args)) {");
+            writeln(fmtr, "while (p%d_next(state, frame, db, &args)) {", case_idx);
         }
         else
         {
-            writeln(fmtr, "while (p%d_next(state, frame, db)) {");
+            writeln(fmtr, "while (p%d_next(state, frame, db)) {", case_idx);
         }
 
         // generate task list expansion
         {
             Indent_Scope s(fmtr);
-            for (uint32_t task_idx = 0; task_idx < size(case_->task_list); ++task_idx)
+            for (uint32_t item_idx = 0; item_idx < size(case_->task_list); ++item_idx)
             {
-                ast::Func* item = as_Func(case_->task_list[task_idx]);
+                ast::Func* item = as_Func(case_->task_list[item_idx]);
                 // adding primitive task to expansion.
                 if (ast::Fact* primitive = get_primitive(*state.tree, item->name))
                 {
                     uint32_t primitive_index = index_of(state.tree->primitive->tasks, primitive);
                     writeln(fmtr, "begin_task(state, %d, s_task_parameters[%d]); // %n",
                         primitive_index, primitive_index, primitive->name);
+
+                    generate_arg_setters(state, "set_task_arg", item, case_, primitive_index, fmtr);
+
+                    if (item == back(case_->task_list))
+                    {
+                        writeln(fmtr, "frame->flags |= Expansion_Frame::Flags_Expanded;");
+                    }
+
+                    writeln(fmtr, "plnnr_coroutine_yield(frame, expand_label, %d);", yield_id);
+                    ++yield_id;
+                    newline(fmtr);
+
                     continue;
                 }
 
@@ -739,6 +785,24 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
                     uint32_t composite_index = size(state.tree->primitive->tasks) + index_of(state.tree->domain->tasks, composite);
                     writeln(fmtr, "begin_composite(state, %d, %n_case_0, s_task_parameters[%d]); // %n",
                         composite_index, composite->name, composite_index, composite->name);
+
+                    generate_arg_setters(state, "set_composite_arg", item, case_, composite_index, fmtr);
+
+                    if (item == back(case_->task_list))
+                    {
+                        writeln(fmtr, "frame->flags |= Expansion_Frame::Flags_Expanded;");
+                    }
+
+                    writeln(fmtr, "plnnr_coroutine_yield(frame, expand_label, %d);", yield_id);
+                    ++yield_id;
+
+                    if (item != back(case_->task_list))
+                    {
+                        writeln(fmtr, "if ((frame->flags & Expansion_Frame::Flags_Failed) != 0) { continue; }");
+                    }
+
+                    newline(fmtr);
+
                     continue;
                 }
 
