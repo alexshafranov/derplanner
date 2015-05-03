@@ -69,7 +69,7 @@ inline void plnnr::push(plnnr::Stack<T>& stack, const T& value)
 }
 
 template <typename T>
-uint32_t plnnr::size(plnnr::Stack<T>& stack)
+inline uint32_t plnnr::size(plnnr::Stack<T>& stack)
 {
     return stack.size;
 }
