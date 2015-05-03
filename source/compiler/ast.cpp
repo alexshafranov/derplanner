@@ -162,14 +162,19 @@ ast::Literal* plnnrc::create_literal(ast::Root& tree, const Token& token)
     return node;
 }
 
-ast::Fact* plnnrc::get_fact(ast::Root& tree, const Token_Value& token_value)
+ast::Fact* plnnrc::get_fact(ast::Root& tree, const Token_Value& name)
 {
-    return plnnrc::get(tree.fact_lookup, token_value);
+    return plnnrc::get(tree.fact_lookup, name);
 }
 
-ast::Task* plnnrc::get_task(ast::Root& tree, const Token_Value& token_value)
+ast::Task* plnnrc::get_task(ast::Root& tree, const Token_Value& name)
 {
-    return plnnrc::get(tree.task_lookup, token_value);
+    return plnnrc::get(tree.task_lookup, name);
+}
+
+ast::Fact* plnnrc::get_primitive(ast::Root& tree, const Token_Value& name)
+{
+    return plnnrc::get(tree.primitive_lookup, name);
 }
 
 void plnnrc::flatten(ast::Expr* root)
