@@ -47,10 +47,12 @@ ast::Var*           create_var(ast::Root& tree, const Token_Value& name);
 ast::Data_Type*     create_type(ast::Root& tree, Token_Type data_type);
 ast::Literal*       create_literal(ast::Root& tree, const Token& token);
 
-// lookup `ast::Task` node by name (`token_value`).
-ast::Task*      get_task(ast::Root& tree, const Token_Value& token_value);
-// lookup `ast::Fact` node by name (`token_value`).
-ast::Fact*      get_fact(ast::Root& tree, const Token_Value& token_value);
+// lookup `ast::Task` node by name.
+ast::Task*      get_task(ast::Root& tree, const Token_Value& name);
+// lookup `ast::Fact` node by name.
+ast::Fact*      get_fact(ast::Root& tree, const Token_Value& name);
+// lookup `ast::Fact` node for primitive task by name.
+ast::Fact*      get_primitive(ast::Root& tree, const Token_Value& name);
 
 /// ast::Expr
 

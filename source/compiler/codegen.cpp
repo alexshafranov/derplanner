@@ -33,16 +33,32 @@ void plnnrc::init(Codegen& state, ast::Root* tree, Memory* mem)
 {
     state.tree = tree;
     state.pool = mem;
+
+    const ast::Primitive* prim = tree->primitive;
+    const ast::Domain* domain = tree->domain;
+
+    init(state.expand_names, mem, 64, 4096);
+    init(state.task_and_pout_sigs, mem, size(prim->tasks) + size(domain->tasks) + size(tree->cases));
+    init(state.pin_sigs, mem, size(tree->cases));
 }
 
-void plnnrc::destroy(Codegen& /*state*/)
+void plnnrc::destroy(Codegen& state)
 {
+    destroy(state.pin_sigs);
+    destroy(state.task_and_pout_sigs);
+    destroy(state.expand_names);
 }
 
 plnnrc::Codegen::Codegen() : pool(0) {}
 
-plnnrc::Codegen::~Codegen() { destroy(*this); }
-
+plnnrc::Codegen::~Codegen()
+{
+    if (pool)
+    {
+        destroy(*this);
+        pool = 0;
+    }
+}
 
 void plnnrc::generate_header(Codegen& state, const char* header_guard, Writer* output)
 {
@@ -68,20 +84,6 @@ void plnnrc::generate_header(Codegen& state, const char* header_guard, Writer* o
     newline(fmtr);
     writeln(fmtr, "#endif");
     flush(fmtr);
-}
-
-static void build_expand_names(String_Buffer& expand_names, ast::Domain* domain)
-{
-    for (uint32_t task_idx = 0; task_idx < plnnrc::size(domain->tasks); ++task_idx)
-    {
-        ast::Task* task = domain->tasks[task_idx];
-        for (uint32_t case_idx = 0; case_idx < plnnrc::size(task->cases); ++case_idx)
-        {
-            begin_string(expand_names);
-            write(expand_names.buffer, "%n_case_%d", task->name, case_idx);
-            end_string(expand_names);
-        }
-    }
 }
 
 static const char* s_runtime_type_tag[] =
@@ -123,8 +125,112 @@ static inline const char* get_runtime_type_name(Token_Type token_type)
     return s_runtime_type_name[token_type - Token_Group_Type_First];
 }
 
-static void generate_precondition(ast::Case* case_, uint32_t case_idx, uint32_t input_idx, Signature input_sig, Signature output_sig, Formatter& fmtr);
-static void generate_expansion(ast::Case* case_, uint32_t case_idx, const String_Buffer& expand_names, Formatter& fmtr);
+static inline Signature get_composite_task_signature(Codegen& state, ast::Task* task)
+{
+    ast::Primitive* prim = state.tree->primitive;
+    ast::Domain* domain = state.tree->domain;
+    uint32_t task_idx = index_of(domain->tasks, task);
+    return get_sparse(state.task_and_pout_sigs, size(prim->tasks) + task_idx);
+}
+
+static inline Signature get_precond_output_signature(Codegen& state, ast::Case* case_)
+{
+    ast::Primitive* prim = state.tree->primitive;
+    ast::Domain* domain = state.tree->domain;
+    uint32_t case_idx = index_of(state.tree->cases, case_);
+    return get_sparse(state.task_and_pout_sigs, size(prim->tasks) + size(domain->tasks) + case_idx);
+}
+
+static inline Signature get_precond_input_signature(Codegen& state, ast::Case* case_)
+{
+    uint32_t case_idx = index_of(state.tree->cases, case_);
+    return get_sparse(state.pin_sigs, case_idx);
+}
+
+static void build_signatures(Codegen& state)
+{
+    ast::Root* tree = state.tree;
+    ast::Primitive* prim = tree->primitive;
+    ast::Domain* domain = tree->domain;
+
+    // primitive task signatures.
+    for (uint32_t task_idx = 0; task_idx < size(prim->tasks); ++task_idx)
+    {
+        ast::Fact* task = prim->tasks[task_idx];
+
+        begin_signature(state.task_and_pout_sigs);
+        for (uint32_t param_idx = 0; param_idx < size(task->params); ++param_idx)
+        {
+            add_param(state.task_and_pout_sigs, task->params[param_idx]->data_type);
+        }
+        end_signature(state.task_and_pout_sigs);
+    }
+
+    // compisite task signatures.
+    for (uint32_t task_idx = 0; task_idx < size(domain->tasks); ++task_idx)
+    {
+        ast::Task* task = domain->tasks[task_idx];
+
+        begin_signature(state.task_and_pout_sigs);
+        for (uint32_t param_idx = 0; param_idx < size(task->params); ++param_idx)
+        {
+            add_param(state.task_and_pout_sigs, task->params[param_idx]->data_type);
+        }
+        end_signature(state.task_and_pout_sigs);
+    }
+
+    // precondition output
+    for (uint32_t case_idx = 0; case_idx < size(tree->cases); ++case_idx)
+    {
+        ast::Case* case_ = tree->cases[case_idx];
+
+        begin_signature(state.task_and_pout_sigs);
+        for (uint32_t var_idx = 0; var_idx < size(case_->precond_vars); ++var_idx)
+        {
+            ast::Var* var = case_->precond_vars[var_idx];
+            // skip bound vars
+            if (var->definition != 0) { continue; }
+            // save types of "output" vars
+            var->output_index = add_param(state.task_and_pout_sigs, var->data_type);
+        }
+        end_signature(state.task_and_pout_sigs);
+    }
+
+    // precondition inputs (stored in a separate table)
+    for (uint32_t case_idx = 0; case_idx < size(tree->cases); ++case_idx)
+    {
+        ast::Case* case_ = tree->cases[case_idx];
+        ast::Task* task = case_->task;
+
+        begin_signature(state.pin_sigs);
+        for (uint32_t param_idx = 0; param_idx < size(task->params); ++param_idx)
+        {
+            ast::Param* param = task->params[param_idx];
+            ast::Var* var = get(case_->precond_var_lookup, param->name);
+            if (!var) { continue; }
+            var->input_index = add_param(state.pin_sigs, var->data_type);
+        }
+        end_signature(state.pin_sigs);
+    }
+}
+
+static void build_expand_names(String_Buffer& expand_names, ast::Domain* domain)
+{
+    for (uint32_t task_idx = 0; task_idx < plnnrc::size(domain->tasks); ++task_idx)
+    {
+        ast::Task* task = domain->tasks[task_idx];
+        for (uint32_t case_idx = 0; case_idx < plnnrc::size(task->cases); ++case_idx)
+        {
+            begin_string(expand_names);
+            write(expand_names.buffer, "%n_case_%d", task->name, case_idx);
+            end_string(expand_names);
+        }
+    }
+}
+
+static void generate_precondition(Codegen& state, ast::Case* case_, uint32_t case_idx, uint32_t input_idx, Signature input_sig, Signature output_sig, Formatter& fmtr);
+
+static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_idx, Formatter& fmtr);
 
 void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* output)
 {
@@ -134,9 +240,6 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
     ast::Primitive* prim = tree->primitive;
     ast::Domain* domain = tree->domain;
     Formatter& fmtr = state.fmtr;
-
-    String_Buffer expand_names;
-    init(expand_names, state.pool, 64, 4096);
 
     // includes & pragmas
     {
@@ -158,13 +261,13 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         newline(fmtr);
     }
 
-    build_expand_names(expand_names, domain);
+    build_expand_names(state.expand_names, domain);
 
     // expand forward declarations
     {
-        for (uint32_t case_idx = 0; case_idx < size(expand_names); ++case_idx)
+        for (uint32_t case_idx = 0; case_idx < size(state.expand_names); ++case_idx)
         {
-            Token_Value name = get(expand_names, case_idx);
+            Token_Value name = get(state.expand_names, case_idx);
             writeln(fmtr, "static bool %n(Planning_State*, Expansion_Frame*, Fact_Database*);", name);
         }
         newline(fmtr);
@@ -173,9 +276,9 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
     // s_task_expands
     {
         writeln(fmtr, "static Composite_Task_Expand* s_task_expands[] = {");
-        for (uint32_t case_idx = 0; case_idx < size(expand_names); ++case_idx)
+        for (uint32_t case_idx = 0; case_idx < size(state.expand_names); ++case_idx)
         {
-            Token_Value name = get(expand_names, case_idx);
+            Token_Value name = get(state.expand_names, case_idx);
             Indent_Scope s(fmtr);
             writeln(fmtr, "%n,", name);
         }
@@ -193,19 +296,6 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
             writeln(fmtr, "\"%n\"", fact->name);
         }
         writeln(fmtr, " };");
-        newline(fmtr);
-    }
-
-    // fact ids enum
-    {
-        writeln(fmtr, "enum Fact_Id {");
-        for (uint32_t fact_idx = 0; fact_idx < size(world->facts); ++fact_idx)
-        {
-            Indent_Scope s(fmtr);
-            ast::Fact* fact = world->facts[fact_idx];
-            writeln(fmtr, "Fact_%n,", fact->name);
-        }
-        writeln(fmtr, "};");
         newline(fmtr);
     }
 
@@ -251,91 +341,22 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         newline(fmtr);
     }
 
-    // task parameters & precondition output signatures.
-    Signature_Table signatures;
-    init(signatures, state.pool, size(prim->tasks) + size(domain->tasks) + size(tree->cases));
-
-    // signature table for precondition inputs.
-    Signature_Table precond_input_signatures;
-    init(precond_input_signatures, state.pool, size(tree->cases));
-
-    // build signatures.
-    {
-        // primitive task signatures.
-        for (uint32_t task_idx = 0; task_idx < size(prim->tasks); ++task_idx)
-        {
-            ast::Fact* task = prim->tasks[task_idx];
-
-            begin_signature(signatures);
-            for (uint32_t param_idx = 0; param_idx < size(task->params); ++param_idx)
-            {
-                add_param(signatures, task->params[param_idx]->data_type);
-            }
-            end_signature(signatures);
-        }
-
-        // compisite task signatures.
-        for (uint32_t task_idx = 0; task_idx < size(domain->tasks); ++task_idx)
-        {
-            ast::Task* task = domain->tasks[task_idx];
-
-            begin_signature(signatures);
-            for (uint32_t param_idx = 0; param_idx < size(task->params); ++param_idx)
-            {
-                add_param(signatures, task->params[param_idx]->data_type);
-            }
-            end_signature(signatures);
-        }
-
-        // precondition output
-        for (uint32_t case_idx = 0; case_idx < size(tree->cases); ++case_idx)
-        {
-            ast::Case* case_ = tree->cases[case_idx];
-
-            begin_signature(signatures);
-            for (uint32_t var_idx = 0; var_idx < size(case_->precond_vars); ++var_idx)
-            {
-                ast::Var* var = case_->precond_vars[var_idx];
-                // skip bound vars
-                if (var->definition != 0) { continue; }
-                // save types of "output" vars
-                var->output_index = add_param(signatures, var->data_type);
-            }
-            end_signature(signatures);
-        }
-
-        // precondition inputs (stored in a separate table)
-        for (uint32_t case_idx = 0; case_idx < size(tree->cases); ++case_idx)
-        {
-            ast::Case* case_ = tree->cases[case_idx];
-            ast::Task* task = case_->task;
-
-            begin_signature(precond_input_signatures);
-            for (uint32_t param_idx = 0; param_idx < size(task->params); ++param_idx)
-            {
-                ast::Param* param = task->params[param_idx];
-                ast::Var* var = get(case_->precond_var_lookup, param->name);
-                if (!var) { continue; }
-                var->input_index = add_param(precond_input_signatures, var->data_type);
-            }
-            end_signature(precond_input_signatures);
-        }
-    }
+    build_signatures(state);
 
     // s_layout_types, s_layout_offsets
-    if (size(signatures.types) > 0)
+    if (size(state.task_and_pout_sigs.types) > 0)
     {
         writeln(fmtr, "static Type s_layout_types[] = {");
-        for (uint32_t type_idx = 0; type_idx < size(signatures.types); ++type_idx)
+        for (uint32_t type_idx = 0; type_idx < size(state.task_and_pout_sigs.types); ++type_idx)
         {
-            Token_Type type = signatures.types[type_idx];
+            Token_Type type = state.task_and_pout_sigs.types[type_idx];
             Indent_Scope s(fmtr);
             writeln(fmtr, "%s,", get_runtime_type_enum(type));
         }
         writeln(fmtr, "};");
         newline(fmtr);
 
-        writeln(fmtr, "static size_t s_layout_offsets[%d];", size(signatures.types));
+        writeln(fmtr, "static size_t s_layout_offsets[%d];", size(state.task_and_pout_sigs.types));
         newline(fmtr);
     }
 
@@ -364,15 +385,15 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         writeln(fmtr, "static Param_Layout s_task_parameters[] = {");
         for (uint32_t sig_idx = 0; sig_idx < num_tasks; ++sig_idx)
         {
-            Format_Param_Layout()(fmtr, signatures, sig_idx);
+            Format_Param_Layout()(fmtr, state.task_and_pout_sigs, sig_idx);
         }
         writeln(fmtr, "};");
         newline(fmtr);
 
         writeln(fmtr, "static Param_Layout s_precond_output[] = {");
-        for (uint32_t sig_idx = num_tasks; sig_idx < size(signatures.remap); ++sig_idx)
+        for (uint32_t sig_idx = num_tasks; sig_idx < size(state.task_and_pout_sigs.remap); ++sig_idx)
         {
-            Format_Param_Layout()(fmtr, signatures, sig_idx);
+            Format_Param_Layout()(fmtr, state.task_and_pout_sigs, sig_idx);
         }
         writeln(fmtr, "};");
         newline(fmtr);
@@ -462,9 +483,9 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
 
     // precondition input structs
     {
-        for (uint32_t input_idx = 0; input_idx < size_dense(precond_input_signatures); ++input_idx)
+        for (uint32_t input_idx = 0; input_idx < size_dense(state.pin_sigs); ++input_idx)
         {
-            Signature input_sig = get_dense(precond_input_signatures, input_idx);
+            Signature input_sig = get_dense(state.pin_sigs, input_idx);
             if (input_sig.length == 0) { continue; }
 
             writeln(fmtr, "struct input_%d {", input_idx);
@@ -484,25 +505,25 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
     for (uint32_t case_idx = 0; case_idx < size(tree->cases); ++case_idx)
     {
         ast::Case* case_ = tree->cases[case_idx];
-        Signature input_sig = get_sparse(precond_input_signatures, case_idx);
-        Signature output_sig = get_sparse(signatures, size(domain->tasks) + size(prim->tasks) + case_idx);
-        uint32_t input_idx = get_dense_index(precond_input_signatures, case_idx);
-        generate_precondition(case_, case_idx, input_idx, input_sig, output_sig, fmtr);
+        Signature input_sig = get_sparse(state.pin_sigs, case_idx);
+        Signature output_sig = get_precond_output_signature(state, case_);
+        uint32_t input_idx = get_dense_index(state.pin_sigs, case_idx);
+        generate_precondition(state, case_, case_idx, input_idx, input_sig, output_sig, fmtr);
     }
 
     // case expansions
     for (uint32_t case_idx = 0; case_idx < size(tree->cases); ++case_idx)
     {
         ast::Case* case_ = tree->cases[case_idx];
-        generate_expansion(case_, case_idx, expand_names, fmtr);
+        generate_expansion(state, case_, case_idx, fmtr);
     }
 
     flush(fmtr);
 }
 
-static void generate_literal_chain(ast::Case* case_, ast::Expr* node, uint32_t& handle_id, uint32_t yield_id, Formatter& fmtr);
+static void generate_literal_chain(Codegen& state, ast::Case* case_, ast::Expr* node, uint32_t& handle_id, uint32_t yield_id, Formatter& fmtr);
 
-static void generate_precondition(ast::Case* case_, uint32_t case_idx, uint32_t input_idx, Signature input_sig, Signature output_sig, Formatter& fmtr)
+static void generate_precondition(Codegen& state, ast::Case* case_, uint32_t case_idx, uint32_t input_idx, Signature input_sig, Signature output_sig, Formatter& fmtr)
 {
     if (input_sig.length > 0)
     {
@@ -557,11 +578,11 @@ static void generate_precondition(ast::Case* case_, uint32_t case_idx, uint32_t 
         {
             if (is_And(conjunct))
             {
-                generate_literal_chain(case_, conjunct->child, handle_id, yield_id, fmtr);
+                generate_literal_chain(state, case_, conjunct->child, handle_id, yield_id, fmtr);
                 continue;
             }
 
-            generate_literal_chain(case_, conjunct, handle_id, yield_id, fmtr);
+            generate_literal_chain(state, case_, conjunct, handle_id, yield_id, fmtr);
         }
 
         newline(fmtr);
@@ -572,12 +593,15 @@ static void generate_precondition(ast::Case* case_, uint32_t case_idx, uint32_t 
     newline(fmtr);
 }
 
-static void generate_literal_chain(ast::Case* case_, ast::Expr* literal, uint32_t& handle_id, uint32_t yield_id, Formatter& fmtr)
+static void generate_literal_chain(Codegen& state, ast::Case* case_, ast::Expr* literal, uint32_t& handle_id, uint32_t yield_id, Formatter& fmtr)
 {
     ast::Func* func = is_Not(literal) ? as_Func(literal->child) : as_Func(literal);
     plnnrc_assert(func);
-    writeln(fmtr, "for (handles[%d] = first(db, Fact_%n); is_valid(db, handles[%d]); handles[%d] = next(db, handles[%d])) {",
-        handle_id, func->name, handle_id, handle_id, handle_id);
+    ast::Fact* fact = get_fact(*state.tree, func->name);
+    uint32_t fact_idx = index_of(state.tree->world->facts, fact);
+
+    writeln(fmtr, "for (handles[%d] = first(db, %d); is_valid(db, handles[%d]); handles[%d] = next(db, handles[%d])) { // %n",
+        handle_id, fact_idx, handle_id, handle_id, handle_id, fact->name);
     {
         Indent_Scope indent_scope(fmtr);
 
@@ -640,34 +664,102 @@ static void generate_literal_chain(ast::Case* case_, ast::Expr* literal, uint32_
         }
         else
         {
-            generate_literal_chain(case_, literal->next_sibling, handle_id, yield_id, fmtr);
+            generate_literal_chain(state, case_, literal->next_sibling, handle_id, yield_id, fmtr);
         }
     }
 
     writeln(fmtr, "}");
 }
 
-static void generate_expansion(ast::Case* /*case_*/, uint32_t case_idx, const String_Buffer& expand_names, Formatter& fmtr)
+static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_idx, Formatter& fmtr)
 {
-    // static bool root_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
-    // {
-    //     plnnr_coroutine_begin(frame, expand_label);
+    ast::Task* task = case_->task;
+    Token_Value name = get(state.expand_names, case_idx);
+    uint32_t task_params_idx = size(state.tree->primitive->tasks) + index_of(state.tree->domain->tasks, task);
 
-    //     while (p0_next(state, frame, db))
-    //     {
-    //         begin_composite(state, 3, travel_case_0, s_task_parameters[3]);
-    //         set_composite_arg(state, s_task_parameters[3], 0, as_Int32(frame->precond_result, s_precond_results[0], 0));
-    //         set_composite_arg(state, s_task_parameters[3], 1, as_Int32(frame->precond_result, s_precond_results[0], 1));
-    //         frame->flags |= Expansion_Frame::Flags_Expanded;
-    //         plnnr_coroutine_yield(frame, expand_label, 1);
-    //     }
-
-    //     plnnr_coroutine_end();
-    // }
-    Token_Value name = get(expand_names, case_idx);
+    Signature task_sig = get_composite_task_signature(state, task);
+    Signature precond_input_sig = get_precond_input_signature(state, case_);
 
     writeln(fmtr, "static bool %n(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)", name);
     writeln(fmtr, "{");
+    {
+        Indent_Scope s(fmtr);
+
+        // code to initialize precondition arguments struct.
+        if (precond_input_sig.length > 0)
+        {
+            writeln(fmtr, "input_%d args;", get_dense_index(state.pin_sigs, case_idx));
+
+            uint32_t input_idx = 0;
+            for (uint32_t param_idx = 0; param_idx < size(task->params); ++param_idx)
+            {
+                ast::Param* param = task->params[param_idx];
+                ast::Var* var = get(case_->precond_var_lookup, param->name);
+                if (!var) { continue; }
+
+                const char* data_type_tag = get_runtime_type_tag(task_sig.types[param_idx]);
+
+                writeln(fmtr, "args._%d = as_%s(frame->arguments, s_task_parameters[%d], %d);",
+                    input_idx, data_type_tag, task_params_idx, param_idx);
+                ++input_idx;
+            }
+            newline(fmtr);
+        }
+
+        writeln(fmtr, "plnnr_coroutine_begin(frame, expand_label);");
+        newline(fmtr);
+
+        if (precond_input_sig.length > 0)
+        {
+            writeln(fmtr, "while (p%d_next(state, frame, db, &args)) {");
+        }
+        else
+        {
+            writeln(fmtr, "while (p%d_next(state, frame, db)) {");
+        }
+
+        // generate task list expansion
+        {
+            Indent_Scope s(fmtr);
+            for (uint32_t task_idx = 0; task_idx < size(case_->task_list); ++task_idx)
+            {
+                ast::Func* item = as_Func(case_->task_list[task_idx]);
+                // adding primitive task to expansion.
+                if (ast::Fact* primitive = get_primitive(*state.tree, item->name))
+                {
+                    uint32_t primitive_index = index_of(state.tree->primitive->tasks, primitive);
+                    writeln(fmtr, "begin_task(state, %d, s_task_parameters[%d]); // %n",
+                        primitive_index, primitive_index, primitive->name);
+                    continue;
+                }
+
+                // adding composite task to expansion.
+                if (ast::Task* composite = get_task(*state.tree, item->name))
+                {
+                    uint32_t composite_index = size(state.tree->primitive->tasks) + index_of(state.tree->domain->tasks, composite);
+                    writeln(fmtr, "begin_composite(state, %d, %n_case_0, s_task_parameters[%d]); // %n",
+                        composite_index, composite->name, composite_index, composite->name);
+                    continue;
+                }
+
+                plnnrc_assert(false);
+            }
+        }
+
+        writeln(fmtr, "}");
+        newline(fmtr);
+
+        if (case_ != back(task->cases))
+        {
+            Token_Value next_expand_name = get(state.expand_names, case_idx + 1);
+            writeln(fmtr, "return expand_next_case(state, frame, db, %n, s_task_parameters[%d]);",
+                next_expand_name, task_params_idx);
+            newline(fmtr);
+        }
+
+        writeln(fmtr, "plnnr_coroutine_end();");
+    }
+
     writeln(fmtr, "}");
     newline(fmtr);
 }

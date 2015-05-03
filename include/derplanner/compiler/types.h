@@ -418,11 +418,18 @@ struct Codegen
     ~Codegen();
 
     // input AST.
-    ast::Root*      tree;
+    ast::Root*          tree;
     // formatter used to write files.
-    Formatter       fmtr;
+    Formatter           fmtr;
     // paged pool for codegen data.
-    Memory*         pool;
+    Memory*             pool;
+
+    // expand function names `<composite_task_name>_case_<case_index>`, in order of definition.
+    String_Buffer       expand_names;
+    // signatures in the following order: primitive, composite, precondition outputs.
+    Signature_Table     task_and_pout_sigs;
+    // precondition input signatures.
+    Signature_Table     pin_sigs;
 };
 
 }
