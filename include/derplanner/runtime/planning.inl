@@ -36,18 +36,24 @@ inline plnnr::Planning_State::~Planning_State()
     }
 }
 
+/// Domain_Info
+
+inline const char* plnnr::get_task_name(const plnnr::Domain_Info* domain, uint32_t task_id)
+{
+    plnnr_assert(task_id < domain->task_info.num_tasks);
+    return domain->task_info.names ? domain->task_info.names[task_id] : 0;
+}
+
 /// Stack
 
-namespace plnnr {
-
 template <typename T>
-inline T* top(const Stack<T>& stack)
+inline T* plnnr::top(const plnnr::Stack<T>& stack)
 {
     return (stack.size > 0) ? stack.frames + (stack.size - 1) : 0;
 }
 
 template <typename T>
-inline T* pop(Stack<T>& stack)
+inline T* plnnr::pop(plnnr::Stack<T>& stack)
 {
     plnnr_assert(stack.size > 0);
     T* result = stack.frames + (stack.size - 1);
@@ -56,12 +62,16 @@ inline T* pop(Stack<T>& stack)
 }
 
 template <typename T>
-inline void push(Stack<T>& stack, const T& value)
+inline void plnnr::push(plnnr::Stack<T>& stack, const T& value)
 {
     plnnr_assert(stack.size < stack.max_size);
     stack.frames[stack.size++] = value;
 }
 
+template <typename T>
+uint32_t plnnr::size(plnnr::Stack<T>& stack)
+{
+    return stack.size;
 }
 
 #endif

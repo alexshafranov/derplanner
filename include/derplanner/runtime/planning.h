@@ -44,12 +44,10 @@ struct Planning_State_Config
 void init(Planning_State& s, Memory* mem, const Planning_State_Config& config);
 void destroy(Planning_State& s);
 
-/// Planning function
-
 // expands the first (root) composite task in domain.
 bool find_plan(const Domain_Info* domain, Fact_Database* db, Planning_State* state);
 
-/// Iterative planning functions.
+/// Iterative planning interface.
 
 enum Find_Plan_Status
 {
@@ -63,6 +61,24 @@ void find_plan_init(const Domain_Info* domain, Planning_State* state);
 
 // executes one step of the planning loop.
 Find_Plan_Status find_plan_step(Fact_Database* db, Planning_State* state);
+
+/// Domain_Info
+
+const char* get_task_name(const Domain_Info* domain, uint32_t task_id);
+
+/// Stack
+
+template <typename T>
+T* top(const Stack<T>& stack);
+
+template <typename T>
+T* pop(Stack<T>& stack);
+
+template <typename T>
+void push(Stack<T>& stack, const T& value);
+
+template <typename T>
+uint32_t size(Stack<T>& stack);
 
 }
 

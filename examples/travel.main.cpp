@@ -37,7 +37,7 @@ void print_plan(const plnnr::Planning_State* state, const plnnr::Domain_Info* do
     for (uint32_t i = 0; i < state->task_stack.size; ++i)
     {
         plnnr::Task_Frame task = state->task_stack.frames[i];
-        const char* name = domain->task_info.names[task.task_type];
+        const char* name = plnnr::get_task_name(domain, task.task_type);
         plnnr::Param_Layout layout = domain->task_info.parameters[task.task_type];
 
         print_tuple(name, task.arguments, layout);
