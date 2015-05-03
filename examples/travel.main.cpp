@@ -58,29 +58,31 @@ int main()
     plnnr::Fact_Database db;
     plnnr::init(db, &default_mem, domain->database_req);
 
-    // start & finish
-    plnnr::add_entry(db.tables[0], SPB);
-    plnnr::add_entry(db.tables[1], MSC);
+    plnnr::Fact_Table* start = plnnr::find_table(db, "start");
+    plnnr::Fact_Table* finish = plnnr::find_table(db, "finish");
+    plnnr::Fact_Table* short_distance = plnnr::find_table(db, "short_distance");
+    plnnr::Fact_Table* long_distance = plnnr::find_table(db, "long_distance");
+    plnnr::Fact_Table* airport = plnnr::find_table(db, "airport");
 
-    // short_distance
-    plnnr::add_entry(db.tables[2], SPB, LED);
-    plnnr::add_entry(db.tables[2], LED, SPB);
-    plnnr::add_entry(db.tables[2], MSC, SVO);
-    plnnr::add_entry(db.tables[2], SVO, MSC);
+    plnnr::add_entry(*start, SPB);
+    plnnr::add_entry(*finish, MSC);
 
-    // long_distance
-    plnnr::add_entry(db.tables[3], SPB, MSC);
-    plnnr::add_entry(db.tables[3], MSC, SPB);
-    plnnr::add_entry(db.tables[3], LED, SVO);
-    plnnr::add_entry(db.tables[3], SVO, LED);
-    plnnr::add_entry(db.tables[3], SPB, SVO);
-    plnnr::add_entry(db.tables[3], SVO, SPB);
-    plnnr::add_entry(db.tables[3], MSC, LED);
-    plnnr::add_entry(db.tables[3], LED, MSC);
+    plnnr::add_entry(*short_distance, SPB, LED);
+    plnnr::add_entry(*short_distance, LED, SPB);
+    plnnr::add_entry(*short_distance, MSC, SVO);
+    plnnr::add_entry(*short_distance, SVO, MSC);
 
-    // airport
-    plnnr::add_entry(db.tables[4], SPB, LED);
-    plnnr::add_entry(db.tables[4], MSC, SVO);
+    plnnr::add_entry(*long_distance, SPB, MSC);
+    plnnr::add_entry(*long_distance, MSC, SPB);
+    plnnr::add_entry(*long_distance, LED, SVO);
+    plnnr::add_entry(*long_distance, SVO, LED);
+    plnnr::add_entry(*long_distance, SPB, SVO);
+    plnnr::add_entry(*long_distance, SVO, SPB);
+    plnnr::add_entry(*long_distance, MSC, LED);
+    plnnr::add_entry(*long_distance, LED, MSC);
+
+    plnnr::add_entry(*airport, SPB, LED);
+    plnnr::add_entry(*airport, MSC, SVO);
 
     // create planning state.
     plnnr::Planning_State_Config config;

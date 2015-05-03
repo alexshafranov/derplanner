@@ -18,6 +18,8 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
+#include <algorithm> // std::sort
+
 #include "derplanner/compiler/io.h"
 #include "derplanner/compiler/array.h"
 #include "derplanner/compiler/lexer.h"
@@ -26,6 +28,8 @@
 #include "derplanner/compiler/signature_table.h"
 #include "derplanner/compiler/ast.h"
 #include "derplanner/compiler/codegen.h"
+
+#include "derplanner/runtime/database.h" // murmur2_32
 
 using namespace plnnrc;
 
@@ -228,6 +232,41 @@ static void build_expand_names(String_Buffer& expand_names, ast::Domain* domain)
     }
 }
 
+static bool all_unique(Array<uint32_t>& hashes)
+{
+    std::sort(&hashes[0], &hashes[0] + size(hashes));
+    for (uint32_t i = 1; i < size(hashes); ++i)
+    {
+        uint32_t prev = hashes[i - 1];
+        uint32_t curr = hashes[i + 0];
+        if (curr == prev)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static void build_hashes(const Array<Token_Value>& names, Array<uint32_t>& out_hashes, uint32_t& out_seed)
+{
+    resize(out_hashes, size(names));
+
+    for (uint32_t test_seed = 0; ; ++test_seed)
+    {
+        for (uint32_t i = 0; i < size(names); ++i)
+        {
+            out_hashes[i] = plnnr::murmur2_32(names[i].str, names[i].length, test_seed);
+        }
+
+        if (all_unique(out_hashes))
+        {
+            out_seed = test_seed;
+            break;
+        }
+    }
+}
+
 static void generate_precondition(Codegen& state, ast::Case* case_, uint32_t case_idx, uint32_t input_idx, Signature input_sig, Signature output_sig, Formatter& fmtr);
 
 static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_idx, Formatter& fmtr);
@@ -424,13 +463,27 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         newline(fmtr);
     }
 
-    // s_hashes
+    uint32_t fact_names_hash_seed = 0;
+    // s_fact_name_hashes
     {
-        writeln(fmtr, "static uint32_t s_hashes[] = {");
+        Array<Token_Value> fact_names;
+        init(fact_names, state.pool, size(world->facts));
+        Array<uint32_t> fact_name_hashes;
+        init(fact_name_hashes, state.pool, size(world->facts));
+
+        for (uint32_t fact_idx = 0; fact_idx < size(world->facts); ++fact_idx)
+        {
+            ast::Fact* fact = world->facts[fact_idx];
+            push_back(fact_names, fact->name);
+        }
+
+        build_hashes(fact_names, fact_name_hashes, fact_names_hash_seed);
+
+        writeln(fmtr, "static uint32_t s_fact_name_hashes[] = {");
         for (uint32_t fact_idx = 0; fact_idx < size(world->facts); ++fact_idx)
         {
             Indent_Scope s(fmtr);
-            writeln(fmtr, "0, ");
+            writeln(fmtr, "%u, ", fact_name_hashes[fact_idx]);
         }
         writeln(fmtr, "};");
         newline(fmtr);
@@ -447,7 +500,7 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
             // task_info
             writeln(fmtr, "{ %d, %d, %d, s_num_cases, 0, s_task_names, s_task_parameters, s_precond_output, s_task_expands },", num_tasks, num_primitive, num_composite);
             // database_req
-            writeln(fmtr, "{ %d, s_size_hints, s_fact_types, s_hashes, s_fact_names },", size(world->facts));
+            writeln(fmtr, "{ %d, %d, s_size_hints, s_fact_types, s_fact_name_hashes, s_fact_names },", size(world->facts), fact_names_hash_seed);
         }
         writeln(fmtr, "};");
         newline(fmtr);

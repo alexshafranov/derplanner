@@ -74,6 +74,7 @@ void plnnr::init(Fact_Database& result, Memory* mem, const Database_Format& form
 
     result.num_tables = format.num_tables;
     result.max_tables = format.num_tables;
+    result.hash_seed = format.hash_seed;
 
     const uint32_t max_tables = format.num_tables;
     // hashes

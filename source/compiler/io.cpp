@@ -107,16 +107,10 @@ namespace io
     }
 
     template <typename T>
-    static inline void put_int(T& output, int n)
+    static inline void put_uint(T& output, uint32_t n)
     {
         const char* digits = "0123456789";
-        int t = n;
-
-        if (n < 0)
-        {
-            io::put_char(output, '-');
-            t = -n;
-        }
+        uint32_t t = n;
 
         int num_digits = 0;
 
@@ -133,7 +127,7 @@ namespace io
 
         for (int i = 0; i < num_digits; ++i)
         {
-            int p = 1;
+            uint32_t p = 1;
 
             for (int j = 1; j < num_digits-i; ++j)
             {
@@ -142,6 +136,18 @@ namespace io
 
             io::put_char(output, digits[(n / p) % 10]);
         }
+    }
+
+    template <typename T>
+    static inline void put_int(T& output, int32_t n)
+    {
+        if (n < 0)
+        {
+            io::put_char(output, '-');
+            n = -n;
+        }
+
+        put_uint(output, (uint32_t)(n));
     }
 
     template <typename T>
@@ -168,11 +174,18 @@ namespace io
             {
                 switch (*++format)
                 {
-                // decimal number
+                // int32_t
                 case 'd':
                     {
-                        int n = va_arg(arglist, int);
+                        int32_t n = va_arg(arglist, int32_t);
                         io::put_int(output, n);
+                    }
+                    break;
+                // uint32_t
+                case 'u':
+                    {
+                        uint32_t n = va_arg(arglist, uint32_t);
+                        io::put_uint(output, n);
                     }
                     break;
                 // string
