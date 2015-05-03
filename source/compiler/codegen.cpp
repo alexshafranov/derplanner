@@ -262,6 +262,13 @@ static void build_hashes(const Array<Token_Value>& names, Array<uint32_t>& out_h
         if (all_unique(out_hashes))
         {
             out_seed = test_seed;
+
+            // rebuild hashes as the order of out_hashes was destroyed by sorting in `all_unique`.
+            for (uint32_t i = 0; i < size(names); ++i)
+            {
+                out_hashes[i] = plnnr::murmur2_32(names[i].str, names[i].length, test_seed);
+            }
+
             break;
         }
     }
