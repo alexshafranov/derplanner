@@ -54,6 +54,9 @@ PLNNRC_KEYWORD_TOKEN(Task,            "task")
 PLNNRC_KEYWORD_TOKEN(Case,            "case")
 
 PLNNRC_TYPE_KEYWORD_TOKEN(Int32,      "int32")
+PLNNRC_TYPE_KEYWORD_TOKEN(UInt32,     "uint32")
+PLNNRC_TYPE_KEYWORD_TOKEN(Int64,      "int64")
+PLNNRC_TYPE_KEYWORD_TOKEN(UInt64,     "uint64")
 PLNNRC_TYPE_KEYWORD_TOKEN(Float,      "float")
 
 PLNNRC_PUNCTUATOR_TOKEN(L_Curly,      "{")
