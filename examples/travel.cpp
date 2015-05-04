@@ -22,7 +22,6 @@ static bool travel_by_plane_case_0(Planning_State*, Expansion_Frame*, Fact_Datab
 static Composite_Task_Expand* s_task_expands[] = {
   root_case_0,
   travel_case_0,
-  travel_case_1,
   travel_by_plane_case_0,
 };
 
@@ -94,8 +93,16 @@ static uint32_t s_fact_name_hashes[] = {
   3449045131, 
 };
 
+static uint32_t s_task_name_hashes[] = {
+  1499660849, 
+  2120811894, 
+  2484197952, 
+  405413667, 
+  660913924, 
+};
+
 static Domain_Info s_domain_info = {
-  { 5, 2, 3, s_num_cases, 0, s_task_names, s_task_parameters, s_precond_output, s_task_expands },
+  { 5, 2, 3, s_num_cases, 0, s_task_name_hashes, s_task_names, s_task_parameters, s_precond_output, s_task_expands },
   { 5, 0, s_size_hints, s_fact_types, s_fact_name_hashes, s_fact_names },
 };
 
