@@ -815,6 +815,13 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
         // generate task list expansion
         {
             Indent_Scope s(fmtr);
+
+            if (empty(case_->task_list))
+            {
+                writeln(fmtr, "plnnr_coroutine_yield(frame, expand_label, %d);", yield_id);
+                ++yield_id;
+            }
+
             for (uint32_t item_idx = 0; item_idx < size(case_->task_list); ++item_idx)
             {
                 ast::Func* item = as_Func(case_->task_list[item_idx]);

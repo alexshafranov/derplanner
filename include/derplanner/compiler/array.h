@@ -62,6 +62,9 @@ const T& back(const Array<T>& array);
 template <typename T>
 uint32_t index_of(const Array<T>& array, const T& value);
 
+template <typename T>
+bool empty(const Array<T>& array);
+
 }
 
 template <typename T>
@@ -193,6 +196,12 @@ inline uint32_t plnnrc::index_of(const plnnrc::Array<T>& array, const T& value)
     }
 
     return size(array);
+}
+
+template <typename T>
+inline bool plnnrc::empty(const plnnrc::Array<T>& array)
+{
+    return size(array) == 0;
 }
 
 #endif
