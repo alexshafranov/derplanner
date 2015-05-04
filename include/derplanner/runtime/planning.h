@@ -32,28 +32,32 @@ namespace plnnr {
 struct Planning_State_Config
 {
     // maximum expansion depth.
-    size_t max_depth;
+    uint32_t    max_depth;
     // maximum plan length.
-    size_t max_plan_length;
+    uint32_t    max_plan_length;
     // maximum size of the expansions data block (arguments & preconditions).
-    size_t expansion_data_size;
+    size_t      expansion_data_size;
     // maximum size of the plan data block (arguments & preconditions).
-    size_t plan_data_size;
+    size_t      plan_data_size;
 };
 
 void init(Planning_State& s, Memory* mem, const Planning_State_Config& config);
 void destroy(Planning_State& s);
 
-// expands the first (root) composite task in domain.
-bool find_plan(const Domain_Info* domain, Fact_Database* db, Planning_State* state);
-
 /// Iterative planning interface.
 
 enum Find_Plan_Status
 {
+    // failed to find a plan for the current set of facts.
     Find_Plan_Failed = 0,
-    Find_Plan_Succeeded,
-    Find_Plan_In_Progress,
+    // plan found.
+    Find_Plan_Succeeded = 1,
+    // `find_plan_step` exits with `Find_Plan_In_Progress`, when a primitive task is added to the task stack, or composite task added to the expansion stack.
+    Find_Plan_In_Progress = 2,
+    // `find_plan_step` exits with `Find_Plan_Max_Depth_Reached` when there's no space left in the expansion stack.
+    Find_Plan_Max_Depth_Reached = 3,
+    // `find_plan_step` exits with `Find_Plan_Max_Plan_Length_Reached` when there's no space left in the task stack.
+    Find_Plan_Max_Plan_Length_Reached = 4,
 };
 
 // pushes the first composite task on the expansion stack.
@@ -61,6 +65,9 @@ void find_plan_init(const Domain_Info* domain, Planning_State* state);
 
 // executes one step of the planning loop.
 Find_Plan_Status find_plan_step(Fact_Database* db, Planning_State* state);
+
+// runs the full planning loop (executes `find_plan_step` until status other than `Find_Plan_In_Progress` is returned).
+Find_Plan_Status find_plan(const Domain_Info* domain, Fact_Database* db, Planning_State* state);
 
 /// Domain_Info
 

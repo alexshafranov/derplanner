@@ -28,12 +28,17 @@ void plnnr::init(Planning_State& result, Memory* mem, const Planning_State_Confi
 {
     memset(&result, 0, sizeof(result));
 
-    Expansion_Frame* expansion_frames = allocate<Expansion_Frame>(mem, config.max_depth);
-    result.expansion_stack.max_size = (uint32_t)(config.max_depth);
+    result.max_depth = config.max_depth;
+    result.max_plan_length = config.max_plan_length;
+
+    // allocate `max_depth + 1` frames, so that we can check for maximum depth after the last frame is added.
+    Expansion_Frame* expansion_frames = allocate<Expansion_Frame>(mem, config.max_depth + 1);
+    result.expansion_stack.max_size = config.max_depth + 1;
     result.expansion_stack.frames = expansion_frames;
 
-    Task_Frame* task_frames = allocate<Task_Frame>(mem, config.max_plan_length);
-    result.task_stack.max_size = (uint32_t)(config.max_plan_length);
+    // allocate `max_plan_length + 1` frames, so that we can check for maximum length after the last frame is added.
+    Task_Frame* task_frames = allocate<Task_Frame>(mem, config.max_plan_length + 1);
+    result.task_stack.max_size = config.max_plan_length + 1;
     result.task_stack.frames = task_frames;
 
     uint8_t* expansion_data = allocate<uint8_t>(mem, config.expansion_data_size, plnnr::default_alignment);
@@ -130,6 +135,18 @@ Find_Plan_Status plnnr::find_plan_step(Fact_Database* db, Planning_State* state)
             {
                 return Find_Plan_Succeeded;
             }
+
+            // check if maximum plan length reached.
+            if (size(state->task_stack) == state->max_plan_length)
+            {
+                return Find_Plan_Max_Plan_Length_Reached;
+            }
+        }
+
+        // check if maximum expansion depth reached.
+        if (size(state->expansion_stack) == state->max_depth)
+        {
+            return Find_Plan_Max_Depth_Reached;
         }
     }
     else
@@ -148,7 +165,7 @@ Find_Plan_Status plnnr::find_plan_step(Fact_Database* db, Planning_State* state)
     return Find_Plan_In_Progress;
 }
 
-bool plnnr::find_plan(const Domain_Info* domain, Fact_Database* db, Planning_State* state)
+Find_Plan_Status plnnr::find_plan(const Domain_Info* domain, Fact_Database* db, Planning_State* state)
 {
     find_plan_init(domain, state);
 
@@ -158,5 +175,5 @@ bool plnnr::find_plan(const Domain_Info* domain, Fact_Database* db, Planning_Sta
         status = find_plan_step(db, state);
     }
 
-    return (status == Find_Plan_Succeeded);
+    return status;
 }

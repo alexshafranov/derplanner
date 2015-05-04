@@ -86,15 +86,24 @@ int main()
 
     // create planning state.
     plnnr::Planning_State_Config config;
-    config.max_depth = 10;
-    config.max_plan_length = 10;
+    config.max_depth = 5;
+    config.max_plan_length = 3;
     config.expansion_data_size = 1024;
     config.plan_data_size = 1024;
 
     plnnr::Planning_State pstate;
     plnnr::init(pstate, &default_mem, config);
 
-    plnnr::find_plan(domain, &db, &pstate);
+    plnnr::Find_Plan_Status status = plnnr::find_plan(domain, &db, &pstate);
+    if (status == plnnr::Find_Plan_Max_Depth_Reached)
+    {
+        printf("maximum expansion depth reached!\n");
+    }
+
+    if (status == plnnr::Find_Plan_Max_Plan_Length_Reached)
+    {
+        printf("maximum plan length reached!\n");
+    }
 
     // resulting plan is stored on the task stack.
     printf("plan:\n");
