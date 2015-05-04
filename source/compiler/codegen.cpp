@@ -251,8 +251,9 @@ static bool all_unique(Array<uint32_t>& hashes)
 static void build_hashes(const Array<Token_Value>& names, Array<uint32_t>& out_hashes, uint32_t& out_seed)
 {
     resize(out_hashes, size(names));
+    const uint32_t max_seed = 1000;
 
-    for (uint32_t test_seed = 0; ; ++test_seed)
+    for (uint32_t test_seed = 0; test_seed < max_seed; ++test_seed)
     {
         for (uint32_t i = 0; i < size(names); ++i)
         {
