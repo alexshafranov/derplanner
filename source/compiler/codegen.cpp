@@ -496,6 +496,38 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         newline(fmtr);
     }
 
+    uint32_t task_names_hash_seed = 0;
+    // s_task_name_hashes
+    {
+        const uint32_t num_tasks = size(prim->tasks) + size(domain->tasks);
+        Array<Token_Value> task_names;
+        init(task_names, state.pool, num_tasks);
+        Array<uint32_t> task_name_hashes;
+        init(task_name_hashes, state.pool, num_tasks);
+
+        // primtives go first
+        for (uint32_t prim_idx = 0; prim_idx < size(prim->tasks); ++prim_idx)
+        {
+            push_back(task_names, prim->tasks[prim_idx]->name);
+        }
+        // composite next
+        for (uint32_t task_idx = 0; task_idx < size(domain->tasks); ++task_idx)
+        {
+            push_back(task_names, domain->tasks[task_idx]->name);
+        }
+
+        build_hashes(task_names, task_name_hashes, task_names_hash_seed);
+
+        writeln(fmtr, "static uint32_t s_task_name_hashes[] = {");
+        for (uint32_t hash_idx = 0; hash_idx < size(task_name_hashes); ++hash_idx)
+        {
+            Indent_Scope s(fmtr);
+            writeln(fmtr, "%u, ", task_name_hashes[hash_idx]);
+        }
+        writeln(fmtr, "};");
+        newline(fmtr);
+    }
+
     // s_domain_info
     {
         const uint32_t num_tasks = size(prim->tasks) + size(domain->tasks);
@@ -505,7 +537,8 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         {
             Indent_Scope s(fmtr);
             // task_info
-            writeln(fmtr, "{ %d, %d, %d, s_num_cases, 0, s_task_names, s_task_parameters, s_precond_output, s_task_expands },", num_tasks, num_primitive, num_composite);
+            writeln(fmtr, "{ %d, %d, %d, s_num_cases, %d, s_task_name_hashes, s_task_names, s_task_parameters, s_precond_output, s_task_expands },",
+                num_tasks, num_primitive, num_composite, task_names_hash_seed);
             // database_req
             writeln(fmtr, "{ %d, %d, s_size_hints, s_fact_types, s_fact_name_hashes, s_fact_names },", size(world->facts), fact_names_hash_seed);
         }
