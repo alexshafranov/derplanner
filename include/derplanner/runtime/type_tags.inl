@@ -18,5 +18,8 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-PLNNR_TYPE(Int32, int32_t)
-PLNNR_TYPE(Float, float)
+PLNNR_TYPE(Int32,   int32_t)
+PLNNR_TYPE(UInt32,  uint32_t)
+PLNNR_TYPE(Int64,   int64_t)
+PLNNR_TYPE(UInt64,  uint64_t)
+PLNNR_TYPE(Float,   float)
