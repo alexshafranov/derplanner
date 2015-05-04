@@ -135,18 +135,18 @@ Find_Plan_Status plnnr::find_plan_step(Fact_Database* db, Planning_State* state)
             {
                 return Find_Plan_Succeeded;
             }
-
-            // check if maximum plan length reached.
-            if (size(state->task_stack) == state->max_plan_length)
-            {
-                return Find_Plan_Max_Plan_Length_Reached;
-            }
         }
 
         // check if maximum expansion depth reached.
         if (size(state->expansion_stack) == state->max_depth)
         {
             return Find_Plan_Max_Depth_Reached;
+        }
+
+        // check if maximum plan length reached.
+        if (size(state->task_stack) == state->max_plan_length)
+        {
+            return Find_Plan_Max_Plan_Length_Reached;
         }
     }
     else
