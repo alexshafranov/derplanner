@@ -322,11 +322,11 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
     // s_task_expands
     {
         writeln(fmtr, "static Composite_Task_Expand* s_task_expands[] = {");
-        for (uint32_t case_idx = 0; case_idx < size(state.expand_names); ++case_idx)
+        for (uint32_t task_idx = 0; task_idx < size(domain->tasks); ++task_idx)
         {
-            Token_Value name = get(state.expand_names, case_idx);
+            ast::Task* task = domain->tasks[task_idx];
             Indent_Scope s(fmtr);
-            writeln(fmtr, "%n,", name);
+            writeln(fmtr, "%n_case_0,", task->name);
         }
         writeln(fmtr, "};");
         newline(fmtr);
