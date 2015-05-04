@@ -332,6 +332,7 @@ ast::Expr* plnnrc::parse_precond(Parser& state)
     // empty expression -> add dummy node.
     if (is_R_Paren(peek(state)))
     {
+        eat(state);
         return create_op(state.tree, ast::Node_And);
     }
 
