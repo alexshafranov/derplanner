@@ -758,10 +758,12 @@ void plnnrc::annotate(ast::Root& tree)
             for (uint32_t param_idx = 0; param_idx < size(task->params); ++param_idx)
             {
                 ast::Param* param = task->params[param_idx];
-                ast::Var* var = get(case_->precond_var_lookup, param->name);
-                plnnrc_assert(!var->definition);
-                var->definition = param;
-                plnnrc_assert(param->data_type == Token_Unknown || param->data_type == var->data_type);
+                if (ast::Var* var = get(case_->precond_var_lookup, param->name))
+                {
+                    plnnrc_assert(!var->definition);
+                    var->definition = param;
+                    plnnrc_assert(param->data_type == Token_Unknown || param->data_type == var->data_type);
+                }
             }
 
             for (ast::Expr* node = case_->precond; node != 0; node = preorder_next(case_->precond, node))
