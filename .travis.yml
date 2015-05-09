@@ -10,13 +10,13 @@ script:
     # release x64
     - make config=release_x64
     - ./bin/x64/release/tests
-    - ./bin/x64/release/derplannerc --out examples examples/travel.domain
+    - ./bin/x64/release/derplannerc --out examples examples/travel.domain2
     - make config=release_x64 example-travel
     - ./bin/x64/release/example-travel
 
     # debug x64
     - make config=debug_x64
     - ./bin/x64/debug/tests
-    - ./bin/x64/debug/derplannerc --out examples examples/travel.domain
+    - ./bin/x64/debug/derplannerc --out examples examples/travel.domain2
     - make config=debug_x64 example-travel
     - ./bin/x64/debug/example-travel
