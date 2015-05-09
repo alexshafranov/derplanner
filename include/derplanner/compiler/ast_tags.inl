@@ -28,6 +28,7 @@
 
 PLNNRC_NODE(World,      ::plnnrc::ast::World)
 PLNNRC_NODE(Primitive,  ::plnnrc::ast::Primitive)
+PLNNRC_NODE(Predicate,  ::plnnrc::ast::Predicate)
 PLNNRC_NODE(Fact,       ::plnnrc::ast::Fact)
 PLNNRC_NODE(Param,      ::plnnrc::ast::Param)
 PLNNRC_NODE(Domain,     ::plnnrc::ast::Domain)

@@ -83,6 +83,14 @@ ast::Primitive* plnnrc::create_primitive(ast::Root& tree)
     return node;
 }
 
+ast::Predicate* plnnrc::create_predicate(ast::Root& tree, const Token_Value& name)
+{
+    ast::Predicate* node = pool_alloc<ast::Predicate>(tree);
+    node->type = ast::Node_Predicate;
+    node->name = name;
+    return node;
+}
+
 ast::Fact* plnnrc::create_fact(ast::Root& tree, const Token_Value& name)
 {
     ast::Fact* node = pool_alloc<ast::Fact>(tree);
@@ -928,6 +936,12 @@ struct Debug_Output_Visitor
         }
     }
 
+    inline void print_expr(const ast::Expr* node)
+    {
+        Indent_Scope s(*fmtr);
+        visit_node<void>(node, this);
+    }
+
     inline void print(const ast::Node* node) { plnnrc::writeln(*fmtr, "%s", get_type_name(node->type)); }
 
     template <typename T>
@@ -942,10 +956,11 @@ struct Debug_Output_Visitor
 
     void visit(const ast::World* node) { print(node); print_children(node->facts); }
     void visit(const ast::Primitive* node) { print(node); print_children(node->tasks); }
-    void visit(const ast::Domain* node) { print_named(node); print_children(node->tasks); }
+    void visit(const ast::Domain* node) { print_named(node); print_children(node->predicates); print_children(node->tasks); }
     void visit(const ast::Fact* node) { print_named(node); print_children(node->params); }
-    void visit(const ast::Task* node) { print_named(node); print_children(node->params); print_children(node->cases); }
-    void visit(const ast::Case* node) { print(node); print_children(node->precond); print_children(node->task_list); }
+    void visit(const ast::Predicate* node) { print_named(node); print_children(node->params); print_expr(node->expression); }
+    void visit(const ast::Task* node) { print_named(node); print_children(node->params); print_children(node->predicates); print_children(node->cases); }
+    void visit(const ast::Case* node) { print(node); print_expr(node->precond); print_children(node->task_list); }
     void visit(const ast::Param* node) { print_named(node); print_data_type(node); }
     void visit(const ast::Var* node) { print_named(node); print_data_type(node); }
     void visit(const ast::Func* node) { print_named(node); print_children(node); }
