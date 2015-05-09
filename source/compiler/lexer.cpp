@@ -343,6 +343,9 @@ Token plnnrc::lex(Lexer& state)
         case ':':
             consume_char(state);
             return make_token(state, Token_Colon);
+        case '=':
+            consume_char(state);
+            return make_token(state, Token_Equality);
 
         // single-character operators
         case '&':
