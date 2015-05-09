@@ -55,20 +55,12 @@ struct Children_Builder
     {
         const uint32_t scratch_size = plnnrc::size(state->scratch);
         plnnrc_assert(scratch_size >= scratch_rewind);
-        const uint32_t nodes_size = scratch_size - scratch_rewind;
+        const uint32_t node_count = scratch_size - scratch_rewind;
 
-        if (nodes_size > 0)
+        if (node_count > 0)
         {
-            T** nodes = plnnrc::allocate<T*>(state->tree.pool, nodes_size);
-
-            for (uint32_t i = scratch_rewind; i < scratch_size; ++i)
-            {
-                nodes[i - scratch_rewind] = static_cast<T*>(state->scratch[i]);
-            }
-
-            plnnrc::init(*output, state->tree.pool, nodes_size);
-            plnnrc::push_back(*output, nodes, nodes_size);
-
+            plnnrc::init(*output, state->tree.pool, node_count);
+            plnnrc::push_back(*output, (T**)(&state->scratch[scratch_rewind]), node_count);
             plnnrc::resize(state->scratch, scratch_rewind);
         }
     }
