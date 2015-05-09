@@ -68,6 +68,7 @@ PLNNRC_PUNCTUATOR_TOKEN(R_Square,     "]")
 PLNNRC_PUNCTUATOR_TOKEN(Comma,        ",")
 PLNNRC_PUNCTUATOR_TOKEN(Colon,        ":")
 PLNNRC_PUNCTUATOR_TOKEN(Arrow,        "->")
+PLNNRC_PUNCTUATOR_TOKEN(Equality,     "=")
 
 PLNNRC_OPERATOR_TOKEN(And,            "&")
 PLNNRC_OPERATOR_TOKEN(Or,             "|")
