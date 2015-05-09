@@ -36,6 +36,7 @@ void destroy(ast::Root& root);
 
 ast::World*         create_world(ast::Root& tree);
 ast::Primitive*     create_primitive(ast::Root& tree);
+ast::Predicate*     create_predicate(ast::Root& tree, const Token_Value& name);
 ast::Fact*          create_fact(ast::Root& tree, const Token_Value& name);
 ast::Param*         create_param(ast::Root& tree, const Token_Value& name);
 ast::Domain*        create_domain(ast::Root& tree, const Token_Value& name);

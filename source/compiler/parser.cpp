@@ -35,6 +35,7 @@ namespace plnnrc
     ast::Task*          parse_task(Parser& state);
     ast::Expr*          parse_precond(Parser& state);
     void                parse_task_list(Parser& state, ast::Case* case_);
+    void                parse_predicate(Parser& state, Array<ast::Predicate*>& output);
 }
 
 using namespace plnnrc;
@@ -59,7 +60,11 @@ struct Children_Builder
 
         if (node_count > 0)
         {
-            plnnrc::init(*output, state->tree.pool, node_count);
+            if (!output->memory)
+            {
+                plnnrc::init(*output, state->tree.pool, node_count);
+            }
+
             plnnrc::push_back(*output, (T**)(&state->scratch[scratch_rewind]), node_count);
             plnnrc::resize(state->scratch, scratch_rewind);
         }
@@ -176,6 +181,12 @@ void plnnrc::parse(Parser& state)
                 continue;
             }
 
+            if (is_Predicate(tok))
+            {
+                parse_predicate(state, domain->predicates);
+                continue;
+            }
+
             if (is_Task(tok))
             {
                 ast::Task* task = parse_task(state);
@@ -249,22 +260,19 @@ ast::Primitive* plnnrc::parse_primitive(Parser& state)
     return prim;
 }
 
-ast::Task* plnnrc::parse_task(Parser& state)
+static void parse_params(Parser& state, Array<ast::Param*>& output)
 {
-    Token tok = expect(state, Token_Id);
-    ast::Task* task = create_task(state.tree, tok.value);
-
     // parse parameters.
     expect(state, Token_L_Paren);
     if (!is_R_Paren(peek(state)))
     {
-        Children_Builder<ast::Param> cb(&state, &task->params);
+        Children_Builder<ast::Param> cb(&state, &output);
 
         for (;;)
         {
-            tok = expect(state, Token_Id);
-            ast::Param* task_param = plnnrc::create_param(state.tree, tok.value);
-            cb.push_back(task_param);
+            Token tok = expect(state, Token_Id);
+            ast::Param* param = plnnrc::create_param(state.tree, tok.value);
+            cb.push_back(param);
 
             if (!is_Comma(peek(state)))
             {
@@ -279,24 +287,43 @@ ast::Task* plnnrc::parse_task(Parser& state)
     {
         eat(state);
     }
+}
 
-    // parse cases
+ast::Task* plnnrc::parse_task(Parser& state)
+{
+    Token tok = expect(state, Token_Id);
+    ast::Task* task = create_task(state.tree, tok.value);
+
+    parse_params(state, task->params);
+
+    // parse task block
     expect(state, Token_L_Curly);
     if (!is_R_Curly(peek(state)))
     {
-        Children_Builder<ast::Case> cb(&state, &task->cases);
+        Children_Builder<ast::Case> cases_builder(&state, &task->cases);
 
         for (;;)
         {
-            expect(state, Token_Case);
-            ast::Case* case_ = plnnrc::create_case(state.tree);
-            cb.push_back(case_);
-            case_->task = task;
+            if (is_Case(peek(state)))
+            {
+                eat(state);
+                ast::Case* case_ = plnnrc::create_case(state.tree);
+                cases_builder.push_back(case_);
+                case_->task = task;
 
-            ast::Expr* precond = parse_precond(state);
-            case_->precond = precond;
-            expect(state, Token_Arrow);
-            parse_task_list(state, case_);
+                ast::Expr* precond = parse_precond(state);
+                case_->precond = precond;
+                expect(state, Token_Arrow);
+                parse_task_list(state, case_);
+                continue;
+            }
+
+            if (is_Predicate(peek(state)))
+            {
+                eat(state);
+                parse_predicate(state, task->predicates);
+                continue;
+            }
 
             if (is_R_Curly(peek(state)))
             {
@@ -466,4 +493,50 @@ static ast::Expr* parse_conjunct(Parser& state)
 
     plnnrc_assert(false);
     return 0;
+}
+
+static ast::Predicate* parse_single_predicate(Parser& state)
+{
+    Token tok = expect(state, Token_Id);
+    ast::Predicate* node_Pred = create_predicate(state.tree, tok.value);
+    parse_params(state, node_Pred->params);
+    expect(state, Token_Equality);
+    node_Pred->expression = parse_precond(state);
+    return node_Pred;
+}
+
+void plnnrc::parse_predicate(Parser& state, Array<ast::Predicate*>& output)
+{
+    Children_Builder<ast::Predicate> cb(&state, &output);
+
+    // block with predicates
+    if (is_L_Curly(peek(state)))
+    {
+        eat(state);
+
+        for (;;)
+        {
+            if (!is_R_Paren(peek(state)))
+            {
+                ast::Predicate* node_Pred = parse_single_predicate(state);
+                cb.push_back(node_Pred);
+            }
+            else
+            {
+                eat(state);
+            }
+
+            if (is_R_Curly(peek(state)))
+            {
+                eat(state);
+                break;
+            }
+        }
+
+        return;
+    }
+
+    // single predicate definition
+    ast::Predicate* node_Pred = parse_single_predicate(state);
+    cb.push_back(node_Pred);
 }

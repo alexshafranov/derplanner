@@ -184,6 +184,7 @@ namespace ast
                     struct Data_Type;
             struct Primitive;
             struct Domain;
+                struct Predicate;
                 struct Task;
                     struct Param;
                     struct Case;
@@ -207,7 +208,7 @@ namespace ast
     struct Node
     {
         // type tag of the node.
-        Node_Type           type;
+        Node_Type               type;
     };
 
     // Root of the Abstract-Syntax-Tree.
@@ -217,115 +218,134 @@ namespace ast
         ~Root();
 
         // maps fact name -> Fact node.
-        Id_Table<Fact*>     fact_lookup;
+        Id_Table<Fact*>         fact_lookup;
         // maps task name -> Task node.
-        Id_Table<Task*>     task_lookup;
+        Id_Table<Task*>         task_lookup;
         // maps primitive task name -> Fact node.
-        Id_Table<Fact*>     primitive_lookup;
+        Id_Table<Fact*>         primitive_lookup;
         // all cases in the order of definition.
-        Array<Case*>        cases;
+        Array<Case*>            cases;
         // parsed `world` block.
-        World*              world;
+        World*                  world;
         // parsed `primitive` block.
-        Primitive*          primitive;
+        Primitive*              primitive;
         // parsed `domain` block.
-        Domain*             domain;
+        Domain*                 domain;
         // paged memory pool ast nodes are allocated from.
-        Memory*             pool;
+        Memory*                 pool;
     };
 
     // Parsed `world` block.
     struct World : public Node
     {
         // fact declarations.
-        Array<Fact*>        facts;
+        Array<Fact*>            facts;
     };
 
     // Parsed `primitive` block.
     struct Primitive : public Node
     {
-        Array<Fact*>        tasks;
+        Array<Fact*>            tasks;
     };
 
     // Parsed `domain` block.
     struct Domain : public Node
     {
         // domain name.
-        Token_Value         name;
+        Token_Value             name;
         // tasks.
-        Array<Task*>        tasks;
+        Array<Task*>            tasks;
+        // predicates defined inside `domain`.
+        Array<Predicate*>       predicates;
+        // predicate name -> `ast::Predicate`.
+        Id_Table<Predicate*>    predicate_lookup;
     };
 
     // Fact: Id + Parameters.
     struct Fact : public Node
     {
         // name of the fact.
-        Token_Value         name;
+        Token_Value             name;
         // parameters.
-        Array<Data_Type*>   params;
+        Array<Data_Type*>       params;
     };
 
     // Fact parameter type.
     struct Data_Type : public Node
     {
         // must be one of the type tokens.
-        Token_Type          data_type;
+        Token_Type              data_type;
+    };
+
+    // Parsed `predicate`.
+    struct Predicate : public Node
+    {
+        // name of the predicate.
+        Token_Value             name;
+        // predicate parameters.
+        Array<Param*>           params;
+        // expression this predicate is expanded into.
+        Expr*                   expression;
     };
 
     // Parsed `task` block.
     struct Task : public Node
     {
         // name of the task.
-        Token_Value         name;
+        Token_Value             name;
         // task parameters.
-        Array<Param*>       params;
+        Array<Param*>           params;
         // expansion cases.
-        Array<Case*>        cases;
+        Array<Case*>            cases;
         // param name -> node.
-        Id_Table<Param*>    param_lookup;
+        Id_Table<Param*>        param_lookup;
+        // predicates defined inside `task`.
+        Array<Predicate*>       predicates;
+        // predicate name -> `ast::Predicate`.
+        Id_Table<Predicate*>    predicate_lookup;
     };
 
     // Parsed `case` block.
     struct Case : public Node
     {
         // a pointer to the task this case is part of.
-        Task*               task;
+        Task*                   task;
         // precondition.
-        Expr*               precond;
+        Expr*                   precond;
         // task list expressions.
-        Array<Expr*>        task_list;
+        Array<Expr*>            task_list;
         // precondition variable name -> first occurence.
-        Id_Table<ast::Var*> precond_var_lookup;
+        Id_Table<ast::Var*>     precond_var_lookup;
         // array of all vars in precondition.
-        Array<ast::Var*>    precond_vars;
+        Array<ast::Var*>        precond_vars;
         // task list variable name -> first occurence.
-        Id_Table<ast::Var*> task_list_var_lookup;
+        Id_Table<ast::Var*>     task_list_var_lookup;
         // array of all vars in task list.
-        Array<ast::Var*>    task_list_vars;
+        Array<ast::Var*>        task_list_vars;
         // ast::Fact for each ast::Func instance. 
-        Array<ast::Fact*>   precond_facts;
+        Array<ast::Fact*>       precond_facts;
     };
 
     // Parameter: Id + Data type.
     struct Param : public Node
     {
         // name of the parameter.
-        Token_Value         name;
+        Token_Value             name;
         // inferred or defined data type (one of the type tokens).
-        Token_Type          data_type;
+        Token_Type              data_type;
     };
 
     // Parsed precondition expression or task list item.
     struct Expr : public Node
     {
         // parent node.
-        Expr*               parent;
+        Expr*                   parent;
         // first child node.
-        Expr*               child;
+        Expr*                   child;
         // next sibling.
-        Expr*               next_sibling;
+        Expr*                   next_sibling;
         // previous sibling (forms cyclic list).
-        Expr*               prev_sibling_cyclic;
+        Expr*                   prev_sibling_cyclic;
     };
 
     // Operator, used in precondition expression.
@@ -335,18 +355,18 @@ namespace ast
     struct Var : public Expr
     {
         // name of the variable.
-        Token_Value         name;
+        Token_Value             name;
         // `ast::Param` or `ast::Var` when this variable was first bound (i.e. the first occurence in expression)
-        Node*               definition;
+        Node*                   definition;
         // inferred data type for this variable.
-        Token_Type          data_type;
+        Token_Type              data_type;
 
         union
         {
             // index of the variable in the input signature.
-            uint32_t        input_index;
+            uint32_t            input_index;
             // index of the variable in the output signature.
-            uint32_t        output_index;
+            uint32_t            output_index;
         };
     };
 
@@ -354,16 +374,16 @@ namespace ast
     struct Literal : public Expr
     {
         // string value of the literal.
-        Token_Value         value;
+        Token_Value             value;
         // type of the literal.
-        Token_Type          data_type;
+        Token_Type              data_type;
     };
 
     // Fact/function/task used in precondtition or task list.
     struct Func : public Expr
     {
         // name of the fact/function/task.
-        Token_Value         name;
+        Token_Value             name;
     };
 }
 

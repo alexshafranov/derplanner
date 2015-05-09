@@ -12,24 +12,31 @@ domain travel
 
     primitive
     {
-        !taxi( int32, int32 )
-        !plane( int32, int32 )
+        taxi!( int32, int32 )
+        plane!( int32, int32 )
+    }
+
+    predicate
+    {
+        start_and_finish(x, y) = ( start(x) & finish(y) )
     }
 
     task root()
     {
-        case( start(s) & finish(f) ) -> [ travel(s, f) ]
+        case( start(x) & finish(y) ) -> [ travel(x, y) ]
     }
 
     task travel(x, y)
     {
-        case( short_distance(x, y) ) -> [ !taxi(x, y) ]
+        case( short_distance(x, y) ) -> [ taxi!(x, y) ]
 
         case( long_distance(x, y) ) -> [ travel_by_plane(x, y) ]
     }
 
     task travel_by_plane(x, y)
     {
-        case( airport(x, ax) & airport(y, ay) ) -> [ travel(x, ax), !plane(ax, ay), travel(ay, y) ]
+        predicate airports(ax, ay) = ( airport(x, ax) & airport(y, ay) )
+
+        case( airport(x, ax) & airport(y, ay) ) -> [ travel(x, ax), plane!(ax, ay), travel(ay, y) ]
     }
 }

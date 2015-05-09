@@ -50,6 +50,7 @@ PLNNRC_TOKEN(Literal_Float)
 PLNNRC_KEYWORD_TOKEN(Domain,          "domain")
 PLNNRC_KEYWORD_TOKEN(World,           "world")
 PLNNRC_KEYWORD_TOKEN(Primitive,       "primitive")
+PLNNRC_KEYWORD_TOKEN(Predicate,       "predicate")
 PLNNRC_KEYWORD_TOKEN(Task,            "task")
 PLNNRC_KEYWORD_TOKEN(Case,            "case")
 

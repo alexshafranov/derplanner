@@ -34,8 +34,8 @@ static const char* s_fact_names[] = {
  };
 
 static const char* s_task_names[] = {
-  "!taxi",
-  "!plane",
+  "taxi!",
+  "plane!",
   "root",
   "travel",
   "travel_by_plane",
@@ -94,8 +94,8 @@ static uint32_t s_fact_name_hashes[] = {
 };
 
 static uint32_t s_task_name_hashes[] = {
-  1499660849, 
-  2120811894, 
+  3423006977, 
+  511751884, 
   2484197952, 
   405413667, 
   660913924, 
@@ -243,7 +243,7 @@ static bool travel_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Da
   plnnr_coroutine_begin(frame, expand_label);
 
   while (p1_next(state, frame, db, &args)) {
-    begin_task(state, 0, s_task_parameters[0]); // !taxi
+    begin_task(state, 0, s_task_parameters[0]); // taxi!
     set_task_arg(state, s_task_parameters[0], 0, as_Int32(frame->arguments, s_task_parameters[3], 0));
     set_task_arg(state, s_task_parameters[0], 1, as_Int32(frame->arguments, s_task_parameters[3], 1));
     frame->flags |= Expansion_Frame::Flags_Expanded;
@@ -291,7 +291,7 @@ static bool travel_by_plane_case_0(Planning_State* state, Expansion_Frame* frame
     plnnr_coroutine_yield(frame, expand_label, 1);
     if ((frame->flags & Expansion_Frame::Flags_Failed) != 0) { continue; }
 
-    begin_task(state, 1, s_task_parameters[1]); // !plane
+    begin_task(state, 1, s_task_parameters[1]); // plane!
     set_task_arg(state, s_task_parameters[1], 0, as_Int32(frame->precond_output, s_precond_output[3], 0));
     set_task_arg(state, s_task_parameters[1], 1, as_Int32(frame->precond_output, s_precond_output[3], 1));
     plnnr_coroutine_yield(frame, expand_label, 2);
