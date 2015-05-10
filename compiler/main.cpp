@@ -283,6 +283,7 @@ int main(int argc, char** argv)
 
     plnnrc::parse(parser);
 
+    plnnrc::inline_predicates(parser.tree);
     plnnrc::convert_to_dnf(parser.tree);
     plnnrc::annotate(parser.tree);
     plnnrc::infer_types(parser.tree);

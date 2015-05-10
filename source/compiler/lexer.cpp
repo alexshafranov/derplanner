@@ -81,6 +81,11 @@ void plnnrc::destroy(Lexer& state)
     memset(&state, 0, sizeof(state));
 }
 
+bool plnnrc::equal(Token_Value a, Token_Value b)
+{
+    return (a.length == b.length) && (strncmp(a.str, b.str, a.length) == 0);
+}
+
 static inline char get_char(const Lexer& state)
 {
     return *state.buffer_ptr;
