@@ -46,7 +46,7 @@ plnnrc::ast::Root::~Root()
 {
     if (pool)
     {
-        plnnrc::destroy(*this);
+        destroy(*this);
     }
 }
 
@@ -64,7 +64,7 @@ void plnnrc::destroy(ast::Root& root)
 template <typename T>
 static inline T* pool_alloc(plnnrc::ast::Root& tree)
 {
-    T* result = plnnrc::allocate<T>(tree.pool);
+    T* result = allocate<T>(tree.pool);
     memset(result, 0, sizeof(T));
     return result;
 }
@@ -172,17 +172,17 @@ ast::Literal* plnnrc::create_literal(ast::Root& tree, const Token& token)
 
 ast::Fact* plnnrc::get_fact(ast::Root& tree, const Token_Value& name)
 {
-    return plnnrc::get(tree.fact_lookup, name);
+    return get(tree.fact_lookup, name);
 }
 
 ast::Task* plnnrc::get_task(ast::Root& tree, const Token_Value& name)
 {
-    return plnnrc::get(tree.task_lookup, name);
+    return get(tree.task_lookup, name);
 }
 
 ast::Fact* plnnrc::get_primitive(ast::Root& tree, const Token_Value& name)
 {
-    return plnnrc::get(tree.primitive_lookup, name);
+    return get(tree.primitive_lookup, name);
 }
 
 void plnnrc::flatten(ast::Expr* root)
@@ -213,14 +213,14 @@ void plnnrc::flatten(ast::Expr* root)
                     for (ast::Expr* child = node_V->child; child != 0; )
                     {
                         ast::Expr* next_child = child->next_sibling;
-                        plnnrc::unparent(child);
-                        plnnrc::insert_child(after, child);
+                        unparent(child);
+                        insert_child(after, child);
                         after = child;
                         child = next_child;
                     }
 
                     // now when it's child-less remove `node_V` from the tree.
-                    plnnrc::unparent(node_V);
+                    unparent(node_V);
                     done = false;
                 }
 
@@ -259,12 +259,12 @@ ast::Expr* plnnrc::convert_to_nnf(ast::Root& tree, ast::Expr* root)
             plnnrc_assert(expr != 0);
 
             // get rid of `node_Not` and `node_Logical`, replacing `node_Not` with `expr`.
-            plnnrc::unparent(expr);
+            unparent(expr);
 
             if (node_Not->parent)
             {
-                plnnrc::insert_child(node_Not, expr);
-                plnnrc::unparent(node_Not);
+                insert_child(node_Not, expr);
+                unparent(node_Not);
             }
 
             // update root if it's being replaced.
@@ -292,18 +292,18 @@ ast::Expr* plnnrc::convert_to_nnf(ast::Root& tree, ast::Expr* root)
             for (ast::Expr* expr = node_Logical->child; expr != 0; )
             {
                 ast::Expr* next_expr = expr->next_sibling;
-                plnnrc::unparent(expr);
+                unparent(expr);
 
                 ast::Expr* new_Not = create_op(tree, ast::Node_Not);
-                plnnrc::append_child(new_Not, expr);
-                plnnrc::insert_child(after, new_Not);
+                append_child(new_Not, expr);
+                insert_child(after, new_Not);
                 after = new_Not;
 
                 expr = next_expr;
             }
 
             // `node_Logical` now has no children and can be safely unparented.
-            plnnrc::unparent(node_Logical);
+            unparent(node_Logical);
         }
 
         // move to next.
@@ -329,7 +329,7 @@ ast::Expr* plnnrc::convert_to_dnf(ast::Root& tree, ast::Expr* root)
 
     // convert `root` to Negative-Normal-Form and put it under a new Or node.
     ast::Expr* nnf_root = convert_to_nnf(tree, root);
-    plnnrc::append_child(new_root, nnf_root);
+    append_child(new_root, nnf_root);
     flatten(new_root);
 
     // now we have a flattened Or expression
@@ -458,7 +458,7 @@ static ast::Expr* clone_tree(ast::Root& tree, ast::Expr* root)
         {
             ast::Expr* child = node->child;
             ast::Expr* child_clone = clone_node(tree, child);
-            plnnrc::append_child(clone, child_clone);
+            append_child(clone, child_clone);
             node = child;
             clone = child_clone;
             continue;
@@ -477,7 +477,7 @@ static ast::Expr* clone_tree(ast::Root& tree, ast::Expr* root)
 
         ast::Expr* sibling = node->next_sibling;
         ast::Expr* sibling_clone = clone_node(tree, sibling);
-        plnnrc::insert_child(clone, sibling_clone);
+        insert_child(clone, sibling_clone);
 
         node = sibling;
         clone = sibling_clone;
@@ -508,24 +508,24 @@ static void distribute_And_over_Or(ast::Root& tree, ast::Expr* node_And)
             if (and_arg != node_Or)
             {
                 ast::Expr* and_arg_clone = clone_tree(tree, and_arg);
-                plnnrc::append_child(new_And, and_arg_clone);
+                append_child(new_And, and_arg_clone);
             }
             else
             {
-                plnnrc::unparent(or_arg);
-                plnnrc::append_child(new_And, or_arg);
+                unparent(or_arg);
+                append_child(new_And, or_arg);
             }
 
             and_arg = next_and_arg;
         }
 
-        plnnrc::flatten(new_And);
-        plnnrc::insert_child(after, new_And);
+        flatten(new_And);
+        insert_child(after, new_And);
         after = new_And;
         or_arg = next_or_arg;
     }
 
-    plnnrc::unparent(node_And);
+    unparent(node_And);
 }
 
 void plnnrc::append_child(ast::Expr* parent, ast::Expr* child)
@@ -640,10 +640,10 @@ void plnnrc::convert_to_dnf(ast::Root& tree)
 {
     ast::Domain* domain = tree.domain;
 
-    for (uint32_t task_idx = 0; task_idx < plnnrc::size(domain->tasks); ++task_idx)
+    for (uint32_t task_idx = 0; task_idx < size(domain->tasks); ++task_idx)
     {
         ast::Task* task = domain->tasks[task_idx];
-        for (uint32_t case_idx = 0; case_idx < plnnrc::size(task->cases); ++case_idx)
+        for (uint32_t case_idx = 0; case_idx < size(task->cases); ++case_idx)
         {
             ast::Case* case_ = task->cases[case_idx];
             ast::Expr* precond = case_->precond;
@@ -652,15 +652,116 @@ void plnnrc::convert_to_dnf(ast::Root& tree)
     }
 }
 
+static ast::Expr* inline_predicate(ast::Root& tree, ast::Func* func, ast::Predicate* pred)
+{
+    // clone and replace variables with the arguments from `func`.
+    ast::Expr* pred_clone = clone_tree(tree, pred->expression);
+
+    for (ast::Expr* node = pred_clone; node != 0; )
+    {
+        ast::Expr* next_node = preorder_next(pred_clone, node);
+        ast::Var* var = as_Var(node);
+        node = next_node;
+
+        if (var)
+        {
+            uint32_t var_hash = hash(var->name);
+
+            uint32_t arg_index = 0;
+            for (ast::Expr* arg = func->child; arg != 0; arg = arg->next_sibling, ++arg_index)
+            {
+                plnnrc_assert(arg_index < size(pred->params));
+                ast::Param* param = pred->params[arg_index];
+                uint32_t param_hash = hash(param->name);
+
+                if (var_hash == param_hash && equal(var->name, param->name))
+                {
+                    ast::Expr* arg_clone = clone_tree(tree, arg);
+                    insert_child(var, arg_clone);
+                    unparent(var);
+                }
+            }
+        }
+    }
+
+    // replace `func` with `pred_clone`.
+    insert_child(func, pred_clone);
+    unparent(func);
+
+    return pred_clone;
+}
+
+void plnnrc::inline_predicates(ast::Root& tree)
+{
+    ast::Domain* domain = tree.domain;
+
+    init(domain->predicate_lookup, tree.pool, size(domain->predicates));
+
+    for (uint32_t pred_idx = 0; pred_idx < size(domain->predicates); ++pred_idx)
+    {
+        ast::Predicate* pred = domain->predicates[pred_idx];
+        set(domain->predicate_lookup, pred->name, pred);
+    }
+
+    for (uint32_t task_idx = 0; task_idx < size(domain->tasks); ++task_idx)
+    {
+        ast::Task* task = domain->tasks[task_idx];
+        init(task->predicate_lookup, tree.pool, size(task->predicates));
+
+        for (uint32_t pred_idx = 0; pred_idx < size(task->predicates); ++pred_idx)
+        {
+            ast::Predicate* pred = task->predicates[pred_idx];
+            set(task->predicate_lookup, pred->name, pred);
+        }
+    }
+
+    // inline predicates in each precondition.
+    for (uint32_t task_idx = 0; task_idx < size(domain->tasks); ++task_idx)
+    {
+        ast::Task* task = domain->tasks[task_idx];
+        for (uint32_t case_idx = 0; case_idx < size(task->cases); ++case_idx)
+        {
+            ast::Case* case_ = task->cases[case_idx];
+            ast::Expr* precond = case_->precond;
+            // add the dummy root node to simplify `inline_predicates`, as it may need to replace the precondition root.
+            ast::Expr* new_root = create_op(tree, ast::Node_And);
+            append_child(new_root, precond);
+            case_->precond = new_root;
+
+            for (ast::Expr* node = new_root->child; node != 0; )
+            {
+                if (ast::Func* func = as_Func(node))
+                {
+                    // look up the predicate in the `task` scope first.
+                    if (ast::Predicate* pred = get(task->predicate_lookup, func->name))
+                    {
+                        node = inline_predicate(tree, func, pred);
+                        continue;
+                    }
+
+                    // look up in the global, `domain` scope next.
+                    if (ast::Predicate* pred = get(domain->predicate_lookup, func->name))
+                    {
+                        node = inline_predicate(tree, func, pred);
+                        continue;
+                    }
+                }
+
+                node = preorder_next(new_root, node);
+            }
+        }
+    }
+}
+
 static void build_var_lookup(ast::Expr* expr, Array<ast::Var*>& out_vars, Id_Table<ast::Var*>& out_lookup)
 {
-    for (ast::Expr* node = expr; node != 0; node = plnnrc::preorder_next(expr, node))
+    for (ast::Expr* node = expr; node != 0; node = preorder_next(expr, node))
     {
-        if (ast::Var* var = plnnrc::as_Var(node))
+        if (ast::Var* var = as_Var(node))
         {
-            plnnrc::push_back(out_vars, var);
+            push_back(out_vars, var);
 
-            ast::Var* def = plnnrc::get(out_lookup, var->name);
+            ast::Var* def = get(out_lookup, var->name);
             if (def != 0)
             {
                 plnnrc_assert(!var->definition);
@@ -668,7 +769,7 @@ static void build_var_lookup(ast::Expr* expr, Array<ast::Var*>& out_vars, Id_Tab
                 continue;
             }
 
-            plnnrc::set(out_lookup, var->name, var);
+            set(out_lookup, var->name, var);
         }
     }
 }
@@ -811,7 +912,7 @@ void plnnrc::annotate(ast::Root& tree)
 
             // build `precond_facts`
             init(case_->precond_facts, tree.pool, 8);
-            for (ast::Expr* node = case_->precond; node != 0; node = plnnrc::preorder_next(case_->precond, node))
+            for (ast::Expr* node = case_->precond; node != 0; node = preorder_next(case_->precond, node))
             {
                 if (ast::Func* func = as_Func(node))
                 {
@@ -869,22 +970,22 @@ void plnnrc::infer_types(ast::Root& tree)
     }
 
     // propagate types "down" to task lists.
-    for (uint32_t case_idx = 0; case_idx < plnnrc::size(tree.cases); ++case_idx)
+    for (uint32_t case_idx = 0; case_idx < size(tree.cases); ++case_idx)
     {
         ast::Case* case_ = tree.cases[case_idx];
-        for (uint32_t task_idx = 0; task_idx < plnnrc::size(case_->task_list); ++task_idx)
+        for (uint32_t task_idx = 0; task_idx < size(case_->task_list); ++task_idx)
         {
-            ast::Func* func = plnnrc::as_Func(case_->task_list[task_idx]);
+            ast::Func* func = as_Func(case_->task_list[task_idx]);
             plnnrc_assert(func);
-            ast::Task* task = plnnrc::get_task(tree, func->name);
+            ast::Task* task = get_task(tree, func->name);
 
             uint32_t param_idx = 0;
             for (ast::Expr* node = func->child; node != 0; node = node->next_sibling)
             {
-                ast::Var* var = plnnrc::as_Var(node);
+                ast::Var* var = as_Var(node);
                 plnnrc_assert(var && var->definition);
                 ast::Node* def = var->definition;
-                Token_Type data_type = plnnrc::as_Param(def) ? plnnrc::as_Param(def)->data_type : plnnrc::as_Var(def)->data_type;
+                Token_Type data_type = as_Param(def) ? as_Param(def)->data_type : as_Var(def)->data_type;
                 var->data_type = data_type;
 
                 if (task)
@@ -920,7 +1021,7 @@ struct Debug_Output_Visitor
     template <typename T>
     inline void print_children(const plnnrc::Array<T*>& nodes)
     {
-        for (uint32_t i = 0; i < plnnrc::size(nodes); ++i)
+        for (uint32_t i = 0; i < size(nodes); ++i)
         {
             Indent_Scope s(*fmtr);
             visit_node<void>(nodes[i], this);
@@ -942,16 +1043,16 @@ struct Debug_Output_Visitor
         visit_node<void>(node, this);
     }
 
-    inline void print(const ast::Node* node) { plnnrc::writeln(*fmtr, "%s", get_type_name(node->type)); }
+    inline void print(const ast::Node* node) { writeln(*fmtr, "%s", get_type_name(node->type)); }
 
     template <typename T>
-    inline void print_named(const T* node) { plnnrc::writeln(*fmtr, "%s[%n]", get_type_name(node->type), node->name); }
+    inline void print_named(const T* node) { writeln(*fmtr, "%s[%n]", get_type_name(node->type), node->name); }
 
     template <typename T>
     inline void print_data_type(const T* node)
     {
         Indent_Scope s(*fmtr);
-        plnnrc::writeln(*fmtr, ":%s", get_type_name(node->data_type));
+        writeln(*fmtr, ":%s", get_type_name(node->data_type));
     }
 
     void visit(const ast::World* node) { print(node); print_children(node->facts); }
@@ -972,8 +1073,8 @@ struct Debug_Output_Visitor
 void plnnrc::debug_output_ast(const ast::Root& tree, Writer* output)
 {
     Formatter fmtr;
-    plnnrc::init(fmtr, "  ", "\n", output);
-    plnnrc::newline(fmtr);
+    init(fmtr, "  ", "\n", output);
+    newline(fmtr);
 
     Debug_Output_Visitor visitor = { &fmtr };
 
@@ -992,5 +1093,5 @@ void plnnrc::debug_output_ast(const ast::Root& tree, Writer* output)
         visit_node<void>(tree.domain, &visitor);
     }
 
-    plnnrc::newline(fmtr);
+    newline(fmtr);
 }

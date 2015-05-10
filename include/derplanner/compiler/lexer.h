@@ -46,6 +46,11 @@ bool has_value(const Token& tok);
 // gets token type name as a string to aid debugging.
 const char* get_type_name(Token_Type token_type);
 
+// compute FNV-1a hash for the token value.
+uint32_t hash(Token_Value token_value);
+// check equality by comparing actual strings.
+bool     equal(Token_Value a, Token_Value b);
+
 // is_<Token_Type>
 #define PLNNRC_TOKEN(TAG)                    \
     bool is_##TAG(Token_Type token_type);    \
@@ -85,5 +90,20 @@ inline bool plnnrc::has_value(const plnnrc::Token& tok) { return tok.value.lengt
 
 #include "derplanner/compiler/token_tags.inl"
 #undef PLNNRC_TOKEN_GROUP
+
+// FNV-1a
+inline uint32_t plnnrc::hash(plnnrc::Token_Value token_value)
+{
+    uint32_t result = 0x811c9dc5;
+
+    for (uint32_t i = 0; i < token_value.length; ++i)
+    {
+        char c = token_value.str[i];
+        result ^= c;
+        result *= 0x01000193;
+    }
+
+    return result;
+}
 
 #endif

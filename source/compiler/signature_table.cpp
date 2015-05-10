@@ -109,13 +109,13 @@ void plnnrc::end_signature(Signature_Table& table)
     const uint32_t new_length = size(table.types) - new_offset;
     push_back(table.lengths, new_length);
 
-    const uint32_t new_hash = hash(table, new_index);
+    const uint32_t new_hash = ::hash(table, new_index);
     for (uint32_t i = 0; i < new_index; ++i)
     {
         const uint32_t hash = table.hashes[i];
         if (hash == new_hash)
         {
-            if (equal(table, i, new_index))
+            if (::equal(table, i, new_index))
             {
                 back(table.remap) = i;
                 resize(table.offsets, new_index);

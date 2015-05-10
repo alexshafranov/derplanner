@@ -190,7 +190,7 @@ namespace id_table
             }
         }
 
-        // only possible when table is full.
+        // only possible when table is full or has the zero size.
         plnnrc_assert(false);
     }
 
