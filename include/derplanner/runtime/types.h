@@ -230,7 +230,7 @@ struct Param_Layout
     size_t*     offsets;
 };
 
-// Runtime task information specified by generated domain code.
+// Runtime task information provided by the generated domain code.
 struct Task_Info
 {
     // number of tasks in domain (num_primitive + num_composite).
@@ -255,7 +255,7 @@ struct Task_Info
     Composite_Task_Expand**     expands;
 };
 
-// Domain info provided by the generated code.
+// Domain info provided by the generated domain code.
 struct Domain_Info
 {
     // generated tasks info.
