@@ -94,8 +94,8 @@ public:
     // release memory allocated after the `scope` was constructed.
     void pop(const Memory_Stack_Scope* scope);
 
-    size_t get_total_allocated() const { return total_requested; }
-    size_t get_total_requested() const { return total_allocated; }
+    size_t get_total_allocated() const { return total_allocated; }
+    size_t get_total_requested() const { return total_requested; }
 
 private:
     friend struct Memory_Stack_Scope;
