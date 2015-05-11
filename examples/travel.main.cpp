@@ -64,25 +64,25 @@ int main()
     plnnr::Fact_Table* long_distance    = plnnr::find_table(db, "long_distance");
     plnnr::Fact_Table* airport          = plnnr::find_table(db, "airport");
 
-    plnnr::add_entry(*start, SPB);
-    plnnr::add_entry(*finish, MSC);
+    plnnr::add_entry(start, SPB);
+    plnnr::add_entry(finish, MSC);
 
-    plnnr::add_entry(*short_distance, SPB, LED);
-    plnnr::add_entry(*short_distance, LED, SPB);
-    plnnr::add_entry(*short_distance, MSC, SVO);
-    plnnr::add_entry(*short_distance, SVO, MSC);
+    plnnr::add_entry(short_distance, SPB, LED);
+    plnnr::add_entry(short_distance, LED, SPB);
+    plnnr::add_entry(short_distance, MSC, SVO);
+    plnnr::add_entry(short_distance, SVO, MSC);
 
-    plnnr::add_entry(*long_distance, SPB, MSC);
-    plnnr::add_entry(*long_distance, MSC, SPB);
-    plnnr::add_entry(*long_distance, LED, SVO);
-    plnnr::add_entry(*long_distance, SVO, LED);
-    plnnr::add_entry(*long_distance, SPB, SVO);
-    plnnr::add_entry(*long_distance, SVO, SPB);
-    plnnr::add_entry(*long_distance, MSC, LED);
-    plnnr::add_entry(*long_distance, LED, MSC);
+    plnnr::add_entry(long_distance, SPB, MSC);
+    plnnr::add_entry(long_distance, MSC, SPB);
+    plnnr::add_entry(long_distance, LED, SVO);
+    plnnr::add_entry(long_distance, SVO, LED);
+    plnnr::add_entry(long_distance, SPB, SVO);
+    plnnr::add_entry(long_distance, SVO, SPB);
+    plnnr::add_entry(long_distance, MSC, LED);
+    plnnr::add_entry(long_distance, LED, MSC);
 
-    plnnr::add_entry(*airport, SPB, LED);
-    plnnr::add_entry(*airport, MSC, SVO);
+    plnnr::add_entry(airport, SPB, LED);
+    plnnr::add_entry(airport, MSC, SVO);
 
     // create planning state.
     plnnr::Planning_State_Config config;
