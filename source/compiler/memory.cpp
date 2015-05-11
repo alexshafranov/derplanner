@@ -188,6 +188,11 @@ void* plnnrc::Memory_Stack::allocate(size_t size, size_t alignment)
     return top;
 }
 
+uint8_t* plnnrc::Memory_Stack::get_top()
+{
+    return head->top;
+}
+
 void plnnrc::Memory_Stack::pop(const Memory_Stack_Scope* scope)
 {
     Memory_Stack_Page* page = this->head;

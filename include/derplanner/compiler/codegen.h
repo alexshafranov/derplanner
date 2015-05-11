@@ -22,13 +22,14 @@
 #define DERPLANNER_COMPILER_CODEGEN_H_
 
 #include "derplanner/compiler/types.h"
+#include "derplanner/compiler/string_buffer.h"
+#include "derplanner/compiler/signature_table.h"
 
 namespace plnnrc {
 
 /// Codegen
 
-void init(Codegen& state, ast::Root* tree, Memory* mem);
-void destroy(Codegen& state);
+void init(Codegen& state, ast::Root* tree, Memory_Stack* scratch);
 
 // writes domain header code. `header_guard` string is used as macro include guard.
 void generate_header(Codegen& state, const char* header_guard, Writer* output);

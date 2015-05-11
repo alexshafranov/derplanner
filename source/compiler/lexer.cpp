@@ -58,15 +58,15 @@ plnnrc::Lexer::~Lexer()
     }
 }
 
-void plnnrc::init(Lexer& result, const char* buffer, Memory* mem)
+void plnnrc::init(Lexer& result, const char* buffer, Memory* memory)
 {
     result.buffer_start = buffer;
     result.buffer_ptr = buffer;
     result.column = 1;
     result.line = 1;
     const uint32_t num_keywords = (uint32_t)(Token_Group_Keyword_Last - Token_Group_Keyword_First);
-    plnnrc::init(result.keywords, mem, num_keywords);
-    result.memory = mem;
+    plnnrc::init(result.keywords, memory, num_keywords);
+    result.memory = memory;
 
 #define PLNNRC_KEYWORD_TOKEN(TOKEN_TAG, TOKEN_STR)              \
     plnnrc::set(result.keywords, TOKEN_STR, Token_##TOKEN_TAG); \

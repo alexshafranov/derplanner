@@ -33,35 +33,10 @@
 
 using namespace plnnrc;
 
-void plnnrc::init(Codegen& state, ast::Root* tree, Memory* mem)
+void plnnrc::init(Codegen& state, ast::Root* tree, Memory_Stack* scratch)
 {
     state.tree = tree;
-    state.pool = mem;
-
-    const ast::Primitive* prim = tree->primitive;
-    const ast::Domain* domain = tree->domain;
-
-    init(state.expand_names, mem, 64, 4096);
-    init(state.task_and_pout_sigs, mem, size(prim->tasks) + size(domain->tasks) + size(tree->cases));
-    init(state.pin_sigs, mem, size(tree->cases));
-}
-
-void plnnrc::destroy(Codegen& state)
-{
-    destroy(state.pin_sigs);
-    destroy(state.task_and_pout_sigs);
-    destroy(state.expand_names);
-}
-
-plnnrc::Codegen::Codegen() : pool(0) {}
-
-plnnrc::Codegen::~Codegen()
-{
-    if (pool)
-    {
-        destroy(*this);
-        pool = 0;
-    }
+    state.scratch = scratch;
 }
 
 void plnnrc::generate_header(Codegen& state, const char* header_guard, Writer* output)
@@ -281,12 +256,18 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
 
 void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* output)
 {
+    Memory_Stack_Scope scratch_scope(state.scratch);
+
     init(state.fmtr, "  ", "\n", output);
     ast::Root* tree = state.tree;
     ast::World* world = tree->world;
     ast::Primitive* prim = tree->primitive;
     ast::Domain* domain = tree->domain;
     Formatter& fmtr = state.fmtr;
+
+    init(state.expand_names, state.scratch, 64, 4096);
+    init(state.task_and_pout_sigs, state.scratch, size(prim->tasks) + size(domain->tasks) + size(tree->cases));
+    init(state.pin_sigs, state.scratch, size(tree->cases));
 
     // includes & pragmas
     {
@@ -474,10 +455,12 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
     uint32_t fact_names_hash_seed = 0;
     // s_fact_name_hashes
     {
+        Memory_Stack_Scope scratch_scope(state.scratch);
+
         Array<Token_Value> fact_names;
-        init(fact_names, state.pool, size(world->facts));
+        init(fact_names, state.scratch, size(world->facts));
         Array<uint32_t> fact_name_hashes;
-        init(fact_name_hashes, state.pool, size(world->facts));
+        init(fact_name_hashes, state.scratch, size(world->facts));
 
         for (uint32_t fact_idx = 0; fact_idx < size(world->facts); ++fact_idx)
         {
@@ -500,11 +483,13 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
     uint32_t task_names_hash_seed = 0;
     // s_task_name_hashes
     {
+        Memory_Stack_Scope scratch_scope(state.scratch);
+
         const uint32_t num_tasks = size(prim->tasks) + size(domain->tasks);
         Array<Token_Value> task_names;
-        init(task_names, state.pool, num_tasks);
+        init(task_names, state.scratch, num_tasks);
         Array<uint32_t> task_name_hashes;
-        init(task_name_hashes, state.pool, num_tasks);
+        init(task_name_hashes, state.scratch, num_tasks);
 
         // primtives go first
         for (uint32_t prim_idx = 0; prim_idx < size(prim->tasks); ++prim_idx)

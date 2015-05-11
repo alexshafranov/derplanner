@@ -118,22 +118,28 @@ namespace
         {
             if (pool)
             {
-                destroy(parser);
                 destroy(lexer);
-                plnnrc::Memory_Stack::destroy(static_cast<plnnrc::Memory_Stack*>(pool));
+                destroy(tree);
+                plnnrc::Memory_Stack::destroy(scratch);
+                plnnrc::Memory_Stack::destroy(pool);
             }
         }
 
-        Memory* pool;
-        Lexer   lexer;
-        Parser  parser;
+        Memory_Stack*   pool;
+        Memory_Stack*   scratch;
+
+        ast::Root       tree;
+        Lexer           lexer;
+        Parser          parser;
     };
 
     void init(Test_Compiler& compiler, const char* input)
     {
         compiler.pool = plnnrc::Memory_Stack::create(1024);
-        init(compiler.lexer, input, compiler.pool);
-        init(compiler.parser, &compiler.lexer, compiler.pool);
+        compiler.scratch = plnnrc::Memory_Stack::create(1024);
+        init(compiler.tree, compiler.pool);
+        init(compiler.lexer, input, compiler.scratch);
+        init(compiler.parser, &compiler.lexer, &compiler.tree, compiler.scratch);
         compiler.parser.token = plnnrc::lex(compiler.lexer);
     }
 
@@ -187,7 +193,7 @@ namespace
         Test_Compiler compiler;
         init(compiler, input);
         ast::Expr* expr = plnnrc::parse_precond(compiler.parser);
-        expr = plnnrc::convert_to_nnf(compiler.parser.tree, expr);
+        expr = plnnrc::convert_to_nnf(compiler.tree, expr);
         std::string actual;
         to_string(expr, actual);
         CHECK_EQUAL(expected, actual.c_str());
@@ -211,7 +217,7 @@ namespace
         Test_Compiler compiler;
         init(compiler, input);
         ast::Expr* expr = plnnrc::parse_precond(compiler.parser);
-        expr = plnnrc::convert_to_dnf(compiler.parser.tree, expr);
+        expr = plnnrc::convert_to_dnf(compiler.tree, expr);
         std::string actual;
         to_string(expr, actual);
         CHECK_EQUAL(expected, actual.c_str());
