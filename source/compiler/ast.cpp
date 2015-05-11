@@ -69,21 +69,29 @@ static inline T* pool_alloc(plnnrc::ast::Root& tree)
     return result;
 }
 
-ast::World* plnnrc::create_world(ast::Root& tree)
+template <typename T>
+static inline T* pool_alloc(plnnrc::ast::Root* tree)
+{
+    T* result = allocate<T>(tree->pool);
+    memset(result, 0, sizeof(T));
+    return result;
+}
+
+ast::World* plnnrc::create_world(ast::Root* tree)
 {
     ast::World* node = pool_alloc<ast::World>(tree);
     node->type = ast::Node_World;
     return node;
 }
 
-ast::Primitive* plnnrc::create_primitive(ast::Root& tree)
+ast::Primitive* plnnrc::create_primitive(ast::Root* tree)
 {
     ast::Primitive* node = pool_alloc<ast::Primitive>(tree);
     node->type = ast::Node_Primitive;
     return node;
 }
 
-ast::Predicate* plnnrc::create_predicate(ast::Root& tree, const Token_Value& name)
+ast::Predicate* plnnrc::create_predicate(ast::Root* tree, const Token_Value& name)
 {
     ast::Predicate* node = pool_alloc<ast::Predicate>(tree);
     node->type = ast::Node_Predicate;
@@ -91,7 +99,7 @@ ast::Predicate* plnnrc::create_predicate(ast::Root& tree, const Token_Value& nam
     return node;
 }
 
-ast::Fact* plnnrc::create_fact(ast::Root& tree, const Token_Value& name)
+ast::Fact* plnnrc::create_fact(ast::Root* tree, const Token_Value& name)
 {
     ast::Fact* node = pool_alloc<ast::Fact>(tree);
     node->type = ast::Node_Fact;
@@ -99,7 +107,7 @@ ast::Fact* plnnrc::create_fact(ast::Root& tree, const Token_Value& name)
     return node;
 }
 
-ast::Param* plnnrc::create_param(ast::Root& tree, const Token_Value& name)
+ast::Param* plnnrc::create_param(ast::Root* tree, const Token_Value& name)
 {
     ast::Param* node = pool_alloc<ast::Param>(tree);
     node->type = ast::Node_Param;
@@ -107,7 +115,7 @@ ast::Param* plnnrc::create_param(ast::Root& tree, const Token_Value& name)
     return node;
 }
 
-ast::Domain* plnnrc::create_domain(ast::Root& tree, const Token_Value& name)
+ast::Domain* plnnrc::create_domain(ast::Root* tree, const Token_Value& name)
 {
     ast::Domain* node = pool_alloc<ast::Domain>(tree);
     node->type = ast::Node_Domain;
@@ -115,7 +123,7 @@ ast::Domain* plnnrc::create_domain(ast::Root& tree, const Token_Value& name)
     return node;
 }
 
-ast::Task* plnnrc::create_task(ast::Root& tree, const Token_Value& name)
+ast::Task* plnnrc::create_task(ast::Root* tree, const Token_Value& name)
 {
     ast::Task* node = pool_alloc<ast::Task>(tree);
     node->type = ast::Node_Task;
@@ -123,14 +131,14 @@ ast::Task* plnnrc::create_task(ast::Root& tree, const Token_Value& name)
     return node;
 }
 
-ast::Case* plnnrc::create_case(ast::Root& tree)
+ast::Case* plnnrc::create_case(ast::Root* tree)
 {
     ast::Case* node = pool_alloc<ast::Case>(tree);
     node->type = ast::Node_Case;
     return node;
 }
 
-ast::Func* plnnrc::create_func(ast::Root& tree, const Token_Value& name)
+ast::Func* plnnrc::create_func(ast::Root* tree, const Token_Value& name)
 {
     ast::Func* node = pool_alloc<ast::Func>(tree);
     node->type = ast::Node_Func;
@@ -138,14 +146,14 @@ ast::Func* plnnrc::create_func(ast::Root& tree, const Token_Value& name)
     return node;
 }
 
-ast::Op* plnnrc::create_op(ast::Root& tree, ast::Node_Type operation)
+ast::Op* plnnrc::create_op(ast::Root* tree, ast::Node_Type operation)
 {
     ast::Op* node = pool_alloc<ast::Op>(tree);
     node->type = operation;
     return node;
 }
 
-ast::Var* plnnrc::create_var(ast::Root& tree, const Token_Value& name)
+ast::Var* plnnrc::create_var(ast::Root* tree, const Token_Value& name)
 {
     ast::Var* node = pool_alloc<ast::Var>(tree);
     node->type = ast::Node_Var;
@@ -153,7 +161,7 @@ ast::Var* plnnrc::create_var(ast::Root& tree, const Token_Value& name)
     return node;
 }
 
-ast::Data_Type* plnnrc::create_type(ast::Root& tree, Token_Type data_type)
+ast::Data_Type* plnnrc::create_type(ast::Root* tree, Token_Type data_type)
 {
     ast::Data_Type* node = pool_alloc<ast::Data_Type>(tree);
     node->type = ast::Node_Data_Type;
@@ -161,7 +169,7 @@ ast::Data_Type* plnnrc::create_type(ast::Root& tree, Token_Type data_type)
     return node;
 }
 
-ast::Literal* plnnrc::create_literal(ast::Root& tree, const Token& token)
+ast::Literal* plnnrc::create_literal(ast::Root* tree, const Token& token)
 {
     ast::Literal* node = pool_alloc<ast::Literal>(tree);
     node->type = ast::Node_Literal;
@@ -294,7 +302,7 @@ ast::Expr* plnnrc::convert_to_nnf(ast::Root& tree, ast::Expr* root)
                 ast::Expr* next_expr = expr->next_sibling;
                 unparent(expr);
 
-                ast::Expr* new_Not = create_op(tree, ast::Node_Not);
+                ast::Expr* new_Not = create_op(&tree, ast::Node_Not);
                 append_child(new_Not, expr);
                 insert_child(after, new_Not);
                 after = new_Not;
@@ -319,7 +327,7 @@ static ast::Expr*   convert_Or_to_dnf(ast::Root& tree, ast::Expr* root);
 
 ast::Expr* plnnrc::convert_to_dnf(ast::Root& tree, ast::Expr* root)
 {
-    ast::Expr* new_root = create_op(tree, ast::Node_Or);
+    ast::Expr* new_root = create_op(&tree, ast::Node_Or);
 
     // empty expression.
     if (is_And(root) && !root->child)
@@ -499,7 +507,7 @@ static void distribute_And_over_Or(ast::Root& tree, ast::Expr* node_And)
     for (ast::Expr* or_arg = node_Or->child; or_arg != 0; )
     {
         ast::Expr* next_or_arg = or_arg->next_sibling;
-        ast::Expr* new_And = create_op(tree, ast::Node_And);
+        ast::Expr* new_And = create_op(&tree, ast::Node_And);
 
         for (ast::Expr* and_arg = node_And->child; and_arg != 0; )
         {
@@ -724,7 +732,7 @@ void plnnrc::inline_predicates(ast::Root& tree)
             ast::Case* case_ = task->cases[case_idx];
             ast::Expr* precond = case_->precond;
             // add the dummy root node to simplify `inline_predicates`, as it may need to replace the precondition root.
-            ast::Expr* new_root = create_op(tree, ast::Node_And);
+            ast::Expr* new_root = create_op(&tree, ast::Node_And);
             append_child(new_root, precond);
             case_->precond = new_root;
 

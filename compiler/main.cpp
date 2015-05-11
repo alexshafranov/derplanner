@@ -262,10 +262,11 @@ int main(int argc, char** argv)
 
     std::string output_name = get_output_name(normalize(input_path));
 
-    plnnrc::Memory_Stack* mem_stack = plnnrc::Memory_Stack::create(32 * 1024);
+    plnnrc::Memory_Stack* mem_persistant = plnnrc::Memory_Stack::create(32 * 1024);
+    plnnrc::Memory_Stack* mem_scratch    = plnnrc::Memory_Stack::create(32 * 1024);
 
     size_t input_size = file_size(input_path.c_str());
-    char*  input_buffer = static_cast<char*>(mem_stack->allocate(input_size + 1));
+    char*  input_buffer = static_cast<char*>(mem_scratch->allocate(input_size + 1));
     {
         File_Context ctx(input_path.c_str(), "rb");
         size_t rb = fread(input_buffer, sizeof(char), input_size, ctx.fd);
@@ -275,18 +276,23 @@ int main(int argc, char** argv)
     input_buffer[input_size] = 0;
 
     {
+        Memory_Stack_Scope scratch_scope(mem_scratch);
+
+        plnnrc::ast::Root tree;
+        plnnrc::init(tree, mem_persistant);
+
         plnnrc::Lexer lexer;
-        plnnrc::init(lexer, input_buffer, mem_stack);
+        plnnrc::init(lexer, input_buffer, mem_scratch);
 
         plnnrc::Parser parser;
-        plnnrc::init(parser, &lexer, mem_stack);
+        plnnrc::init(parser, &lexer, &tree, mem_scratch);
 
         plnnrc::parse(parser);
 
-        plnnrc::inline_predicates(parser.tree);
-        plnnrc::convert_to_dnf(parser.tree);
-        plnnrc::annotate(parser.tree);
-        plnnrc::infer_types(parser.tree);
+        plnnrc::inline_predicates(tree);
+        plnnrc::convert_to_dnf(tree);
+        plnnrc::annotate(tree);
+        plnnrc::infer_types(tree);
 
         // generate source code.
         {
@@ -298,7 +304,7 @@ int main(int argc, char** argv)
             plnnrc::Writer_Crt source_writer(source_context.fd);
 
             plnnrc::Codegen codegen;
-            plnnrc::init(codegen, &parser.tree, mem_stack);
+            plnnrc::init(codegen, &tree, mem_scratch);
 
             plnnrc::generate_header(codegen, (output_name + "_H_").c_str(), &header_writer);
             plnnrc::generate_source(codegen, header_name.c_str(), &source_writer);
@@ -309,16 +315,17 @@ int main(int argc, char** argv)
             plnnrc::Writer_Crt standard_output = plnnrc::make_stdout_writer();
             plnnrc::debug_output_tokens(input_buffer, &standard_output);
 
-            plnnrc::debug_output_ast(parser.tree, &standard_output);
+            plnnrc::debug_output_ast(tree, &standard_output);
 
-            const size_t requested_size = mem_stack->get_total_requested();
-            const size_t total_size = mem_stack->get_total_allocated();
+            const size_t requested_size = mem_persistant->get_total_requested();
+            const size_t total_size = mem_persistant->get_total_allocated();
             printf("req_size  = %d\n", (uint32_t)requested_size);
             printf("total_size = %d\n", (uint32_t)total_size);
         }
     }
 
-    plnnrc::Memory_Stack::destroy(mem_stack);
+    plnnrc::Memory_Stack::destroy(mem_scratch);
+    plnnrc::Memory_Stack::destroy(mem_persistant);
 
     return 0;
 }

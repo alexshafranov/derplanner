@@ -27,6 +27,8 @@ namespace plnnrc {
 
 // Memory allocator base interface.
 class Memory;
+// Linear allocator.
+class Memory_Stack;
 
 // Dynamic array of POD types.
 template <typename T>
@@ -169,7 +171,7 @@ struct Lexer
     uint32_t                line;
     // maps keyword names to keyword types.
     Id_Table<Token_Type>    keywords;
-    // allocator used for lexer memory.
+    // allocator used for lexer data.
     Memory*                 memory;
 };
 
@@ -231,7 +233,7 @@ namespace ast
         Primitive*              primitive;
         // parsed `domain` block.
         Domain*                 domain;
-        // paged memory pool ast nodes are allocated from.
+        // tree data allocator.
         Memory*                 pool;
     };
 
@@ -390,19 +392,16 @@ namespace ast
 // Parser state.
 struct Parser
 {
-    Parser();
-    ~Parser();
+    Parser() {}
 
     // token source for parsing.
     Lexer*              lexer;
     // last lexed token.
     Token               token;
-    // stores resulting AST.
-    ast::Root           tree;
-    // temporary storage for created AST nodes.
-    Array<ast::Node*>   scratch;
-    // allocator used for parsed data.
-    Memory*             memory;
+    // output Abstract-Syntax-Tree.
+    ast::Root*          tree;
+    // allocator for temporary parsing data.
+    Memory_Stack*       scratch;
 };
 
 class Writer;
@@ -434,15 +433,14 @@ struct Formatter
 // Code generator state.
 struct Codegen
 {
-    Codegen();
-    ~Codegen();
+    Codegen() {}
 
     // input AST.
     ast::Root*          tree;
     // formatter used to write files.
     Formatter           fmtr;
-    // paged pool for codegen data.
-    Memory*             pool;
+    // allocator for scratch data.
+    Memory_Stack*       scratch;
 
     // expand function names `<composite_task_name>_case_<case_index>`, in order of definition.
     String_Buffer       expand_names;

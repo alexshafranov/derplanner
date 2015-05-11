@@ -43,71 +43,45 @@ using namespace plnnrc;
 template <typename T>
 struct Children_Builder
 {
-    Parser*     state;
-    Array<T*>*  output;
-    uint32_t    scratch_rewind; 
+    Parser*             state;
+    Array<T*>*          output;
+    Memory_Stack_Scope  mem_scope;
+    Array<T*>           nodes;
 
-    Children_Builder(Parser* state, Array<T*>* output) : state(state), output(output)
+    Children_Builder(Parser* state, Array<T*>* output)
+        : state(state)
+        , output(output)
+        , mem_scope(state->scratch)
     {
-        scratch_rewind = plnnrc::size(state->scratch);
+        init(nodes, state->scratch, 16);
+    }
+
+    void push_back(T* node)
+    {
+        plnnrc::push_back(nodes, node);
     }
 
     ~Children_Builder()
     {
-        const uint32_t scratch_size = plnnrc::size(state->scratch);
-        plnnrc_assert(scratch_size >= scratch_rewind);
-        const uint32_t node_count = scratch_size - scratch_rewind;
-
+        const uint32_t node_count = size(nodes);
         if (node_count > 0)
         {
-            if (!output->memory)
-            {
-                plnnrc::init(*output, state->tree.pool, node_count);
-            }
-
-            plnnrc::push_back(*output, (T**)(&state->scratch[scratch_rewind]), node_count);
-            plnnrc::resize(state->scratch, scratch_rewind);
+            init(*output, state->tree->pool, node_count);
+            plnnrc::push_back(*output, &nodes[0], node_count);
         }
-    }
-
-    void push_back(ast::Node* node)
-    {
-        plnnrc::push_back(state->scratch, node);
     }
 };
 
-plnnrc::Parser::Parser()
-    : lexer(0)
-    , memory(0)
-{
-    memset(&tree, 0, sizeof(tree));
-    memset(&token, 0, sizeof(token));
-}
-
-plnnrc::Parser::~Parser()
-{
-    if (memory)
-    {
-        destroy(*this);
-    }
-}
-
-void plnnrc::init(Parser& state, Lexer* lexer, Memory* pool)
+void plnnrc::init(Parser& state, Lexer* lexer, ast::Root* tree, Memory_Stack* scratch)
 {
     plnnrc_assert(lexer);
-    plnnrc_assert(pool);
+    plnnrc_assert(tree);
+    plnnrc_assert(scratch);
+
     memset(&state, 0, sizeof(state));
     state.lexer = lexer;
-    state.memory = pool;
-    plnnrc::init(state.tree, pool);
-    plnnrc::init(state.scratch, pool, 1024);
-}
-
-void plnnrc::destroy(Parser& state)
-{
-    plnnrc::destroy(state.scratch);
-    plnnrc::destroy(state.tree);
-    memset(&state, 0, sizeof(Parser));
+    state.tree = tree;
+    state.scratch = scratch;
 }
 
 static inline Token expect(Parser& state, Token_Type token_type)
@@ -148,10 +122,8 @@ void plnnrc::parse(Parser& state)
     expect(state, Token_Domain);
     Token name = expect(state, Token_Id);
     ast::Domain* domain = plnnrc::create_domain(state.tree, name.value);
-    state.tree.domain = domain;
+    state.tree->domain = domain;
     expect(state, Token_L_Curly);
-
-    plnnrc::clear(state.scratch);
 
     // parse world & tasks.
     {
@@ -168,16 +140,16 @@ void plnnrc::parse(Parser& state)
             if (is_World(tok))
             {
                 ast::World* world = parse_world(state);
-                plnnrc_assert(!state.tree.world);
-                state.tree.world = world;
+                plnnrc_assert(!state.tree->world);
+                state.tree->world = world;
                 continue;
             }
 
             if (is_Primitive(tok))
             {
                 ast::Primitive* prim = parse_primitive(state);
-                plnnrc_assert(!state.tree.primitive);
-                state.tree.primitive = prim;
+                plnnrc_assert(!state.tree->primitive);
+                state.tree->primitive = prim;
                 continue;
             }
 
@@ -207,32 +179,35 @@ static void parse_facts(Parser& state, Children_Builder<ast::Fact>& builder)
     {
         Token tok = expect(state, Token_Id);
         ast::Fact* fact = plnnrc::create_fact(state.tree, tok.value);
-        builder.push_back(fact);
-
-        Children_Builder<ast::Data_Type> cb(&state, &fact->params);
-        // parse parameters
-        expect(state, Token_L_Paren);
-        if (!is_R_Paren(peek(state)))
+        // parse param types.
         {
-            for (;;)
+            Children_Builder<ast::Data_Type> param_builder(&state, &fact->params);
+            // parse parameters
+            expect(state, Token_L_Paren);
+            if (!is_R_Paren(peek(state)))
             {
-                tok = expect(state, is_Type);
-                ast::Data_Type* param = plnnrc::create_type(state.tree, tok.type);
-                cb.push_back(param);
-
-                if (!is_Comma(peek(state)))
+                for (;;)
                 {
-                    expect(state, is_R_Paren);
-                    break;
-                }
+                    tok = expect(state, is_Type);
+                    ast::Data_Type* param = plnnrc::create_type(state.tree, tok.type);
+                    param_builder.push_back(param);
 
-                expect(state, is_Comma);
+                    if (!is_Comma(peek(state)))
+                    {
+                        expect(state, is_R_Paren);
+                        break;
+                    }
+
+                    expect(state, is_Comma);
+                }
+            }
+            else
+            {
+                eat(state);
             }
         }
-        else
-        {
-            eat(state);
-        }
+
+        builder.push_back(fact);
 
         if (is_R_Curly(peek(state)))
         {
