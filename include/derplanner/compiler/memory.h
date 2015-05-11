@@ -37,11 +37,9 @@ typedef void  Deallocate(void* ptr);
 
 // allows global override of derplanner memory allocation.
 void set_memory_functions(Allocate* allocate_function, Deallocate* deallocate_function);
-
-// allocates a `bytes` sized memory block.
+// allocates a `bytes` sized memory block, using the globally set memory functions.
 void* allocate(size_t bytes);
-
-// deallocates memory block pointed previously obtained by `allocate`.
+// deallocates memory block previously obtained with `allocate`, using the globally set memory functions.
 void deallocate(void* ptr);
 
 // Allocator interface.
@@ -49,54 +47,121 @@ class Memory
 {
 public:
     virtual ~Memory() {}
-    virtual void* allocate(size_t size, size_t alignment=default_alignment) = 0;
+    virtual void* allocate(size_t size, size_t alignment = default_alignment) = 0;
     virtual void  deallocate(void* ptr) = 0;
 };
+
+// allocate an array of type `T` using specified alignment.
+template <typename T>
+T* allocate(Memory* mem, size_t count, size_t alignment);
+// allocate an array of type `T` with compiler specified alignment for type `T`.
+template <typename T>
+T* allocate(Memory* mem, size_t count = 1);
+
+// align size.
+size_t align(size_t value, size_t alignment);
+// align pointer.
+void* align(void* ptr, size_t alignment);
+// align pointer to compiler specified alignment for type `T` and cast.
+template <typename T>
+T* align(void* ptr);
 
 // Default allocator, uses `plnnrc::allocate` and `plnnrc::deallocate`.
 class Memory_Default : public Memory
 {
 public:
-    virtual void* allocate(size_t size, size_t alignment=default_alignment);
+    virtual void* allocate(size_t size, size_t alignment = default_alignment);
     virtual void  deallocate(void* ptr);
 };
 
-// returns static `Memory_Default` instance.
+// the static `Memory_Default` instance.
 Memory* get_default_allocator();
 
-// allocate an array of type `T` using specified alignment.
+struct Memory_Stack_Page;
+struct Memory_Stack_Scope;
+
+// Paged linear allocator.
+class Memory_Stack : public Memory
+{
+public:
+    static Memory_Stack*    create(size_t page_size);
+    static void             destroy(Memory_Stack* mem);
+
+    // `plnnrc::Memory` interface.
+    virtual void* allocate(size_t size, size_t alignment=default_alignment);
+    virtual void  deallocate(void*) { /* this allocator deallocates en masse */ }
+
+    // release memory allocated after the `scope` was constructed.
+    void pop(const Memory_Stack_Scope* scope);
+
+    size_t get_total_allocated() const { return total_requested; }
+    size_t get_total_requested() const { return total_allocated; }
+
+private:
+    friend struct Memory_Stack_Scope;
+
+    plnnrc::Memory_Stack_Page*  allocate_page(size_t size);
+    uint8_t*                    get_top();
+
+    size_t              page_size;
+    size_t              total_requested;
+    size_t              total_allocated;
+    Memory_Stack_Page*  head;
+};
+
+// Records the state of the `plnnrc::Memory_Stack` to call `plnnrc::Memory_Stack::pop` on destruction.
+struct Memory_Stack_Scope
+{
+    Memory_Stack_Scope(Memory_Stack* stack);
+    ~Memory_Stack_Scope();
+
+    Memory_Stack*       stack;
+    Memory_Stack_Page*  page;
+    uint8_t*            top;
+};
+
+}
+
+/// Inline
+
 template <typename T>
-inline T* allocate(Memory* mem, size_t count, size_t alignment)
+inline T* plnnrc::allocate(plnnrc::Memory* mem, size_t count, size_t alignment)
 {
     return static_cast<T*>(mem->allocate(count*sizeof(T), alignment));
 }
 
-// allocate an array of type `T` with compiler specified alignment for type `T`.
 template <typename T>
-inline T* allocate(Memory* mem, size_t count = 1)
+inline T* plnnrc::allocate(plnnrc::Memory* mem, size_t count)
 {
-    return allocate<T>(mem, count, plnnrc_alignof(T));
+    return plnnrc::allocate<T>(mem, count, plnnrc_alignof(T));
 }
 
-// align size.
-inline size_t align(size_t value, size_t alignment)
+inline size_t plnnrc::align(size_t value, size_t alignment)
 {
     return (value + (alignment - 1)) & ~(alignment - 1);
 }
 
-// align pointer.
-inline void* align(void* ptr, size_t alignment)
+inline void* plnnrc::align(void* ptr, size_t alignment)
 {
     return reinterpret_cast<void*>((reinterpret_cast<uintptr_t>(ptr) + (alignment - 1)) & ~(alignment - 1));
 }
 
-// align pointer to compiler specified alignment for type `T` and cast.
 template <typename T>
-inline T* align(void* ptr)
+inline T* plnnrc::align(void* ptr)
 {
     return static_cast<T*>(align(ptr, plnnrc_alignof(T)));
 }
 
+inline plnnrc::Memory_Stack_Scope::Memory_Stack_Scope(plnnrc::Memory_Stack* stack)
+    : stack(stack)
+    , page(stack->head)
+    , top(stack->get_top())
+{
+}
+
+inline plnnrc::Memory_Stack_Scope::~Memory_Stack_Scope()
+{
+    stack->pop(this);
 }
 
 #endif

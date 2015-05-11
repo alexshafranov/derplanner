@@ -23,7 +23,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "derplanner/compiler/pool.h"
 #include "derplanner/compiler/io.h"
 #include "derplanner/compiler/memory.h"
 #include "derplanner/compiler/lexer.h"
@@ -263,10 +262,10 @@ int main(int argc, char** argv)
 
     std::string output_name = get_output_name(normalize(input_path));
 
-    plnnrc::Memory* pool = plnnrc::create_paged_pool(32 * 1024);
+    plnnrc::Memory_Stack* mem_stack = plnnrc::Memory_Stack::create(32 * 1024);
 
     size_t input_size = file_size(input_path.c_str());
-    char*  input_buffer = static_cast<char*>(pool->allocate(input_size + 1));
+    char*  input_buffer = static_cast<char*>(mem_stack->allocate(input_size + 1));
     {
         File_Context ctx(input_path.c_str(), "rb");
         size_t rb = fread(input_buffer, sizeof(char), input_size, ctx.fd);
@@ -275,47 +274,51 @@ int main(int argc, char** argv)
 
     input_buffer[input_size] = 0;
 
-    plnnrc::Lexer lexer;
-    plnnrc::init(lexer, input_buffer, pool);
-
-    plnnrc::Parser parser;
-    plnnrc::init(parser, &lexer, pool);
-
-    plnnrc::parse(parser);
-
-    plnnrc::inline_predicates(parser.tree);
-    plnnrc::convert_to_dnf(parser.tree);
-    plnnrc::annotate(parser.tree);
-    plnnrc::infer_types(parser.tree);
-
-    // generate source code.
     {
-        std::string header_name = output_name + ".h";
-        File_Context header_context((output_dir + "/" + header_name).c_str(), "wb");
-        plnnrc::Writer_Crt header_writer(header_context.fd);
+        plnnrc::Lexer lexer;
+        plnnrc::init(lexer, input_buffer, mem_stack);
 
-        File_Context source_context((output_dir + "/" + output_name + ".cpp").c_str(), "wb");
-        plnnrc::Writer_Crt source_writer(source_context.fd);
+        plnnrc::Parser parser;
+        plnnrc::init(parser, &lexer, mem_stack);
 
-        plnnrc::Codegen codegen;
-        plnnrc::init(codegen, &parser.tree, pool);
+        plnnrc::parse(parser);
 
-        plnnrc::generate_header(codegen, (output_name + "_H_").c_str(), &header_writer);
-        plnnrc::generate_source(codegen, header_name.c_str(), &source_writer);
+        plnnrc::inline_predicates(parser.tree);
+        plnnrc::convert_to_dnf(parser.tree);
+        plnnrc::annotate(parser.tree);
+        plnnrc::infer_types(parser.tree);
+
+        // generate source code.
+        {
+            std::string header_name = output_name + ".h";
+            File_Context header_context((output_dir + "/" + header_name).c_str(), "wb");
+            plnnrc::Writer_Crt header_writer(header_context.fd);
+
+            File_Context source_context((output_dir + "/" + output_name + ".cpp").c_str(), "wb");
+            plnnrc::Writer_Crt source_writer(source_context.fd);
+
+            plnnrc::Codegen codegen;
+            plnnrc::init(codegen, &parser.tree, mem_stack);
+
+            plnnrc::generate_header(codegen, (output_name + "_H_").c_str(), &header_writer);
+            plnnrc::generate_source(codegen, header_name.c_str(), &source_writer);
+        }
+
+        if (enable_debug_info)
+        {
+            plnnrc::Writer_Crt standard_output = plnnrc::make_stdout_writer();
+            plnnrc::debug_output_tokens(input_buffer, &standard_output);
+
+            plnnrc::debug_output_ast(parser.tree, &standard_output);
+
+            const size_t requested_size = mem_stack->get_total_requested();
+            const size_t total_size = mem_stack->get_total_allocated();
+            printf("req_size  = %d\n", (uint32_t)requested_size);
+            printf("total_size = %d\n", (uint32_t)total_size);
+        }
     }
 
-    if (enable_debug_info)
-    {
-        plnnrc::Writer_Crt standard_output = plnnrc::make_stdout_writer();
-        plnnrc::debug_output_tokens(input_buffer, &standard_output);
-
-        plnnrc::debug_output_ast(parser.tree, &standard_output);
-
-        const size_t requested_size = plnnrc::get_total_requested(pool);
-        const size_t pool_size = plnnrc::get_total_allocated(pool);
-        printf("req_size  = %d\n", (uint32_t)requested_size);
-        printf("pool_size = %d\n", (uint32_t)pool_size);
-    }
+    plnnrc::Memory_Stack::destroy(mem_stack);
 
     return 0;
 }
