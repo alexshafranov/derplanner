@@ -66,19 +66,6 @@ bool empty(const Array<T>& array);
 
 }
 
-inline plnnrc::Array_Base::Array_Base()
-    : size(0), max_size(0), data(0), memory(0)
-{
-}
-
-inline plnnrc::Array_Base::~Array_Base()
-{
-    if (memory)
-    {
-        destroy(*this);
-    }
-}
-
 template <typename T>
 void plnnrc::init(plnnrc::Array<T>& result, Memory* mem, uint32_t max_size)
 {

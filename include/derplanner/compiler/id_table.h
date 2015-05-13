@@ -248,17 +248,6 @@ namespace id_table
     }
 }
 
-inline plnnrc::Id_Table_Base::Id_Table_Base()
-    : size(0), max_size(0), hashes(0), keys(0), lengths(0), values(0), memory(0) {}
-
-inline plnnrc::Id_Table_Base::~Id_Table_Base()
-{
-    if (memory)
-    {
-        destroy(*this);
-    }
-}
-
 template <typename T>
 inline void plnnrc::init(plnnrc::Id_Table<T>& table, plnnrc::Memory* mem, uint32_t max_size)
 {
