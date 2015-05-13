@@ -36,8 +36,7 @@ template <typename T>
 void init(Id_Table<T>& table, Memory* mem, uint32_t max_size);
 
 // destroys id table.
-template <typename T>
-void destroy(Id_Table<T>& table);
+void destroy(Id_Table_Base& table);
 
 // set value for the key.
 template <typename T>
@@ -83,6 +82,12 @@ uint32_t max_size(const Id_Table<T>& table);
 
 namespace id_table
 {
+    template <typename T>
+    inline T* get_values(plnnrc::Id_Table<T>& table)
+    {
+        return static_cast<T*>(table.values);
+    }
+
     inline uint32_t round_up_to_pow2(uint32_t value)
     {
         value--;
@@ -135,6 +140,7 @@ namespace id_table
         uint32_t curr_length = length;
         T curr_value = value;
         uint32_t ideal_slot = curr_hash & (max_size - 1);
+        T* values = id_table::get_values(table);
 
         // robin-hood hashing: linear probing + minimizing variance of the probing distance
         for (uint32_t probe = 0; probe < max_size; ++probe)
@@ -144,7 +150,7 @@ namespace id_table
             uint32_t slot_hash = table.hashes[slot];
             const char* slot_key = table.keys[slot];
             uint32_t slot_length = table.lengths[slot];
-            T slot_value = table.values[slot];
+            T slot_value = values[slot];
 
             // empty slot -> set value and exit.
             if (!slot_key)
@@ -152,7 +158,7 @@ namespace id_table
                 table.hashes[slot] = curr_hash;
                 table.keys[slot] = curr_key;
                 table.lengths[slot] = curr_length;
-                table.values[slot] = curr_value;
+                values[slot] = curr_value;
                 table.size++;
                 return;
             }
@@ -162,7 +168,7 @@ namespace id_table
             {
                 if (strncmp(slot_key, curr_key, curr_length) == 0)
                 {
-                    table.values[slot] = curr_value;
+                    values[slot] = curr_value;
                     return;
                 }
             }
@@ -178,7 +184,7 @@ namespace id_table
                 table.hashes[slot] = curr_hash;
                 table.keys[slot] = curr_key;
                 table.lengths[slot] = curr_length;
-                table.values[slot] = curr_value;
+                values[slot] = curr_value;
 
                 curr_hash = slot_hash;
                 curr_key = slot_key;
@@ -214,7 +220,7 @@ namespace id_table
         uint32_t* old_hashes = table.hashes;
         const char** old_keys = table.keys;
         uint32_t* old_lengths = table.lengths;
-        T* old_values = table.values;
+        T* old_values = id_table::get_values(table);
 
         table.size = 0;
         table.max_size = new_max_size;
@@ -242,12 +248,10 @@ namespace id_table
     }
 }
 
-template <typename T>
-inline plnnrc::Id_Table<T>::Id_Table()
+inline plnnrc::Id_Table_Base::Id_Table_Base()
     : size(0), max_size(0), hashes(0), keys(0), lengths(0), values(0), memory(0) {}
 
-template <typename T>
-inline plnnrc::Id_Table<T>::~Id_Table()
+inline plnnrc::Id_Table_Base::~Id_Table_Base()
 {
     if (memory)
     {
@@ -256,7 +260,7 @@ inline plnnrc::Id_Table<T>::~Id_Table()
 }
 
 template <typename T>
-void plnnrc::init(plnnrc::Id_Table<T>& table, plnnrc::Memory* mem, uint32_t max_size)
+inline void plnnrc::init(plnnrc::Id_Table<T>& table, plnnrc::Memory* mem, uint32_t max_size)
 {
     max_size = id_table::required_size(max_size);
     table.size = 0;
@@ -269,8 +273,7 @@ void plnnrc::init(plnnrc::Id_Table<T>& table, plnnrc::Memory* mem, uint32_t max_
     memset(table.keys, 0, sizeof(table.keys[0])*max_size);
 }
 
-template <typename T>
-void plnnrc::destroy(plnnrc::Id_Table<T>& table)
+inline void plnnrc::destroy(plnnrc::Id_Table_Base& table)
 {
     plnnrc::Memory* mem = table.memory;
     plnnrc_assert(mem != 0);
@@ -328,6 +331,7 @@ inline T* plnnrc::get(plnnrc::Id_Table<T>& table, const char* key, uint32_t leng
 
     uint32_t hash = id_table::hash(key, length);
     uint32_t ideal_slot = hash & (max_size - 1);
+    T* values = id_table::get_values(table);
 
     for (uint32_t probe = 0; probe < max_size; ++probe)
     {
@@ -355,7 +359,7 @@ inline T* plnnrc::get(plnnrc::Id_Table<T>& table, const char* key, uint32_t leng
         {
             if (strncmp(slot_key, key, length) == 0)
             {
-                return &table.values[slot];
+                return &values[slot];
             }
         }
     }

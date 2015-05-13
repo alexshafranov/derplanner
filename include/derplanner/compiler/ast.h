@@ -23,8 +23,6 @@
 
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/types.h"
-#include "derplanner/compiler/array.h"
-#include "derplanner/compiler/id_table.h"
 
 namespace plnnrc {
 

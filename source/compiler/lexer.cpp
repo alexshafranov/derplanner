@@ -378,44 +378,46 @@ Token plnnrc::lex(Lexer& state)
 void plnnrc::debug_output_tokens(const char* buffer, Writer* output)
 {
     Memory_Stack* scratch = Memory_Stack::create(32*1024);
-    Lexer lexer;
-    plnnrc::init(lexer, buffer, scratch);
-
-    Formatter fmtr;
-    plnnrc::init(fmtr, "  ", "\n", output);
-
-    Token tok = plnnrc::lex(lexer);
-    uint32_t prev_line = tok.line;
-    plnnrc::newline(fmtr);
-
-    for (; tok.type != Token_Eof; tok = plnnrc::lex(lexer))
     {
-        if (tok.line > prev_line)
-        {
-            plnnrc::newline(fmtr);
-        }
+        Lexer lexer;
+        plnnrc::init(lexer, buffer, scratch);
 
-        if (plnnrc::has_value(tok))
-        {
-            plnnrc::write(fmtr, "%s[%n] ", plnnrc::get_type_name(tok.type), tok.value);
-        }
-        else
-        {
-            plnnrc::write(fmtr, "%s ", plnnrc::get_type_name(tok.type));
-        }
+        Formatter fmtr;
+        plnnrc::init(fmtr, "  ", "\n", output);
 
-        prev_line = tok.line;
-    }
-
-    if (tok.type == plnnrc::Token_Eof)
-    {
-        if (tok.line > prev_line)
-        {
-            plnnrc::newline(fmtr);
-        }
-
-        plnnrc::write(fmtr, "%s", plnnrc::get_type_name(tok.type));
+        Token tok = plnnrc::lex(lexer);
+        uint32_t prev_line = tok.line;
         plnnrc::newline(fmtr);
+
+        for (; tok.type != Token_Eof; tok = plnnrc::lex(lexer))
+        {
+            if (tok.line > prev_line)
+            {
+                plnnrc::newline(fmtr);
+            }
+
+            if (plnnrc::has_value(tok))
+            {
+                plnnrc::write(fmtr, "%s[%n] ", plnnrc::get_type_name(tok.type), tok.value);
+            }
+            else
+            {
+                plnnrc::write(fmtr, "%s ", plnnrc::get_type_name(tok.type));
+            }
+
+            prev_line = tok.line;
+        }
+
+        if (tok.type == plnnrc::Token_Eof)
+        {
+            if (tok.line > prev_line)
+            {
+                plnnrc::newline(fmtr);
+            }
+
+            plnnrc::write(fmtr, "%s", plnnrc::get_type_name(tok.type));
+            plnnrc::newline(fmtr);
+        }
     }
 
     Memory_Stack::destroy(scratch);
