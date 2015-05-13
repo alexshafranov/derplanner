@@ -37,28 +37,10 @@ namespace plnnrc
     ast::Expr*  convert_to_nnf(ast::Root& tree, ast::Expr* root);
 }
 
-plnnrc::ast::Root::Root()
-    : pool(0)
-{
-}
-
-plnnrc::ast::Root::~Root()
-{
-    if (pool)
-    {
-        destroy(*this);
-    }
-}
-
-void plnnrc::init(ast::Root& root, Memory* mem)
+void plnnrc::init(ast::Root& root, Memory_Stack* mem)
 {
     memset(&root, 0, sizeof(root));
     root.pool = mem;
-}
-
-void plnnrc::destroy(ast::Root& root)
-{
-    memset(&root, 0, sizeof(root));
 }
 
 template <typename T>

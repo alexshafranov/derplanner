@@ -29,6 +29,7 @@ namespace plnnrc {
 
 /// Codegen
 
+// initialize code generator state.
 void init(Codegen& state, ast::Root* tree, Memory_Stack* scratch);
 
 // writes domain header code. `header_guard` string is used as macro include guard.

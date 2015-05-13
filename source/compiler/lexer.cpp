@@ -41,44 +41,21 @@ const char* plnnrc::get_type_name(Token_Type token_type)
     return s_token_type_names[token_type];
 }
 
-plnnrc::Lexer::Lexer()
-    : buffer_start(0)
-    , buffer_ptr(0)
-    , column(0)
-    , line(0)
-    , memory(0)
-{
-}
-
-plnnrc::Lexer::~Lexer()
-{
-    if (memory)
-    {
-        destroy(*this);
-    }
-}
-
-void plnnrc::init(Lexer& result, const char* buffer, Memory* memory)
+void plnnrc::init(Lexer& result, const char* buffer, Memory_Stack* scratch)
 {
     result.buffer_start = buffer;
     result.buffer_ptr = buffer;
     result.column = 1;
     result.line = 1;
     const uint32_t num_keywords = (uint32_t)(Token_Group_Keyword_Last - Token_Group_Keyword_First);
-    plnnrc::init(result.keywords, memory, num_keywords);
-    result.memory = memory;
+    plnnrc::init(result.keywords, scratch, num_keywords);
+    result.scratch = scratch;
 
 #define PLNNRC_KEYWORD_TOKEN(TOKEN_TAG, TOKEN_STR)              \
     plnnrc::set(result.keywords, TOKEN_STR, Token_##TOKEN_TAG); \
 
     #include "derplanner/compiler/token_tags.inl"
 #undef PLNNRC_KEYWORD_TOKEN
-}
-
-void plnnrc::destroy(Lexer& state)
-{
-    plnnrc::destroy(state.keywords);
-    memset(&state, 0, sizeof(state));
 }
 
 bool plnnrc::equal(Token_Value a, Token_Value b)
@@ -400,8 +377,9 @@ Token plnnrc::lex(Lexer& state)
 
 void plnnrc::debug_output_tokens(const char* buffer, Writer* output)
 {
+    Memory_Stack* scratch = Memory_Stack::create(32*1024);
     Lexer lexer;
-    plnnrc::init(lexer, buffer, get_default_allocator());
+    plnnrc::init(lexer, buffer, scratch);
 
     Formatter fmtr;
     plnnrc::init(fmtr, "  ", "\n", output);
@@ -439,4 +417,6 @@ void plnnrc::debug_output_tokens(const char* buffer, Writer* output)
         plnnrc::write(fmtr, "%s", plnnrc::get_type_name(tok.type));
         plnnrc::newline(fmtr);
     }
+
+    Memory_Stack::destroy(scratch);
 }

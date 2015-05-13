@@ -262,8 +262,8 @@ int main(int argc, char** argv)
 
     std::string output_name = get_output_name(normalize(input_path));
 
-    plnnrc::Memory_Stack* mem_persistant = plnnrc::Memory_Stack::create(32 * 1024);
-    plnnrc::Memory_Stack* mem_scratch    = plnnrc::Memory_Stack::create(32 * 1024);
+    plnnrc::Memory_Stack* mem_ast = plnnrc::Memory_Stack::create(32 * 1024);
+    plnnrc::Memory_Stack* mem_scratch = plnnrc::Memory_Stack::create(32 * 1024);
 
     size_t input_size = file_size(input_path.c_str());
     char*  input_buffer = static_cast<char*>(mem_scratch->allocate(input_size + 1));
@@ -279,7 +279,7 @@ int main(int argc, char** argv)
         Memory_Stack_Scope scratch_scope(mem_scratch);
 
         plnnrc::ast::Root tree;
-        plnnrc::init(tree, mem_persistant);
+        plnnrc::init(tree, mem_ast);
 
         plnnrc::Lexer lexer;
         plnnrc::init(lexer, input_buffer, mem_scratch);
@@ -317,15 +317,15 @@ int main(int argc, char** argv)
 
             plnnrc::debug_output_ast(tree, &standard_output);
 
-            const size_t requested_size = mem_persistant->get_total_requested();
-            const size_t total_size = mem_persistant->get_total_allocated();
+            const size_t requested_size = mem_ast->get_total_requested();
+            const size_t total_size = mem_ast->get_total_allocated();
             printf("req_size  = %d\n", (uint32_t)requested_size);
             printf("total_size = %d\n", (uint32_t)total_size);
         }
     }
 
     plnnrc::Memory_Stack::destroy(mem_scratch);
-    plnnrc::Memory_Stack::destroy(mem_persistant);
+    plnnrc::Memory_Stack::destroy(mem_ast);
 
     return 0;
 }

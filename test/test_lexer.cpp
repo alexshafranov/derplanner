@@ -25,16 +25,34 @@
 
 namespace
 {
+    struct Test_Lexer
+    {
+        ~Test_Lexer()
+        {
+            plnnrc::Memory_Stack::destroy(mem_scratch);
+        }
+
+        plnnrc::Lexer state;
+        plnnrc::Memory_Stack* mem_scratch;
+    };
+
+    void init(Test_Lexer& lexer, const char* input)
+    {
+        lexer.mem_scratch = plnnrc::Memory_Stack::create(1024);
+        init(lexer.state, input, lexer.mem_scratch);
+    }
+
     TEST(ids_and_keywords)
     {
-        plnnrc::Lexer lexer;
-        plnnrc::init(lexer, "id1 id2 domain id3", plnnrc::get_default_allocator());
+        Test_Lexer lexer;
+        init(lexer, "id1 id2 domain id3");
+
         plnnrc::Token_Type expected_types[] = { plnnrc::Token_Id, plnnrc::Token_Id, plnnrc::Token_Domain, plnnrc::Token_Id, plnnrc::Token_Eof };
         const char* expected_strings[] = { "id1", "id2", "domain", "id3", 0 };
 
         for (unsigned i = 0; i < sizeof(expected_types)/sizeof(expected_types[0]); ++i)
         {
-            plnnrc::Token actual = plnnrc::lex(lexer);
+            plnnrc::Token actual = plnnrc::lex(lexer.state);
             CHECK_EQUAL(expected_types[i], actual.type);
             if (expected_strings[i] != 0)
             {
@@ -45,10 +63,10 @@ namespace
 
     TEST(location)
     {
-        plnnrc::Lexer lexer;
-        plnnrc::init(lexer, "id1 \n id2", plnnrc::get_default_allocator());
-        plnnrc::Token tok1 = plnnrc::lex(lexer);
-        plnnrc::Token tok2 = plnnrc::lex(lexer);
+        Test_Lexer lexer;
+        init(lexer, "id1 \n id2");
+        plnnrc::Token tok1 = plnnrc::lex(lexer.state);
+        plnnrc::Token tok2 = plnnrc::lex(lexer.state);
         CHECK_EQUAL(1u, tok1.line);
         CHECK_EQUAL(1u, tok1.column);
         CHECK_EQUAL(2u, tok2.line);
@@ -57,34 +75,34 @@ namespace
 
     TEST(unknown_token)
     {
-        plnnrc::Lexer lexer;
-        plnnrc::init(lexer, "$", plnnrc::get_default_allocator());
-        plnnrc::Token tok = plnnrc::lex(lexer);
+        Test_Lexer lexer;
+        init(lexer, "$");
+        plnnrc::Token tok = plnnrc::lex(lexer.state);
         CHECK_EQUAL(plnnrc::Token_Unknown, tok.type);
     }
 
     void check_number(const char* str, plnnrc::Token_Type expected)
     {
-        plnnrc::Lexer lexer;
-        plnnrc::init(lexer, str, plnnrc::get_default_allocator());
-        plnnrc::Token tok = plnnrc::lex(lexer);
+        Test_Lexer lexer;
+        init(lexer, str);
+        plnnrc::Token tok = plnnrc::lex(lexer.state);
         CHECK_EQUAL(expected, tok.type);
     }
 
     void check_number(const char* str, float expected)
     {
-        plnnrc::Lexer lexer;
-        plnnrc::init(lexer, str, plnnrc::get_default_allocator());
-        plnnrc::Token tok = plnnrc::lex(lexer);
+        Test_Lexer lexer;
+        init(lexer, str);
+        plnnrc::Token tok = plnnrc::lex(lexer.state);
         float actual = (float)strtod(tok.value.str, 0);
         CHECK_EQUAL(expected, actual);
     }
 
     void check_number(const char* str, int expected)
     {
-        plnnrc::Lexer lexer;
-        plnnrc::init(lexer, str, plnnrc::get_default_allocator());
-        plnnrc::Token tok = plnnrc::lex(lexer);
+        Test_Lexer lexer;
+        init(lexer, str);
+        plnnrc::Token tok = plnnrc::lex(lexer.state);
         int actual = (int)strtol(tok.value.str, 0, 10);
         CHECK_EQUAL(expected, actual);
     }
