@@ -112,21 +112,14 @@ namespace
 
     struct Test_Compiler
     {
-        Test_Compiler() : pool(0) {}
-
         ~Test_Compiler()
         {
-            if (pool)
-            {
-                destroy(lexer);
-                destroy(tree);
-                plnnrc::Memory_Stack::destroy(scratch);
-                plnnrc::Memory_Stack::destroy(pool);
-            }
+            plnnrc::Memory_Stack::destroy(mem_scratch);
+            plnnrc::Memory_Stack::destroy(mem_tree);
         }
 
-        Memory_Stack*   pool;
-        Memory_Stack*   scratch;
+        Memory_Stack*   mem_tree;
+        Memory_Stack*   mem_scratch;
 
         ast::Root       tree;
         Lexer           lexer;
@@ -135,11 +128,11 @@ namespace
 
     void init(Test_Compiler& compiler, const char* input)
     {
-        compiler.pool = plnnrc::Memory_Stack::create(1024);
-        compiler.scratch = plnnrc::Memory_Stack::create(1024);
-        init(compiler.tree, compiler.pool);
-        init(compiler.lexer, input, compiler.scratch);
-        init(compiler.parser, &compiler.lexer, &compiler.tree, compiler.scratch);
+        compiler.mem_tree = plnnrc::Memory_Stack::create(1024);
+        compiler.mem_scratch = plnnrc::Memory_Stack::create(1024);
+        init(compiler.tree, compiler.mem_tree);
+        init(compiler.lexer, input, compiler.mem_scratch);
+        init(compiler.parser, &compiler.lexer, &compiler.tree, compiler.mem_scratch);
         compiler.parser.token = plnnrc::lex(compiler.lexer);
     }
 

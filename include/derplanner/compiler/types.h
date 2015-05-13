@@ -158,9 +158,6 @@ struct Token
 // Keeps track of lexer progress through the input buffer.
 struct Lexer
 {
-    Lexer();
-    ~Lexer();
-
     // points to the first character in input buffer.
     const char*             buffer_start;
     // points to the next character to be lexed.
@@ -172,7 +169,7 @@ struct Lexer
     // maps keyword names to keyword types.
     Id_Table<Token_Type>    keywords;
     // allocator used for lexer data.
-    Memory*                 memory;
+    Memory_Stack*           scratch;
 };
 
 /// Abstract-Syntax-Tree nodes, produced by the parser.
@@ -216,9 +213,6 @@ namespace ast
     // Root of the Abstract-Syntax-Tree.
     struct Root
     {
-        Root();
-        ~Root();
-
         // maps fact name -> Fact node.
         Id_Table<Fact*>         fact_lookup;
         // maps task name -> Task node.
@@ -234,7 +228,7 @@ namespace ast
         // parsed `domain` block.
         Domain*                 domain;
         // tree data allocator.
-        Memory*                 pool;
+        Memory_Stack*           pool;
     };
 
     // Parsed `world` block.
@@ -392,15 +386,13 @@ namespace ast
 // Parser state.
 struct Parser
 {
-    Parser() {}
-
     // token source for parsing.
     Lexer*              lexer;
     // last lexed token.
     Token               token;
     // output Abstract-Syntax-Tree.
     ast::Root*          tree;
-    // allocator for temporary parsing data.
+    // allocator for parsing data.
     Memory_Stack*       scratch;
 };
 
@@ -433,8 +425,6 @@ struct Formatter
 // Code generator state.
 struct Codegen
 {
-    Codegen() {}
-
     // input AST.
     ast::Root*          tree;
     // formatter used to write files.

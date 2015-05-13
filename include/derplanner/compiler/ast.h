@@ -23,14 +23,13 @@
 
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/types.h"
+#include "derplanner/compiler/array.h"
+#include "derplanner/compiler/id_table.h"
 
 namespace plnnrc {
 
 // create AST.
-void init(ast::Root& root, Memory* mem);
-
-// destroy AST.
-void destroy(ast::Root& root);
+void init(ast::Root& root, Memory_Stack* mem);
 
 /// `create_*` functions for `ast` node types.
 
