@@ -32,8 +32,7 @@ namespace plnnrc {
 template <typename T>
 void init(Array<T>& array, Memory* mem, uint32_t max_size);
 
-template <typename T>
-void destroy(Array<T>& array);
+void destroy(Array_Base& array);
 
 template <typename T>
 void resize(Array<T>& array, uint32_t new_size);
@@ -67,11 +66,12 @@ bool empty(const Array<T>& array);
 
 }
 
-template <typename T>
-inline plnnrc::Array<T>::Array() : size(0), max_size(0), data(0), memory(0) {}
+inline plnnrc::Array_Base::Array_Base()
+    : size(0), max_size(0), data(0), memory(0)
+{
+}
 
-template <typename T>
-inline plnnrc::Array<T>::~Array()
+inline plnnrc::Array_Base::~Array_Base()
 {
     if (memory)
     {
@@ -88,8 +88,7 @@ void plnnrc::init(plnnrc::Array<T>& result, Memory* mem, uint32_t max_size)
     result.memory = mem;
 }
 
-template <typename T>
-inline void plnnrc::destroy(plnnrc::Array<T>& array)
+inline void plnnrc::destroy(plnnrc::Array_Base& array)
 {
     plnnrc::Memory* mem = array.memory;
     plnnrc_assert(mem != 0);
@@ -131,7 +130,8 @@ inline void plnnrc::push_back(plnnrc::Array<T>& array, const T& value)
         grow(array, array.max_size * 2 + 8);
     }
 
-    array.data[array.size++] = value;
+    T* data = static_cast<T*>(array.data);
+    data[array.size++] = value;
 }
 
 template <typename T>
@@ -142,7 +142,8 @@ inline void plnnrc::push_back(plnnrc::Array<T>& array, const T* values, uint32_t
         grow(array, (array.size + count) * 2);
     }
 
-    memcpy(array.data + array.size, values, sizeof(T)*count);
+    T* data = static_cast<T*>(array.data);
+    memcpy(data + array.size, values, sizeof(T)*count);
     array.size += count;
 }
 
@@ -150,14 +151,14 @@ template <typename T>
 inline T& plnnrc::Array<T>::operator[](uint32_t index)
 {
     plnnrc_assert(index < size);
-    return data[index];
+    return static_cast<T*>(data)[index];
 }
 
 template <typename T>
 inline const T& plnnrc::Array<T>::operator[](uint32_t index) const
 {
     plnnrc_assert(index < size);
-    return data[index];
+    return static_cast<const T*>(data)[index];
 }
 
 template <typename T>

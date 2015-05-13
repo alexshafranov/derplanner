@@ -22,8 +22,6 @@
 #define DERPLANNER_COMPILER_CODEGEN_H_
 
 #include "derplanner/compiler/types.h"
-#include "derplanner/compiler/string_buffer.h"
-#include "derplanner/compiler/signature_table.h"
 
 namespace plnnrc {
 

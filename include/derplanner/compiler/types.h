@@ -30,36 +30,43 @@ class Memory;
 // Linear allocator.
 class Memory_Stack;
 
-// Dynamic array of POD types.
-template <typename T>
-struct Array
+struct Array_Base
 {
-    Array();
-    ~Array();
-
-    T&          operator[](uint32_t index);
-    const T&    operator[](uint32_t index) const;
+    Array_Base();
+    ~Array_Base();
 
     uint32_t    size;
     uint32_t    max_size;
-    T*          data;
+    void*       data;
     Memory*     memory;
 };
 
-// Dynamic open-addressing hash table, maps constant C-strings to POD values.
+// Dynamic array of POD types.
 template <typename T>
-struct Id_Table
+struct Array : public Array_Base
 {
-    Id_Table();
-    ~Id_Table();
+    T&          operator[](uint32_t index);
+    const T&    operator[](uint32_t index) const;
+};
+
+struct Id_Table_Base
+{
+    Id_Table_Base();
+    ~Id_Table_Base();
 
     uint32_t        size;
     uint32_t        max_size;
     uint32_t*       hashes;
     const char**    keys;
     uint32_t*       lengths;
-    T*              values;
+    void*           values;
     Memory*         memory;
+};
+
+// Dynamic open-addressing hash table, maps constant C-strings to POD values.
+template <typename T>
+struct Id_Table : Id_Table_Base
+{
 };
 
 // A bunch of strings stored in a single buffer.

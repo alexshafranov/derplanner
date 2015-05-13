@@ -116,6 +116,7 @@ namespace
         {
             plnnrc::Memory_Stack::destroy(mem_scratch);
             plnnrc::Memory_Stack::destroy(mem_tree);
+            memset(this, 0, sizeof(Test_Compiler));
         }
 
         Memory_Stack*   mem_tree;

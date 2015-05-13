@@ -30,6 +30,7 @@ namespace
         ~Test_Lexer()
         {
             plnnrc::Memory_Stack::destroy(mem_scratch);
+            memset(this, 0, sizeof(Test_Lexer));
         }
 
         plnnrc::Lexer state;
