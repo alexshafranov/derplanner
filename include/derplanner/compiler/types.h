@@ -236,6 +236,8 @@ namespace ast
         Domain*                 domain;
         // tree data allocator.
         Memory_Stack*           pool;
+        // allocator for temporary data.
+        Memory_Stack*           scratch;
     };
 
     // Parsed `world` block.

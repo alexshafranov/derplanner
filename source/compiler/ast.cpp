@@ -37,10 +37,11 @@ namespace plnnrc
     ast::Expr*  convert_to_nnf(ast::Root& tree, ast::Expr* root);
 }
 
-void plnnrc::init(ast::Root& root, Memory_Stack* mem)
+void plnnrc::init(ast::Root& root, Memory_Stack* mem_pool, Memory_Stack* mem_scratch)
 {
     memset(&root, 0, sizeof(root));
-    root.pool = mem;
+    root.pool = mem_pool;
+    root.scratch = mem_scratch;
 }
 
 template <typename T>
