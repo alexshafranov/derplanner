@@ -49,7 +49,7 @@ solution "derplanner"
 
     project "derplannerc"
         kind "ConsoleApp"
-        files { "compiler/*.cpp" }
+        files { "app/main.compiler.cpp" }
         includedirs { "include" }
         links { "derplanner-compiler" }
 
