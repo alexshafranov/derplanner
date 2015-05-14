@@ -66,7 +66,11 @@ struct Children_Builder
         const uint32_t node_count = size(nodes);
         if (node_count > 0)
         {
-            init(*output, state->tree->pool, node_count);
+            if (!output->memory)
+            {
+                init(*output, state->tree->pool, node_count);
+            }
+
             plnnrc::push_back(*output, &nodes[0], node_count);
         }
     }
