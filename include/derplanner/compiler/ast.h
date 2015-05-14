@@ -27,7 +27,7 @@
 namespace plnnrc {
 
 // create AST.
-void init(ast::Root& root, Memory_Stack* mem);
+void init(ast::Root& root, Memory_Stack* mem_pool, Memory_Stack* mem_scratch);
 
 /// `create_*` functions for `ast` node types.
 

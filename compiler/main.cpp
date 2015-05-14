@@ -279,7 +279,7 @@ int main(int argc, char** argv)
         Memory_Stack_Scope scratch_scope(mem_scratch);
 
         plnnrc::ast::Root tree;
-        plnnrc::init(tree, mem_ast);
+        plnnrc::init(tree, mem_ast, mem_scratch);
 
         plnnrc::Lexer lexer;
         plnnrc::init(lexer, input_buffer, mem_scratch);
