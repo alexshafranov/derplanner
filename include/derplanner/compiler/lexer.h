@@ -41,8 +41,14 @@ void debug_output_tokens(const char* buffer, Writer* output);
 // checks if the given token has a string value attached.
 bool has_value(const Token& tok);
 
-// gets token type name as a string to aid debugging.
+// returns token type name as a string.
 const char* get_type_name(Token_Type token_type);
+// returns token group name as a string.
+const char* get_group_name(Token_Group token_group);
+// returns the first token type in group.
+Token_Type get_group_first(Token_Group token_group);
+// returns the last token type in group.
+Token_Type get_group_last(Token_Group token_group);
 
 // compute FNV-1a hash for the token value.
 uint32_t hash(Token_Value token_value);

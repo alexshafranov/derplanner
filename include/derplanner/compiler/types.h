@@ -94,14 +94,25 @@ enum Error_Type
 enum Token_Type
 {
     Token_Unknown = 0,
+    Token_Error,
     #define PLNNRC_TOKEN(TAG) Token_##TAG,
     #include "derplanner/compiler/token_tags.inl"
     #undef PLNNRC_TOKEN
     Token_Count,
 };
 
+// Token type groups.
+enum Token_Group
+{
+    Token_Group_Unknown = 0,
+    #define PLNNRC_TOKEN_GROUP(GROUP_TAG, FIRST_TOKEN_TAG, LAST_TOKEN_TAG) Token_Group_##GROUP_TAG,
+    #include "derplanner/compiler/token_tags.inl"
+    #undef PLNNRC_TOKEN_GROUP
+    Token_Group_Count,
+};
+
 // Token group ranges: <Group>_First, <Group>_Last
-enum Token_Groups
+enum Token_Group_Ranges
 {
     #define PLNNRC_TOKEN_GROUP(GROUP_TAG, FIRST_TOKEN_TAG, LAST_TOKEN_TAG) Token_Group_##GROUP_TAG##_First = Token_##FIRST_TOKEN_TAG,
     #include "derplanner/compiler/token_tags.inl"

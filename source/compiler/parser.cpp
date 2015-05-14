@@ -18,6 +18,8 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
+#include <stdio.h>
+
 #include <string.h>
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/memory.h"
@@ -64,13 +66,18 @@ struct Children_Builder
     ~Children_Builder()
     {
         const uint32_t node_count = size(nodes);
+        if (!node_count)
+        {
+            return;
+        }
+
+        if (!output->memory)
+        {
+            init(*output, state->tree->pool, node_count);
+        }
+
         if (node_count > 0)
         {
-            if (!output->memory)
-            {
-                init(*output, state->tree->pool, node_count);
-            }
-
             plnnrc::push_back(*output, &nodes[0], node_count);
         }
     }
@@ -88,20 +95,40 @@ void plnnrc::init(Parser& state, Lexer* lexer, ast::Root* tree, Memory_Stack* sc
     state.scratch = scratch;
 }
 
+static inline Token make_error_token(Parser& state)
+{
+    Token tok;
+    tok.type = Token_Error;
+    tok.line = state.lexer->line;
+    tok.column = state.lexer->column;
+    const char* error_str = "<error>";
+    tok.value.str = error_str;
+    tok.value.length = sizeof(error_str) - 1;
+    return tok;
+}
+
 static inline Token expect(Parser& state, Token_Type token_type)
 {
     Token tok = state.token;
-    plnnrc_assert(tok.type == token_type);
-    (void)(token_type);
+    if (tok.type != token_type)
+    {
+        printf("error (%d,%d): expected '%s' got '%s'.\n", tok.line, tok.column, get_type_name(token_type), get_type_name(tok.type));
+        return make_error_token(state);
+    }
+
     state.token = lex(*state.lexer);
     return tok;
 }
 
-static inline Token expect(Parser& state, bool (test_token)(const Token&))
+static inline Token expect(Parser& state, Token_Group token_group)
 {
     Token tok = state.token;
-    plnnrc_assert(test_token(tok));
-    (void)(test_token);
+    if (tok.type < get_group_first(token_group) || tok.type > get_group_last(token_group))
+    {
+        printf("error (%d,%d): expected '%s' got '%s'.\n", tok.line, tok.column, get_group_name(token_group), get_type_name(tok.type));
+        return make_error_token(state);
+    }
+
     state.token = lex(*state.lexer);
     return tok;
 }
@@ -170,8 +197,19 @@ void plnnrc::parse(Parser& state)
                 continue;
             }
 
-            plnnrc_assert(false);
+            printf("error (%d,%d): unexpected token: '%s'.\n", tok.line, tok.column, get_type_name(tok.type));
+            break;
         }
+    }
+
+    if (!state.tree->world)
+    {
+        state.tree->world = plnnrc::create_world(state.tree);
+    }
+
+    if (!state.tree->primitive)
+    {
+        state.tree->primitive = plnnrc::create_primitive(state.tree);
     }
 
     expect(state, Token_Eof);
@@ -179,6 +217,12 @@ void plnnrc::parse(Parser& state)
 
 static void parse_facts(Parser& state, Children_Builder<ast::Fact>& builder)
 {
+    if (is_R_Curly(peek(state)))
+    {
+        eat(state);
+        return;
+    }
+
     for (;;)
     {
         Token tok = expect(state, Token_Id);
@@ -192,17 +236,17 @@ static void parse_facts(Parser& state, Children_Builder<ast::Fact>& builder)
             {
                 for (;;)
                 {
-                    tok = expect(state, is_Type);
+                    tok = expect(state, Token_Group_Type);
                     ast::Data_Type* param = plnnrc::create_type(state.tree, tok.type);
                     param_builder.push_back(param);
 
                     if (!is_Comma(peek(state)))
                     {
-                        expect(state, is_R_Paren);
+                        expect(state, Token_R_Paren);
                         break;
                     }
 
-                    expect(state, is_Comma);
+                    expect(state, Token_Comma);
                 }
             }
             else
@@ -255,11 +299,11 @@ static void parse_params(Parser& state, Array<ast::Param*>& output)
 
             if (!is_Comma(peek(state)))
             {
-                expect(state, is_R_Paren);
+                expect(state, Token_R_Paren);
                 break;
             }
 
-            expect(state, is_Comma);
+            expect(state, Token_Comma);
         }
     }
     else
@@ -325,7 +369,7 @@ static ast::Expr* parse_conjunct(Parser& state);
 
 ast::Expr* plnnrc::parse_precond(Parser& state)
 {
-    expect(state, is_L_Paren);
+    expect(state, Token_L_Paren);
 
     // empty expression -> add dummy node.
     if (is_R_Paren(peek(state)))
@@ -335,13 +379,13 @@ ast::Expr* plnnrc::parse_precond(Parser& state)
     }
 
     ast::Expr* node_Expr = parse_expr(state);
-    expect(state, is_R_Paren);
+    expect(state, Token_R_Paren);
     return node_Expr;
 }
 
 void plnnrc::parse_task_list(Parser& state, ast::Case* case_)
 {
-    expect(state, is_L_Square);
+    expect(state, Token_L_Square);
     Children_Builder<ast::Expr> cb(&state, &case_->task_list);
     
     if (!is_R_Square(peek(state)))
@@ -353,11 +397,11 @@ void plnnrc::parse_task_list(Parser& state, ast::Case* case_)
 
             if (!is_Comma(peek(state)))
             {
-                expect(state, is_R_Square);
+                expect(state, Token_R_Square);
                 break;
             }
 
-            expect(state, is_Comma);
+            expect(state, Token_Comma);
         }
     }
     else
@@ -417,7 +461,7 @@ static ast::Expr* parse_conjunct(Parser& state)
     if (is_L_Paren(tok))
     {
         ast::Expr* node_Expr = parse_expr(state);
-        expect(state, is_R_Paren);
+        expect(state, Token_R_Paren);
         return node_Expr;
     }
 
@@ -452,11 +496,11 @@ static ast::Expr* parse_conjunct(Parser& state)
 
                     if (!is_Comma(peek(state)))
                     {
-                        expect(state, is_R_Paren);
+                        expect(state, Token_R_Paren);
                         break;
                     }
 
-                    expect(state, is_Comma);
+                    expect(state, Token_Comma);
                 }
             }
             else

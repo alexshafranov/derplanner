@@ -30,15 +30,56 @@ using namespace plnnrc;
 static const char* s_token_type_names[] =
 {
     "Unknown",
+    "Error",
     #define PLNNRC_TOKEN(TOKEN_TAG) #TOKEN_TAG,
     #include "derplanner/compiler/token_tags.inl"
     #undef PLNNRC_TOKEN
     "Count",
 };
 
+static const char* s_token_group_names[] =
+{
+    "Unknown",
+    #define PLNNRC_TOKEN_GROUP(GROUP_TAG, FIRST_TOKEN_TAG, LAST_TOKEN_TAG) #GROUP_TAG,
+    #include "derplanner/compiler/token_tags.inl"
+    #undef PLNNRC_TOKEN_GROUP
+    "Count",
+};
+
+static Token_Type s_group_first[] =
+{
+    Token_Unknown,
+    #define PLNNRC_TOKEN_GROUP(GROUP_TAG, FIRST_TOKEN_TAG, LAST_TOKEN_TAG) Token_##FIRST_TOKEN_TAG,
+    #include "derplanner/compiler/token_tags.inl"
+    #undef PLNNRC_TOKEN_GROUP
+};
+
+static Token_Type s_group_last[] =
+{
+    Token_Unknown,
+    #define PLNNRC_TOKEN_GROUP(GROUP_TAG, FIRST_TOKEN_TAG, LAST_TOKEN_TAG) Token_##LAST_TOKEN_TAG,
+    #include "derplanner/compiler/token_tags.inl"
+    #undef PLNNRC_TOKEN_GROUP
+};
+
 const char* plnnrc::get_type_name(Token_Type token_type)
 {
     return s_token_type_names[token_type];
+}
+
+const char* plnnrc::get_group_name(Token_Group token_group)
+{
+    return s_token_group_names[token_group];
+}
+
+Token_Type plnnrc::get_group_first(Token_Group token_group)
+{
+    return s_group_first[token_group];
+}
+
+Token_Type plnnrc::get_group_last(Token_Group token_group)
+{
+    return s_group_last[token_group];
 }
 
 void plnnrc::init(Lexer& result, const char* buffer, Memory_Stack* scratch)
@@ -275,6 +316,8 @@ static inline Token lex_unknown(Lexer& state)
 
 Token plnnrc::lex(Lexer& state)
 {
+    Token tok;
+
     for (char c = get_char(state); c != 0; c = get_char(state))
     {
         switch (c)
@@ -302,58 +345,74 @@ Token plnnrc::lex(Lexer& state)
 
         // single-character punctuators
         case '{':
+            tok = make_token(state, Token_L_Curly);
             consume_char(state);
-            return make_token(state, Token_L_Curly);
+            return tok;
         case '}':
+            tok = make_token(state, Token_R_Curly);
             consume_char(state);
-            return make_token(state, Token_R_Curly);
+            return tok;
         case '(':
+            tok = make_token(state, Token_L_Paren);
             consume_char(state);
-            return make_token(state, Token_L_Paren);
+            return tok;
         case ')':
+            tok = make_token(state, Token_R_Paren);
             consume_char(state);
-            return make_token(state, Token_R_Paren);
+            return tok;
         case '[':
+            tok = make_token(state, Token_L_Square);
             consume_char(state);
-            return make_token(state, Token_L_Square);
+            return tok;
         case ']':
+            tok = make_token(state, Token_R_Square);
             consume_char(state);
-            return make_token(state, Token_R_Square);
+            return tok;
         case ',':
+            tok = make_token(state, Token_Comma);
             consume_char(state);
-            return make_token(state, Token_Comma);
+            return tok;
         case ':':
+            tok = make_token(state, Token_Colon);
             consume_char(state);
-            return make_token(state, Token_Colon);
+            return tok;
         case '=':
+            tok = make_token(state, Token_Equality);
             consume_char(state);
-            return make_token(state, Token_Equality);
+            return tok;
 
         // single-character operators
         case '&':
+            tok = make_token(state, Token_And);
             consume_char(state);
-            return make_token(state, Token_And);
+            return tok;
         case '|':
+            tok = make_token(state, Token_Or);
             consume_char(state);
-            return make_token(state, Token_Or);
+            return tok;
         case '~':
+            tok = make_token(state, Token_Not);
             consume_char(state);
-            return make_token(state, Token_Not);
+            return tok;
 
         // arrow or numeric
         case '-':
+            tok = make_token(state, Token_Unknown);
             consume_char(state);
             if (get_char(state) == '>')
             {
                 consume_char(state);
-                return make_token(state, Token_Arrow);
+                tok.type = Token_Arrow;
+                return tok;
             }
 
-            return make_token(state, Token_Minus);
+            tok.type = Token_Minus;
+            return tok;
 
         case '+':
+            tok = make_token(state, Token_Plus);
             consume_char(state);
-            return make_token(state, Token_Plus);
+            return tok;
 
         // identifiers & keywords
         case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I': case 'J': case 'K': case 'L': case 'M': case 'N':
