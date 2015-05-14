@@ -30,7 +30,6 @@ using namespace plnnrc;
 static const char* s_token_type_names[] =
 {
     "Unknown",
-    "Error",
     #define PLNNRC_TOKEN(TOKEN_TAG) #TOKEN_TAG,
     #include "derplanner/compiler/token_tags.inl"
     #undef PLNNRC_TOKEN
@@ -86,8 +85,8 @@ void plnnrc::init(Lexer& result, const char* buffer, Memory_Stack* scratch)
 {
     result.buffer_start = buffer;
     result.buffer_ptr = buffer;
-    result.column = 1;
-    result.line = 1;
+    result.loc.column = 1;
+    result.loc.line = 1;
     const uint32_t num_keywords = (uint32_t)(Token_Group_Keyword_Last - Token_Group_Keyword_First);
     plnnrc::init(result.keywords, scratch, num_keywords);
     result.scratch = scratch;
@@ -126,15 +125,15 @@ static inline bool is_identifier_body(char c)
 
 static inline void consume_char(Lexer& state)
 {
-    state.column++;
+    state.loc.column++;
     state.buffer_ptr++;
 }
 
 static inline void unconsume_char(Lexer& state)
 {
-    plnnrc_assert(state.column >= 1);
+    plnnrc_assert(state.loc.column >= 1);
     plnnrc_assert(state.buffer_start <= state.buffer_ptr - 1);
-    --state.column;
+    --state.loc.column;
     --state.buffer_ptr;
 }
 
@@ -149,8 +148,8 @@ static inline void consume_newline(Lexer& state)
         consume_char(state);
     }
 
-    state.column = 1;
-    state.line++;
+    state.loc.column = 1;
+    state.loc.line++;
 }
 
 static inline void consume_until_whitespace(Lexer& state)
@@ -184,8 +183,7 @@ static inline Token make_token(Lexer& state, Token_Type type)
 {
     Token tok;
     tok.type = type;
-    tok.column = state.column;
-    tok.line = state.line;
+    tok.loc = state.loc;
     tok.value.length = 0;
     tok.value.str = 0;
     return tok;
@@ -194,8 +192,7 @@ static inline Token make_token(Lexer& state, Token_Type type)
 static inline Token begin_token(Lexer& state)
 {
     Token tok;
-    tok.column = state.column;
-    tok.line = state.line;
+    tok.loc = state.loc;
     tok.value.length = 0;
     tok.value.str = state.buffer_ptr;
     return tok;
@@ -445,12 +442,12 @@ void plnnrc::debug_output_tokens(const char* buffer, Writer* output)
         plnnrc::init(fmtr, "  ", "\n", output);
 
         Token tok = plnnrc::lex(lexer);
-        uint32_t prev_line = tok.line;
+        uint32_t prev_line = tok.loc.line;
         plnnrc::newline(fmtr);
 
         for (; tok.type != Token_Eof; tok = plnnrc::lex(lexer))
         {
-            if (tok.line > prev_line)
+            if (tok.loc.line > prev_line)
             {
                 plnnrc::newline(fmtr);
             }
@@ -464,12 +461,12 @@ void plnnrc::debug_output_tokens(const char* buffer, Writer* output)
                 plnnrc::write(fmtr, "%s ", plnnrc::get_type_name(tok.type));
             }
 
-            prev_line = tok.line;
+            prev_line = tok.loc.line;
         }
 
         if (tok.type == plnnrc::Token_Eof)
         {
-            if (tok.line > prev_line)
+            if (tok.loc.line > prev_line)
             {
                 plnnrc::newline(fmtr);
             }
