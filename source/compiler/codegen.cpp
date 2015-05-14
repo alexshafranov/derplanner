@@ -209,6 +209,11 @@ static void build_expand_names(String_Buffer& expand_names, ast::Domain* domain)
 
 static bool all_unique(Array<uint32_t>& hashes)
 {
+    if (empty(hashes))
+    {
+        return true;
+    }
+
     std::sort(&hashes[0], &hashes[0] + size(hashes));
     for (uint32_t i = 1; i < size(hashes); ++i)
     {
@@ -310,6 +315,12 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
             Indent_Scope s(fmtr);
             writeln(fmtr, "%n_case_0,", task->name);
         }
+
+        if (empty(domain->tasks))
+        {
+            Indent_Scope s(fmtr);
+            writeln(fmtr, "0");
+        }
         writeln(fmtr, "};");
         newline(fmtr);
     }
@@ -322,6 +333,12 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
             Indent_Scope s(fmtr);
             ast::Fact* fact = world->facts[fact_idx];
             writeln(fmtr, "\"%n\",", fact->name);
+        }
+
+        if (empty(domain->tasks))
+        {
+            Indent_Scope s(fmtr);
+            writeln(fmtr, "0");
         }
         writeln(fmtr, " };");
         newline(fmtr);
@@ -344,6 +361,13 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
             ast::Task* task = domain->tasks[task_idx];
             writeln(fmtr, "\"%n\",", task->name);
         }
+
+        if (empty(prim->tasks) && empty(domain->tasks))
+        {
+            Indent_Scope s(fmtr);
+            writeln(fmtr, "0");
+        }
+
         writeln(fmtr, " };");
         newline(fmtr);
     }
@@ -365,6 +389,13 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
             write(fmtr, "} },");
             newline(fmtr);
         }
+
+        if (empty(world->facts))
+        {
+            Indent_Scope s(fmtr);
+            writeln(fmtr, "{ 0, { Type_None, } }");
+        }
+
         writeln(fmtr, "};");
         newline(fmtr);
     }
@@ -415,6 +446,13 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         {
             Format_Param_Layout()(fmtr, state.task_and_pout_sigs, sig_idx);
         }
+
+        if (!num_tasks)
+        {
+            Indent_Scope s(fmtr);
+            writeln(fmtr, "{ 0, 0, 0, 0 }");
+        }
+
         writeln(fmtr, "};");
         newline(fmtr);
 
@@ -423,6 +461,13 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         {
             Format_Param_Layout()(fmtr, state.task_and_pout_sigs, sig_idx);
         }
+
+        if (empty(state.task_and_pout_sigs.remap))
+        {
+            Indent_Scope s(fmtr);
+            writeln(fmtr, "{ 0, 0, 0, 0 }");
+        }
+
         writeln(fmtr, "};");
         newline(fmtr);
     }
@@ -436,6 +481,13 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
             Indent_Scope s(fmtr);
             writeln(fmtr, "%d, ", size(task->cases));
         }
+
+        if (empty(domain->tasks))
+        {
+            Indent_Scope s(fmtr);
+            writeln(fmtr, "0");
+        }
+
         writeln(fmtr, "};");
         newline(fmtr);
     }
@@ -448,6 +500,13 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
             Indent_Scope s(fmtr);
             writeln(fmtr, "0, ");
         }
+
+        if (empty(world->facts))
+        {
+            Indent_Scope s(fmtr);
+            writeln(fmtr, "0");
+        }
+
         writeln(fmtr, "};");
         newline(fmtr);
     }
@@ -476,6 +535,13 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
             Indent_Scope s(fmtr);
             writeln(fmtr, "%u, ", fact_name_hashes[fact_idx]);
         }
+
+        if (empty(world->facts))
+        {
+            Indent_Scope s(fmtr);
+            writeln(fmtr, "0");
+        }
+
         writeln(fmtr, "};");
         newline(fmtr);
     }
@@ -510,6 +576,13 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
             Indent_Scope s(fmtr);
             writeln(fmtr, "%u, ", task_name_hashes[hash_idx]);
         }
+
+        if (empty(task_name_hashes))
+        {
+            Indent_Scope s(fmtr);
+            writeln(fmtr, "0");
+        }
+
         writeln(fmtr, "};");
         newline(fmtr);
     }
