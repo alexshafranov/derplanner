@@ -682,12 +682,70 @@ static ast::Expr* inline_predicate(ast::Root& tree, ast::Func* func, ast::Predic
     return pred_clone;
 }
 
+static ast::Predicate* lookup_referenced_predicate(ast::Domain* domain, ast::Task* task, const Token_Value& name)
+{
+    if (task != 0)
+    {
+        if (ast::Predicate* ref_pred = get(task->predicate_lookup, name))
+        {
+            return ref_pred;
+        }
+    }
+
+    if (ast::Predicate* ref_pred = get(domain->predicate_lookup, name))
+    {
+        return ref_pred;
+    }
+
+    return 0;
+}
+
+static void disallow_recursive_predicate(ast::Root& tree, ast::Task* task_scope, ast::Predicate* pred)
+{
+    Memory_Stack_Scope scratch_scope(tree.scratch);
+    Memory_Stack_Scope pool_scope(tree.pool);
+
+    ast::Domain* domain_scope = tree.domain;
+
+    Id_Table<ast::Predicate*> preds_seen;
+    init(preds_seen, tree.scratch, 8);
+    set(preds_seen, pred->name, pred);
+
+    ast::Expr* root = create_op(&tree, ast::Node_Or);
+    append_child(root, pred->expression);
+
+    for (ast::Expr* node = root->child; node != 0; node = preorder_next(root, node))
+    {
+        if (ast::Func* func = as_Func(node))
+        {
+            if (ast::Predicate* ref_pred = lookup_referenced_predicate(domain_scope, task_scope, func->name))
+            {
+                if (get(preds_seen, func->name) != 0)
+                {
+                    plnnrc_assert(false);
+                    break;
+                }
+
+                set(preds_seen, func->name, ref_pred);
+                insert_child(node, ref_pred->expression);
+            }
+        }
+    }
+
+    for (ast::Expr* node = root->child; node != 0; )
+    {
+        ast::Expr* next = node->next_sibling;
+        unparent(node);
+        node = next;
+    }
+}
+
 void plnnrc::inline_predicates(ast::Root& tree)
 {
     ast::Domain* domain = tree.domain;
 
+    // build lookups.
     init(domain->predicate_lookup, tree.pool, size(domain->predicates));
-
     for (uint32_t pred_idx = 0; pred_idx < size(domain->predicates); ++pred_idx)
     {
         ast::Predicate* pred = domain->predicates[pred_idx];
@@ -703,6 +761,23 @@ void plnnrc::inline_predicates(ast::Root& tree)
         {
             ast::Predicate* pred = task->predicates[pred_idx];
             set(task->predicate_lookup, pred->name, pred);
+        }
+    }
+
+    // check recursion.
+    for (uint32_t pred_idx = 0; pred_idx < size(domain->predicates); ++pred_idx)
+    {
+        ast::Predicate* pred = domain->predicates[pred_idx];
+        disallow_recursive_predicate(tree, 0, pred);
+    }
+
+    for (uint32_t task_idx = 0; task_idx < size(domain->tasks); ++task_idx)
+    {
+        ast::Task* task = domain->tasks[task_idx];
+        for (uint32_t pred_idx = 0; pred_idx < size(task->predicates); ++pred_idx)
+        {
+            ast::Predicate* pred = task->predicates[pred_idx];
+            disallow_recursive_predicate(tree, task, pred);
         }
     }
 
