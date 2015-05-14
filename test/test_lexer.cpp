@@ -68,10 +68,10 @@ namespace
         init(lexer, "id1 \n id2");
         plnnrc::Token tok1 = plnnrc::lex(lexer.state);
         plnnrc::Token tok2 = plnnrc::lex(lexer.state);
-        CHECK_EQUAL(1u, tok1.line);
-        CHECK_EQUAL(1u, tok1.column);
-        CHECK_EQUAL(2u, tok2.line);
-        CHECK_EQUAL(2u, tok2.column);
+        CHECK_EQUAL(1u, tok1.loc.line);
+        CHECK_EQUAL(1u, tok1.loc.column);
+        CHECK_EQUAL(2u, tok2.loc.line);
+        CHECK_EQUAL(2u, tok2.loc.column);
     }
 
     TEST(unknown_token)

@@ -27,6 +27,7 @@
 #include "derplanner/compiler/array.h"
 #include "derplanner/compiler/ast.h"
 #include "derplanner/compiler/id_table.h"
+#include "derplanner/compiler/errors.h"
 #include "derplanner/compiler/parser.h"
 
 // implementation (exposed for unit tests)
@@ -99,8 +100,7 @@ static inline Token make_error_token(Parser& state)
 {
     Token tok;
     tok.type = Token_Error;
-    tok.line = state.lexer->line;
-    tok.column = state.lexer->column;
+    tok.loc = get_loc(*state.lexer);
     const char* error_str = "<error>";
     tok.value.str = error_str;
     tok.value.length = sizeof(error_str) - 1;
@@ -112,7 +112,6 @@ static inline Token expect(Parser& state, Token_Type token_type)
     Token tok = state.token;
     if (tok.type != token_type)
     {
-        printf("error (%d,%d): expected '%s' got '%s'.\n", tok.line, tok.column, get_type_name(token_type), get_type_name(tok.type));
         return make_error_token(state);
     }
 
@@ -125,7 +124,6 @@ static inline Token expect(Parser& state, Token_Group token_group)
     Token tok = state.token;
     if (tok.type < get_group_first(token_group) || tok.type > get_group_last(token_group))
     {
-        printf("error (%d,%d): expected '%s' got '%s'.\n", tok.line, tok.column, get_group_name(token_group), get_type_name(tok.type));
         return make_error_token(state);
     }
 
@@ -145,13 +143,26 @@ static inline Token peek(Parser& state)
     return state.token;
 }
 
+static inline Error& emit(Parser& state, Error_Type error_type)
+{
+    Error err;
+    init(err, error_type, get_loc(*state.lexer));
+    push_back(state.errs, err);
+    return back(state.errs);
+}
+
 void plnnrc::parse(Parser& state)
 {
     // buffer first token.
     state.token = lex(*state.lexer);
+    // initialize errors.
+    init(state.errs, state.tree->pool, 64);
 
-    expect(state, Token_Domain);
+    if (is_Error(expect(state, Token_Domain))) { emit(state, Error_Expected) << Token_Domain; }
+
     Token name = expect(state, Token_Id);
+    if (is_Error(name)) { emit(state, Error_Expected_After) << Token_Id << Token_Domain; }
+
     ast::Domain* domain = plnnrc::create_domain(state.tree, name.value);
     state.tree->domain = domain;
     expect(state, Token_L_Curly);
@@ -197,7 +208,7 @@ void plnnrc::parse(Parser& state)
                 continue;
             }
 
-            printf("error (%d,%d): unexpected token: '%s'.\n", tok.line, tok.column, get_type_name(tok.type));
+            // emit(state, Unexpected_Token, tok);
             break;
         }
     }

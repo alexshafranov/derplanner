@@ -84,7 +84,7 @@ struct String_Buffer
 enum Error_Type
 {
     Error_None = 0,
-    #define PLNNRC_ERROR(TAG) Error_##TAG,
+    #define PLNNRC_ERROR(TAG, FORMAT_STR) Error_##TAG,
     #include "derplanner/compiler/error_tags.inl"
     #undef PLNNRC_ERROR
     Error_Count,
@@ -94,7 +94,6 @@ enum Error_Type
 enum Token_Type
 {
     Token_Unknown = 0,
-    Token_Error,
     #define PLNNRC_TOKEN(TAG) Token_##TAG,
     #include "derplanner/compiler/token_tags.inl"
     #undef PLNNRC_TOKEN
@@ -158,6 +157,13 @@ struct Token_Value
     const char*     str;
 };
 
+// Location in the input buffer.
+struct Location
+{
+    uint32_t line;
+    uint32_t column;
+};
+
 // Token data returned by the lexer.
 struct Token
 {
@@ -165,12 +171,46 @@ struct Token
 
     // type of the token.
     Token_Type      type;
-    // input buffer line.
-    uint32_t        line;
-    // input buffer column.
-    uint32_t        column;
+    // location in the input buffer.
+    Location        loc;
     // string value of the token.
     Token_Value     value;
+};
+
+// Emitted error information.
+struct Error
+{
+    enum { Max_Args = 4 };
+
+    // error format argument type.
+    enum Arg_Type
+    {
+        Arg_Type_None = 0,
+        Arg_Type_Token_Value,
+        Arg_Type_Token_Type,
+        Arg_Type_Token_Group,
+    };
+
+    // error format argument.
+    union Arg
+    {
+        Token_Value     token_value;
+        Token_Type      token_type;
+        Token_Group     token_group;
+    };
+
+    // type code of the error.
+    Error_Type      type;
+    // error location.
+    Location        loc;
+    // error format string.
+    const char*     format;
+    // number of arguments.
+    uint8_t         num_args;
+    // error format arguments.
+    Arg             args[Max_Args];
+    // error format argument types.
+    Arg_Type        arg_types[Max_Args];
 };
 
 // Keeps track of lexer progress through the input buffer.
@@ -180,10 +220,8 @@ struct Lexer
     const char*             buffer_start;
     // points to the next character to be lexed.
     const char*             buffer_ptr;
-    // current column.
-    uint32_t                column;
-    // current line.
-    uint32_t                line;
+    // current location.
+    Location                loc;
     // maps keyword names to keyword types.
     Id_Table<Token_Type>    keywords;
     // allocator used for lexer data.
@@ -412,6 +450,8 @@ struct Parser
     Token               token;
     // output Abstract-Syntax-Tree.
     ast::Root*          tree;
+    // errors emitted by parser.
+    Array<Error>        errs;
     // allocator for parsing data.
     Memory_Stack*       scratch;
 };

@@ -33,6 +33,9 @@ void init(Lexer& state, const char* buffer, Memory_Stack* scratch);
 // lex next token from the input buffer.
 Token lex(Lexer& state);
 
+// current location in the input buffer.
+Location get_loc(const Lexer& state);
+
 // writes the nicely formatted token stream to `output`.
 void debug_output_tokens(const char* buffer, Writer* output);
 
@@ -75,7 +78,16 @@ bool     equal(Token_Value a, Token_Value b);
 
 /// Inline Code.
 
-inline plnnrc::Token::Token() : type(plnnrc::Token_Unknown), line(0), column(0) {}
+inline plnnrc::Location plnnrc::get_loc(const plnnrc::Lexer& state)
+{
+    return state.loc;
+}
+
+inline plnnrc::Token::Token() : type(Token_Unknown)
+{
+    loc.line = 0;
+    loc.column = 0;
+}
 
 inline bool plnnrc::has_value(const plnnrc::Token& tok) { return tok.value.length > 0; }
 

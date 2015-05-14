@@ -18,17 +18,18 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef PLNNRC_ERROR
-    #define PLNNRC_ERROR(TAG, FORMAT_STR)
-#endif
+#include "derplanner/compiler/errors.h"
 
-#ifndef PLNNRC_PARSER_ERROR
-    #define PLNNRC_PARSER_ERROR(TAG, FORMAT_STR) PLNNRC_ERROR(TAG, FORMAT_STR)
-#endif
+static const char* s_format_str[] =
+{
+    "Unknown",
+    #define PLNNRC_ERROR(TAG, FORMAT_STR) FORMAT_STR,
+    #include "derplanner/compiler/error_tags.inl"
+    #undef PLNNRC_ERROR
+    "Count",
+};
 
-PLNNRC_PARSER_ERROR(Unexpected_Token,       "unexpected token '$0'.")
-PLNNRC_PARSER_ERROR(Expected,               "expected '$0'.")
-PLNNRC_PARSER_ERROR(Expected_After,         "expected '$0' after '$1'.")
-
-#undef PLNNRC_PARSER_ERROR
-#undef PLNNRC_ERROR
+const char* plnnrc::get_format_string(plnnrc::Error_Type error_type)
+{
+    return s_format_str[error_type];
+}
