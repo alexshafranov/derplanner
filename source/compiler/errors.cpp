@@ -18,7 +18,14 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
+#include <ctype.h>
+
+#include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/errors.h"
+#include "derplanner/compiler/lexer.h"
+#include "derplanner/compiler/io.h"
+
+using namespace plnnrc;
 
 static const char* s_format_str[] =
 {
@@ -32,4 +39,54 @@ static const char* s_format_str[] =
 const char* plnnrc::get_format_string(plnnrc::Error_Type error_type)
 {
     return s_format_str[error_type];
+}
+
+void plnnrc::format_error(const plnnrc::Error& error, plnnrc::Formatter& fmtr)
+{
+    write(fmtr, "error (%d, %d): ", error.loc.line, error.loc.column);
+
+    const char* format = get_format_string(error.type);
+    while (*format)
+    {
+        if (*format == '$')
+        {
+            ++format;
+            char digit = *format;
+            plnnrc_assert(isdigit(digit));
+            uint32_t slot = digit - '0';
+            plnnrc_assert(slot < error.num_args);
+            Error::Arg_Type arg_type = error.arg_types[slot];
+            plnnrc_assert(arg_type != Error::Arg_Type_None);
+
+            switch (arg_type)
+            {
+            case Error::Arg_Type_Token_Value:
+                {
+                    write(fmtr, "%n", error.args[slot].token_value);
+                    break;
+                }
+            case Error::Arg_Type_Token_Type:
+                {
+                    write(fmtr, "%s", get_type_name(error.args[slot].token_type));
+                    break;
+                }
+            case Error::Arg_Type_Token_Group:
+                {
+                    write(fmtr, "%s", get_group_name(error.args[slot].token_group));
+                    break;
+                }
+            default:
+                plnnrc_assert(false);
+                break;
+            }
+        }
+        else
+        {
+            put_char(fmtr, *format);
+        }
+
+        ++format;
+    }
+
+    newline(fmtr);
 }

@@ -23,12 +23,14 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "derplanner/compiler/array.h"
 #include "derplanner/compiler/io.h"
 #include "derplanner/compiler/memory.h"
 #include "derplanner/compiler/lexer.h"
 #include "derplanner/compiler/ast.h"
 #include "derplanner/compiler/parser.h"
 #include "derplanner/compiler/codegen.h"
+#include "derplanner/compiler/errors.h"
 
 using namespace plnnrc;
 
@@ -59,19 +61,6 @@ size_t file_size(const char* path)
     fseek(ctx.fd, 0, SEEK_SET);
     return input_size;
 }
-
-// struct Error_Node_Comparator
-// {
-//     bool operator()(const ast::Node* a, const ast::Node* b)
-//     {
-//         if (a->s_expr->line == b->s_expr->line)
-//         {
-//             return a->s_expr->column < b->s_expr->column;
-//         }
-
-//         return a->s_expr->line < b->s_expr->line;
-//     }
-// };
 
 void print_help()
 {
@@ -262,8 +251,11 @@ int main(int argc, char** argv)
 
     std::string output_name = get_output_name(normalize(input_path));
 
-    plnnrc::Memory_Stack* mem_ast = plnnrc::Memory_Stack::create(32 * 1024);
-    plnnrc::Memory_Stack* mem_scratch = plnnrc::Memory_Stack::create(32 * 1024);
+    plnnrc::Memory_Stack_Context mem_ctx_ast(32 * 1024);
+    plnnrc::Memory_Stack_Context mem_ctx_scratch(32 * 1024);
+
+    plnnrc::Memory_Stack* mem_ast = mem_ctx_ast.mem;
+    plnnrc::Memory_Stack* mem_scratch = mem_ctx_scratch.mem;
 
     size_t input_size = file_size(input_path.c_str());
     char*  input_buffer = static_cast<char*>(mem_scratch->allocate(input_size + 1));
@@ -278,6 +270,10 @@ int main(int argc, char** argv)
     {
         Memory_Stack_Scope scratch_scope(mem_scratch);
 
+        plnnrc::Writer_Crt error_writer = plnnrc::make_stderr_writer();
+        plnnrc::Formatter error_frmtr;
+        plnnrc::init(error_frmtr, "\t", "\n", &error_writer);
+
         plnnrc::ast::Root tree;
         plnnrc::init(tree, mem_ast, mem_scratch);
 
@@ -287,12 +283,28 @@ int main(int argc, char** argv)
         plnnrc::Parser parser;
         plnnrc::init(parser, &lexer, &tree, mem_scratch);
 
-        plnnrc::parse(parser);
+        // build AST.
+        {
+            plnnrc::parse(parser);
 
-        plnnrc::inline_predicates(tree);
-        plnnrc::convert_to_dnf(tree);
-        plnnrc::annotate(tree);
-        plnnrc::infer_types(tree);
+            for (uint32_t i = 0; i < plnnrc::size(parser.errs); ++i)
+            {
+                plnnrc::format_error(parser.errs[i], error_frmtr);
+            }
+
+            if (!plnnrc::empty(parser.errs))
+            {
+                return 1;
+            }
+        }
+
+        // process AST.
+        {
+            plnnrc::inline_predicates(tree);
+            plnnrc::convert_to_dnf(tree);
+            plnnrc::annotate(tree);
+            plnnrc::infer_types(tree);
+        }
 
         // generate source code.
         {
@@ -323,9 +335,6 @@ int main(int argc, char** argv)
             printf("total_size = %d\n", (uint32_t)total_size);
         }
     }
-
-    plnnrc::Memory_Stack::destroy(mem_scratch);
-    plnnrc::Memory_Stack::destroy(mem_ast);
 
     return 0;
 }
