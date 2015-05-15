@@ -151,6 +151,26 @@ static inline Error& emit(Parser& state, Error_Type error_type)
     return back(state.errs);
 }
 
+static inline bool recover(Parser& state, Token_Type until)
+{
+    for (;;)
+    {
+        Token tok = peek(state);
+
+        if (tok.type == until)
+        {
+            return true;
+        }
+
+        if (is_Eof(tok))
+        {
+            return false;
+        }
+
+        eat(state);
+    }
+}
+
 void plnnrc::parse(Parser& state)
 {
     // buffer first token.
@@ -158,10 +178,16 @@ void plnnrc::parse(Parser& state)
     // initialize errors.
     init(state.errs, state.tree->pool, 64);
 
-    if (is_Error(expect(state, Token_Domain))) { emit(state, Error_Expected) << Token_Domain; }
+    if (is_Error(expect(state, Token_Domain)))
+    {
+        emit(state, Error_Expected) << Token_Domain << peek(state).type;
+    }
 
     Token name = expect(state, Token_Id);
-    if (is_Error(name)) { emit(state, Error_Expected_After) << Token_Id << Token_Domain; }
+    if (is_Error(name))
+    {
+        emit(state, Error_Expected_After) << Token_Id << Token_Domain << peek(state).type;
+    }
 
     ast::Domain* domain = plnnrc::create_domain(state.tree, name.value);
     state.tree->domain = domain;
@@ -173,6 +199,11 @@ void plnnrc::parse(Parser& state)
 
         for (;;)
         {
+            if (is_Eof(peek(state)))
+            {
+                break;
+            }
+
             Token tok = eat(state);
             if (is_R_Curly(tok))
             {
@@ -182,7 +213,11 @@ void plnnrc::parse(Parser& state)
             if (is_World(tok))
             {
                 ast::World* world = parse_world(state);
-                plnnrc_assert(!state.tree->world);
+                if (state.tree->world)
+                {
+                    emit(state, Error_Redefinition) << Token_World;
+                }
+
                 state.tree->world = world;
                 continue;
             }
@@ -190,7 +225,11 @@ void plnnrc::parse(Parser& state)
             if (is_Primitive(tok))
             {
                 ast::Primitive* prim = parse_primitive(state);
-                plnnrc_assert(!state.tree->primitive);
+                if (state.tree->primitive)
+                {
+                    emit(state, Error_Redefinition) << Token_Primitive;
+                }
+
                 state.tree->primitive = prim;
                 continue;
             }
@@ -208,7 +247,18 @@ void plnnrc::parse(Parser& state)
                 continue;
             }
 
-            // emit(state, Unexpected_Token, tok);
+            if (is_L_Curly(tok))
+            {
+                emit(state, Error_Unexpected_Token) << tok.type;
+                if (!recover(state, Token_R_Curly))
+                {
+                    break;
+                }
+                eat(state);
+                continue;
+            }
+
+            emit(state, Error_Unexpected_Token) << tok.type;
             break;
         }
     }
@@ -279,7 +329,18 @@ static void parse_facts(Parser& state, Children_Builder<ast::Fact>& builder)
 ast::World* plnnrc::parse_world(Parser& state)
 {
     ast::World* world = plnnrc::create_world(state.tree);
-    expect(state, Token_L_Curly);
+
+    if (is_Error(expect(state, Token_L_Curly)))
+    {
+        emit(state, Error_Expected_After) << Token_L_Curly << Token_World << peek(state).type;
+        if (!recover(state, Token_L_Curly))
+        {
+            return world;
+        }
+
+        eat(state);
+    }
+
     Children_Builder<ast::Fact> cb(&state, &world->facts);
     parse_facts(state, cb);
     return world;
@@ -327,6 +388,15 @@ ast::Task* plnnrc::parse_task(Parser& state)
 {
     Token tok = expect(state, Token_Id);
     ast::Task* task = create_task(state.tree, tok.value);
+
+    if (is_Error(tok))
+    {
+        emit(state, Error_Expected_After) << Token_Id << Token_Task << peek(state).type;
+        if (!recover(state, Token_L_Curly))
+        {
+            return task;
+        }
+    }
 
     parse_params(state, task->params);
 

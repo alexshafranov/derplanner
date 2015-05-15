@@ -27,8 +27,9 @@
 #endif
 
 PLNNRC_PARSER_ERROR(Unexpected_Token,       "unexpected token '$0'.")
-PLNNRC_PARSER_ERROR(Expected,               "expected '$0'.")
-PLNNRC_PARSER_ERROR(Expected_After,         "expected '$0' after '$1'.")
+PLNNRC_PARSER_ERROR(Expected,               "expected '$0', got '$1'.")
+PLNNRC_PARSER_ERROR(Expected_After,         "expected '$0' after '$1', got '$2'.")
+PLNNRC_PARSER_ERROR(Redefinition,           "redefinition of '$0'.")
 
 #undef PLNNRC_PARSER_ERROR
 #undef PLNNRC_ERROR
