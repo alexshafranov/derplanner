@@ -288,6 +288,12 @@ static void parse_facts(Parser& state, Children_Builder<ast::Fact>& builder)
     {
         Token tok = expect(state, Token_Id);
         ast::Fact* fact = plnnrc::create_fact(state.tree, tok.value);
+        if (is_Error(tok))
+        {
+            emit(state, Error_Expected) << Token_Id << peek(state).type;
+            return;
+        }
+
         // parse param types.
         {
             Children_Builder<ast::Data_Type> param_builder(&state, &fact->params);
