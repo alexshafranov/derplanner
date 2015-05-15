@@ -265,3 +265,8 @@ void plnnrc::write(Array<char>& buffer, const char* format, ...)
     io::write(buffer, "", 0, format, arglist);
     va_end(arglist);
 }
+
+void plnnrc::put_char(Formatter& formatter, char c)
+{
+    io::put_char(formatter, c);
+}

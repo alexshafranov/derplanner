@@ -120,6 +120,22 @@ struct Memory_Stack_Scope
     uint8_t*            top;
 };
 
+// RAII for `Memory_Stack`.
+struct Memory_Stack_Context
+{
+    Memory_Stack_Context(size_t page_size)
+    {
+        mem = Memory_Stack::create(page_size);
+    }
+
+    Memory_Stack_Context()
+    {
+        Memory_Stack::destroy(mem);
+    }
+
+    Memory_Stack* mem;
+};
+
 }
 
 /// Inline

@@ -63,6 +63,8 @@ public:
 
 // creates `Writer_Crt` configured to write to `stdout` file.
 Writer_Crt make_stdout_writer();
+// creates `Writer_Crt` configured to write to `stderr` file.
+Writer_Crt make_stderr_writer();
 
 /// Formatter
 
@@ -83,6 +85,9 @@ void writeln(Formatter& formatter, const char* format, ...);
 void write(Formatter& formatter, const char* format, va_list args);
 // make sure the buffer is written to output.
 void flush(Formatter& formatter);
+
+// low-level
+void put_char(Formatter& formatter, char c);
 
 // format to buffer.
 void write(Array<char>& buffer, const char* format, ...);
@@ -111,6 +116,11 @@ struct Indent_Scope
 inline plnnrc::Writer_Crt plnnrc::make_stdout_writer()
 {
     return plnnrc::Writer_Crt(stdout);
+}
+
+inline plnnrc::Writer_Crt plnnrc::make_stderr_writer()
+{
+    return plnnrc::Writer_Crt(stderr);
 }
 
 inline void plnnrc::enter_indent_level(plnnrc::Formatter& formatter)

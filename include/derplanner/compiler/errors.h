@@ -36,6 +36,8 @@ Error& operator<<(Error& builder, const Token_Value& token_value);
 Error& operator<<(Error& builder, const Token_Type&  token_type);
 Error& operator<<(Error& builder, const Token_Group& token_group);
 
+void format_error(const Error& error, Formatter& fmtr);
+
 }
 
 /// Inline
