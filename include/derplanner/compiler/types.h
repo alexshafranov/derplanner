@@ -439,6 +439,8 @@ namespace ast
     };
 }
 
+struct Parse_Scope;
+
 // Parser state.
 struct Parser
 {
@@ -450,6 +452,8 @@ struct Parser
     ast::Root*          tree;
     // errors emitted by parser.
     Array<Error>        errs;
+    // parsing error-handling scope.
+    Parse_Scope*        scope;
     // allocator for parsing data.
     Memory_Stack*       scratch;
 };

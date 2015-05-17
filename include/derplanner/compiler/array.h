@@ -50,6 +50,9 @@ template <typename T>
 void clear(Array<T>& array);
 
 template <typename T>
+uint32_t max_size(const Array<T>& array);
+
+template <typename T>
 uint32_t size(const Array<T>& array);
 
 template <typename T>
@@ -152,6 +155,12 @@ template <typename T>
 inline void plnnrc::clear(plnnrc::Array<T>& array)
 {
     array.size = 0;
+}
+
+template <typename T>
+inline uint32_t plnnrc::max_size(const plnnrc::Array<T>& array)
+{
+    return array.max_size;
 }
 
 template <typename T>
