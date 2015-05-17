@@ -96,6 +96,9 @@ void plnnrc::init(Parser& state, Lexer* lexer, ast::Root* tree, Memory_Stack* sc
     state.lexer = lexer;
     state.tree = tree;
     state.scratch = scratch;
+
+    // initialize errors.
+    init(state.errs, state.tree->pool, 16);
 }
 
 // Bitmask for token types.
@@ -226,6 +229,42 @@ namespace plnnrc
             state->scope = parent;
         }
 
+        Token_Type_Set parent_start()
+        {
+            if (parent)
+            {
+                return parent->start;
+            }
+
+            Token_Type_Set result;
+            init(result);
+            return result;
+        }
+
+        Token_Type_Set parent_follow()
+        {
+            if (parent)
+            {
+                return parent->follow;
+            }
+
+            Token_Type_Set result;
+            init(result);
+            return result;
+        }
+
+        Token_Type_Set parent_stop()
+        {
+            if (parent)
+            {
+                return parent->stop;
+            }
+
+            Token_Type_Set result;
+            init(result);
+            return result;
+        }
+
         // synchronize when enetering a new parsing scope is entered.
         bool enter()
         {
@@ -302,8 +341,8 @@ struct Fact_Block_Scope : public Parse_Scope
     Fact_Block_Scope(Parser* state) : Parse_Scope(state)
     {
         start   | Token_L_Curly | Token_Id;
-        follow  | parent->start;
-        stop    | Token_R_Curly | parent->stop;
+        follow  | parent_start();
+        stop    | Token_R_Curly | parent_stop();
     }
 };
 
@@ -313,8 +352,8 @@ struct Fact_Params_Scope : public Parse_Scope
     Fact_Params_Scope(Parser* state) : Parse_Scope(state)
     {
         start   | Token_L_Paren;
-        follow  | parent->follow;
-        stop    | Token_R_Paren | parent->stop;
+        follow  | parent_follow();
+        stop    | Token_R_Paren | parent_stop();
     }
 };
 
@@ -322,8 +361,6 @@ void plnnrc::parse(Parser& state)
 {
     // buffer the first token.
     state.token = lex(*state.lexer);
-    // initialize errors.
-    init(state.errs, state.tree->pool, 16);
 
     plnnrc::parse_domain(state);
 
