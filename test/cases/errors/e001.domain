@@ -1,11 +1,4 @@
+
 domain
 {
-    world
-    {
-        test(int32, int32)
-    }
-
-    task ##()
-    {
-    }
 }
