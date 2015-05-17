@@ -60,9 +60,9 @@ void plnnrc::format_error(const plnnrc::Error& error, plnnrc::Formatter& fmtr)
 
             switch (arg_type)
             {
-            case Error::Arg_Type_Token_Value:
+            case Error::Arg_Type_Token:
                 {
-                    write(fmtr, "%n", error.args[slot].token_value);
+                    write(fmtr, "%n", error.args[slot].token.value);
                     break;
                 }
             case Error::Arg_Type_Token_Type:

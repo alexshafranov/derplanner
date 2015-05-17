@@ -33,6 +33,7 @@
 // implementation (exposed for unit tests)
 namespace plnnrc
 {
+    ast::Domain*        parse_domain(Parser& state);
     ast::World*         parse_world(Parser& state);
     ast::Primitive*     parse_primitive(Parser& state);
     ast::Task*          parse_task(Parser& state);
@@ -43,6 +44,7 @@ namespace plnnrc
 
 using namespace plnnrc;
 
+// RAII helper to keep AST child nodes allocated in temp memory, moving to persistent in destructor.
 template <typename T>
 struct Children_Builder
 {
@@ -151,20 +153,22 @@ static inline Error& emit(Parser& state, Error_Type error_type)
     return back(state.errs);
 }
 
-static inline bool recover(Parser& state, Token_Type until)
+static inline Token_Type recover(Parser& state, const Token_Type* sync_tokens)
 {
     for (;;)
     {
         Token tok = peek(state);
-
-        if (tok.type == until)
+        for (const Token_Type* sync = sync_tokens; *sync != Token_Unknown; ++sync)
         {
-            return true;
+            if (tok.type == *sync)
+            {
+                return *sync;
+            }
         }
 
         if (is_Eof(tok))
         {
-            return false;
+            return Token_Eof;
         }
 
         eat(state);
@@ -173,38 +177,47 @@ static inline bool recover(Parser& state, Token_Type until)
 
 void plnnrc::parse(Parser& state)
 {
-    // buffer first token.
+    // buffer the first token.
     state.token = lex(*state.lexer);
     // initialize errors.
-    init(state.errs, state.tree->pool, 64);
+    init(state.errs, state.tree->pool, 16);
 
     if (is_Error(expect(state, Token_Domain)))
     {
-        emit(state, Error_Expected) << Token_Domain << peek(state).type;
+        emit(state, Error_Expected_Declaration) << Token_Domain;
+        return;
     }
 
+    plnnrc::parse_domain(state);
+}
+
+ast::Domain* plnnrc::parse_domain(Parser& state)
+{
     Token name = expect(state, Token_Id);
     if (is_Error(name))
     {
-        emit(state, Error_Expected_After) << Token_Id << Token_Domain << peek(state).type;
+        emit(state, Error_Expected_After) << Token_Id << Token_Domain << peek(state);
     }
 
     ast::Domain* domain = plnnrc::create_domain(state.tree, name.value);
     state.tree->domain = domain;
-    expect(state, Token_L_Curly);
+
+    if (is_Error(expect(state, Token_L_Curly)))
+    {
+        emit(state, Error_Expected) << Token_L_Curly << peek(state);
+        Token_Type sync[] = { Token_L_Curly, Token_World, Token_Primitive, Token_Task, Token_Predicate, Token_Unknown };
+        recover(state, sync);
+    }
 
     // parse world & tasks.
     {
         Children_Builder<ast::Task> cb(&state, &domain->tasks);
 
-        for (;;)
+        while (!is_Eof(peek(state)))
         {
-            if (is_Eof(peek(state)))
-            {
-                break;
-            }
-
             Token tok = eat(state);
+
+            // closing domain block.
             if (is_R_Curly(tok))
             {
                 break;
@@ -247,33 +260,20 @@ void plnnrc::parse(Parser& state)
                 continue;
             }
 
-            if (is_L_Curly(tok))
+            emit(state, Error_Unexpected_Token) << tok;
             {
-                emit(state, Error_Unexpected_Token) << tok.type;
-                if (!recover(state, Token_R_Curly))
-                {
-                    break;
-                }
-                eat(state);
-                continue;
+                Token_Type sync[] = { Token_World, Token_Primitive, Token_Task, Token_Predicate, Token_Unknown };
+                recover(state, sync);
             }
-
-            emit(state, Error_Unexpected_Token) << tok.type;
-            break;
         }
     }
 
-    if (!state.tree->world)
+    if (is_Error(expect(state, Token_Eof)))
     {
-        state.tree->world = plnnrc::create_world(state.tree);
+        emit(state, Error_Expected) << Token_Eof << peek(state);
     }
 
-    if (!state.tree->primitive)
-    {
-        state.tree->primitive = plnnrc::create_primitive(state.tree);
-    }
-
-    expect(state, Token_Eof);
+    return domain;
 }
 
 static void parse_facts(Parser& state, Children_Builder<ast::Fact>& builder)
@@ -287,23 +287,37 @@ static void parse_facts(Parser& state, Children_Builder<ast::Fact>& builder)
     for (;;)
     {
         Token tok = expect(state, Token_Id);
-        ast::Fact* fact = plnnrc::create_fact(state.tree, tok.value);
         if (is_Error(tok))
         {
-            emit(state, Error_Expected) << Token_Id << peek(state).type;
+            emit(state, Error_Expected) << Token_Id << peek(state);
+            Token_Type sync[] = { Token_R_Curly, Token_Unknown };
+            recover(state, sync);
             return;
         }
 
+        ast::Fact* fact = plnnrc::create_fact(state.tree, tok.value);
         // parse param types.
         {
-            Children_Builder<ast::Data_Type> param_builder(&state, &fact->params);
             // parse parameters
-            expect(state, Token_L_Paren);
+            if (is_Error(expect(state, Token_L_Paren)))
+            {
+                Token_Type sync[] = { Token_R_Curly, Token_Unknown };
+                recover(state, sync);
+                return;
+            }
+
+            Children_Builder<ast::Data_Type> param_builder(&state, &fact->params);
+
             if (!is_R_Paren(peek(state)))
             {
                 for (;;)
                 {
                     tok = expect(state, Token_Group_Type);
+                    if (is_Error(tok))
+                    {
+                        emit(state, Error_Expected) << Token_Group_Type << peek(state);
+                    }
+
                     ast::Data_Type* param = plnnrc::create_type(state.tree, tok.type);
                     param_builder.push_back(param);
 
@@ -335,16 +349,15 @@ static void parse_facts(Parser& state, Children_Builder<ast::Fact>& builder)
 ast::World* plnnrc::parse_world(Parser& state)
 {
     ast::World* world = plnnrc::create_world(state.tree);
-
     if (is_Error(expect(state, Token_L_Curly)))
     {
-        emit(state, Error_Expected_After) << Token_L_Curly << Token_World << peek(state).type;
-        if (!recover(state, Token_L_Curly))
+        emit(state, Error_Expected_After) << Token_L_Curly << Token_World << peek(state);
+
+        Token_Type sync[] = { Token_L_Curly, Token_Unknown };
+        if (is_Eof(recover(state, sync)))
         {
             return world;
         }
-
-        eat(state);
     }
 
     Children_Builder<ast::Fact> cb(&state, &world->facts);
@@ -397,11 +410,10 @@ ast::Task* plnnrc::parse_task(Parser& state)
 
     if (is_Error(tok))
     {
-        emit(state, Error_Expected_After) << Token_Id << Token_Task << peek(state).type;
-        if (!recover(state, Token_L_Curly))
-        {
-            return task;
-        }
+        emit(state, Error_Expected_After) << Token_Id << Token_Task << peek(state);
+        Token_Type sync[] = { Token_L_Curly, Token_Unknown };
+        recover(state, sync);
+        return task;
     }
 
     parse_params(state, task->params);

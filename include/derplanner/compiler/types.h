@@ -167,8 +167,6 @@ struct Location
 // Token data returned by the lexer.
 struct Token
 {
-    Token();
-
     // type of the token.
     Token_Type      type;
     // location in the input buffer.
@@ -186,7 +184,7 @@ struct Error
     enum Arg_Type
     {
         Arg_Type_None = 0,
-        Arg_Type_Token_Value,
+        Arg_Type_Token,
         Arg_Type_Token_Type,
         Arg_Type_Token_Group,
     };
@@ -194,7 +192,7 @@ struct Error
     // error format argument.
     union Arg
     {
-        Token_Value     token_value;
+        Token           token;
         Token_Type      token_type;
         Token_Group     token_group;
     };

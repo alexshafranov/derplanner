@@ -79,6 +79,7 @@ PLNNRC_OPERATOR_TOKEN(Plus,           "+")
 PLNNRC_OPERATOR_TOKEN(Minus,          "-")
 
 PLNNRC_TOKEN_GROUP(Keyword,   Domain, Float)
+PLNNRC_TOKEN_GROUP(Block,     Domain, Task)
 PLNNRC_TOKEN_GROUP(Type,      Int32,  Float)
 PLNNRC_TOKEN_GROUP(Literal,   Literal_Integer, Literal_Float)
 

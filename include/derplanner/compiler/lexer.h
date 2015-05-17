@@ -83,12 +83,6 @@ inline plnnrc::Location plnnrc::get_loc(const plnnrc::Lexer& state)
     return state.loc;
 }
 
-inline plnnrc::Token::Token() : type(Token_Unknown)
-{
-    loc.line = 0;
-    loc.column = 0;
-}
-
 inline bool plnnrc::has_value(const plnnrc::Token& tok) { return tok.value.length > 0; }
 
 // is_<Token_Type>
