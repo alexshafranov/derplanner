@@ -104,7 +104,7 @@ inline void plnnrc::grow(plnnrc::Array<T>& array, uint32_t new_max_size)
 {
     plnnrc::Memory* mem = array.memory;
     plnnrc_assert(mem != 0);
-    plnnrc_assert(array.max_size < new_max_size);
+    plnnrc_assert(max_size(array) < new_max_size);
     T* new_data = plnnrc::allocate<T>(mem, new_max_size);
     memcpy(new_data, array.data, sizeof(T) * array.size);
     mem->deallocate(array.data);
