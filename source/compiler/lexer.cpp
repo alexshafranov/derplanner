@@ -182,6 +182,7 @@ static inline void consume_until_newline(Lexer& state)
 static inline Token make_token(Lexer& state, Token_Type type)
 {
     Token tok;
+    memset(&tok, 0, sizeof(tok));
     tok.type = type;
     tok.loc = state.loc;
     tok.value.length = 0;
@@ -192,6 +193,7 @@ static inline Token make_token(Lexer& state, Token_Type type)
 static inline Token begin_token(Lexer& state)
 {
     Token tok;
+    memset(&tok, 0, sizeof(tok));
     tok.loc = state.loc;
     tok.value.length = 0;
     tok.value.str = state.buffer_ptr;
