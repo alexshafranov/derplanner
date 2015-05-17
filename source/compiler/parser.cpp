@@ -98,39 +98,53 @@ void plnnrc::init(Parser& state, Lexer* lexer, ast::Root* tree, Memory_Stack* sc
     state.scratch = scratch;
 }
 
-static inline Token make_error_token(Parser& state)
+// Bitmask for token types.
+struct Token_Type_Set
 {
-    Token tok;
-    tok.type = Token_Error;
-    tok.loc = get_loc(*state.lexer);
-    const char* error_str = "<error>";
-    tok.value.str = error_str;
-    tok.value.length = sizeof(error_str) - 1;
-    return tok;
+    uint32_t bits[((Token_Count + 31) & ~31) >> 5];
+};
+
+static inline void init(Token_Type_Set& set)
+{
+    memset(&set, 0, sizeof(set));
 }
 
-static inline Token expect(Parser& state, Token_Type token_type)
+static inline void add(Token_Type_Set& set, Token_Type token_type)
 {
-    Token tok = state.token;
-    if (tok.type != token_type)
-    {
-        return make_error_token(state);
-    }
-
-    state.token = lex(*state.lexer);
-    return tok;
+    uint32_t idx = (uint32_t)token_type;
+    uint32_t slot_idx = idx >> 5;
+    uint32_t bit_idx = idx & 31;
+    set.bits[slot_idx] |= (1u << bit_idx);
 }
 
-static inline Token expect(Parser& state, Token_Group token_group)
+static inline bool is_in(const Token_Type_Set& set, Token_Type token_type)
 {
-    Token tok = state.token;
-    if (tok.type < get_group_first(token_group) || tok.type > get_group_last(token_group))
+    uint32_t idx = (uint32_t)token_type;
+    uint32_t slot_idx = idx >> 5;
+    uint32_t bit_idx = idx & 31;
+    uint32_t result = set.bits[slot_idx] & (1u << bit_idx);
+    return result != 0;
+}
+
+static inline Token_Type_Set& operator|(Token_Type_Set& set, Token_Type token_type)
+{
+    add(set, token_type);
+    return set;
+}
+
+static inline Token_Type_Set& operator|(Token_Type_Set& set_a, const Token_Type_Set& set_b)
+{
+    for (uint32_t i = 0; i < sizeof(set_a.bits)/sizeof(set_b.bits[0]); ++i)
     {
-        return make_error_token(state);
+        set_a.bits[i] |= set_b.bits[i];
     }
 
-    state.token = lex(*state.lexer);
-    return tok;
+    return set_a;
+}
+
+static inline Token peek(Parser& state)
+{
+    return state.token;
 }
 
 static inline Token eat(Parser& state)
@@ -140,9 +154,16 @@ static inline Token eat(Parser& state)
     return tok;
 }
 
-static inline Token peek(Parser& state)
+static inline Token make_error_token(Parser& state, Token_Type type)
 {
-    return state.token;
+    Token tok;
+    tok.error = true;
+    tok.type = type;
+    tok.loc = get_loc(*state.lexer);
+    const char* error_str = "<error>";
+    tok.value.str = error_str;
+    tok.value.length = sizeof(error_str) - 1;
+    return tok;
 }
 
 static inline Error& emit(Parser& state, Error_Type error_type)
@@ -153,70 +174,147 @@ static inline Error& emit(Parser& state, Error_Type error_type)
     return back(state.errs);
 }
 
+static inline Token expect(Parser& state, Token_Type token_type)
+{
+    if (peek(state).type != token_type)
+    {
+        emit(state, Error_Expected) << token_type << peek(state);
+        return make_error_token(state, token_type);
+    }
+
+    return eat(state);
+}
+
+static inline Token expect(Parser& state, Token_Group token_group)
+{
+    Token_Type actual_type = peek(state).type;
+    if (actual_type < get_group_first(token_group) || actual_type > get_group_last(token_group))
+    {
+        emit(state, Error_Expected) << token_group << peek(state);
+        return make_error_token(state, get_group_first(token_group));
+    }
+
+    return eat(state);
+}
+
 namespace plnnrc
 {
     struct Parse_Scope
     {
-        Parser*             state;
-        // previous scope on scope stack.
-        Parse_Scope*        prev;
-        // a list of tokens to look for when recovering from an error.
-        Array<Token_Type>   sync_tokens;
+        Parser*         state;
+        Parse_Scope*    parent;
+
+        // set of tokens this scope is able to parse.
+        Token_Type_Set  start;
+        // set of tokens to be handled by the parent scopes.
+        Token_Type_Set  follow;
+        // set of tokens closing this scope.
+        Token_Type_Set  stop;
 
         Parse_Scope(Parser* state)
             : state(state)
         {
-            prev = state->scope;
+            parent = state->scope;
             state->scope = this;
+            init(start);
+            init(follow);
+            init(stop);
         }
 
         ~Parse_Scope()
         {
-            state->scope = prev;
+            state->scope = parent;
         }
 
-        Token_Type recover()
+        // synchronize when enetering a new parsing scope is entered.
+        bool enter()
         {
-            for (;;)
+            while (!is_Eof(peek(*state)))
             {
                 Token tok = peek(*state);
 
-                uint32_t sync_idx = index_of(sync_tokens, tok.type);
-                if (sync_idx < size(sync_tokens))
+                // we're able to start/resume parsing when the scope's valid start is found.
+                if (is_in(start, tok.type))
                 {
-                    return sync_tokens[sync_idx];
+                    return true;
                 }
 
-                if (is_Eof(tok))
+                // alternatively, a token is from the follow set -> handle in the parent scope.
+                if (is_in(follow, tok.type))
                 {
-                    return Token_Eof;
+                    return false;
                 }
 
                 eat(*state);
             }
+
+            return false;
         }
 
-        Token expect(Token_Type token_type)
+        // synchronize using the follow set when the scope is exited.
+        bool exit()
         {
-            Token tok = ::expect(*state, token_type);
-            if (is_Error(tok))
+            while (!is_Eof(peek(*state)))
             {
-                emit(*state, Error_Expected) << token_type << peek(*state);
-                recover();
+                Token tok = peek(*state);
+
+                if (is_in(stop, tok.type))
+                {
+                    return true;
+                }
+
+                if (is_in(follow, tok.type))
+                {
+                    return false;
+                }
+
+                eat(*state);
             }
 
-            return tok;
+            return false;
+        }
+
+        bool follows(const Token& tok)
+        {
+            return is_in(follow, tok.type);
+        }
+
+        bool stops(const Token& tok)
+        {
+            return is_in(stop, tok.type);
         }
     };
 }
 
+// content of `domain` block.
 struct Domain_Scope : public Parse_Scope
 {
     Domain_Scope(Parser* state) : Parse_Scope(state)
     {
-        Token_Type sync[] = { Token_L_Curly, Token_World, Token_Primitive, Token_Task, Token_Predicate };
-        init(sync_tokens, state->scratch, sizeof(sync)/sizeof(sync[0]));
-        push_back(sync_tokens, sync, max_size(sync_tokens));
+        start   | Token_World | Token_Predicate | Token_Primitive | Token_Task;
+        stop    | Token_R_Curly;
+    }
+};
+
+// content of `primitive` or `world` blocks.
+struct Fact_Block_Scope : public Parse_Scope
+{
+    Fact_Block_Scope(Parser* state) : Parse_Scope(state)
+    {
+        start   | Token_L_Curly | Token_Id;
+        follow  | parent->start;
+        stop    | Token_R_Curly | parent->stop;
+    }
+};
+
+// parameter type tuple.
+struct Fact_Params_Scope : public Parse_Scope
+{
+    Fact_Params_Scope(Parser* state) : Parse_Scope(state)
+    {
+        start   | Token_L_Paren;
+        follow  | parent->follow;
+        stop    | Token_R_Paren | parent->stop;
     }
 };
 
@@ -226,11 +324,6 @@ void plnnrc::parse(Parser& state)
     state.token = lex(*state.lexer);
     // initialize errors.
     init(state.errs, state.tree->pool, 16);
-
-    if (is_Error(expect(state, Token_Domain)))
-    {
-        emit(state, Error_Expected_Declaration) << Token_Domain;
-    }
 
     plnnrc::parse_domain(state);
 
@@ -243,28 +336,32 @@ void plnnrc::parse(Parser& state)
     {
         state.tree->primitive = create_primitive(state.tree);
     }
+
+    expect(state, Token_Eof);
 }
 
 ast::Domain* plnnrc::parse_domain(Parser& state)
 {
     Domain_Scope parse_scope(&state);
 
-    Token name = parse_scope.expect(Token_Id);
+    expect(state, Token_Domain);
+    Token name = expect(state, Token_Id);
 
     ast::Domain* domain = plnnrc::create_domain(state.tree, name.value);
     state.tree->domain = domain;
 
-    parse_scope.expect(Token_L_Curly);
+    expect(state, Token_L_Curly);
 
-    // parse world & tasks.
+    parse_scope.enter();
+    // parse domain contents.
     {
+
         Children_Builder<ast::Task> cb(&state, &domain->tasks);
 
         while (!is_Eof(peek(state)))
         {
-            Token tok = eat(state);
+            Token tok = peek(state);
 
-            // closing domain block.
             if (is_R_Curly(tok))
             {
                 break;
@@ -308,99 +405,95 @@ ast::Domain* plnnrc::parse_domain(Parser& state)
             }
 
             emit(state, Error_Unexpected_Token) << tok;
-            parse_scope.recover();
+            eat(state);
         }
     }
 
-    parse_scope.expect(Token_Eof);
+    parse_scope.exit();
+    expect(state, Token_R_Curly);
 
     return domain;
 }
 
-static void parse_facts(Parser& state, Children_Builder<ast::Fact>& builder)
+static void parse_param_types(Parser& state, Children_Builder<ast::Data_Type>& builder)
 {
-    if (is_R_Curly(peek(state)))
+    Fact_Params_Scope parse_scope(&state);
+
+    if (!parse_scope.enter())
     {
-        eat(state);
         return;
     }
 
-    for (;;)
+    expect(state, Token_L_Paren);
+
+    while (!is_Eof(peek(state)))
     {
+        if (is_R_Paren(peek(state)))
+        {
+            break;
+        }
+
+        Token tok = expect(state, Token_Group_Type);
+        if (is_Error(tok))
+        {
+            break;
+        }
+
+        ast::Data_Type* param = create_type(state.tree, tok.type);
+        builder.push_back(param);
+
+        if (!is_Comma(peek(state)))
+        {
+            break;
+        }
+
+        expect(state, Token_Comma);
+    }
+
+    parse_scope.exit();
+    expect(state, Token_R_Paren);
+}
+
+static void parse_facts(Parser& state, Children_Builder<ast::Fact>& builder)
+{
+    Fact_Block_Scope parse_scope(&state);
+
+    if (!parse_scope.enter())
+    {
+        return;
+    }
+
+    expect(state, Token_L_Curly);
+
+    while (!is_Eof(peek(state)))
+    {
+        if (is_R_Curly(peek(state)))
+        {
+            break;
+        }
+
         Token tok = expect(state, Token_Id);
         if (is_Error(tok))
         {
-            emit(state, Error_Expected) << Token_Id << peek(state);
-            // Token_Type sync[] = { Token_R_Curly, Token_Unknown };
-            // recover(state, sync);
-            return;
+            break;
         }
 
         ast::Fact* fact = plnnrc::create_fact(state.tree, tok.value);
-        // parse param types.
-        {
-            // parse parameters
-            if (is_Error(expect(state, Token_L_Paren)))
-            {
-                // Token_Type sync[] = { Token_R_Curly, Token_Unknown };
-                // recover(state, sync);
-                return;
-            }
 
-            Children_Builder<ast::Data_Type> param_builder(&state, &fact->params);
-
-            if (!is_R_Paren(peek(state)))
-            {
-                for (;;)
-                {
-                    tok = expect(state, Token_Group_Type);
-                    if (is_Error(tok))
-                    {
-                        emit(state, Error_Expected) << Token_Group_Type << peek(state);
-                    }
-
-                    ast::Data_Type* param = plnnrc::create_type(state.tree, tok.type);
-                    param_builder.push_back(param);
-
-                    if (!is_Comma(peek(state)))
-                    {
-                        expect(state, Token_R_Paren);
-                        break;
-                    }
-
-                    expect(state, Token_Comma);
-                }
-            }
-            else
-            {
-                eat(state);
-            }
-        }
+        Children_Builder<ast::Data_Type> param_builder(&state, &fact->params);
+        parse_param_types(state, param_builder);
 
         builder.push_back(fact);
-
-        if (is_R_Curly(peek(state)))
-        {
-            eat(state);
-            break;
-        }
     }
+
+    parse_scope.exit();
+    expect(state, Token_R_Curly);
 }
 
 ast::World* plnnrc::parse_world(Parser& state)
 {
+    expect(state, Token_World);
     ast::World* world = plnnrc::create_world(state.tree);
-    if (is_Error(expect(state, Token_L_Curly)))
-    {
-        emit(state, Error_Expected_After) << Token_L_Curly << Token_World << peek(state);
-
-        // Token_Type sync[] = { Token_L_Curly, Token_Unknown };
-        // if (is_Eof(recover(state, sync)))
-        // {
-        //     return world;
-        // }
-    }
-
     Children_Builder<ast::Fact> cb(&state, &world->facts);
     parse_facts(state, cb);
     return world;
@@ -408,8 +501,8 @@ ast::World* plnnrc::parse_world(Parser& state)
 
 ast::Primitive* plnnrc::parse_primitive(Parser& state)
 {
+    expect(state, Token_Primitive);
     ast::Primitive* prim = plnnrc::create_primitive(state.tree);
-    expect(state, Token_L_Curly);
     Children_Builder<ast::Fact> cb(&state, &prim->tasks);
     parse_facts(state, cb);
     return prim;
@@ -426,6 +519,13 @@ static void parse_params(Parser& state, Array<ast::Param*>& output)
         for (;;)
         {
             Token tok = expect(state, Token_Id);
+
+            if (is_Error(tok))
+            {
+                eat(state);
+                break;
+            }
+
             ast::Param* param = plnnrc::create_param(state.tree, tok.value);
             cb.push_back(param);
 
@@ -446,15 +546,13 @@ static void parse_params(Parser& state, Array<ast::Param*>& output)
 
 ast::Task* plnnrc::parse_task(Parser& state)
 {
+    expect(state, Token_Task);
     Token tok = expect(state, Token_Id);
     ast::Task* task = create_task(state.tree, tok.value);
 
     if (is_Error(tok))
     {
-        emit(state, Error_Expected_After) << Token_Id << Token_Task << peek(state);
-        // Token_Type sync[] = { Token_L_Curly, Token_Unknown };
-        // recover(state, sync);
-        return task;
+        eat(state);
     }
 
     parse_params(state, task->params);
@@ -465,7 +563,7 @@ ast::Task* plnnrc::parse_task(Parser& state)
     {
         Children_Builder<ast::Case> cases_builder(&state, &task->cases);
 
-        for (;;)
+        while (!is_Eof(peek(state)))
         {
             if (is_Case(peek(state)))
             {
@@ -483,7 +581,6 @@ ast::Task* plnnrc::parse_task(Parser& state)
 
             if (is_Predicate(peek(state)))
             {
-                eat(state);
                 parse_predicate(state, task->predicates);
                 continue;
             }
@@ -493,6 +590,9 @@ ast::Task* plnnrc::parse_task(Parser& state)
                 eat(state);
                 break;
             }
+
+            emit(state, Error_Unexpected_Token) << tok;
+            eat(state);
         }
     }
     else
@@ -670,6 +770,8 @@ static ast::Predicate* parse_single_predicate(Parser& state)
 
 void plnnrc::parse_predicate(Parser& state, Array<ast::Predicate*>& output)
 {
+    expect(state, Token_Predicate);
+
     Children_Builder<ast::Predicate> cb(&state, &output);
 
     // block with predicates

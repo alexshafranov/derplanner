@@ -1,13 +1,12 @@
 
 domain
 {
-    world ###
+    world xxx
     {
+        a(yyy)
 
+    task hello()
     {
-    }
-
-    task %%%()
-    {
+        case() -> []
     }
 }

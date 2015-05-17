@@ -62,7 +62,16 @@ void plnnrc::format_error(const plnnrc::Error& error, plnnrc::Formatter& fmtr)
             {
             case Error::Arg_Type_Token:
                 {
-                    write(fmtr, "%n", error.args[slot].token.value);
+                    Token tok = error.args[slot].token;
+                    if (is_Id(tok))
+                    {
+                        write(fmtr, "%n", tok.value);
+                    }
+                    else
+                    {
+                        write(fmtr, "%s", get_type_name(error.args[slot].token.type));
+                    }
+
                     break;
                 }
             case Error::Arg_Type_Token_Type:
