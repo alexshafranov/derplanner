@@ -314,6 +314,7 @@ static inline Token lex_unknown(Lexer& state)
 Token plnnrc::lex(Lexer& state)
 {
     Token tok;
+    memset(&tok, 0, sizeof(tok));
 
     for (char c = get_char(state); c != 0; c = get_char(state))
     {

@@ -167,6 +167,8 @@ struct Location
 // Token data returned by the lexer.
 struct Token
 {
+    // indicates that parser has generated this token.
+    uint8_t         error : 1;
     // type of the token.
     Token_Type      type;
     // location in the input buffer.
@@ -450,10 +452,10 @@ struct Parser
     Token               token;
     // output Abstract-Syntax-Tree.
     ast::Root*          tree;
+    // top parsing scope.
+    Parse_Scope*        scope;
     // errors emitted by parser.
     Array<Error>        errs;
-    // parsing error-handling scope.
-    Parse_Scope*        scope;
     // allocator for parsing data.
     Memory_Stack*       scratch;
 };
