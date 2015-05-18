@@ -26,11 +26,13 @@
     #define PLNNRC_PARSER_ERROR(TAG, FORMAT_STR) PLNNRC_ERROR(TAG, FORMAT_STR)
 #endif
 
-PLNNRC_PARSER_ERROR(Expected_Declaration,   "expected $0 declaration.")
-PLNNRC_PARSER_ERROR(Unexpected_Token,       "unexpected token '$0'.")
-PLNNRC_PARSER_ERROR(Expected,               "expected '$0', got '$1'.")
-PLNNRC_PARSER_ERROR(Expected_After,         "expected '$0' after '$1', got '$2'.")
-PLNNRC_PARSER_ERROR(Redefinition,           "redefinition of '$0'.")
+PLNNRC_PARSER_ERROR(Expected_Declaration,       "expected $0 declaration.")
+PLNNRC_PARSER_ERROR(Unexpected_Token,           "unexpected token '$0'.")
+PLNNRC_PARSER_ERROR(Expected,                   "expected '$0', got '$1'.")
+PLNNRC_PARSER_ERROR(Expected_After,             "expected '$0' after '$1', got '$2'.")
+PLNNRC_PARSER_ERROR(Redefinition,               "redefinition of '$0'.")
+PLNNRC_PARSER_ERROR(Missing_Fact_Params_Decl,   "missing parameter declaration for fact '$0'.")
+PLNNRC_PARSER_ERROR(Missing_Task_Params_Decl,   "missing parameter declaration for task '$0'.")
 
 #undef PLNNRC_PARSER_ERROR
 #undef PLNNRC_ERROR
