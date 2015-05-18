@@ -6,4 +6,8 @@ domain test
         a(xxx)
         b
     }
+
+    task hello
+        case() -> []
+    }
 }
