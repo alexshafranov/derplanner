@@ -335,10 +335,10 @@ struct Domain_Scope : public Parse_Scope
     }
 };
 
-// world | primitive { <fact_name>(p1, ..., pN) ... }
-struct Fact_Block_Scope : public Parse_Scope
+// world {...}, primitive {...}, predicate {...}
+struct Block_Scope : public Parse_Scope
 {
-    Fact_Block_Scope(Parser* state) : Parse_Scope(state)
+    Block_Scope(Parser* state) : Parse_Scope(state)
     {
         start   | Token_L_Curly | Token_Id;
         follow  | parent_start();
@@ -555,7 +555,7 @@ static bool parse_params(Parser& state, Children_Builder<ast::Param>& builder)
 
 static void parse_facts(Parser& state, Children_Builder<ast::Fact>& builder)
 {
-    Fact_Block_Scope parse_scope(&state);
+    Block_Scope parse_scope(&state);
 
     if (!parse_scope.enter())
     {
@@ -838,6 +838,7 @@ static ast::Predicate* parse_single_predicate(Parser& state)
 {
     Token tok = expect(state, Token_Id);
     ast::Predicate* pred = create_predicate(state.tree, tok.value);
+
     Children_Builder<ast::Param> param_builder(&state, &pred->params);
     parse_params(state, param_builder);
     expect(state, Token_Equality);
@@ -845,40 +846,48 @@ static ast::Predicate* parse_single_predicate(Parser& state)
     return pred;
 }
 
+static void parse_predicate_block(Parser& state, Children_Builder<ast::Predicate>& builder)
+{
+    Block_Scope parse_scope(&state);
+    expect(state, Token_L_Curly);
+
+    while (!is_Eof(peek(state)))
+    {
+        Token tok = peek(state);
+
+        if (is_R_Curly(tok))
+        {
+            break;
+        }
+
+        if (is_Id(tok))
+        {
+            ast::Predicate* pred = parse_single_predicate(state);
+            builder.push_back(pred);
+            continue;
+        }
+
+        emit(state, Error_Unexpected_Token) << tok;
+        eat(state);
+        break;
+    }
+
+    parse_scope.exit();
+    expect(state, Token_R_Curly);
+}
+
 void plnnrc::parse_predicate(Parser& state, Array<ast::Predicate*>& output)
 {
     expect(state, Token_Predicate);
 
     Children_Builder<ast::Predicate> cb(&state, &output);
-
-    // block with predicates
     if (is_L_Curly(peek(state)))
     {
-        eat(state);
-
-        for (;;)
-        {
-            if (!is_R_Paren(peek(state)))
-            {
-                ast::Predicate* node_Pred = parse_single_predicate(state);
-                cb.push_back(node_Pred);
-            }
-            else
-            {
-                eat(state);
-            }
-
-            if (is_R_Curly(peek(state)))
-            {
-                eat(state);
-                break;
-            }
-        }
-
+        parse_predicate_block(state, cb);
         return;
     }
 
     // single predicate definition
-    ast::Predicate* node_Pred = parse_single_predicate(state);
-    cb.push_back(node_Pred);
+    ast::Predicate* pred = parse_single_predicate(state);
+    cb.push_back(pred);
 }
