@@ -441,8 +441,6 @@ namespace ast
     };
 }
 
-struct Parse_Scope;
-
 // Parser state.
 struct Parser
 {
@@ -452,8 +450,6 @@ struct Parser
     Token               token;
     // output Abstract-Syntax-Tree.
     ast::Root*          tree;
-    // top parsing scope.
-    Parse_Scope*        scope;
     // errors emitted by parser.
     Array<Error>        errs;
     // allocator for parsing data.
