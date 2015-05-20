@@ -1,0 +1,9 @@
+
+domain test
+{
+    task hello() {
+        case -> []
+
+        case(((()))) -> []
+    }
+}

@@ -41,6 +41,49 @@ const char* plnnrc::get_format_string(plnnrc::Error_Type error_type)
     return s_format_str[error_type];
 }
 
+static const char* get_nice_description(Token_Type type)
+{
+    switch (type)
+    {
+    #define PLNNRC_KEYWORD_TOKEN(TAG, STR)      \
+        case Token_##TAG:                       \
+            return "keyword '" STR "'";         \
+
+    #define PLNNRC_TYPE_KEYWORD_TOKEN(TAG, STR) \
+        case Token_##TAG:                       \
+            return "type '" STR "'";            \
+
+    #define PLNNRC_PUNCTUATOR_TOKEN(TAG, STR)   \
+        case Token_##TAG:                       \
+            return "'" STR "'";                 \
+
+    #define PLNNRC_OPERATOR_TOKEN(TAG, STR)     \
+        case Token_##TAG:                       \
+            return "operator '" STR "'";        \
+
+    #include "derplanner/compiler/token_tags.inl"
+
+        default:
+            return 0;
+    };
+
+    #undef PLNNRC_OPERATOR_TOKEN
+    #undef PLNNRC_PUNCTUATOR_TOKEN
+    #undef PLNNRC_TYPE_KEYWORD_TOKEN
+    #undef PLNNRC_KEYWORD_TOKEN
+}
+
+static const char* get_description(Token_Type type)
+{
+    const char* desc = get_nice_description(type);
+    if (desc)
+    {
+        return desc;
+    }
+
+    return get_type_name(type);
+}
+
 void plnnrc::format_error(const plnnrc::Error& error, plnnrc::Formatter& fmtr)
 {
     write(fmtr, "error (%d, %d): ", error.loc.line, error.loc.column);
@@ -63,20 +106,22 @@ void plnnrc::format_error(const plnnrc::Error& error, plnnrc::Formatter& fmtr)
             case Error::Arg_Type_Token:
                 {
                     Token tok = error.args[slot].token;
-                    if (is_Id(tok))
+                    const char* desc = get_nice_description(tok.type);
+
+                    if (desc)
                     {
-                        write(fmtr, "%n", tok.value);
+                        write(fmtr, "%s", desc);
                     }
                     else
                     {
-                        write(fmtr, "%s", get_type_name(error.args[slot].token.type));
+                        write(fmtr, "'%n'", tok.value);
                     }
 
                     break;
                 }
             case Error::Arg_Type_Token_Type:
                 {
-                    write(fmtr, "%s", get_type_name(error.args[slot].token_type));
+                    write(fmtr, "%s", get_description(error.args[slot].token_type));
                     break;
                 }
             case Error::Arg_Type_Token_Group:

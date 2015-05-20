@@ -30,7 +30,9 @@
 #include "derplanner/compiler/errors.h"
 #include "derplanner/compiler/parser.h"
 
-// implementation (exposed for unit tests)
+using namespace plnnrc;
+
+// main parsing functions, exposed for unit tests
 namespace plnnrc
 {
     ast::Domain*        parse_domain(Parser& state);
@@ -38,53 +40,25 @@ namespace plnnrc
     ast::Primitive*     parse_primitive(Parser& state);
     ast::Task*          parse_task(Parser& state);
     ast::Expr*          parse_precond(Parser& state);
-    void                parse_task_list(Parser& state, ast::Case* case_);
-    void                parse_predicate(Parser& state, Array<ast::Predicate*>& output);
 }
 
-using namespace plnnrc;
-
-// RAII helper to keep AST child nodes allocated in temp memory, moving to persistent in destructor.
 template <typename T>
-struct Children_Builder
-{
-    Parser*             state;
-    Array<T*>*          output;
-    Memory_Stack_Scope  mem_scope;
-    Array<T*>           nodes;
+struct Children_Builder;
 
-    Children_Builder(Parser* state, Array<T*>* output)
-        : state(state)
-        , output(output)
-        , mem_scope(state->scratch)
-    {
-        init(nodes, state->scratch, 16);
-    }
+static ast::Expr* parse_expr(Parser& state);
+static ast::Expr* parse_disjunct(Parser& state);
+static ast::Expr* parse_conjunct(Parser& state);
 
-    void push_back(T* node)
-    {
-        plnnrc::push_back(nodes, node);
-    }
+static ast::Predicate* parse_single_predicate(Parser& state);
 
-    ~Children_Builder()
-    {
-        const uint32_t node_count = size(nodes);
-        if (!node_count)
-        {
-            return;
-        }
+static bool parse_param_types(Parser& state, Children_Builder<ast::Data_Type>& builder);
+static bool parse_params(Parser& state, Children_Builder<ast::Param>& builder);
+static bool parse_facts(Parser& state, Children_Builder<ast::Fact>& builder);
+static bool parse_task_body(Parser& state, ast::Task* task);
+static bool parse_task_list(Parser& state, ast::Case* case_);
+static bool parse_predicate_block(Parser& state, Children_Builder<ast::Predicate>& builder);
+static bool parse_predicates(Parser& state, Children_Builder<ast::Predicate>& builder);
 
-        if (!output->memory)
-        {
-            init(*output, state->tree->pool, node_count);
-        }
-
-        if (node_count > 0)
-        {
-            plnnrc::push_back(*output, &nodes[0], node_count);
-        }
-    }
-};
 
 void plnnrc::init(Parser& state, Lexer* lexer, ast::Root* tree, Memory_Stack* scratch)
 {
@@ -99,50 +73,6 @@ void plnnrc::init(Parser& state, Lexer* lexer, ast::Root* tree, Memory_Stack* sc
 
     // initialize errors.
     init(state.errs, state.tree->pool, 16);
-}
-
-// Bitmask for token types.
-struct Token_Type_Set
-{
-    uint32_t bits[((Token_Count + 31) & ~31) >> 5];
-};
-
-static inline void init(Token_Type_Set& set)
-{
-    memset(&set, 0, sizeof(set));
-}
-
-static inline void add(Token_Type_Set& set, Token_Type token_type)
-{
-    uint32_t idx = (uint32_t)token_type;
-    uint32_t slot_idx = idx >> 5;
-    uint32_t bit_idx = idx & 31;
-    set.bits[slot_idx] |= (1u << bit_idx);
-}
-
-static inline bool is_in(const Token_Type_Set& set, Token_Type token_type)
-{
-    uint32_t idx = (uint32_t)token_type;
-    uint32_t slot_idx = idx >> 5;
-    uint32_t bit_idx = idx & 31;
-    uint32_t result = set.bits[slot_idx] & (1u << bit_idx);
-    return result != 0;
-}
-
-static inline Token_Type_Set& operator|(Token_Type_Set& set, Token_Type token_type)
-{
-    add(set, token_type);
-    return set;
-}
-
-static inline Token_Type_Set& operator|(Token_Type_Set& set_a, const Token_Type_Set& set_b)
-{
-    for (uint32_t i = 0; i < sizeof(set_a.bits)/sizeof(set_b.bits[0]); ++i)
-    {
-        set_a.bits[i] |= set_b.bits[i];
-    }
-
-    return set_a;
 }
 
 static inline Token peek(Parser& state)
@@ -200,182 +130,45 @@ static inline Token expect(Parser& state, Token_Group token_group)
     return eat(state);
 }
 
-namespace plnnrc
+// RAII helper to keep AST child nodes allocated in temp memory, moving to persistent in destructor.
+template <typename T>
+struct Children_Builder
 {
-    struct Parse_Scope
+    Parser*             state;
+    Array<T*>*          output;
+    Memory_Stack_Scope  mem_scope;
+    Array<T*>           nodes;
+
+    Children_Builder(Parser* state, Array<T*>* output)
+        : state(state)
+        , output(output)
+        , mem_scope(state->scratch)
     {
-        Parser*         state;
-        Parse_Scope*    parent;
-
-        // set of tokens this scope is able to parse.
-        Token_Type_Set  start;
-        // set of tokens to be handled by the parent scopes.
-        Token_Type_Set  follow;
-        // set of tokens closing this scope.
-        Token_Type_Set  stop;
-
-        Parse_Scope(Parser* state)
-            : state(state)
-        {
-            parent = state->scope;
-            state->scope = this;
-            init(start);
-            init(follow);
-            init(stop);
-        }
-
-        ~Parse_Scope()
-        {
-            state->scope = parent;
-        }
-
-        Token_Type_Set parent_start()
-        {
-            if (parent)
-            {
-                return parent->start;
-            }
-
-            Token_Type_Set result;
-            init(result);
-            return result;
-        }
-
-        Token_Type_Set parent_follow()
-        {
-            if (parent)
-            {
-                return parent->follow;
-            }
-
-            Token_Type_Set result;
-            init(result);
-            return result;
-        }
-
-        Token_Type_Set parent_stop()
-        {
-            if (parent)
-            {
-                return parent->stop;
-            }
-
-            Token_Type_Set result;
-            init(result);
-            return result;
-        }
-
-        // synchronize when enetering a new parsing scope is entered.
-        bool enter()
-        {
-            while (!is_Eof(peek(*state)))
-            {
-                Token tok = peek(*state);
-
-                // we're able to start/resume parsing when the scope's valid start is found.
-                if (is_in(start, tok.type))
-                {
-                    return true;
-                }
-
-                // alternatively, a token is from the follow set -> handle in the parent scope.
-                if (is_in(follow, tok.type))
-                {
-                    return false;
-                }
-
-                eat(*state);
-            }
-
-            return false;
-        }
-
-        // synchronize using the follow set when the scope is exited.
-        bool exit()
-        {
-            while (!is_Eof(peek(*state)))
-            {
-                Token tok = peek(*state);
-
-                if (is_in(stop, tok.type))
-                {
-                    return true;
-                }
-
-                if (is_in(follow, tok.type))
-                {
-                    return false;
-                }
-
-                eat(*state);
-            }
-
-            return false;
-        }
-
-        bool follows(const Token& tok)
-        {
-            return is_in(follow, tok.type);
-        }
-
-        bool stops(const Token& tok)
-        {
-            return is_in(stop, tok.type);
-        }
-    };
-}
-
-// domain <name> { ... }
-struct Domain_Scope : public Parse_Scope
-{
-    Domain_Scope(Parser* state) : Parse_Scope(state)
-    {
-        start   | Token_World | Token_Predicate | Token_Primitive | Token_Task;
-        stop    | Token_R_Curly;
+        init(nodes, state->scratch, 16);
     }
-};
 
-// world {...}, primitive {...}, predicate {...}
-struct Block_Scope : public Parse_Scope
-{
-    Block_Scope(Parser* state) : Parse_Scope(state)
+    void push_back(T* node)
     {
-        start   | Token_L_Curly | Token_Id;
-        follow  | parent_start();
-        stop    | Token_R_Curly | parent_stop();
+        plnnrc::push_back(nodes, node);
     }
-};
 
-// task <name> (p1, p2, ...) { case() -> [...] ... }
-// <------------------------>
-struct Task_Header_Scope : public Parse_Scope
-{
-    Task_Header_Scope(Parser* state) : Parse_Scope(state)
+    ~Children_Builder()
     {
-        follow  | Token_L_Curly | Token_Case | Token_Predicate | parent_start();
-    }
-};
+        const uint32_t node_count = size(nodes);
+        if (!node_count)
+        {
+            return;
+        }
 
-// task <name> (p1, p2, ...) { case() -> [...] ... }
-//                           <--------------------->
-struct Task_Body_Scope : public Parse_Scope
-{
-    Task_Body_Scope(Parser* state) : Parse_Scope(state)
-    {
-        start   | Token_L_Curly | Token_Case | Token_Predicate;
-        follow  | parent_start();
-        stop    | Token_R_Curly | parent_stop();
-    }
-};
+        if (!output->memory)
+        {
+            init(*output, state->tree->pool, node_count);
+        }
 
-// (t1, t2, ..., tN)
-struct Params_Scope : public Parse_Scope
-{
-    Params_Scope(Parser* state) : Parse_Scope(state)
-    {
-        start   | Token_L_Paren;
-        follow  | parent_follow() | Token_R_Curly;
-        stop    | Token_R_Paren | parent_stop();
+        if (node_count > 0)
+        {
+            plnnrc::push_back(*output, &nodes[0], node_count);
+        }
     }
 };
 
@@ -401,20 +194,20 @@ void plnnrc::parse(Parser& state)
 
 ast::Domain* plnnrc::parse_domain(Parser& state)
 {
-    Domain_Scope parse_scope(&state);
-
     expect(state, Token_Domain);
     Token name = expect(state, Token_Id);
 
     ast::Domain* domain = plnnrc::create_domain(state.tree, name.value);
     state.tree->domain = domain;
 
-    expect(state, Token_L_Curly);
-
-    parse_scope.enter();
-    // parse domain contents.
+    if (is_Error(name))
     {
-        Children_Builder<ast::Task> cb(&state, &domain->tasks);
+        return domain;
+    }
+
+    expect(state, Token_L_Curly);
+    {
+        Children_Builder<ast::Task> task_builder(&state, &domain->tasks);
 
         while (!is_Eof(peek(state)))
         {
@@ -451,14 +244,15 @@ ast::Domain* plnnrc::parse_domain(Parser& state)
 
             if (is_Predicate(tok))
             {
-                parse_predicate(state, domain->predicates);
+                Children_Builder<ast::Predicate> pred_builder(&state, &domain->predicates);
+                parse_predicates(state, pred_builder);
                 continue;
             }
 
             if (is_Task(tok))
             {
                 ast::Task* task = parse_task(state);
-                cb.push_back(task);
+                task_builder.push_back(task);
                 continue;
             }
 
@@ -467,21 +261,57 @@ ast::Domain* plnnrc::parse_domain(Parser& state)
         }
     }
 
-    parse_scope.exit();
     expect(state, Token_R_Curly);
-
     return domain;
+}
+
+ast::World* plnnrc::parse_world(Parser& state)
+{
+    expect(state, Token_World);
+    ast::World* world = plnnrc::create_world(state.tree);
+    Children_Builder<ast::Fact> builder(&state, &world->facts);
+    parse_facts(state, builder);
+    return world;
+}
+
+ast::Primitive* plnnrc::parse_primitive(Parser& state)
+{
+    expect(state, Token_Primitive);
+    ast::Primitive* prim = plnnrc::create_primitive(state.tree);
+    Children_Builder<ast::Fact> builder(&state, &prim->tasks);
+    parse_facts(state, builder);
+    return prim;
+}
+
+ast::Task* plnnrc::parse_task(Parser& state)
+{
+    expect(state, Token_Task);
+    Token tok = expect(state, Token_Id);
+    ast::Task* task = create_task(state.tree, tok.value);
+    Children_Builder<ast::Param> param_builder(&state, &task->params);
+    parse_params(state, param_builder);
+    parse_task_body(state, task);
+    return task;
+}
+
+ast::Expr* plnnrc::parse_precond(Parser& state)
+{
+    expect(state, Token_L_Paren);
+
+    // empty expression -> add dummy node.
+    if (is_R_Paren(peek(state)))
+    {
+        eat(state);
+        return create_op(state.tree, ast::Node_And);
+    }
+
+    ast::Expr* node_Expr = parse_expr(state);
+    expect(state, Token_R_Paren);
+    return node_Expr;
 }
 
 static bool parse_param_types(Parser& state, Children_Builder<ast::Data_Type>& builder)
 {
-    Params_Scope parse_scope(&state);
-
-    if (!parse_scope.enter())
-    {
-        return false;
-    }
-
     expect(state, Token_L_Paren);
 
     while (!is_Eof(peek(state)))
@@ -508,20 +338,12 @@ static bool parse_param_types(Parser& state, Children_Builder<ast::Data_Type>& b
         expect(state, Token_Comma);
     }
 
-    parse_scope.exit();
     expect(state, Token_R_Paren);
     return true;
 }
 
 static bool parse_params(Parser& state, Children_Builder<ast::Param>& builder)
 {
-    Params_Scope parse_scope(&state);
-
-    if (!parse_scope.enter())
-    {
-        return false;
-    }
-
     expect(state, Token_L_Paren);
 
     while (!is_Eof(peek(state)))
@@ -548,20 +370,12 @@ static bool parse_params(Parser& state, Children_Builder<ast::Param>& builder)
         expect(state, Token_Comma);
     }
 
-    parse_scope.exit();
     expect(state, Token_R_Paren);
     return true;
 }
 
-static void parse_facts(Parser& state, Children_Builder<ast::Fact>& builder)
+static bool parse_facts(Parser& state, Children_Builder<ast::Fact>& builder)
 {
-    Block_Scope parse_scope(&state);
-
-    if (!parse_scope.enter())
-    {
-        return;
-    }
-
     expect(state, Token_L_Curly);
 
     while (!is_Eof(peek(state)))
@@ -580,27 +394,17 @@ static void parse_facts(Parser& state, Children_Builder<ast::Fact>& builder)
         ast::Fact* fact = plnnrc::create_fact(state.tree, tok.value);
 
         Children_Builder<ast::Data_Type> param_builder(&state, &fact->params);
-        if (!parse_param_types(state, param_builder))
-        {
-            emit(state, Error_Missing_Fact_Params_Decl) << tok;
-        }
+        parse_param_types(state, param_builder);
 
         builder.push_back(fact);
     }
 
-    parse_scope.exit();
     expect(state, Token_R_Curly);
+    return true;
 }
 
-static void parse_task_body(Parser& state, ast::Task* task)
+static bool parse_task_body(Parser& state, ast::Task* task)
 {
-    Task_Body_Scope parse_scope(&state);
-
-    if (!parse_scope.enter())
-    {
-        return;
-    }
-
     expect(state, Token_L_Curly);
 
     Children_Builder<ast::Case> cases_builder(&state, &task->cases);
@@ -630,7 +434,8 @@ static void parse_task_body(Parser& state, ast::Task* task)
 
         if (is_Predicate(tok))
         {
-            parse_predicate(state, task->predicates);
+            Children_Builder<ast::Predicate> pred_builder(&state, &task->predicates);
+            parse_predicates(state, pred_builder);
             continue;
         }
 
@@ -638,92 +443,37 @@ static void parse_task_body(Parser& state, ast::Task* task)
         eat(state);
     }
 
-    parse_scope.exit();
     expect(state, Token_R_Curly);
+    return true;
 }
 
-ast::World* plnnrc::parse_world(Parser& state)
-{
-    expect(state, Token_World);
-    ast::World* world = plnnrc::create_world(state.tree);
-    Children_Builder<ast::Fact> cb(&state, &world->facts);
-    parse_facts(state, cb);
-    return world;
-}
-
-ast::Primitive* plnnrc::parse_primitive(Parser& state)
-{
-    expect(state, Token_Primitive);
-    ast::Primitive* prim = plnnrc::create_primitive(state.tree);
-    Children_Builder<ast::Fact> cb(&state, &prim->tasks);
-    parse_facts(state, cb);
-    return prim;
-}
-
-ast::Task* plnnrc::parse_task(Parser& state)
-{
-    expect(state, Token_Task);
-    Token tok = expect(state, Token_Id);
-    ast::Task* task = create_task(state.tree, tok.value);
-
-    Task_Header_Scope parse_scope(&state);
-    Children_Builder<ast::Param> param_builder(&state, &task->params);
-
-    if (!parse_params(state, param_builder))
-    {
-        emit(state, Error_Missing_Task_Params_Decl) << tok;
-    }
-
-    parse_task_body(state, task);
-
-    return task;
-}
-
-static ast::Expr* parse_expr(Parser& state);
-static ast::Expr* parse_disjunct(Parser& state);
-static ast::Expr* parse_conjunct(Parser& state);
-
-ast::Expr* plnnrc::parse_precond(Parser& state)
-{
-    expect(state, Token_L_Paren);
-
-    // empty expression -> add dummy node.
-    if (is_R_Paren(peek(state)))
-    {
-        eat(state);
-        return create_op(state.tree, ast::Node_And);
-    }
-
-    ast::Expr* node_Expr = parse_expr(state);
-    expect(state, Token_R_Paren);
-    return node_Expr;
-}
-
-void plnnrc::parse_task_list(Parser& state, ast::Case* case_)
+static bool parse_task_list(Parser& state, ast::Case* case_)
 {
     expect(state, Token_L_Square);
-    Children_Builder<ast::Expr> cb(&state, &case_->task_list);
-    
-    if (!is_R_Square(peek(state)))
+    Children_Builder<ast::Expr> builder(&state, &case_->task_list);
+
+    while (!is_Eof(peek(state)))
     {
-        for (;;)
+        Token tok = peek(state);
+
+        if (is_R_Square(tok))
         {
-            ast::Expr* node_Task = parse_conjunct(state);
-            cb.push_back(node_Task);
-
-            if (!is_Comma(peek(state)))
-            {
-                expect(state, Token_R_Square);
-                break;
-            }
-
-            expect(state, Token_Comma);
+            break;
         }
+
+        ast::Expr* node_Task = parse_conjunct(state);
+        builder.push_back(node_Task);
+
+        if (!is_Comma(peek(state)))
+        {
+            break;
+        }
+
+        expect(state, Token_Comma);
     }
-    else
-    {
-        eat(state);
-    }
+
+    expect(state, Token_R_Square);
+    return true;
 }
 
 static ast::Expr* parse_expr(Parser& state)
@@ -802,35 +552,40 @@ static ast::Expr* parse_conjunct(Parser& state)
 
             ast::Func* node = plnnrc::create_func(state.tree, tok.value);
 
-            if (!is_R_Paren(peek(state)))
+            while (!is_Eof(peek(state)))
             {
-                for (;;)
+                Token tok = peek(state);
+
+                if (is_R_Paren(tok))
                 {
-                    Token tok = expect(state, Token_Id);
+                    break;
+                }
+
+                if (is_Id(tok))
+                {
+                    eat(state);
                     ast::Expr* node_Var = plnnrc::create_var(state.tree, tok.value);
                     plnnrc::append_child(node, node_Var);
-
-                    if (!is_Comma(peek(state)))
-                    {
-                        expect(state, Token_R_Paren);
-                        break;
-                    }
-
-                    expect(state, Token_Comma);
+                    continue;
                 }
-            }
-            else
-            {
+
+                if (!is_Comma(peek(state)))
+                {
+                    break;
+                }
+
+                emit(state, Error_Unexpected_Token) << tok;
                 eat(state);
+                break;
             }
 
+            expect(state, Token_R_Paren);
             return node;
         }
 
         return plnnrc::create_var(state.tree, tok.value);
     }
 
-    plnnrc_assert(false);
     return 0;
 }
 
@@ -846,9 +601,8 @@ static ast::Predicate* parse_single_predicate(Parser& state)
     return pred;
 }
 
-static void parse_predicate_block(Parser& state, Children_Builder<ast::Predicate>& builder)
+static bool parse_predicate_block(Parser& state, Children_Builder<ast::Predicate>& builder)
 {
-    Block_Scope parse_scope(&state);
     expect(state, Token_L_Curly);
 
     while (!is_Eof(peek(state)))
@@ -872,22 +626,21 @@ static void parse_predicate_block(Parser& state, Children_Builder<ast::Predicate
         break;
     }
 
-    parse_scope.exit();
     expect(state, Token_R_Curly);
+    return true;
 }
 
-void plnnrc::parse_predicate(Parser& state, Array<ast::Predicate*>& output)
+static bool parse_predicates(Parser& state, Children_Builder<ast::Predicate>& builder)
 {
     expect(state, Token_Predicate);
 
-    Children_Builder<ast::Predicate> cb(&state, &output);
     if (is_L_Curly(peek(state)))
     {
-        parse_predicate_block(state, cb);
-        return;
+        return parse_predicate_block(state, builder);
     }
 
     // single predicate definition
     ast::Predicate* pred = parse_single_predicate(state);
-    cb.push_back(pred);
+    builder.push_back(pred);
+    return true;
 }
