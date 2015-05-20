@@ -75,19 +75,19 @@ void plnnrc::init(Parser& state, Lexer* lexer, ast::Root* tree, Memory_Stack* sc
     init(state.errs, state.tree->pool, 16);
 }
 
-static inline Token peek(Parser& state)
+static Token peek(Parser& state)
 {
     return state.token;
 }
 
-static inline Token eat(Parser& state)
+static Token eat(Parser& state)
 {
     Token tok = state.token;
     state.token = lex(*state.lexer);
     return tok;
 }
 
-static inline Token make_error_token(Parser& state, Token_Type type)
+static Token make_error_token(Parser& state, Token_Type type)
 {
     Token tok;
     tok.error = true;
@@ -99,7 +99,7 @@ static inline Token make_error_token(Parser& state, Token_Type type)
     return tok;
 }
 
-static inline Error& emit(Parser& state, Error_Type error_type)
+static Error& emit(Parser& state, Error_Type error_type)
 {
     Error err;
     init(err, error_type, get_loc(*state.lexer));
@@ -107,7 +107,7 @@ static inline Error& emit(Parser& state, Error_Type error_type)
     return back(state.errs);
 }
 
-static inline Token expect(Parser& state, Token_Type token_type)
+static Token expect(Parser& state, Token_Type token_type)
 {
     if (peek(state).type != token_type)
     {
@@ -118,7 +118,7 @@ static inline Token expect(Parser& state, Token_Type token_type)
     return eat(state);
 }
 
-static inline Token expect(Parser& state, Token_Group token_group)
+static Token expect(Parser& state, Token_Group token_group)
 {
     Token_Type actual_type = peek(state).type;
     if (actual_type < get_group_first(token_group) || actual_type > get_group_last(token_group))

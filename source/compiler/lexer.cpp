@@ -103,17 +103,17 @@ bool plnnrc::equal(Token_Value a, Token_Value b)
     return (a.length == b.length) && (strncmp(a.str, b.str, a.length) == 0);
 }
 
-static inline char get_char(const Lexer& state)
+static char get_char(const Lexer& state)
 {
     return *state.buffer_ptr;
 }
 
-static inline bool is_whitespace(char c)
+static bool is_whitespace(char c)
 {
     return c == ' ' || c == '\f' || c == '\t' || c == '\v' || c == '\n' || c == '\r';
 }
 
-static inline bool is_identifier_body(char c)
+static bool is_identifier_body(char c)
 {
     return \
         c == 'A' || c == 'B' || c == 'C' || c == 'D' || c == 'E' || c == 'F' || c == 'G' || c == 'H' || c == 'I' || c == 'J' || c == 'K' || c == 'L' ||
@@ -123,13 +123,13 @@ static inline bool is_identifier_body(char c)
         c == '0' || c == '1' || c == '2' || c == '3' || c == '4' || c == '5' || c == '6' || c == '7' || c == '8' || c == '9' || c == '_' || c == '!' || c == '?';
 }
 
-static inline void consume_char(Lexer& state)
+static void consume_char(Lexer& state)
 {
     state.loc.column++;
     state.buffer_ptr++;
 }
 
-static inline void unconsume_char(Lexer& state)
+static void unconsume_char(Lexer& state)
 {
     plnnrc_assert(state.loc.column >= 1);
     plnnrc_assert(state.buffer_start <= state.buffer_ptr - 1);
@@ -137,7 +137,7 @@ static inline void unconsume_char(Lexer& state)
     --state.buffer_ptr;
 }
 
-static inline void consume_newline(Lexer& state)
+static void consume_newline(Lexer& state)
 {
     char c1 = get_char(state);
     consume_char(state);
@@ -152,7 +152,7 @@ static inline void consume_newline(Lexer& state)
     state.loc.line++;
 }
 
-static inline void consume_until_whitespace(Lexer& state)
+static void consume_until_whitespace(Lexer& state)
 {
     while (char c = get_char(state))
     {
@@ -166,7 +166,7 @@ static inline void consume_until_whitespace(Lexer& state)
     }
 }
 
-static inline void consume_until_newline(Lexer& state)
+static void consume_until_newline(Lexer& state)
 {
     while (char c = get_char(state))
     {
@@ -179,7 +179,7 @@ static inline void consume_until_newline(Lexer& state)
     }
 }
 
-static inline Token make_token(Lexer& state, Token_Type type)
+static Token make_token(Lexer& state, Token_Type type)
 {
     Token tok;
     memset(&tok, 0, sizeof(tok));
@@ -190,7 +190,7 @@ static inline Token make_token(Lexer& state, Token_Type type)
     return tok;
 }
 
-static inline Token begin_token(Lexer& state)
+static Token begin_token(Lexer& state)
 {
     Token tok;
     memset(&tok, 0, sizeof(tok));
@@ -200,14 +200,14 @@ static inline Token begin_token(Lexer& state)
     return tok;
 }
 
-static inline void end_token(Lexer& state, Token& tok, Token_Type type)
+static void end_token(Lexer& state, Token& tok, Token_Type type)
 {
     tok.type = type;
     plnnrc_assert(state.buffer_ptr > tok.value.str);
     tok.value.length = static_cast<uint32_t>(state.buffer_ptr - tok.value.str);
 }
 
-static inline Token lex_identifier(Lexer& state)
+static Token lex_identifier(Lexer& state)
 {
     Token tok = begin_token(state);
 
@@ -265,7 +265,7 @@ namespace numeric_literal
     };
 }
 
-static inline Token lex_numeric_literal(Lexer& lexer_state)
+static Token lex_numeric_literal(Lexer& lexer_state)
 {
     Token tok = begin_token(lexer_state);
 
@@ -305,7 +305,7 @@ static inline Token lex_numeric_literal(Lexer& lexer_state)
     return tok;
 }
 
-static inline Token lex_unknown(Lexer& state)
+static Token lex_unknown(Lexer& state)
 {
     Token tok = begin_token(state);
     consume_until_whitespace(state);
