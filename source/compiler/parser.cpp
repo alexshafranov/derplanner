@@ -569,9 +569,10 @@ static ast::Expr* parse_conjunct(Parser& state)
                     continue;
                 }
 
-                if (!is_Comma(peek(state)))
+                if (is_Comma(tok))
                 {
-                    break;
+                    eat(state);
+                    continue;
                 }
 
                 emit(state, Error_Unexpected_Token) << tok;
