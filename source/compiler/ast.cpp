@@ -45,7 +45,7 @@ void plnnrc::init(ast::Root& root, Memory_Stack* mem_pool, Memory_Stack* mem_scr
 }
 
 template <typename T>
-static inline T* pool_alloc(plnnrc::ast::Root& tree)
+static T* pool_alloc(plnnrc::ast::Root& tree)
 {
     T* result = allocate<T>(tree.pool);
     memset(result, 0, sizeof(T));
@@ -53,7 +53,7 @@ static inline T* pool_alloc(plnnrc::ast::Root& tree)
 }
 
 template <typename T>
-static inline T* pool_alloc(plnnrc::ast::Root* tree)
+static T* pool_alloc(plnnrc::ast::Root* tree)
 {
     T* result = allocate<T>(tree->pool);
     memset(result, 0, sizeof(T));
@@ -363,7 +363,7 @@ static ast::Expr* convert_Or_to_dnf(ast::Root& tree, ast::Expr* root)
 }
 
 // check if trivial conjunct `~x` or `x`. expression is assumed to be in Negative-Normal-Form.
-static inline bool is_trivial_conjunct(ast::Expr* node)
+static bool is_trivial_conjunct(ast::Expr* node)
 {
     // assert expression is NNF.
     plnnrc_assert(!is_Not(node) || !is_Logical(node->child));
@@ -371,7 +371,7 @@ static inline bool is_trivial_conjunct(ast::Expr* node)
 }
 
 // check if expression is either trivial (~x, x) or conjunction of trivials.
-static inline bool is_conjunct(ast::Expr* node)
+static bool is_conjunct(ast::Expr* node)
 {
     if (is_trivial_conjunct(node))
     {
@@ -395,7 +395,7 @@ static inline bool is_conjunct(ast::Expr* node)
     return true;
 }
 
-static inline ast::Expr* find_child(ast::Expr* root, ast::Node_Type type)
+static ast::Expr* find_child(ast::Expr* root, ast::Node_Type type)
 {
     for (ast::Expr* node = root->child; node != 0; node = node->next_sibling)
     {
@@ -413,7 +413,7 @@ struct Cloner
     ast::Root* tree;
 
     template <typename T>
-    inline ast::Expr* make_clone(const T* node)
+    ast::Expr* make_clone(const T* node)
     {
         T* clone = pool_alloc<T>(*tree);
         memcpy(clone, node, sizeof(T));
@@ -424,13 +424,13 @@ struct Cloner
         return clone;
     }
 
-    inline ast::Expr* visit(const ast::Func*   node)    { return make_clone(node); }
-    inline ast::Expr* visit(const ast::Var*    node)    { return make_clone(node); }
-    inline ast::Expr* visit(const ast::Op*     node)    { return make_clone(node); }
-    inline ast::Expr* visit(const ast::Node*)           { plnnrc_assert(false); return 0; }
+    ast::Expr* visit(const ast::Func*   node)    { return make_clone(node); }
+    ast::Expr* visit(const ast::Var*    node)    { return make_clone(node); }
+    ast::Expr* visit(const ast::Op*     node)    { return make_clone(node); }
+    ast::Expr* visit(const ast::Node*)           { plnnrc_assert(false); return 0; }
 };
 
-static inline ast::Expr* clone_node(ast::Root& tree, const ast::Expr* node)
+static ast::Expr* clone_node(ast::Root& tree, const ast::Expr* node)
 {
     Cloner cloner = { &tree };
     return visit_node<ast::Expr*>(node, &cloner);
@@ -1085,7 +1085,7 @@ struct Debug_Output_Visitor
     Formatter* fmtr;
 
     template <typename T>
-    inline void print_children(const plnnrc::Array<T*>& nodes)
+    void print_children(const plnnrc::Array<T*>& nodes)
     {
         for (uint32_t i = 0; i < size(nodes); ++i)
         {
@@ -1094,7 +1094,7 @@ struct Debug_Output_Visitor
         }
     }
 
-    inline void print_children(const ast::Expr* node)
+    void print_children(const ast::Expr* node)
     {
         for (const ast::Expr* child = node->child; child != 0; child = child->next_sibling)
         {
@@ -1103,19 +1103,19 @@ struct Debug_Output_Visitor
         }
     }
 
-    inline void print_expr(const ast::Expr* node)
+    void print_expr(const ast::Expr* node)
     {
         Indent_Scope s(*fmtr);
         visit_node<void>(node, this);
     }
 
-    inline void print(const ast::Node* node) { writeln(*fmtr, "%s", get_type_name(node->type)); }
+    void print(const ast::Node* node) { writeln(*fmtr, "%s", get_type_name(node->type)); }
 
     template <typename T>
-    inline void print_named(const T* node) { writeln(*fmtr, "%s[%n]", get_type_name(node->type), node->name); }
+    void print_named(const T* node) { writeln(*fmtr, "%s[%n]", get_type_name(node->type), node->name); }
 
     template <typename T>
-    inline void print_data_type(const T* node)
+    void print_data_type(const T* node)
     {
         Indent_Scope s(*fmtr);
         writeln(*fmtr, ":%s", get_type_name(node->data_type));

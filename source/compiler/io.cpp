@@ -62,7 +62,7 @@ void plnnrc::flush(Formatter& formatter)
 
 namespace io
 {
-    static inline void put_char(Formatter& formatter, char c)
+    static void put_char(Formatter& formatter, char c)
     {
         if (formatter.buffer_ptr + 1 > formatter.buffer_end)
         {
@@ -72,12 +72,12 @@ namespace io
         *(formatter.buffer_ptr++) = c;
     }
 
-    static inline void put_char(Array<char>& buffer, char c)
+    static void put_char(Array<char>& buffer, char c)
     {
         plnnrc::push_back(buffer, c);
     }
 
-    static inline void put_str(Formatter& formatter, const char* str, uint32_t length)
+    static void put_str(Formatter& formatter, const char* str, uint32_t length)
     {
         if (formatter.buffer_ptr + length > formatter.buffer_end)
         {
@@ -94,20 +94,20 @@ namespace io
         formatter.buffer_ptr += length;
     }
 
-    static inline void put_str(Array<char>& buffer, const char* str, uint32_t length)
+    static void put_str(Array<char>& buffer, const char* str, uint32_t length)
     {
         plnnrc::push_back(buffer, str, length);
     }
 
     template <typename T>
-    static inline void put_str(T& output, const char* str)
+    static void put_str(T& output, const char* str)
     {
         uint32_t length = (uint32_t)strlen(str);
         io::put_str(output, str, length);
     }
 
     template <typename T>
-    static inline void put_uint(T& output, uint32_t n)
+    static void put_uint(T& output, uint32_t n)
     {
         const char* digits = "0123456789";
         uint32_t t = n;
@@ -139,7 +139,7 @@ namespace io
     }
 
     template <typename T>
-    static inline void put_int(T& output, int32_t n)
+    static void put_int(T& output, int32_t n)
     {
         if (n < 0)
         {
@@ -151,13 +151,13 @@ namespace io
     }
 
     template <typename T>
-    static inline void put_token(T& output, const Token_Value& token)
+    static void put_token(T& output, const Token_Value& token)
     {
         io::put_str(output, token.str, token.length);
     }
 
     template <typename T>
-    static inline void put_indent(T& output, const char* tab, uint32_t level)
+    static void put_indent(T& output, const char* tab, uint32_t level)
     {
         for (uint32_t i = 0; i < level; ++i)
         {
@@ -166,7 +166,7 @@ namespace io
     }
 
     template <typename T>
-    static inline void write(T& output, const char* tab, uint32_t indent, const char* format, va_list arglist)
+    static void write(T& output, const char* tab, uint32_t indent, const char* format, va_list arglist)
     {
         while (*format)
         {

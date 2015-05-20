@@ -86,25 +86,25 @@ static const char* s_runtime_type_name[] =
     #undef PLNNR_TYPE
 };
 
-static inline const char* get_runtime_type_tag(Token_Type token_type)
+static const char* get_runtime_type_tag(Token_Type token_type)
 {
     plnnrc_assert(token_type >= (Token_Type)Token_Group_Type_First);
     return s_runtime_type_tag[token_type - Token_Group_Type_First];
 }
 
-static inline const char* get_runtime_type_enum(Token_Type token_type)
+static const char* get_runtime_type_enum(Token_Type token_type)
 {
     plnnrc_assert(token_type >= (Token_Type)Token_Group_Type_First);
     return s_runtime_type_enum[token_type - Token_Group_Type_First];
 }
 
-static inline const char* get_runtime_type_name(Token_Type token_type)
+static const char* get_runtime_type_name(Token_Type token_type)
 {
     plnnrc_assert(token_type >= (Token_Type)Token_Group_Type_First);
     return s_runtime_type_name[token_type - Token_Group_Type_First];
 }
 
-static inline Signature get_composite_task_signature(Codegen& state, ast::Task* task)
+static Signature get_composite_task_signature(Codegen& state, ast::Task* task)
 {
     ast::Primitive* prim = state.tree->primitive;
     ast::Domain* domain = state.tree->domain;
@@ -112,7 +112,7 @@ static inline Signature get_composite_task_signature(Codegen& state, ast::Task* 
     return get_sparse(state.task_and_pout_sigs, size(prim->tasks) + task_idx);
 }
 
-static inline Signature get_precond_output_signature(Codegen& state, ast::Case* case_)
+static Signature get_precond_output_signature(Codegen& state, ast::Case* case_)
 {
     ast::Primitive* prim = state.tree->primitive;
     ast::Domain* domain = state.tree->domain;
@@ -120,7 +120,7 @@ static inline Signature get_precond_output_signature(Codegen& state, ast::Case* 
     return get_sparse(state.task_and_pout_sigs, size(prim->tasks) + size(domain->tasks) + case_idx);
 }
 
-static inline Signature get_precond_input_signature(Codegen& state, ast::Case* case_)
+static Signature get_precond_input_signature(Codegen& state, ast::Case* case_)
 {
     uint32_t case_idx = index_of(state.tree->cases, case_);
     return get_sparse(state.pin_sigs, case_idx);

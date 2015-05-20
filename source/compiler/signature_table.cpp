@@ -58,7 +58,7 @@ uint32_t plnnrc::add_param(Signature_Table& table, Token_Type type)
     return size(table.types) - offset - 1;
 }
 
-static inline uint32_t hash(Signature_Table& table, uint32_t signature_index)
+static uint32_t hash(Signature_Table& table, uint32_t signature_index)
 {
     const uint32_t offset = table.offsets[signature_index];
     const uint32_t length = table.lengths[signature_index];
@@ -76,7 +76,7 @@ static inline uint32_t hash(Signature_Table& table, uint32_t signature_index)
     return result;
 }
 
-static inline bool equal(Signature_Table& table, uint32_t index_a, uint32_t index_b)
+static bool equal(Signature_Table& table, uint32_t index_a, uint32_t index_b)
 {
     const uint32_t offset_a = table.offsets[index_a];
     const uint32_t offset_b = table.offsets[index_b];
