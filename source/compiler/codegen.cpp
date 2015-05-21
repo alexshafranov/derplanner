@@ -22,11 +22,11 @@
 
 #include "derplanner/compiler/io.h"
 #include "derplanner/compiler/array.h"
-#include "derplanner/compiler/lexer.h"
 #include "derplanner/compiler/id_table.h"
 #include "derplanner/compiler/string_buffer.h"
 #include "derplanner/compiler/signature_table.h"
 #include "derplanner/compiler/ast.h"
+#include "derplanner/compiler/lexer.h"
 #include "derplanner/compiler/codegen.h"
 
 #include "derplanner/runtime/database.h" // murmur2_32
