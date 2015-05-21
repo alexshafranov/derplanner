@@ -306,20 +306,18 @@ int main(int argc, char** argv)
         for (;;)
         {
             // build AST.
-            {
-                plnnrc::parse(parser);
+            plnnrc::parse(parser);
 
-                if (!plnnrc::empty(errors))
-                    break;
+            if (!plnnrc::empty(errors))
+            {
+                break;
             }
 
             // process AST.
-            {
-                plnnrc::inline_predicates(tree);
-                plnnrc::convert_to_dnf(tree);
-                plnnrc::annotate(tree);
-                plnnrc::infer_types(tree);
-            }
+            plnnrc::inline_predicates(tree);
+            plnnrc::convert_to_dnf(tree);
+            plnnrc::annotate(tree);
+            plnnrc::infer_types(tree);
 
             // generate source code.
             {
@@ -337,7 +335,20 @@ int main(int argc, char** argv)
                 plnnrc::generate_source(codegen, header_name.c_str(), &source_writer);
             }
 
-            break;
+            if (cmdline.compiler_debug)
+            {
+                plnnrc::Writer_Crt standard_output = plnnrc::make_stdout_writer();
+                plnnrc::debug_output_tokens(input_buffer, &standard_output);
+
+                plnnrc::debug_output_ast(tree, &standard_output);
+
+                const size_t requested_size = mem_ast->get_total_requested();
+                const size_t total_size = mem_ast->get_total_allocated();
+                printf("req_size  = %d\n", (uint32_t)requested_size);
+                printf("total_size = %d\n", (uint32_t)total_size);
+            }
+
+            return 0;
         }
 
         for (uint32_t i = 0; i < plnnrc::size(errors); ++i)
@@ -348,19 +359,6 @@ int main(int argc, char** argv)
         if (!plnnrc::empty(errors))
         {
             return 1;
-        }
-
-        if (cmdline.compiler_debug)
-        {
-            plnnrc::Writer_Crt standard_output = plnnrc::make_stdout_writer();
-            plnnrc::debug_output_tokens(input_buffer, &standard_output);
-
-            plnnrc::debug_output_ast(tree, &standard_output);
-
-            const size_t requested_size = mem_ast->get_total_requested();
-            const size_t total_size = mem_ast->get_total_allocated();
-            printf("req_size  = %d\n", (uint32_t)requested_size);
-            printf("total_size = %d\n", (uint32_t)total_size);
         }
     }
 
