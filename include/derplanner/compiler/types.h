@@ -451,8 +451,8 @@ struct Parser
     Token               token;
     // output Abstract-Syntax-Tree.
     ast::Root*          tree;
-    // errors emitted by parser.
-    Array<Error>        errs;
+    // errors.
+    Array<Error>*       errs;
     // allocator for parsing data.
     Memory_Stack*       scratch;
 };

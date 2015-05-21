@@ -60,7 +60,7 @@ static bool parse_predicate_block(Parser& state, Children_Builder<ast::Predicate
 static bool parse_predicates(Parser& state, Children_Builder<ast::Predicate>& builder);
 
 
-void plnnrc::init(Parser& state, Lexer* lexer, ast::Root* tree, Memory_Stack* scratch)
+void plnnrc::init(Parser& state, Lexer* lexer, ast::Root* tree, Array<Error>* errors, Memory_Stack* scratch)
 {
     plnnrc_assert(lexer);
     plnnrc_assert(tree);
@@ -69,10 +69,8 @@ void plnnrc::init(Parser& state, Lexer* lexer, ast::Root* tree, Memory_Stack* sc
     memset(&state, 0, sizeof(state));
     state.lexer = lexer;
     state.tree = tree;
+    state.errs = errors;
     state.scratch = scratch;
-
-    // initialize errors.
-    init(state.errs, state.tree->pool, 16);
 }
 
 static Token peek(Parser& state)
@@ -103,8 +101,8 @@ static Error& emit(Parser& state, Error_Type error_type)
 {
     Error err;
     init(err, error_type, get_loc(*state.lexer));
-    push_back(state.errs, err);
-    return back(state.errs);
+    push_back(*state.errs, err);
+    return back(*state.errs);
 }
 
 static Token expect(Parser& state, Token_Type token_type)

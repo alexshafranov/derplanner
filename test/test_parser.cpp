@@ -125,15 +125,18 @@ namespace
         ast::Root       tree;
         Lexer           lexer;
         Parser          parser;
+        Array<Error>    errors;
     };
 
     void init(Test_Compiler& compiler, const char* input)
     {
         compiler.mem_tree = plnnrc::Memory_Stack::create(1024);
         compiler.mem_scratch = plnnrc::Memory_Stack::create(1024);
+        Array<Error> errors;
+        init(compiler.errors, compiler.mem_tree, 16);
         init(compiler.tree, compiler.mem_tree, compiler.mem_scratch);
         init(compiler.lexer, input, compiler.mem_scratch);
-        init(compiler.parser, &compiler.lexer, &compiler.tree, compiler.mem_scratch);
+        init(compiler.parser, &compiler.lexer, &compiler.tree, &compiler.errors, compiler.mem_scratch);
         compiler.parser.token = plnnrc::lex(compiler.lexer);
     }
 
