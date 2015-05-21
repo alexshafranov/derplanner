@@ -286,43 +286,51 @@ int main(int argc, char** argv)
         plnnrc::Parser parser;
         plnnrc::init(parser, &lexer, &tree, &errors, mem_scratch);
 
-        // build AST.
+        for (;;)
         {
-            plnnrc::parse(parser);
-
-            for (uint32_t i = 0; i < plnnrc::size(errors); ++i)
+            // build AST.
             {
-                plnnrc::format_error(errors[i], error_frmtr);
+                plnnrc::parse(parser);
+
+                if (!plnnrc::empty(errors))
+                    break;
             }
 
-            if (!plnnrc::empty(errors))
+            // process AST.
             {
-                return 1;
+                plnnrc::inline_predicates(tree);
+                plnnrc::convert_to_dnf(tree);
+                plnnrc::annotate(tree);
+                plnnrc::infer_types(tree);
             }
+
+            // generate source code.
+            {
+                std::string header_name = output_name + ".h";
+                File_Context header_context((output_dir + "/" + header_name).c_str(), "wb");
+                plnnrc::Writer_Crt header_writer(header_context.fd);
+
+                File_Context source_context((output_dir + "/" + output_name + ".cpp").c_str(), "wb");
+                plnnrc::Writer_Crt source_writer(source_context.fd);
+
+                plnnrc::Codegen codegen;
+                plnnrc::init(codegen, &tree, mem_scratch);
+
+                plnnrc::generate_header(codegen, (output_name + "_H_").c_str(), &header_writer);
+                plnnrc::generate_source(codegen, header_name.c_str(), &source_writer);
+            }
+
+            break;
         }
 
-        // process AST.
+        for (uint32_t i = 0; i < plnnrc::size(errors); ++i)
         {
-            plnnrc::inline_predicates(tree);
-            plnnrc::convert_to_dnf(tree);
-            plnnrc::annotate(tree);
-            plnnrc::infer_types(tree);
+            plnnrc::format_error(errors[i], error_frmtr);
         }
 
-        // generate source code.
+        if (!plnnrc::empty(errors))
         {
-            std::string header_name = output_name + ".h";
-            File_Context header_context((output_dir + "/" + header_name).c_str(), "wb");
-            plnnrc::Writer_Crt header_writer(header_context.fd);
-
-            File_Context source_context((output_dir + "/" + output_name + ".cpp").c_str(), "wb");
-            plnnrc::Writer_Crt source_writer(source_context.fd);
-
-            plnnrc::Codegen codegen;
-            plnnrc::init(codegen, &tree, mem_scratch);
-
-            plnnrc::generate_header(codegen, (output_name + "_H_").c_str(), &header_writer);
-            plnnrc::generate_source(codegen, header_name.c_str(), &source_writer);
+            return 1;
         }
 
         if (enable_debug_info)
