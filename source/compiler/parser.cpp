@@ -23,11 +23,11 @@
 #include <string.h>
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/memory.h"
-#include "derplanner/compiler/lexer.h"
 #include "derplanner/compiler/array.h"
 #include "derplanner/compiler/ast.h"
 #include "derplanner/compiler/id_table.h"
 #include "derplanner/compiler/errors.h"
+#include "derplanner/compiler/lexer.h"
 #include "derplanner/compiler/parser.h"
 
 using namespace plnnrc;
