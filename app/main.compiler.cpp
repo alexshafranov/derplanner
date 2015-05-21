@@ -145,12 +145,17 @@ std::string get_output_name(std::string path)
     return path;
 }
 
-int main(int argc, char** argv)
+struct Commandline
 {
     std::string output_dir;
     std::string custom_header;
     std::string input_path;
-    bool enable_debug_info = false;
+    bool compiler_debug;
+};
+
+bool parse_cmdline(int argc, char** argv, Commandline& result)
+{
+    result.compiler_debug = false;
 
     for (int i = 1; i < argc; ++i)
     {
@@ -159,7 +164,7 @@ int main(int argc, char** argv)
         if (!argument[0])
         {
             fprintf(stderr, "error: received empty cmdline argument!\n");
-            return 1;
+            return false;
         }
 
         std::string name;
@@ -172,19 +177,19 @@ int main(int argc, char** argv)
             if (name == "h" || name == "help")
             {
                 print_help();
-                return 1;
+                return false;
             }
 
-            if (name == "d" || name == "debug")
+            if (name == "compiler-debug")
             {
-                enable_debug_info = true;
+                result.compiler_debug = true;
                 continue;
             }
 
             if (i + 1 >= argc || argv[i + 1][0] == '-')
             {
                 fprintf(stderr, "error: missing value for flag: %s\n", name.c_str());
-                return 1;
+                return false;
             }
 
             value = std::string(argv[++i]);
@@ -194,62 +199,74 @@ int main(int argc, char** argv)
         {
             if (name == "out" || name == "o")
             {
-                if (!output_dir.empty())
+                if (!result.output_dir.empty())
                 {
                     fprintf(stderr, "error: multiple values for flag: %s\n", name.c_str());
-                    return 1;
+                    return false;
                 }
 
-                output_dir = value;
+                result.output_dir = value;
                 continue;
             }
 
             if (name == "custom-header" || name == "c")
             {
-                if (!custom_header.empty())
+                if (!result.custom_header.empty())
                 {
                     fprintf(stderr, "error: multiple values for flag: %s\n", name.c_str());
-                    return 1;
+                    return false;
                 }
 
-                custom_header = value;
+                result.custom_header = value;
                 continue;
             }
         }
         else
         {
-            if (!input_path.empty())
+            if (!result.input_path.empty())
             {
                 fprintf(stderr, "error: multiple inputs specified.\n");
-                return 1;
+                return false;
             }
 
-            input_path = value;
+            result.input_path = value;
         }
     }
 
-    if (input_path.empty())
+    if (result.input_path.empty())
     {
         fprintf(stderr, "error: no source file specified.\n");
+        return false;
+    }
+
+    return true;
+}
+
+int main(int argc, char** argv)
+{
+    Commandline cmdline;
+
+    if (!parse_cmdline(argc, argv, cmdline))
+    {
         return 1;
     }
 
     {
-        File_Context ctx(input_path.c_str(), "rb");
+        File_Context ctx(cmdline.input_path.c_str(), "rb");
 
         if (!ctx.fd)
         {
-            fprintf(stderr, "error: can't open input file: '%s'.\n", input_path.c_str());
+            fprintf(stderr, "error: can't open input file: '%s'.\n", cmdline.input_path.c_str());
             return 1;
         }
     }
 
-    if (output_dir.empty())
+    if (cmdline.output_dir.empty())
     {
-        output_dir = ".";
+        cmdline.output_dir = ".";
     }
 
-    std::string output_name = get_output_name(normalize(input_path));
+    std::string output_name = get_output_name(normalize(cmdline.input_path));
 
     plnnrc::Memory_Stack_Context mem_ctx_ast(32 * 1024);
     plnnrc::Memory_Stack_Context mem_ctx_scratch(32 * 1024);
@@ -257,10 +274,10 @@ int main(int argc, char** argv)
     plnnrc::Memory_Stack* mem_ast = mem_ctx_ast.mem;
     plnnrc::Memory_Stack* mem_scratch = mem_ctx_scratch.mem;
 
-    size_t input_size = file_size(input_path.c_str());
+    size_t input_size = file_size(cmdline.input_path.c_str());
     char*  input_buffer = static_cast<char*>(mem_scratch->allocate(input_size + 1));
     {
-        File_Context ctx(input_path.c_str(), "rb");
+        File_Context ctx(cmdline.input_path.c_str(), "rb");
         size_t rb = fread(input_buffer, sizeof(char), input_size, ctx.fd);
         (void)rb;
     }
@@ -307,10 +324,10 @@ int main(int argc, char** argv)
             // generate source code.
             {
                 std::string header_name = output_name + ".h";
-                File_Context header_context((output_dir + "/" + header_name).c_str(), "wb");
+                File_Context header_context((cmdline.output_dir + "/" + header_name).c_str(), "wb");
                 plnnrc::Writer_Crt header_writer(header_context.fd);
 
-                File_Context source_context((output_dir + "/" + output_name + ".cpp").c_str(), "wb");
+                File_Context source_context((cmdline.output_dir + "/" + output_name + ".cpp").c_str(), "wb");
                 plnnrc::Writer_Crt source_writer(source_context.fd);
 
                 plnnrc::Codegen codegen;
@@ -333,7 +350,7 @@ int main(int argc, char** argv)
             return 1;
         }
 
-        if (enable_debug_info)
+        if (cmdline.compiler_debug)
         {
             plnnrc::Writer_Crt standard_output = plnnrc::make_stdout_writer();
             plnnrc::debug_output_tokens(input_buffer, &standard_output);
