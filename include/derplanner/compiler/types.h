@@ -27,6 +27,7 @@ namespace plnnrc {
 
 // Memory allocator base interface.
 class Memory;
+
 // Linear allocator.
 class Memory_Stack;
 
