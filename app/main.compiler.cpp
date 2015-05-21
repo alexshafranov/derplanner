@@ -270,6 +270,9 @@ int main(int argc, char** argv)
     {
         Memory_Stack_Scope scratch_scope(mem_scratch);
 
+        plnnrc::Array<plnnrc::Error> errors;
+        plnnrc::init(errors, mem_ast, 16);
+
         plnnrc::Writer_Crt error_writer = plnnrc::make_stderr_writer();
         plnnrc::Formatter error_frmtr;
         plnnrc::init(error_frmtr, "\t", "\n", &error_writer);
@@ -281,18 +284,18 @@ int main(int argc, char** argv)
         plnnrc::init(lexer, input_buffer, mem_scratch);
 
         plnnrc::Parser parser;
-        plnnrc::init(parser, &lexer, &tree, mem_scratch);
+        plnnrc::init(parser, &lexer, &tree, &errors, mem_scratch);
 
         // build AST.
         {
             plnnrc::parse(parser);
 
-            for (uint32_t i = 0; i < plnnrc::size(parser.errs); ++i)
+            for (uint32_t i = 0; i < plnnrc::size(errors); ++i)
             {
-                plnnrc::format_error(parser.errs[i], error_frmtr);
+                plnnrc::format_error(errors[i], error_frmtr);
             }
 
-            if (!plnnrc::empty(parser.errs))
+            if (!plnnrc::empty(errors))
             {
                 return 1;
             }
