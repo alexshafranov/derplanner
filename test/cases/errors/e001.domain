@@ -1,9 +1,0 @@
-
-domain test
-{
-    world
-    {
-        a(xxx)
-        b
-    }
-}
