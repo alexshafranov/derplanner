@@ -93,19 +93,21 @@ ast::Predicate* plnnrc::create_predicate(ast::Root* tree, const Token_Value& nam
     return node;
 }
 
-ast::Fact* plnnrc::create_fact(ast::Root* tree, const Token_Value& name)
+ast::Fact* plnnrc::create_fact(ast::Root* tree, const Token_Value& name, const Location& loc)
 {
     ast::Fact* node = pool_alloc<ast::Fact>(tree);
     node->type = ast::Node_Fact;
     node->name = name;
+    node->loc = loc;
     return node;
 }
 
-ast::Param* plnnrc::create_param(ast::Root* tree, const Token_Value& name)
+ast::Param* plnnrc::create_param(ast::Root* tree, const Token_Value& name, const Location& loc)
 {
     ast::Param* node = pool_alloc<ast::Param>(tree);
     node->type = ast::Node_Param;
     node->name = name;
+    node->loc = loc;
     return node;
 }
 
@@ -117,11 +119,12 @@ ast::Domain* plnnrc::create_domain(ast::Root* tree, const Token_Value& name)
     return node;
 }
 
-ast::Task* plnnrc::create_task(ast::Root* tree, const Token_Value& name)
+ast::Task* plnnrc::create_task(ast::Root* tree, const Token_Value& name, const Location& loc)
 {
     ast::Task* node = pool_alloc<ast::Task>(tree);
     node->type = ast::Node_Task;
     node->name = name;
+    node->loc = loc;
     return node;
 }
 
@@ -881,7 +884,8 @@ void plnnrc::annotate(ast::Root& tree)
         for (uint32_t i = 0; i < num_facts; ++i)
         {
             ast::Fact* fact = world->facts[i];
-            set(tree.fact_lookup, fact->name, fact);
+            if (set(tree.fact_lookup, fact->name, fact))
+                emit(tree, fact->loc, Error_Redefinition) << fact->name;
         }
     }
 
@@ -894,7 +898,8 @@ void plnnrc::annotate(ast::Root& tree)
         for (uint32_t i = 0; i < num_tasks; ++i)
         {
             ast::Fact* task = prim->tasks[i];
-            set(tree.primitive_lookup, task->name, task);
+            if (set(tree.primitive_lookup, task->name, task))
+                emit(tree, task->loc, Error_Redefinition) << task->name;
         }
     }
 
@@ -909,7 +914,8 @@ void plnnrc::annotate(ast::Root& tree)
         {
             ast::Task* task = domain->tasks[i];
             num_cases += size(task->cases);
-            set(tree.task_lookup, task->name, task);
+            if (set(tree.task_lookup, task->name, task))
+                emit(tree, task->loc, Error_Redefinition) << task->name;
         }
 
         // collect all `ast::Case` nodes.
@@ -936,7 +942,8 @@ void plnnrc::annotate(ast::Root& tree)
             for (uint32_t param_idx = 0; param_idx < size(task->params); ++param_idx)
             {
                 ast::Param* param = task->params[param_idx];
-                set(task->param_lookup, param->name, param);
+                if (set(task->param_lookup, param->name, param))
+                    emit(tree, param->loc, Error_Redefinition) << param->name;
             }
         }
 

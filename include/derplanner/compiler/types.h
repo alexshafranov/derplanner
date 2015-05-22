@@ -325,6 +325,8 @@ namespace ast
     {
         // name of the fact.
         Token_Value             name;
+        // input buffer location where this fact is defined.
+        Location                loc;
         // parameters.
         Array<Data_Type*>       params;
     };
@@ -354,6 +356,8 @@ namespace ast
     {
         // name of the task.
         Token_Value             name;
+        // input buffer location where this task is defined.
+        Location                loc;
         // task parameters.
         Array<Param*>           params;
         // expansion cases.
@@ -392,6 +396,8 @@ namespace ast
     {
         // name of the parameter.
         Token_Value             name;
+        // input buffer location where this param is defined.
+        Location                loc;
         // inferred or defined data type (one of the type tokens).
         Token_Type              data_type;
     };

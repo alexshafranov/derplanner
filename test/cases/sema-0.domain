@@ -1,7 +1,7 @@
 
 domain test
 {
-    world { a(int32) b(int32) }
+    world { a(int32) b(int32) a(int32) }
 
     predicate p0(x, y) = ( a(x) & p0(x, y) & b(y) )
 
@@ -20,4 +20,8 @@ domain test
             p1(y) = ()
         }
     }
+
+    task hello() {}
+
+    task t1(x, x, y) {}
 }

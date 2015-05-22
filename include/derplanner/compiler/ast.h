@@ -34,10 +34,10 @@ void init(ast::Root& root, Array<Error>* errors, Memory_Stack* mem_pool, Memory_
 ast::World*         create_world(ast::Root* tree);
 ast::Primitive*     create_primitive(ast::Root* tree);
 ast::Predicate*     create_predicate(ast::Root* tree, const Token_Value& name, const Location& loc);
-ast::Fact*          create_fact(ast::Root* tree, const Token_Value& name);
-ast::Param*         create_param(ast::Root* tree, const Token_Value& name);
+ast::Fact*          create_fact(ast::Root* tree, const Token_Value& name, const Location& loc);
+ast::Param*         create_param(ast::Root* tree, const Token_Value& name, const Location& loc);
 ast::Domain*        create_domain(ast::Root* tree, const Token_Value& name);
-ast::Task*          create_task(ast::Root* tree, const Token_Value& name);
+ast::Task*          create_task(ast::Root* tree, const Token_Value& name, const Location& loc);
 ast::Case*          create_case(ast::Root* tree);
 ast::Func*          create_func(ast::Root* tree, const Token_Value& name);
 ast::Op*            create_op(ast::Root* tree, ast::Node_Type operation_type);
