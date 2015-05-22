@@ -38,15 +38,15 @@ void init(Id_Table<T>& table, Memory* mem, uint32_t max_size);
 // destroys id table.
 void destroy(Id_Table_Base& table);
 
-// set value for the key.
+// set value for the key, returns 'true' if the key is alredy present in the table.
 template <typename T>
-void set(Id_Table<T>& table, const char* key, const T& value);
+bool set(Id_Table<T>& table, const char* key, const T& value);
 
 template <typename T>
-void set(Id_Table<T>& table, const Token_Value& token_value, const T& value);
+bool set(Id_Table<T>& table, const Token_Value& token_value, const T& value);
 
 template <typename T>
-void set(Id_Table<T>& table, const char* key, uint32_t length, const T& value);
+bool set(Id_Table<T>& table, const char* key, uint32_t length, const T& value);
 
 
 // returns pointer to value for the given key or null if it doesn't exist.
@@ -132,7 +132,7 @@ namespace id_table
     }
 
     template <typename T>
-    void _set(plnnrc::Id_Table<T>& table, const char* key, uint32_t length, const T& value)
+    bool _set(plnnrc::Id_Table<T>& table, const char* key, uint32_t length, const T& value)
     {
         uint32_t max_size = table.max_size;
         uint32_t curr_hash = id_table::hash(key, length);
@@ -160,7 +160,7 @@ namespace id_table
                 table.lengths[slot] = curr_length;
                 values[slot] = curr_value;
                 table.size++;
-                return;
+                return false;
             }
 
             // same key -> update value and exit.
@@ -169,7 +169,7 @@ namespace id_table
                 if (strncmp(slot_key, curr_key, curr_length) == 0)
                 {
                     values[slot] = curr_value;
-                    return;
+                    return true;
                 }
             }
 
@@ -198,6 +198,7 @@ namespace id_table
 
         // only possible when table is full or has the zero size.
         plnnrc_assert(false);
+        return false;
     }
 
     template <typename T>
@@ -274,30 +275,32 @@ inline void plnnrc::destroy(plnnrc::Id_Table_Base& table)
 }
 
 template <typename T>
-inline void plnnrc::set(plnnrc::Id_Table<T>& table, const char* key, const T& value)
+inline bool plnnrc::set(plnnrc::Id_Table<T>& table, const char* key, const T& value)
 {
     uint32_t length = (uint32_t)strlen(key);
-    plnnrc::set<T>(table, key, length, value);
+    return plnnrc::set<T>(table, key, length, value);
 }
 
 template <typename T>
-inline void plnnrc::set(plnnrc::Id_Table<T>& table, const plnnrc::Token_Value& token_value, const T& value)
+inline bool plnnrc::set(plnnrc::Id_Table<T>& table, const plnnrc::Token_Value& token_value, const T& value)
 {
-    plnnrc::set<T>(table, token_value.str, token_value.length, value);
+    return plnnrc::set<T>(table, token_value.str, token_value.length, value);
 }
 
 template <typename T>
-inline void plnnrc::set(plnnrc::Id_Table<T>& table, const char* key, uint32_t length, const T& value)
+inline bool plnnrc::set(plnnrc::Id_Table<T>& table, const char* key, uint32_t length, const T& value)
 {
     const uint32_t max_size = table.max_size;
     const uint32_t grow_threshold = (max_size * id_table::load_factor_pct) / 100;
 
-    id_table::_set(table, key, length, value);
+    bool updated = id_table::_set(table, key, length, value);
 
     if (table.size > grow_threshold)
     {
         id_table::_grow(table, max_size * 2);
     }
+
+    return updated;
 }
 
 template <typename T>
