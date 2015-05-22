@@ -8,4 +8,16 @@ domain test
     predicate p1(x, y) = ( a(x) & p2(x, y) & b(y) )
 
     predicate p2(x, y) = ( b(x) & p1(x, y) & p0(x, y) )
+
+    predicate p0() = ()
+
+    task hello()
+    {
+        predicate
+        {
+            p1(x) = ()
+            p2(x) = ()
+            p1(y) = ()
+        }
+    }
 }

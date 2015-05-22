@@ -124,7 +124,7 @@ void plnnrc::format_error(const plnnrc::Error& error, plnnrc::Formatter& fmtr)
             case Error::Arg_Type_Token_Value:
                 {
                     Token_Value value = error.args[slot].token_value;
-                    write(fmtr, "%n", value);
+                    write(fmtr, "'%n'", value);
                     break;
                 }
             case Error::Arg_Type_Token_Type:

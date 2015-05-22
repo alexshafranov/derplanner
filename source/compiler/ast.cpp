@@ -711,10 +711,9 @@ static ast::Predicate* lookup_referenced_predicate(ast::Domain* domain, ast::Tas
     return 0;
 }
 
-static void disallow_recursive_predicate(ast::Root& tree, ast::Task* task_scope, ast::Predicate* pred)
+static bool disallow_recursive_predicate(ast::Root& tree, ast::Task* task_scope, ast::Predicate* pred)
 {
     Memory_Stack_Scope scratch_scope(tree.scratch);
-    Memory_Stack_Scope pool_scope(tree.pool);
 
     ast::Domain* domain_scope = tree.domain;
 
@@ -734,7 +733,7 @@ static void disallow_recursive_predicate(ast::Root& tree, ast::Task* task_scope,
                 if (get(preds_seen, func->name) != 0)
                 {
                     emit(tree, pred->loc, Error_Recursive_Predicate) << pred->name;
-                    break;
+                    return true;
                 }
 
                 set(preds_seen, func->name, ref_pred);
@@ -749,18 +748,26 @@ static void disallow_recursive_predicate(ast::Root& tree, ast::Task* task_scope,
         unparent(node);
         node = next;
     }
+
+    return false;
 }
 
 void plnnrc::inline_predicates(ast::Root& tree)
 {
+    Memory_Stack_Scope scratch_scope(tree.scratch);
+
     ast::Domain* domain = tree.domain;
+
+    Array<ast::Predicate*> redefines;
+    init(redefines, tree.scratch, 16);
 
     // build lookups.
     init(domain->predicate_lookup, tree.pool, size(domain->predicates));
     for (uint32_t pred_idx = 0; pred_idx < size(domain->predicates); ++pred_idx)
     {
         ast::Predicate* pred = domain->predicates[pred_idx];
-        set(domain->predicate_lookup, pred->name, pred);
+        if (set(domain->predicate_lookup, pred->name, pred))
+            push_back(redefines, pred);
     }
 
     for (uint32_t task_idx = 0; task_idx < size(domain->tasks); ++task_idx)
@@ -771,15 +778,18 @@ void plnnrc::inline_predicates(ast::Root& tree)
         for (uint32_t pred_idx = 0; pred_idx < size(task->predicates); ++pred_idx)
         {
             ast::Predicate* pred = task->predicates[pred_idx];
-            set(task->predicate_lookup, pred->name, pred);
+            if (set(task->predicate_lookup, pred->name, pred))
+                push_back(redefines, pred);
         }
     }
+
+    bool has_errors = !empty(redefines);
 
     // check recursion.
     for (uint32_t pred_idx = 0; pred_idx < size(domain->predicates); ++pred_idx)
     {
         ast::Predicate* pred = domain->predicates[pred_idx];
-        disallow_recursive_predicate(tree, 0, pred);
+        has_errors |= disallow_recursive_predicate(tree, 0, pred);
     }
 
     for (uint32_t task_idx = 0; task_idx < size(domain->tasks); ++task_idx)
@@ -788,9 +798,18 @@ void plnnrc::inline_predicates(ast::Root& tree)
         for (uint32_t pred_idx = 0; pred_idx < size(task->predicates); ++pred_idx)
         {
             ast::Predicate* pred = task->predicates[pred_idx];
-            disallow_recursive_predicate(tree, task, pred);
+            has_errors |= disallow_recursive_predicate(tree, task, pred);
         }
     }
+
+    for (uint32_t redef_idx = 0; redef_idx < size(redefines); ++redef_idx)
+    {
+        ast::Predicate* pred = redefines[redef_idx];
+        emit(tree, pred->loc, Error_Redefinition) << pred->name;
+    }
+
+    if (has_errors)
+        return;
 
     // inline predicates in each precondition.
     for (uint32_t task_idx = 0; task_idx < size(domain->tasks); ++task_idx)
