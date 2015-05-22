@@ -353,7 +353,7 @@ ast::Task* plnnrc::parse_task(Parser& state)
     plnnrc_expect_return(state, Token_Task);
     Token tok = expect(state, Token_Id);
     plnnrc_check_return(!is_Error(tok));
-    ast::Task* task = create_task(state.tree, tok.value);
+    ast::Task* task = create_task(state.tree, tok.value, tok.loc);
     Children_Builder<ast::Param> param_builder(&state, &task->params);
     plnnrc_check_return(parse_params(state, param_builder));
     plnnrc_check_return(parse_task_body(state, task));
@@ -420,7 +420,7 @@ static bool parse_params(Parser& state, Children_Builder<ast::Param>& builder)
         Token tok = expect(state, Token_Id);
         plnnrc_check_return(!is_Error(tok));
 
-        ast::Param* param = create_param(state.tree, tok.value);
+        ast::Param* param = create_param(state.tree, tok.value, tok.loc);
         builder.push_back(param);
 
         if (!is_Comma(peek(state)))
@@ -449,7 +449,7 @@ static bool parse_facts(Parser& state, Children_Builder<ast::Fact>& builder)
         Token tok = expect(state, Token_Id);
         plnnrc_check_return(!is_Error(tok));
 
-        ast::Fact* fact = plnnrc::create_fact(state.tree, tok.value);
+        ast::Fact* fact = plnnrc::create_fact(state.tree, tok.value, tok.loc);
 
         Children_Builder<ast::Data_Type> param_builder(&state, &fact->params);
         plnnrc_check_return(parse_param_types(state, param_builder));

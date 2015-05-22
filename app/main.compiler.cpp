@@ -242,6 +242,16 @@ bool parse_cmdline(int argc, char** argv, Commandline& result)
     return true;
 }
 
+struct Error_Location_Compare
+{
+    bool operator()(const plnnrc::Error& lhs, const plnnrc::Error& rhs)
+    {
+        const uint64_t lhs_key = ((uint64_t)(lhs.loc.line) << 32) | lhs.loc.column;
+        const uint64_t rhs_key = ((uint64_t)(rhs.loc.line) << 32) | rhs.loc.column;
+        return lhs_key < rhs_key;
+    }
+};
+
 int main(int argc, char** argv)
 {
     Commandline cmdline;
@@ -313,12 +323,12 @@ int main(int argc, char** argv)
 
             // process AST.
             plnnrc::inline_predicates(tree);
+            plnnrc::convert_to_dnf(tree);
+            plnnrc::annotate(tree);
 
             if (!plnnrc::empty(errors))
                 break;
 
-            plnnrc::convert_to_dnf(tree);
-            plnnrc::annotate(tree);
             plnnrc::infer_types(tree);
 
             // generate source code.
@@ -352,6 +362,8 @@ int main(int argc, char** argv)
 
             return 0;
         }
+
+        std::sort(&errors[0], &errors[0] + size(errors), Error_Location_Compare());
 
         for (uint32_t i = 0; i < plnnrc::size(errors); ++i)
         {
