@@ -27,13 +27,13 @@
 namespace plnnrc {
 
 // create AST.
-void init(ast::Root& root, Memory_Stack* mem_pool, Memory_Stack* mem_scratch);
+void init(ast::Root& root, Array<Error>* errors, Memory_Stack* mem_pool, Memory_Stack* mem_scratch);
 
 /// `create_*` functions for `ast` node types.
 
 ast::World*         create_world(ast::Root* tree);
 ast::Primitive*     create_primitive(ast::Root* tree);
-ast::Predicate*     create_predicate(ast::Root* tree, const Token_Value& name);
+ast::Predicate*     create_predicate(ast::Root* tree, const Token_Value& name, const Location& loc);
 ast::Fact*          create_fact(ast::Root* tree, const Token_Value& name);
 ast::Param*         create_param(ast::Root* tree, const Token_Value& name);
 ast::Domain*        create_domain(ast::Root* tree, const Token_Value& name);

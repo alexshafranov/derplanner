@@ -33,6 +33,7 @@ const char* get_format_string(Error_Type error_type);
 void init(Error& builder, Error_Type type, Location loc);
 
 Error& operator<<(Error& builder, const Token& token);
+Error& operator<<(Error& builder, const Token_Value& value);
 Error& operator<<(Error& builder, const Token_Type&  token_type);
 Error& operator<<(Error& builder, const Token_Group& token_group);
 
@@ -55,6 +56,15 @@ inline plnnrc::Error& plnnrc::operator<<(plnnrc::Error& builder, const plnnrc::T
     plnnrc_assert(builder.num_args < plnnrc::Error::Max_Args);
     builder.args[builder.num_args].token = token;
     builder.arg_types[builder.num_args] = plnnrc::Error::Arg_Type_Token;
+    ++builder.num_args;
+    return builder;
+}
+
+inline plnnrc::Error& plnnrc::operator<<(plnnrc::Error& builder, const plnnrc::Token_Value& value)
+{
+    plnnrc_assert(builder.num_args < plnnrc::Error::Max_Args);
+    builder.args[builder.num_args].token_value = value;
+    builder.arg_types[builder.num_args] = plnnrc::Error::Arg_Type_Token_Value;
     ++builder.num_args;
     return builder;
 }

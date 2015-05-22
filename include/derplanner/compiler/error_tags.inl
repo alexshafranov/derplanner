@@ -26,10 +26,17 @@
     #define PLNNRC_PARSER_ERROR(TAG, FORMAT_STR) PLNNRC_ERROR(TAG, FORMAT_STR)
 #endif
 
+#ifndef PLNNRC_AST_ERROR
+    #define PLNNRC_AST_ERROR(TAG, FORMAT_STR) PLNNRC_ERROR(TAG, FORMAT_STR)
+#endif
+
 PLNNRC_PARSER_ERROR(Unexpected_Token,       "unexpected token $0.")
 PLNNRC_PARSER_ERROR(Expected,               "expected $0, got $1.")
 PLNNRC_PARSER_ERROR(Redefinition,           "redefinition of $0.")
 PLNNRC_PARSER_ERROR(Expected_End_Of_File,   "expected end-of-file.")
 
+PLNNRC_AST_ERROR(Recursive_Predicate, "recursive predicate '$0' found.")
+
+#undef PLNNRC_AST_ERROR
 #undef PLNNRC_PARSER_ERROR
 #undef PLNNRC_ERROR

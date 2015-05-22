@@ -188,6 +188,7 @@ struct Error
     {
         Arg_Type_None = 0,
         Arg_Type_Token,
+        Arg_Type_Token_Value,
         Arg_Type_Token_Type,
         Arg_Type_Token_Group,
     };
@@ -196,6 +197,7 @@ struct Error
     union Arg
     {
         Token           token;
+        Token_Value     token_value;
         Token_Type      token_type;
         Token_Group     token_group;
     };
@@ -284,6 +286,8 @@ namespace ast
         Primitive*              primitive;
         // parsed `domain` block.
         Domain*                 domain;
+        // errors.
+        Array<Error>*           errs;
         // tree data allocator.
         Memory_Stack*           pool;
         // allocator for temporary data.
@@ -337,6 +341,8 @@ namespace ast
     {
         // name of the predicate.
         Token_Value             name;
+        // input buffer location where this predicate is defined.
+        Location                loc;
         // predicate parameters.
         Array<Param*>           params;
         // expression this predicate is expanded into.
