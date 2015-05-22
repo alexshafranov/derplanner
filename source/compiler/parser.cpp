@@ -655,7 +655,7 @@ static ast::Expr* parse_conjunct(Parser& state)
 static ast::Predicate* parse_single_predicate(Parser& state)
 {
     Token tok = expect(state, Token_Id);
-    ast::Predicate* pred = create_predicate(state.tree, tok.value);
+    ast::Predicate* pred = create_predicate(state.tree, tok.value, tok.loc);
 
     Children_Builder<ast::Param> param_builder(&state, &pred->params);
     parse_params(state, param_builder);

@@ -1,0 +1,11 @@
+
+domain test
+{
+    world { a(int32) b(int32) }
+
+    predicate p0(x, y) = ( a(x) & p0(x, y) & b(y) )
+
+    predicate p1(x, y) = ( a(x) & p2(x, y) & b(y) )
+
+    predicate p2(x, y) = ( b(x) & p1(x, y) & p0(x, y) )
+}

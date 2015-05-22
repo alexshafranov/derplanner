@@ -295,7 +295,7 @@ int main(int argc, char** argv)
         plnnrc::init(error_frmtr, "\t", "\n", &error_writer);
 
         plnnrc::ast::Root tree;
-        plnnrc::init(tree, mem_ast, mem_scratch);
+        plnnrc::init(tree, &errors, mem_ast, mem_scratch);
 
         plnnrc::Lexer lexer;
         plnnrc::init(lexer, input_buffer, mem_scratch);
@@ -309,12 +309,14 @@ int main(int argc, char** argv)
             plnnrc::parse(parser);
 
             if (!plnnrc::empty(errors))
-            {
                 break;
-            }
 
             // process AST.
             plnnrc::inline_predicates(tree);
+
+            if (!plnnrc::empty(errors))
+                break;
+
             plnnrc::convert_to_dnf(tree);
             plnnrc::annotate(tree);
             plnnrc::infer_types(tree);

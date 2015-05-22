@@ -22,6 +22,7 @@
 #include "derplanner/compiler/io.h"
 #include "derplanner/compiler/array.h"
 #include "derplanner/compiler/id_table.h"
+#include "derplanner/compiler/errors.h"
 #include "derplanner/compiler/lexer.h"
 #include "derplanner/compiler/ast.h"
 
@@ -37,9 +38,10 @@ namespace plnnrc
     ast::Expr*  convert_to_nnf(ast::Root& tree, ast::Expr* root);
 }
 
-void plnnrc::init(ast::Root& root, Memory_Stack* mem_pool, Memory_Stack* mem_scratch)
+void plnnrc::init(ast::Root& root, Array<Error>* errors, Memory_Stack* mem_pool, Memory_Stack* mem_scratch)
 {
     memset(&root, 0, sizeof(root));
+    root.errs = errors;
     root.pool = mem_pool;
     root.scratch = mem_scratch;
 }
@@ -60,6 +62,14 @@ static T* pool_alloc(plnnrc::ast::Root* tree)
     return result;
 }
 
+static Error& emit(ast::Root& tree, const Location& loc, Error_Type error_type)
+{
+    Error err;
+    init(err, error_type, loc);
+    push_back(*tree.errs, err);
+    return back(*tree.errs);
+}
+
 ast::World* plnnrc::create_world(ast::Root* tree)
 {
     ast::World* node = pool_alloc<ast::World>(tree);
@@ -74,11 +84,12 @@ ast::Primitive* plnnrc::create_primitive(ast::Root* tree)
     return node;
 }
 
-ast::Predicate* plnnrc::create_predicate(ast::Root* tree, const Token_Value& name)
+ast::Predicate* plnnrc::create_predicate(ast::Root* tree, const Token_Value& name, const Location& loc)
 {
     ast::Predicate* node = pool_alloc<ast::Predicate>(tree);
     node->type = ast::Node_Predicate;
     node->name = name;
+    node->loc = loc;
     return node;
 }
 
@@ -722,7 +733,7 @@ static void disallow_recursive_predicate(ast::Root& tree, ast::Task* task_scope,
             {
                 if (get(preds_seen, func->name) != 0)
                 {
-                    plnnrc_assert(false);
+                    emit(tree, pred->loc, Error_Recursive_Predicate) << pred->name;
                     break;
                 }
 

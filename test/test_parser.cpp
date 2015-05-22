@@ -134,7 +134,7 @@ namespace
         compiler.mem_scratch = plnnrc::Memory_Stack::create(1024);
         Array<Error> errors;
         init(compiler.errors, compiler.mem_tree, 16);
-        init(compiler.tree, compiler.mem_tree, compiler.mem_scratch);
+        init(compiler.tree, &compiler.errors, compiler.mem_tree, compiler.mem_scratch);
         init(compiler.lexer, input, compiler.mem_scratch);
         init(compiler.parser, &compiler.lexer, &compiler.tree, &compiler.errors, compiler.mem_scratch);
         compiler.parser.token = plnnrc::lex(compiler.lexer);
