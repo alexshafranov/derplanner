@@ -59,6 +59,7 @@ PLNNRC_TYPE_KEYWORD_TOKEN(UInt32,     "uint32")
 PLNNRC_TYPE_KEYWORD_TOKEN(Int64,      "int64")
 PLNNRC_TYPE_KEYWORD_TOKEN(UInt64,     "uint64")
 PLNNRC_TYPE_KEYWORD_TOKEN(Float,      "float")
+PLNNRC_TYPE_KEYWORD_TOKEN(Vec3,       "vec3")
 
 PLNNRC_PUNCTUATOR_TOKEN(L_Curly,      "{")
 PLNNRC_PUNCTUATOR_TOKEN(R_Curly,      "}")
@@ -77,9 +78,9 @@ PLNNRC_OPERATOR_TOKEN(Not,            "~")
 PLNNRC_OPERATOR_TOKEN(Plus,           "+")
 PLNNRC_OPERATOR_TOKEN(Minus,          "-")
 
-PLNNRC_TOKEN_GROUP(Keyword,   Domain, Float)
+PLNNRC_TOKEN_GROUP(Keyword,   Domain, Vec3)
 PLNNRC_TOKEN_GROUP(Block,     Domain, Task)
-PLNNRC_TOKEN_GROUP(Type,      Int32,  Float)
+PLNNRC_TOKEN_GROUP(Type,      Int32,  Vec3)
 PLNNRC_TOKEN_GROUP(Literal,   Literal_Integer, Literal_Float)
 
 #undef PLNNRC_TOKEN_GROUP
