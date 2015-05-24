@@ -46,8 +46,8 @@ template <typename T>
 struct Children_Builder;
 
 static ast::Expr* parse_expr(Parser& state);
-static ast::Expr* parse_disjunct(Parser& state);
-static ast::Expr* parse_conjunct(Parser& state);
+static ast::Expr* parse_binary_expr(Parser& state, uint8_t precedence);
+static ast::Expr* parse_term_expr(Parser& state);
 
 static ast::Predicate* parse_single_predicate(Parser& state);
 
@@ -523,7 +523,7 @@ static bool parse_task_list(Parser& state, ast::Case* case_)
             break;
         }
 
-        ast::Expr* node_Task = parse_conjunct(state);
+        ast::Expr* node_Task = parse_term_expr(state);
         builder.push_back(node_Task);
 
         if (!is_Comma(peek(state)))
@@ -540,49 +540,74 @@ static bool parse_task_list(Parser& state, ast::Case* case_)
 
 static ast::Expr* parse_expr(Parser& state)
 {
-    ast::Expr* node = parse_disjunct(state);
-
-    if (is_Or(peek(state)))
-    {
-        ast::Expr* node_Or = plnnrc::create_op(state.tree, ast::Node_Or);
-        plnnrc::append_child(node_Or, node);
-
-        while (is_Or(peek(state)))
-        {
-            eat(state);
-            ast::Expr* node = parse_disjunct(state);
-            plnnrc::append_child(node_Or, node);
-        }
-
-        return node_Or;
-    }
-
-    return node;
+    return parse_binary_expr(state, 0);
 }
 
-static ast::Expr* parse_disjunct(Parser& state)
+static uint8_t s_precedence[] =
 {
-    ast::Expr* node = parse_conjunct(state);
+    2, // Token_And
+    1, // Token_Or
+    3, // Token_Plus
+    3, // Token_Minus
+};
 
-    if (is_And(peek(state)))
-    {
-        ast::Expr* node_And = plnnrc::create_op(state.tree, ast::Node_And);
-        plnnrc::append_child(node_And, node);
+static ast::Node_Type s_token_to_ast[] =
+{
+    ast::Node_And,      // Token_And
+    ast::Node_Or,       // Token_Or
+    ast::Node_Plus,     // Token_Plus
+    ast::Node_Minus,    // Token_Minus
+};
 
-        while (is_And(peek(state)))
-        {
-            eat(state);
-            ast::Expr* node = parse_conjunct(state);
-            plnnrc::append_child(node_And, node);
-        }
-
-        return node_And;
-    }
-
-    return node;
+static uint8_t get_precedence(Token_Type token_type)
+{
+    plnnrc_assert(is_Binary(token_type));
+    uint32_t idx = (uint32_t)(token_type - Token_Group_Binary_First);
+    return s_precedence[idx];
 }
 
-static ast::Expr* parse_conjunct(Parser& state)
+static ast::Node_Type get_op_type(Token_Type token_type)
+{
+    plnnrc_assert(is_Binary(token_type));
+    uint32_t idx = (uint32_t)(token_type - Token_Group_Binary_First);
+    return s_token_to_ast[idx];
+}
+
+static ast::Expr* parse_binary_expr(Parser& state, uint8_t precedence)
+{
+    ast::Expr* root = parse_term_expr(state);
+    plnnrc_check_return(root);
+
+    while (!is_Eos(peek(state)))
+    {
+        Token tok = peek(state);
+        if (!is_Binary(tok))
+        {
+            break;
+        }
+
+        uint8_t new_precedence = get_precedence(tok.type);
+        if (new_precedence < precedence)
+        {
+            break;
+        }
+
+        eat(state);
+
+        ast::Expr* node_Op = create_op(state.tree, get_op_type(tok.type));
+        append_child(node_Op, root);
+
+        ast::Expr* next_expr = parse_binary_expr(state, new_precedence);
+        plnnrc_check_return(next_expr);
+        append_child(node_Op, next_expr);
+
+        root = node_Op;
+    }
+
+    return root;
+}
+
+static ast::Expr* parse_term_expr(Parser& state)
 {
     Token tok = eat(state);
 
@@ -601,7 +626,7 @@ static ast::Expr* parse_conjunct(Parser& state)
     if (is_Not(tok))
     {
         ast::Expr* node_Not = plnnrc::create_op(state.tree, ast::Node_Not);
-        ast::Expr* node = parse_conjunct(state);
+        ast::Expr* node = parse_term_expr(state);
         plnnrc::append_child(node_Not, node);
         return node_Not;
     }
