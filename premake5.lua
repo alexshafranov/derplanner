@@ -81,9 +81,3 @@ solution "derplanner"
         links { "derplanner-runtime", "domain-travel" }
         configuration { "vs*" }
             defines { "PLNNR_DOMAIN_API=__declspec(dllimport)" }
-
-    -- project "example-blocks"
-    --     kind "ConsoleApp"
-    --     files { "examples/blocks.main.cpp", "examples/blocks.cpp" }
-    --     includedirs { "include" }
-    --     links { "derplanner-runtime" }
