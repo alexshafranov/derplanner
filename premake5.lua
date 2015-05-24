@@ -11,6 +11,9 @@ solution "derplanner"
         flags "Symbols"
 
     configuration "release"
+        flags "Symbols"
+
+    configuration "release"
         optimize "Speed"
         defines { "NDEBUG" }
 
@@ -26,6 +29,11 @@ solution "derplanner"
     configuration { "release", "x64" }
         targetdir "bin/x64/release"
 
+    configuration { "gmake" }
+        buildoptions { "-Wno-missing-field-initializers" }
+
+    configuration { "vs*" }
+        defines { "_CRT_SECURE_NO_WARNINGS" }
 
     project "derplanner-compiler"
         kind "StaticLib"
@@ -41,12 +49,9 @@ solution "derplanner"
 
     project "derplannerc"
         kind "ConsoleApp"
-        files { "compiler/*.cpp" }
+        files { "app/main.compiler.cpp" }
         includedirs { "include" }
         links { "derplanner-compiler" }
-        configuration { "vs*" }
-            defines { "_CRT_SECURE_NO_WARNINGS" }
-        configuration {}
 
     project "deps-unittestpp"
         kind "StaticLib"
@@ -54,28 +59,25 @@ solution "derplanner"
         configuration { "linux or macosx" }
             files { "deps/unittestpp/src/Posix/*.cpp" }
         configuration { "vs*" }
-            defines { "_CRT_SECURE_NO_WARNINGS" }
-        configuration { "vs*" }
             files { "deps/unittestpp/src/Win32/*.cpp" }
-        configuration {}
 
     project "tests"
         kind "ConsoleApp"
         files { "test/*.cpp" }
         includedirs { "deps/unittestpp", "include", "source" }
         links { "deps-unittestpp", "derplanner-compiler", "derplanner-runtime" }
+
+    project "domain-travel"
+        kind "SharedLib"
+        files { "examples/travel.cpp" }
+        includedirs { "include" }
         configuration { "vs*" }
-            defines { "_CRT_SECURE_NO_WARNINGS" }
-        configuration {}
+            defines { "PLNNR_DOMAIN_API=__declspec(dllexport)" }
 
     project "example-travel"
         kind "ConsoleApp"
-        files { "examples/travel.main.cpp", "examples/travel.cpp" }
+        files { "examples/travel.main.cpp" }
         includedirs { "include" }
-        links { "derplanner-runtime" }
-
-    project "example-blocks"
-        kind "ConsoleApp"
-        files { "examples/blocks.main.cpp", "examples/blocks.cpp" }
-        includedirs { "include" }
-        links { "derplanner-runtime" }
+        links { "derplanner-runtime", "domain-travel" }
+        configuration { "vs*" }
+            defines { "PLNNR_DOMAIN_API=__declspec(dllimport)" }

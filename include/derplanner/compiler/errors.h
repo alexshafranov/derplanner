@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2013 Alexander Shafranov shafranov@gmail.com
+// Copyright (c) 2015 Alexander Shafranov shafranov@gmail.com
 //
 // This software is provided 'as-is', without any express or implied
 // warranty.  In no event will the authors be held liable for any damages
@@ -21,80 +21,70 @@
 #ifndef DERPLANNER_COMPILER_ERRORS_H_
 #define DERPLANNER_COMPILER_ERRORS_H_
 
+#include <string.h>
+#include "derplanner/compiler/assert.h"
+#include "derplanner/compiler/types.h"
+
 namespace plnnrc {
 
-class Writer;
-namespace sexpr { struct Node; }
-namespace ast { struct Node; }
+// returns a format string for the given error type.
+const char* get_format_string(Error_Type error_type);
 
-enum Compilation_Error
-{
-    error_none = 0,
+void init(Error& builder, Error_Type type, Location loc);
 
-    #define PLNNRC_ERROR(ID, DESC) ID,
-    #include "derplanner/compiler/error_tags.inl"
-    #undef PLNNRC_ERROR
-};
+Error& operator<<(Error& builder, const Token& token);
+Error& operator<<(Error& builder, const Token_Value& value);
+Error& operator<<(Error& builder, const Token_Type&  token_type);
+Error& operator<<(Error& builder, const Token_Group& token_group);
 
-class Location
-{
-public:
-    Location(int line=-1, int column=-1)
-        : line(line)
-        , column(column)
-    {
-    }
-
-    Location(sexpr::Node* s_expr);
-
-    Location(ast::Node* Node);
-
-    Location(const Location& other)
-        : line(other.line)
-        , column(other.column)
-    {
-    }
-
-    Location& operator=(const Location& other)
-    {
-        line = other.line;
-        column = other.column;
-        return *this;
-    }
-
-    int line;
-    int column;
-};
-
-namespace ast {
-
-enum Error_Argument_Type
-{
-    error_argument_none = 0,
-    error_argument_node_token,
-    error_argument_node_location,
-    error_argument_node_string,
-    error_argument_selection,
-};
-
-enum { max_error_args = 4 };
-
-struct Error_Ann
-{
-    Compilation_Error id;
-    int line;
-    int column;
-    int argument_count;
-    Error_Argument_Type argument_type[max_error_args];
-    sexpr::Node* argument_node[max_error_args];
-    Location argument_location[max_error_args];
-    const char* argument_string[max_error_args];
-    int argument_selection[max_error_args];
-};
-
-void format_error(Error_Ann* annotation, Writer& stream);
+void format_error(const Error& error, Formatter& fmtr);
 
 }
+
+/// Inline
+
+inline void plnnrc::init(plnnrc::Error& builder, plnnrc::Error_Type type, plnnrc::Location loc)
+{
+    memset(&builder, 0, sizeof(builder));
+    builder.type = type;
+    builder.loc = loc;
+    builder.format = plnnrc::get_format_string(type);
+}
+
+inline plnnrc::Error& plnnrc::operator<<(plnnrc::Error& builder, const plnnrc::Token& token)
+{
+    plnnrc_assert(builder.num_args < plnnrc::Error::Max_Args);
+    builder.args[builder.num_args].token = token;
+    builder.arg_types[builder.num_args] = plnnrc::Error::Arg_Type_Token;
+    ++builder.num_args;
+    return builder;
+}
+
+inline plnnrc::Error& plnnrc::operator<<(plnnrc::Error& builder, const plnnrc::Token_Value& value)
+{
+    plnnrc_assert(builder.num_args < plnnrc::Error::Max_Args);
+    builder.args[builder.num_args].token_value = value;
+    builder.arg_types[builder.num_args] = plnnrc::Error::Arg_Type_Token_Value;
+    ++builder.num_args;
+    return builder;
+}
+
+inline plnnrc::Error& plnnrc::operator<<(plnnrc::Error& builder, const plnnrc::Token_Type&  token_type)
+{
+    plnnrc_assert(builder.num_args < plnnrc::Error::Max_Args);
+    builder.args[builder.num_args].token_type = token_type;
+    builder.arg_types[builder.num_args] = plnnrc::Error::Arg_Type_Token_Type;
+    ++builder.num_args;
+    return builder;
+}
+
+inline plnnrc::Error& plnnrc::operator<<(plnnrc::Error& builder, const plnnrc::Token_Group& token_group)
+{
+    plnnrc_assert(builder.num_args < plnnrc::Error::Max_Args);
+    builder.args[builder.num_args].token_group = token_group;
+    builder.arg_types[builder.num_args] = plnnrc::Error::Arg_Type_Token_Group;
+    ++builder.num_args;
+    return builder;
 }
 
 #endif

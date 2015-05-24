@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2013 Alexander Shafranov shafranov@gmail.com
+// Copyright (c) 2015 Alexander Shafranov shafranov@gmail.com
 //
 // This software is provided 'as-is', without any express or implied
 // warranty.  In no event will the authors be held liable for any damages
@@ -18,16 +18,25 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
+#ifndef PLNNRC_ERROR
+    #define PLNNRC_ERROR(TAG, FORMAT_STR)
+#endif
 
-PLNNRC_ERROR(error_unexpected, "unexpected expression.")
-PLNNRC_ERROR(error_expected_type, "expected $0{<none>|list|symbol|int|float} expression.")
-PLNNRC_ERROR(error_expected_token, "expected '$0'.")
-PLNNRC_ERROR(error_expected_parameter, "expected parameter identifier.")
-PLNNRC_ERROR(error_multiple_definitions, "multiple definitions of $0{worldstate|domain|delete effects|add effects}.")
-PLNNRC_ERROR(error_redefinition, "redefinition of '$0', originally defined at $1.")
-PLNNRC_ERROR(error_invalid_id, "invalid identifier '$0'.")
-PLNNRC_ERROR(error_unbound_var, "unbound variable '$0' in $1{task list|call term|operation}.")
-PLNNRC_ERROR(error_undefined, "'$0' is undefined.")
-PLNNRC_ERROR(error_wrong_number_of_arguments, "wrong number of arguments for '$0'.")
-PLNNRC_ERROR(error_type_mismatch, "expected argument of type '$0', got '$1'.")
-PLNNRC_ERROR(error_unable_to_infer_type, "unable to infer type of '$0'.")
+#ifndef PLNNRC_PARSER_ERROR
+    #define PLNNRC_PARSER_ERROR(TAG, FORMAT_STR) PLNNRC_ERROR(TAG, FORMAT_STR)
+#endif
+
+#ifndef PLNNRC_AST_ERROR
+    #define PLNNRC_AST_ERROR(TAG, FORMAT_STR) PLNNRC_ERROR(TAG, FORMAT_STR)
+#endif
+
+PLNNRC_PARSER_ERROR(Unexpected_Token,       "unexpected token $0.")
+PLNNRC_PARSER_ERROR(Expected,               "expected $0, got $1.")
+PLNNRC_PARSER_ERROR(Redefinition,           "multiple definitions of $0 found.")
+PLNNRC_PARSER_ERROR(Expected_End_Of_Stream, "expected end-of-stream.")
+
+PLNNRC_AST_ERROR(Recursive_Predicate, "recursive predicate $0 found.")
+
+#undef PLNNRC_AST_ERROR
+#undef PLNNRC_PARSER_ERROR
+#undef PLNNRC_ERROR

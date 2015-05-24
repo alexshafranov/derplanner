@@ -1,0 +1,11 @@
+
+domain test
+{
+    world ### {}
+
+    task hello() {
+        case -> []
+
+        case(((()))) -> []
+    }
+}

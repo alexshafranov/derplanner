@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2013 Alexander Shafranov shafranov@gmail.com
+// Copyright (c) 2015 Alexander Shafranov shafranov@gmail.com
 //
 // This software is provided 'as-is', without any express or implied
 // warranty.  In no event will the authors be held liable for any damages
@@ -21,25 +21,19 @@
 #ifndef DERPLANNER_COMPILER_CODEGEN_H_
 #define DERPLANNER_COMPILER_CODEGEN_H_
 
+#include "derplanner/compiler/types.h"
+
 namespace plnnrc {
 
-namespace ast { class Tree; }
-class Writer;
+/// Codegen
 
-struct Codegen_Options
-{
-    const char* tab;
-    const char* newline;
-    const char* include_guard;
-    const char* header_file_name;
-    const char* custom_header;
-    bool runtime_atom_names;
-    bool runtime_task_names;
-    bool enable_reflection;
-};
+// initialize code generator state.
+void init(Codegen& state, ast::Root* tree, Memory_Stack* scratch);
 
-bool generate_header(ast::Tree& ast, Writer& output, Codegen_Options options);
-bool generate_source(ast::Tree& ast, Writer& output, Codegen_Options options);
+// writes domain header code. `header_guard` string is used as macro include guard.
+void generate_header(Codegen& state, const char* header_guard, Writer* output);
+// writes domain source code.
+void generate_source(Codegen& state, const char* domain_header, Writer* output);
 
 }
 

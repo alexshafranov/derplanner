@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2013 Alexander Shafranov shafranov@gmail.com
+// Copyright (c) 2015 Alexander Shafranov shafranov@gmail.com
 //
 // This software is provided 'as-is', without any express or implied
 // warranty.  In no event will the authors be held liable for any damages
@@ -18,9 +18,8 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#include <unittestpp.h>
-#include <derplanner/compiler/ast.h>
-#include <derplanner/compiler/id_table.h>
+#include "unittestpp.h"
+#include "derplanner/compiler/id_table.h"
 
 namespace
 {
@@ -75,125 +74,86 @@ namespace
         "Woebegone",
     };
 
-    const size_t num_keys = sizeof(keys)/sizeof(keys[0]);
+    const uint32_t num_keys = sizeof(keys)/sizeof(keys[0]);
 
     TEST(insert_and_find)
     {
-        plnnrc::Id_Table table;
-        table.init(num_keys);
+        plnnrc::Id_Table<int*> table;
+        plnnrc::init(table, plnnrc::get_default_allocator(), num_keys);
 
-        plnnrc::ast::Node nodes[num_keys];
+        int values[num_keys] = {0};
 
         for (unsigned i = 0; i < num_keys; ++i)
         {
-            table.insert(keys[i], &nodes[i]);
+            plnnrc::set(table, keys[i], &values[i]);
         }
 
         for (unsigned i = 0; i < num_keys; ++i)
         {
-            plnnrc::ast::Node* actual = table.find(keys[i]);
-            CHECK(actual == &nodes[i]);
+            const int* actual = plnnrc::get(table, keys[i]);
+            CHECK(actual == &values[i]);
         }
 
-        CHECK_EQUAL(num_keys, table.count());
+        CHECK_EQUAL(num_keys, plnnrc::size(table));
     }
 
     TEST(lookup_non_existing_keys)
     {
-        plnnrc::Id_Table table;
-        table.init(num_keys);
+        plnnrc::Id_Table<int*> table;
+        plnnrc::init(table, plnnrc::get_default_allocator(), num_keys);
 
-        plnnrc::ast::Node nodes[num_keys];
+        int values[num_keys] = {0};
 
         for (unsigned i = 0; i < num_keys / 2; ++i)
         {
-            table.insert(keys[i], &nodes[i]);
+            plnnrc::set(table, keys[i], &values[i]);
         }
 
         for (unsigned i = num_keys / 2; i < num_keys; ++i)
         {
-            plnnrc::ast::Node* actual = table.find(keys[i]);
+            const int* actual = plnnrc::get(table, keys[i]);
             CHECK(!actual);
         }
     }
 
     TEST(insert_twice)
     {
-        plnnrc::Id_Table table;
-        table.init(1);
-
-        plnnrc::ast::Node value1;
-        plnnrc::ast::Node value2;
+        plnnrc::Id_Table<int*> table;
+        plnnrc::init(table, plnnrc::get_default_allocator(), 1);
 
         const char* key = "the_key";
+        int value1 = 0;
+        int value2 = 0;
 
-        table.insert(key, &value1);
-        table.insert(key, &value2);
+        plnnrc::set(table, key, &value1);
+        plnnrc::set(table, key, &value2);
 
-        plnnrc::ast::Node* actual = table.find(key);
+        const int* actual = plnnrc::get(table, key);
 
         CHECK_EQUAL(&value2, actual);
-        CHECK_EQUAL(1u, table.count());
-    }
-
-    TEST(value_iteration)
-    {
-        plnnrc::Id_Table table;
-        table.init(3);
-
-        plnnrc::ast::Node value1;
-        plnnrc::ast::Node value2;
-        plnnrc::ast::Node value3;
-
-        CHECK(table.values().empty());
-
-        table.insert("key1", &value1);
-        table.insert("key2", &value2);
-        table.insert("key3", &value3);
-
-        plnnrc::Id_Table_Values values = table.values();
-
-        plnnrc::ast::Node* v;
-
-        CHECK(!values.empty());
-        v = values.value();
-        CHECK(v == &value1 || v == &value2 || v == &value3);
-        values.pop();
-
-        CHECK(!values.empty());
-        v = values.value();
-        CHECK(v == &value1 || v == &value2 || v == &value3);
-        values.pop();
-
-        CHECK(!values.empty());
-        v = values.value();
-        CHECK(v == &value1 || v == &value2 || v == &value3);
-        values.pop();
-
-        CHECK(values.empty());
+        CHECK_EQUAL(1u, size(table));
     }
 
     TEST(table_grows)
     {
-        plnnrc::Id_Table table;
-
+        plnnrc::Id_Table<int*> table;
         // allocate for 2 elems initially
-        table.init(2);
+        plnnrc::init(table, plnnrc::get_default_allocator(), 2);
 
         // but insert much more
-        plnnrc::ast::Node nodes[num_keys];
+        int values[num_keys];
 
         for (unsigned i = 0; i < num_keys; ++i)
         {
-            table.insert(keys[i], &nodes[i]);
+            plnnrc::set(table, keys[i], &values[i]);
         }
 
         for (unsigned i = 0; i < num_keys; ++i)
         {
-            plnnrc::ast::Node* actual = table.find(keys[i]);
-            CHECK(actual == &nodes[i]);
+            const int* actual = plnnrc::get(table, keys[i]);
+            CHECK(actual == &values[i]);
         }
 
-        CHECK_EQUAL(num_keys, table.count());
+        CHECK_EQUAL(num_keys, size(table));
     }
 }

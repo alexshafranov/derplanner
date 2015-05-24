@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2013 Alexander Shafranov shafranov@gmail.com
+// Copyright (c) 2015 Alexander Shafranov shafranov@gmail.com
 //
 // This software is provided 'as-is', without any express or implied
 // warranty.  In no event will the authors be held liable for any damages
@@ -22,29 +22,115 @@
 #define DERPLANNER_COMPILER_IO_H_
 
 #include <stddef.h> // size_t
+#include <stdarg.h> // va_list
+#include <stdio.h>
+
+#include "derplanner/compiler/types.h"
 
 namespace plnnrc {
 
+// Simple output interface.
 class Writer
 {
 public:
     virtual ~Writer() {}
+
+    // write `size` bytes of `data` and return actual amount of bytes written.
     virtual size_t write(const void* data, size_t size) = 0;
-    virtual bool error() = 0;
+
+    // flush all writes
+    virtual void flush() = 0;
 };
 
-class Stdio_File_Writer : public Writer
+// `FILE*` Writer.
+class Writer_Crt : public Writer
 {
 public:
-    Stdio_File_Writer(void* file_object);
-    virtual size_t write(const void* data, size_t size);
-    virtual bool error() { return _error; }
+    Writer_Crt(FILE* fd) :fd(fd) {}
 
-private:
-    void* _file_object;
-    bool _error;
+    virtual size_t write(const void* data, size_t size)
+    {
+        return fwrite(data, 1, size, fd);
+    }
+
+    virtual void flush()
+    {
+        fflush(fd);
+    }
+
+    FILE* fd;
 };
 
+// creates `Writer_Crt` configured to write to `stdout` file.
+Writer_Crt make_stdout_writer();
+// creates `Writer_Crt` configured to write to `stderr` file.
+Writer_Crt make_stderr_writer();
+
+/// Formatter
+
+// initialize `Formatter`.
+void init(Formatter& formatter, const char* tab, const char* newline, Writer* output);
+
+// write indentation symbols.
+void indent(Formatter& formatter);
+// write formatted string to the buffered output.
+// `format` has the following specifiers: %s = C string, %d = decimal, %n = Token_Value, %i = indentation.
+void write(Formatter& formatter, const char* format, ...);
+// start a new line.
+void newline(Formatter& formatter);
+
+// `write` variant with automatic indentation and newline.
+void writeln(Formatter& formatter, const char* format, ...);
+// `write` variant with `va_list`.
+void write(Formatter& formatter, const char* format, va_list args);
+// make sure the buffer is written to output.
+void flush(Formatter& formatter);
+
+// low-level
+void put_char(Formatter& formatter, char c);
+
+// format to buffer.
+void write(Array<char>& buffer, const char* format, ...);
+
+// increase the current indentation level.
+void enter_indent_level(Formatter& formatter);
+// decrease the current indentation level.
+void exit_indent_level(Formatter& formatter);
+
+// Scoped `enter_indent_level`/`exit_indent_level`.
+struct Indent_Scope
+{
+    Formatter& formatter;
+
+    Indent_Scope(Formatter& formatter) :formatter(formatter) { plnnrc::enter_indent_level(formatter); }
+
+    ~Indent_Scope() { plnnrc::exit_indent_level(formatter); }
+
+    // silence VS warning C4512: 'plnnrc::Indent_Scope' : assignment operator could not be generated
+    Indent_Scope(const Indent_Scope&);
+    Indent_Scope& operator=(const Indent_Scope&);
+};
+
+}
+
+inline plnnrc::Writer_Crt plnnrc::make_stdout_writer()
+{
+    return plnnrc::Writer_Crt(stdout);
+}
+
+inline plnnrc::Writer_Crt plnnrc::make_stderr_writer()
+{
+    return plnnrc::Writer_Crt(stderr);
+}
+
+inline void plnnrc::enter_indent_level(plnnrc::Formatter& formatter)
+{
+    ++formatter.indent;
+}
+
+inline void plnnrc::exit_indent_level(plnnrc::Formatter& formatter)
+{
+    --formatter.indent;
 }
 
 #endif

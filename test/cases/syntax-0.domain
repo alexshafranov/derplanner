@@ -1,0 +1,12 @@
+
+domain
+{
+    world xxx
+    {
+        a(yyy)
+
+    task hello()
+    {
+        case() -> []
+    }
+}

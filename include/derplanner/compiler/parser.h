@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2013 Alexander Shafranov shafranov@gmail.com
+// Copyright (c) 2015 Alexander Shafranov shafranov@gmail.com
 //
 // This software is provided 'as-is', without any express or implied
 // warranty.  In no event will the authors be held liable for any damages
@@ -18,18 +18,21 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef DERPLANNER_RUNTIME_ASSERT_H_
-#define DERPLANNER_RUNTIME_ASSERT_H_
+#ifndef DERPLANNER_COMPILER_PARSER_H_
+#define DERPLANNER_COMPILER_PARSER_H_
 
-// if external plnnr_assert is not provided
-#ifndef plnnr_assert
-    #ifdef NDEBUG
-        // http://cnicholson.net/2009/02/stupid-c-tricks-adventures-in-assert/
-        #define plnnr_assert(e) do { (void)sizeof(e); } while ((void)(__LINE__==-1), false)
-    #else
-        #include <assert.h>
-        #define plnnr_assert assert
-    #endif
-#endif
+#include "derplanner/compiler/types.h"
+
+namespace plnnrc {
+
+/// Parser
+
+// initialize parsing state.
+void init(Parser& state, Lexer* lexer, ast::Root* tree, Array<Error>* errors, Memory_Stack* scratch);
+
+// parse token stream to Abstract-Syntax-Tree.
+void parse(Parser& state);
+
+}
 
 #endif

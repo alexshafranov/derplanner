@@ -2,15 +2,21 @@ language: cpp
 
 compiler:
     - gcc
+    - clang
 
 script:
     - ./premake5 gmake
-    - make config=release_x64 tests
+
+    # release x64
+    - make config=release_x64
     - ./bin/x64/release/tests
-    - make config=release_x64 derplannerc
     - ./bin/x64/release/derplannerc --out examples examples/travel.domain
-    - ./bin/x64/release/derplannerc --out examples examples/blocks.domain
     - make config=release_x64 example-travel
-    - make config=release_x64 example-blocks
     - ./bin/x64/release/example-travel
-    - ./bin/x64/release/example-blocks
+
+    # debug x64
+    - make config=debug_x64
+    - ./bin/x64/debug/tests
+    - ./bin/x64/debug/derplannerc --out examples examples/travel.domain
+    - make config=debug_x64 example-travel
+    - ./bin/x64/debug/example-travel

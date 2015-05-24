@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2013 Alexander Shafranov shafranov@gmail.com
+// Copyright (c) 2015 Alexander Shafranov shafranov@gmail.com
 //
 // This software is provided 'as-is', without any express or implied
 // warranty.  In no event will the authors be held liable for any damages
@@ -21,129 +21,181 @@
 #ifndef DERPLANNER_COMPILER_AST_H_
 #define DERPLANNER_COMPILER_AST_H_
 
-#include "derplanner/compiler/id_table.h"
-#include "derplanner/compiler/node_array.h"
+#include "derplanner/compiler/assert.h"
+#include "derplanner/compiler/types.h"
 
 namespace plnnrc {
 
-namespace sexpr { struct Node; }
-namespace pool { struct Handle; }
+// create AST.
+void init(ast::Root& root, Array<Error>* errors, Memory_Stack* mem_pool, Memory_Stack* mem_scratch);
 
-namespace ast {
+/// `create_*` functions for `ast` node types.
 
-enum Node_Type
-{
-    node_none = 0,
+ast::World*         create_world(ast::Root* tree);
+ast::Primitive*     create_primitive(ast::Root* tree);
+ast::Predicate*     create_predicate(ast::Root* tree, const Token_Value& name, const Location& loc);
+ast::Fact*          create_fact(ast::Root* tree, const Token_Value& name, const Location& loc);
+ast::Param*         create_param(ast::Root* tree, const Token_Value& name, const Location& loc);
+ast::Domain*        create_domain(ast::Root* tree, const Token_Value& name);
+ast::Task*          create_task(ast::Root* tree, const Token_Value& name, const Location& loc);
+ast::Case*          create_case(ast::Root* tree);
+ast::Func*          create_func(ast::Root* tree, const Token_Value& name);
+ast::Op*            create_op(ast::Root* tree, ast::Node_Type operation_type);
+ast::Var*           create_var(ast::Root* tree, const Token_Value& name);
+ast::Data_Type*     create_type(ast::Root* tree, Token_Type data_type);
+ast::Literal*       create_literal(ast::Root* tree, const Token& token);
 
-    #define PLNNRC_AST_NODE(NODE_ID) node_##NODE_ID,
-    #include "derplanner/compiler/ast_node_tags.inl"
-    #undef PLNNRC_AST_NODE
-};
+// lookup `ast::Task` node by name.
+ast::Task*      get_task(ast::Root& tree, const Token_Value& name);
+// lookup `ast::Fact` node by name.
+ast::Fact*      get_fact(ast::Root& tree, const Token_Value& name);
+// lookup `ast::Fact` node for primitive task by name.
+ast::Fact*      get_primitive(ast::Root& tree, const Token_Value& name);
 
-struct Node
-{
-    Node_Type type;
-    sexpr::Node* s_expr;
-    Node* parent;
-    Node* first_child;
-    Node* next_sibling;
-    Node* prev_sibling_cyclic;
-    void* annotation;
-};
+/// ast::Expr
 
-template <typename T>
-T* annotation(Node* n)
-{
-    return static_cast<T*>(n->annotation);
-}
+// make node `child` the last child of node `parent`.
+void        append_child(ast::Expr* parent, ast::Expr* child);
+// make `child` the next sibling of `after`.
+void        insert_child(ast::Expr* after, ast::Expr* child);
+// unparent `node` from it's current parent.
+void        unparent(ast::Expr* node);
+// returns the next node in pre-order (visit node then visit it's children) traversal.
+ast::Expr*  preorder_next(const ast::Expr* root, ast::Expr* current);
 
-class Tree
-{
-public:
-    Tree(int error_node_cache_size=8);
-    ~Tree();
+// calls a proper `visit` method overload depending on the node type.
+template <typename Return_Type, typename Visitor_Type>
+Return_Type visit_node(ast::Node* node, Visitor_Type* visitor);
 
-    Node* root() { return &_root; }
-    const Node* root() const { return &_root; }
+template <typename Return_Type, typename Visitor_Type>
+Return_Type visit_node(const ast::Node* node, Visitor_Type* visitor);
 
-    Node* make_node(Node_Type type, sexpr::Node* token=0);
-    Node* clone_node(Node* original);
-    Node* clone_subtree(Node* original);
+/// Expression transformations.
 
-    Id_Table ws_atoms;
-    Id_Table ws_funcs;
-    Id_Table ws_types;
-    Id_Table methods;
-    Id_Table operators;
-    Node_Array type_tag_to_node;
-    Node_Array error_node_cache;
+// converts expression `root` to Disjunctive-Normal-Form.
+ast::Expr* convert_to_dnf(ast::Root& tree, ast::Expr* root);
 
-private:
-    Tree(const Tree&);
-    const Tree& operator=(const Tree&);
+// inline predicates into the case preconditions.
+void inline_predicates(ast::Root& tree);
 
-    pool::Handle* _node_pool;
-    Node _root;
-};
+// converts all preconditions to DNF.
+void convert_to_dnf(ast::Root& tree);
 
-// annotation types
+// build various look-ups and traversal info.
+void annotate(ast::Root& tree);
 
-struct WS_Type_Ann
-{
-    int type_tag;
-};
+// figure out types of parameters and variables.
+void infer_types(ast::Root& tree);
 
-struct Term_Ann
-{
-    int   type_tag;
-    int   var_index;
-    Node* var_def;
-};
+// true is `var` is wasn't defined (first occurence in scope).
+bool is_bound(ast::Var* var);
+// true if all arguments are bound.
+bool all_bound(ast::Func* node);
+// true if all arguments are unbound.
+bool all_unbound(ast::Func* node);
 
-struct Atom_Ann
-{
-    int index;
-    bool lazy;
-};
+// gets token type name as a string to aid debugging.
+const char* get_type_name(ast::Node_Type token_type);
+// writes formatted Abstract-Syntax-Tree to `output`.
+void        debug_output_ast(const ast::Root& root, Writer* output);
 
-struct Branch_Ann
-{
-    bool foreach;
-};
+#define PLNNRC_NODE(TAG, TYPE)                          \
+    bool            is_##TAG(ast::Node_Type type);      \
+    bool            is_##TAG(const ast::Node* node);    \
+    TYPE*           as_##TAG(ast::Node* node);          \
+    const TYPE*     as_##TAG(const ast::Node* node);    \
 
-struct Method_Ann
-{
-    bool processed;
-};
+    #include "derplanner/compiler/ast_tags.inl"
+#undef PLNNRC_NODE
 
-#define PLNNRC_AST_NODE_GROUP(GROUP_ID, FIRST_ID, LAST_ID)          \
-    inline bool is_##GROUP_ID(Node_Type type)                       \
-    {                                                               \
-        return type >= node_##FIRST_ID && type <= node_##LAST_ID;   \
-    }                                                               \
-                                                                    \
-    inline bool is_##GROUP_ID(const Node* n)                        \
-    {                                                               \
-        return is_##GROUP_ID(n->type);                              \
-    }                                                               \
+#define PLNNRC_NODE_GROUP(GROUP_TAG, FIRST_NODE_TAG, LAST_NODE_TAG) \
+    bool is_##GROUP_TAG(ast::Node_Type type);                       \
+    bool is_##GROUP_TAG(const ast::Node* node);                     \
 
-#define PLNNRC_AST_NODE(NODE_ID)                \
-    inline bool is_##NODE_ID(Node_Type type)    \
-    {                                           \
-        return type == node_##NODE_ID;          \
-    }                                           \
-                                                \
-    inline bool is_##NODE_ID(const Node* n)     \
-    {                                           \
-        return is_##NODE_ID(n->type);           \
-    }                                           \
-
-#include "ast_node_tags.inl"
-
-#undef PLNNRC_AST_NODE
-#undef PLNNRC_AST_NODE_GROUP
+    #include "derplanner/compiler/ast_tags.inl"
+#undef PLNNRC_NODE_GROUP
 
 }
-}
 
+/// Inline Code.
+
+#define PLNNRC_NODE(TAG, TYPE)                                                                                                                      \
+    inline bool plnnrc::is_##TAG(ast::Node_Type type) { return type == plnnrc::ast::Node_##TAG; }                                                   \
+    inline bool plnnrc::is_##TAG(const ast::Node* node) { return plnnrc::is_##TAG(node->type); }                                                    \
+    inline TYPE* plnnrc::as_##TAG(ast::Node* node) { return (node && plnnrc::is_##TAG(node)) ? static_cast<TYPE*>(node) : 0; }                      \
+    inline const TYPE* plnnrc::as_##TAG(const ast::Node* node) { return (node && plnnrc::is_##TAG(node)) ? static_cast<const TYPE*>(node) : 0; }    \
+
+    #include "derplanner/compiler/ast_tags.inl"
+#undef PLNNRC_NODE
+
+#define PLNNRC_NODE_GROUP(GROUP_TAG, FIRST_NODE_TAG, LAST_NODE_TAG)                                                                                             \
+    inline bool plnnrc::is_##GROUP_TAG(ast::Node_Type type) { return type >= plnnrc::ast::Node_##FIRST_NODE_TAG && type <= plnnrc::ast::Node_##LAST_NODE_TAG; } \
+    inline bool plnnrc::is_##GROUP_TAG(const ast::Node* node) { return is_##GROUP_TAG(node->type); }                                                            \
+
+    #include "derplanner/compiler/ast_tags.inl"
 #endif
+
+template <typename Return_Type, typename Visitor_Type>
+inline Return_Type plnnrc::visit_node(plnnrc::ast::Node* node, Visitor_Type* visitor)
+{
+    switch (node->type)
+    {
+    #define PLNNRC_NODE(TAG, TYPE) case plnnrc::ast::Node_##TAG: return visitor->visit(static_cast<TYPE*>(node));
+    #include "derplanner/compiler/ast_tags.inl"
+    #undef PLNNRC_NODE
+    default:
+        plnnrc_assert(false);
+        return Return_Type();
+    }
+}
+
+template <typename Return_Type, typename Visitor_Type>
+inline Return_Type plnnrc::visit_node(const plnnrc::ast::Node* node, Visitor_Type* visitor)
+{
+    switch (node->type)
+    {
+    #define PLNNRC_NODE(TAG, TYPE) case plnnrc::ast::Node_##TAG: return visitor->visit(static_cast<const TYPE*>(node));
+    #include "derplanner/compiler/ast_tags.inl"
+    #undef PLNNRC_NODE
+    default:
+        plnnrc_assert(false);
+        return Return_Type();
+    }
+}
+
+inline bool plnnrc::is_bound(plnnrc::ast::Var* var)
+{
+    return var->definition != 0;
+}
+
+inline bool plnnrc::all_bound(plnnrc::ast::Func* node)
+{
+    for (ast::Expr* n = node->child; n != 0; n = preorder_next(node, n))
+    {
+        if (ast::Var* var = as_Var(n))
+        {
+            if (!is_bound(var))
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+inline bool plnnrc::all_unbound(plnnrc::ast::Func* node)
+{
+    for (ast::Expr* n = node->child; n != 0; n = preorder_next(node, n))
+    {
+        if (ast::Var* var = as_Var(n))
+        {
+            if (is_bound(var))
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}

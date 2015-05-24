@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2013 Alexander Shafranov shafranov@gmail.com
+// Copyright (c) 2015 Alexander Shafranov shafranov@gmail.com
 //
 // This software is provided 'as-is', without any express or implied
 // warranty.  In no event will the authors be held liable for any damages
@@ -19,152 +19,136 @@
 //
 
 #include <ctype.h>
-#include "formatter.h"
+
 #include "derplanner/compiler/assert.h"
-#include "derplanner/compiler/s_expression.h"
-#include "derplanner/compiler/ast.h"
 #include "derplanner/compiler/errors.h"
+#include "derplanner/compiler/lexer.h"
+#include "derplanner/compiler/io.h"
 
-namespace plnnrc {
+using namespace plnnrc;
 
-namespace
+static const char* s_format_str[] =
 {
-    const char* error_format_string(Compilation_Error id)
+    "Unknown",
+    #define PLNNRC_ERROR(TAG, FORMAT_STR) FORMAT_STR,
+    #include "derplanner/compiler/error_tags.inl"
+    #undef PLNNRC_ERROR
+    "Count",
+};
+
+const char* plnnrc::get_format_string(plnnrc::Error_Type error_type)
+{
+    return s_format_str[error_type];
+}
+
+static const char* get_nice_description(Token_Type type)
+{
+    switch (type)
     {
-        switch (id)
-        {
-        #define PLNNRC_ERROR(ID, STR) case ID: return STR;
-        #include "derplanner/compiler/error_tags.inl"
-        #undef PLNNRC_ERROR
+    #define PLNNRC_KEYWORD_TOKEN(TAG, STR)      \
+        case Token_##TAG:                       \
+            return "keyword '" STR "'";         \
+
+    #define PLNNRC_TYPE_KEYWORD_TOKEN(TAG, STR) \
+        case Token_##TAG:                       \
+            return "type '" STR "'";            \
+
+    #define PLNNRC_PUNCTUATOR_TOKEN(TAG, STR)   \
+        case Token_##TAG:                       \
+            return "'" STR "'";                 \
+
+    #define PLNNRC_OPERATOR_TOKEN(TAG, STR)     \
+        case Token_##TAG:                       \
+            return "operator '" STR "'";        \
+
+    #include "derplanner/compiler/token_tags.inl"
+        case Token_Eos:
+            return "end-of-stream";
+
         default:
-            return "<none>";
-        };
-    }
+            return 0;
+    };
+
+    #undef PLNNRC_OPERATOR_TOKEN
+    #undef PLNNRC_PUNCTUATOR_TOKEN
+    #undef PLNNRC_TYPE_KEYWORD_TOKEN
+    #undef PLNNRC_KEYWORD_TOKEN
 }
 
-Location::Location(sexpr::Node* s_expr)
-    : line(s_expr->line)
-    , column(s_expr->column)
+static const char* get_description(Token_Type type)
 {
-}
-
-Location::Location(ast::Node* Node)
-    : line(0)
-    , column(0)
-{
-    if (Node && Node->s_expr)
+    const char* desc = get_nice_description(type);
+    if (desc)
     {
-        line = Node->s_expr->line;
-        column = Node->s_expr->column;
+        return desc;
     }
+
+    return get_type_name(type);
 }
 
-namespace
+void plnnrc::format_error(const plnnrc::Error& error, plnnrc::Formatter& fmtr)
 {
-    void move(const char*& cursor)
-    {
-        cursor++;
-    }
+    write(fmtr, "error (%d, %d): ", error.loc.line, error.loc.column);
 
-    void skip(const char*& cursor, char until)
-    {
-        while (*cursor != until)
-        {
-            plnnrc_assert(cursor);
-            move(cursor);
-        }
-    }
-}
-
-namespace ast {
-
-void format_error(Error_Ann* annotation, Writer& stream)
-{
-    Formatter output(stream);
-    output.init(2048);
-
-    const char* format = error_format_string(annotation->id);
-
-    output.put_str("error: ");
-    output.put_char('[');
-    output.put_int(annotation->line);
-    output.put_char(':');
-    output.put_int(annotation->column);
-    output.put_str("] ");
-
+    const char* format = get_format_string(error.type);
     while (*format)
     {
         if (*format == '$')
         {
-            move(format);
+            ++format;
             char digit = *format;
             plnnrc_assert(isdigit(digit));
-            int slot = digit - '0';
-            plnnrc_assert(slot < annotation->argument_count);
-            Error_Argument_Type arg_type = annotation->argument_type[slot];
-            plnnrc_assert(arg_type != error_argument_none);
+            uint32_t slot = digit - '0';
+            plnnrc_assert(slot < error.num_args);
+            Error::Arg_Type arg_type = error.arg_types[slot];
+            plnnrc_assert(arg_type != Error::Arg_Type_None);
 
             switch (arg_type)
             {
-            case error_argument_node_token:
+            case Error::Arg_Type_Token:
                 {
-                    sexpr::Node* s_expr = annotation->argument_node[slot];
-                    output.put_str(s_expr->token);
-                }
-                break;
-            case error_argument_node_location:
-                {
-                    Location arg = annotation->argument_location[slot];
-                    output.put_char('[');
-                    output.put_int(arg.line);
-                    output.put_char(':');
-                    output.put_int(arg.column);
-                    output.put_char(']');
-                }
-                break;
-            case error_argument_node_string:
-                {
-                    const char* arg = annotation->argument_string[slot];
-                    output.put_str(arg);
-                }
-                break;
-            case error_argument_selection:
-                {
-                    move(format);
-                    plnnrc_assert(*format == '{');
-                    move(format);
-                    int selection = annotation->argument_selection[slot];
+                    Token tok = error.args[slot].token;
+                    const char* desc = get_nice_description(tok.type);
 
-                    for (int i = 0; i < selection; ++i)
+                    if (desc)
                     {
-                        skip(format, '|');
-                        move(format);
+                        write(fmtr, "%s", desc);
+                    }
+                    else
+                    {
+                        write(fmtr, "'%n'", tok.value);
                     }
 
-                    while (*format != '|' && *format != '}')
-                    {
-                        plnnrc_assert(format);
-                        output.put_char(*format);
-                        move(format);
-                    }
-
-                    skip(format, '}');
+                    break;
                 }
-                break;
+            case Error::Arg_Type_Token_Value:
+                {
+                    Token_Value value = error.args[slot].token_value;
+                    write(fmtr, "'%n'", value);
+                    break;
+                }
+            case Error::Arg_Type_Token_Type:
+                {
+                    write(fmtr, "%s", get_description(error.args[slot].token_type));
+                    break;
+                }
+            case Error::Arg_Type_Token_Group:
+                {
+                    write(fmtr, "%s", get_group_name(error.args[slot].token_group));
+                    break;
+                }
             default:
+                plnnrc_assert(false);
                 break;
             }
         }
         else
         {
-            output.put_char(*format);
+            put_char(fmtr, *format);
         }
 
-        move(format);
+        ++format;
     }
 
-    output.put_char('\n');
-}
-
-}
+    newline(fmtr);
 }

@@ -1,0 +1,13 @@
+
+domain test
+{
+    world
+    {
+        a(xxx)
+        b
+    }
+
+    task hello
+        case() -> []
+    }
+}

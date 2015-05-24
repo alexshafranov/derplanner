@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2013 Alexander Shafranov shafranov@gmail.com
+// Copyright (c) 2015 Alexander Shafranov shafranov@gmail.com
 //
 // This software is provided 'as-is', without any express or implied
 // warranty.  In no event will the authors be held liable for any damages
@@ -18,18 +18,17 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef DERPLANNER_RUNTIME_ASSERT_H_
-#define DERPLANNER_RUNTIME_ASSERT_H_
+#include "derplanner/compiler/array.h"
 
-// if external plnnr_assert is not provided
-#ifndef plnnr_assert
-    #ifdef NDEBUG
-        // http://cnicholson.net/2009/02/stupid-c-tricks-adventures-in-assert/
-        #define plnnr_assert(e) do { (void)sizeof(e); } while ((void)(__LINE__==-1), false)
-    #else
-        #include <assert.h>
-        #define plnnr_assert assert
-    #endif
-#endif
+plnnrc::Array_Base::Array_Base()
+    : size(0), max_size(0), data(0), memory(0)
+{
+}
 
-#endif
+plnnrc::Array_Base::~Array_Base()
+{
+    if (memory)
+    {
+        destroy(*this);
+    }
+}
