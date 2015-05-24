@@ -33,7 +33,7 @@
 PLNNRC_PARSER_ERROR(Unexpected_Token,       "unexpected token $0.")
 PLNNRC_PARSER_ERROR(Expected,               "expected $0, got $1.")
 PLNNRC_PARSER_ERROR(Redefinition,           "multiple definitions of $0 found.")
-PLNNRC_PARSER_ERROR(Expected_End_Of_File,   "expected end-of-file.")
+PLNNRC_PARSER_ERROR(Expected_End_Of_Stream, "expected end-of-stream.")
 
 PLNNRC_AST_ERROR(Recursive_Predicate, "recursive predicate $0 found.")
 

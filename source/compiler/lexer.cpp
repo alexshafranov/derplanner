@@ -431,7 +431,7 @@ Token plnnrc::lex(Lexer& state)
         }
     }
 
-    return make_token(state, Token_Eof);
+    return make_token(state, Token_Eos);
 }
 
 void plnnrc::debug_output_tokens(const char* buffer, Writer* output)
@@ -448,7 +448,7 @@ void plnnrc::debug_output_tokens(const char* buffer, Writer* output)
         uint32_t prev_line = tok.loc.line;
         plnnrc::newline(fmtr);
 
-        for (; tok.type != Token_Eof; tok = plnnrc::lex(lexer))
+        for (; tok.type != Token_Eos; tok = plnnrc::lex(lexer))
         {
             if (tok.loc.line > prev_line)
             {
@@ -467,7 +467,7 @@ void plnnrc::debug_output_tokens(const char* buffer, Writer* output)
             prev_line = tok.loc.line;
         }
 
-        if (tok.type == plnnrc::Token_Eof)
+        if (tok.type == plnnrc::Token_Eos)
         {
             if (tok.loc.line > prev_line)
             {

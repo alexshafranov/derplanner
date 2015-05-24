@@ -48,7 +48,7 @@ namespace
         Test_Lexer lexer;
         init(lexer, "id1 id2 domain id3");
 
-        plnnrc::Token_Type expected_types[] = { plnnrc::Token_Id, plnnrc::Token_Id, plnnrc::Token_Domain, plnnrc::Token_Id, plnnrc::Token_Eof };
+        plnnrc::Token_Type expected_types[] = { plnnrc::Token_Id, plnnrc::Token_Id, plnnrc::Token_Domain, plnnrc::Token_Id, plnnrc::Token_Eos };
         const char* expected_strings[] = { "id1", "id2", "domain", "id3", 0 };
 
         for (unsigned i = 0; i < sizeof(expected_types)/sizeof(expected_types[0]); ++i)

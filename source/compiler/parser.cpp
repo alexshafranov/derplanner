@@ -135,7 +135,7 @@ static bool skip_inside_domain(Parser& state)
 {
     eat(state);
 
-    while (!is_Eof(peek(state)))
+    while (!is_Eos(peek(state)))
     {
         Token tok = peek(state);
         if (is_World(tok) || is_Primitive(tok) || is_Predicate(tok) || is_Task(tok))
@@ -152,7 +152,7 @@ static bool skip_inside_task(Parser& state)
 {
     eat(state);
 
-    while (!is_Eof(peek(state)))
+    while (!is_Eos(peek(state)))
     {
         Token tok = peek(state);
         if (is_Case(tok) || is_Predicate(tok))
@@ -228,9 +228,9 @@ void plnnrc::parse(Parser& state)
         state.tree->primitive = create_primitive(state.tree);
     }
 
-    if (domain && !is_Eof(peek(state)))
+    if (domain && !is_Eos(peek(state)))
     {
-        emit(state, Error_Expected_End_Of_File);
+        emit(state, Error_Expected_End_Of_Stream);
     }
 }
 
@@ -268,7 +268,7 @@ ast::Domain* plnnrc::parse_domain(Parser& state)
     {
         Children_Builder<ast::Task> task_builder(&state, &domain->tasks);
 
-        while (!is_Eof(peek(state)))
+        while (!is_Eos(peek(state)))
         {
             Token tok = peek(state);
 
@@ -381,7 +381,7 @@ static bool parse_param_types(Parser& state, Children_Builder<ast::Data_Type>& b
 {
     plnnrc_expect_return(state, Token_L_Paren);
 
-    while (!is_Eof(peek(state)))
+    while (!is_Eos(peek(state)))
     {
         if (is_R_Paren(peek(state)))
         {
@@ -410,7 +410,7 @@ static bool parse_params(Parser& state, Children_Builder<ast::Param>& builder)
 {
     plnnrc_expect_return(state, Token_L_Paren);
 
-    while (!is_Eof(peek(state)))
+    while (!is_Eos(peek(state)))
     {
         if (is_R_Paren(peek(state)))
         {
@@ -439,7 +439,7 @@ static bool parse_facts(Parser& state, Children_Builder<ast::Fact>& builder)
 {
     plnnrc_expect_return(state, Token_L_Curly);
 
-    while (!is_Eof(peek(state)))
+    while (!is_Eos(peek(state)))
     {
         if (is_R_Curly(peek(state)))
         {
@@ -467,7 +467,7 @@ static bool parse_task_body(Parser& state, ast::Task* task)
 
     Children_Builder<ast::Case> cases_builder(&state, &task->cases);
 
-    while (!is_Eof(peek(state)))
+    while (!is_Eos(peek(state)))
     {
         Token tok = peek(state);
 
@@ -514,7 +514,7 @@ static bool parse_task_list(Parser& state, ast::Case* case_)
     plnnrc_expect_return(state, Token_L_Square);
     Children_Builder<ast::Expr> builder(&state, &case_->task_list);
 
-    while (!is_Eof(peek(state)))
+    while (!is_Eos(peek(state)))
     {
         Token tok = peek(state);
 
@@ -614,7 +614,7 @@ static ast::Expr* parse_conjunct(Parser& state)
 
             ast::Func* node = plnnrc::create_func(state.tree, tok.value);
 
-            while (!is_Eof(peek(state)))
+            while (!is_Eos(peek(state)))
             {
                 Token tok = peek(state);
 
@@ -668,7 +668,7 @@ static bool parse_predicate_block(Parser& state, Children_Builder<ast::Predicate
 {
     plnnrc_expect_return(state, Token_L_Curly);
 
-    while (!is_Eof(peek(state)))
+    while (!is_Eos(peek(state)))
     {
         Token tok = peek(state);
 
