@@ -210,7 +210,7 @@ void plnnrc::parse(Parser& state)
 {
     // buffer the first token.
     state.token = lex(*state.lexer);
-    ast::Domain* domain = plnnrc::parse_domain(state);
+    ast::Domain* domain = parse_domain(state);
 
     if (!domain)
     {
@@ -261,7 +261,7 @@ ast::Domain* plnnrc::parse_domain(Parser& state)
     Token name = expect(state, Token_Id);
     plnnrc_check_return(!is_Error(name));
 
-    ast::Domain* domain = plnnrc::create_domain(state.tree, name.value);
+    ast::Domain* domain = create_domain(state.tree, name.value);
     state.tree->domain = domain;
 
     plnnrc_expect_return(state, Token_L_Curly);
@@ -333,7 +333,7 @@ ast::Domain* plnnrc::parse_domain(Parser& state)
 ast::World* plnnrc::parse_world(Parser& state)
 {
     plnnrc_expect_return(state, Token_World);
-    ast::World* world = plnnrc::create_world(state.tree);
+    ast::World* world = create_world(state.tree);
     Children_Builder<ast::Fact> builder(&state, &world->facts);
     plnnrc_check_return(parse_facts(state, builder));
     return world;
@@ -342,7 +342,7 @@ ast::World* plnnrc::parse_world(Parser& state)
 ast::Primitive* plnnrc::parse_primitive(Parser& state)
 {
     plnnrc_expect_return(state, Token_Primitive);
-    ast::Primitive* prim = plnnrc::create_primitive(state.tree);
+    ast::Primitive* prim = create_primitive(state.tree);
     Children_Builder<ast::Fact> builder(&state, &prim->tasks);
     plnnrc_check_return(parse_facts(state, builder));
     return prim;
@@ -449,7 +449,7 @@ static bool parse_facts(Parser& state, Children_Builder<ast::Fact>& builder)
         Token tok = expect(state, Token_Id);
         plnnrc_check_return(!is_Error(tok));
 
-        ast::Fact* fact = plnnrc::create_fact(state.tree, tok.value, tok.loc);
+        ast::Fact* fact = create_fact(state.tree, tok.value, tok.loc);
 
         Children_Builder<ast::Data_Type> param_builder(&state, &fact->params);
         plnnrc_check_return(parse_param_types(state, param_builder));
@@ -620,14 +620,14 @@ static ast::Expr* parse_term_expr(Parser& state)
 
     if (is_Literal(tok))
     {
-        return plnnrc::create_literal(state.tree, tok);
+        return create_literal(state.tree, tok);
     }
 
     if (is_Not(tok))
     {
-        ast::Expr* node_Not = plnnrc::create_op(state.tree, ast::Node_Not);
+        ast::Expr* node_Not = create_op(state.tree, ast::Node_Not);
         ast::Expr* node = parse_term_expr(state);
-        plnnrc::append_child(node_Not, node);
+        append_child(node_Not, node);
         return node_Not;
     }
 
@@ -637,7 +637,7 @@ static ast::Expr* parse_term_expr(Parser& state)
         {
             eat(state);
 
-            ast::Func* node = plnnrc::create_func(state.tree, tok.value);
+            ast::Func* node = create_func(state.tree, tok.value);
 
             while (!is_Eos(peek(state)))
             {
@@ -651,8 +651,8 @@ static ast::Expr* parse_term_expr(Parser& state)
                 if (is_Id(tok))
                 {
                     eat(state);
-                    ast::Expr* node_Var = plnnrc::create_var(state.tree, tok.value);
-                    plnnrc::append_child(node, node_Var);
+                    ast::Expr* node_Var = create_var(state.tree, tok.value);
+                    append_child(node, node_Var);
                     continue;
                 }
 
@@ -671,7 +671,7 @@ static ast::Expr* parse_term_expr(Parser& state)
             return node;
         }
 
-        return plnnrc::create_var(state.tree, tok.value);
+        return create_var(state.tree, tok.value);
     }
 
     return 0;
