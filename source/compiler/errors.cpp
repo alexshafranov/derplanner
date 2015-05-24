@@ -62,8 +62,8 @@ static const char* get_nice_description(Token_Type type)
             return "operator '" STR "'";        \
 
     #include "derplanner/compiler/token_tags.inl"
-        case Token_Eof:
-            return "end-of-file";
+        case Token_Eos:
+            return "end-of-stream";
 
         default:
             return 0;
