@@ -26,6 +26,15 @@
 
 namespace plnnr {
 
+// Three component vector, could be stored in a fact database.
+struct Vec3
+{
+    Vec3() :x(0.f), y(0.f), z(0.f) {}
+    Vec3(float x, float y, float z) :x(x), y(y), z(z) {}
+
+    float x, y, z;
+};
+
 // Type IDs supported by fact database.
 enum Type
 {

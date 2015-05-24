@@ -397,48 +397,56 @@ inline void add_entry(Fact_Table& table, const T0& a0, const T1& a1, const T2& a
 template <typename T0>
 inline void add_entry(Fact_Table* table, const T0& a0)
 {
+    plnnr_assert(table != 0);
     add_entry(*table, a0);
 }
 
 template <typename T0, typename T1>
 inline void add_entry(Fact_Table* table, const T0& a0, const T1& a1)
 {
+    plnnr_assert(table != 0);
     add_entry(*table, a0, a1);
 }
 
 template <typename T0, typename T1, typename T2>
 inline void add_entry(Fact_Table* table, const T0& a0, const T1& a1, const T2& a2)
 {
+    plnnr_assert(table != 0);
     add_entry(*table, a0, a1, a2);
 }
 
 template <typename T0, typename T1, typename T2, typename T3>
 inline void add_entry(Fact_Table* table, const T0& a0, const T1& a1, const T2& a2, const T3& a3)
 {
+    plnnr_assert(table != 0);
     add_entry(*table, a0, a1, a2, a3);
 }
 
 template <typename T0, typename T1, typename T2, typename T3, typename T4>
 inline void add_entry(Fact_Table* table, const T0& a0, const T1& a1, const T2& a2, const T3& a3, const T4& a4)
 {
+    plnnr_assert(table != 0);
     add_entry(*table, a0, a1, a2, a3, a4);
 }
 
 template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
 inline void add_entry(Fact_Table* table, const T0& a0, const T1& a1, const T2& a2, const T3& a3, const T4& a4, const T5& a5)
 {
+    plnnr_assert(table != 0);
     add_entry(*table, a0, a1, a2, a3, a4, a5);
 }
 
 template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
 inline void add_entry(Fact_Table* table, const T0& a0, const T1& a1, const T2& a2, const T3& a3, const T4& a4, const T5& a5, const T6& a6)
 {
+    plnnr_assert(table != 0);
     add_entry(*table, a0, a1, a2, a3, a4, a5, a6);
 }
 
 template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
 inline void add_entry(Fact_Table* table, const T0& a0, const T1& a1, const T2& a2, const T3& a3, const T4& a4, const T5& a5, const T6& a6, const T7& a7)
 {
+    plnnr_assert(table != 0);
     add_entry(*table, a0, a1, a2, a3, a4, a5, a6, a7);
 }
 
