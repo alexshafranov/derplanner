@@ -377,7 +377,8 @@ ast::Expr* plnnrc::parse_precond(Parser& state)
     return node_Expr;
 }
 
-static bool parse_param_types(Parser& state, Children_Builder<ast::Data_Type>& builder)
+template <typename T>
+static bool parse_tuple(Parser& state, T parse_element)
 {
     plnnrc_expect_return(state, Token_L_Paren);
 
@@ -388,11 +389,7 @@ static bool parse_param_types(Parser& state, Children_Builder<ast::Data_Type>& b
             break;
         }
 
-        Token tok = expect(state, Token_Group_Type);
-        plnnrc_check_return(!is_Error(tok));
-
-        ast::Data_Type* param = create_type(state.tree, tok.type);
-        builder.push_back(param);
+        plnnrc_check_return(parse_element(state));
 
         if (!is_Comma(peek(state)))
         {
@@ -406,33 +403,58 @@ static bool parse_param_types(Parser& state, Children_Builder<ast::Data_Type>& b
     return true;
 }
 
-static bool parse_params(Parser& state, Children_Builder<ast::Param>& builder)
+struct Parse_Data_Type
 {
-    plnnrc_expect_return(state, Token_L_Paren);
+    Children_Builder<ast::Data_Type>* builder;
+    Parse_Data_Type(Children_Builder<ast::Data_Type>* builder) : builder(builder) {}
 
-    while (!is_Eos(peek(state)))
+    bool operator()(Parser& state)
     {
-        if (is_R_Paren(peek(state)))
-        {
-            break;
-        }
+        Token tok = expect(state, Token_Group_Type);
+        plnnrc_check_return(!is_Error(tok));
+        ast::Data_Type* param = create_type(state.tree, tok.type);
+        builder->push_back(param);
+        return true;
+    }
+};
 
+struct Parse_Param
+{
+    Children_Builder<ast::Param>* builder;
+    Parse_Param(Children_Builder<ast::Param>* builder) : builder(builder) {}
+
+    bool operator()(Parser& state)
+    {
         Token tok = expect(state, Token_Id);
         plnnrc_check_return(!is_Error(tok));
-
         ast::Param* param = create_param(state.tree, tok.value, tok.loc);
-        builder.push_back(param);
-
-        if (!is_Comma(peek(state)))
-        {
-            break;
-        }
-
-        plnnrc_expect_return(state, Token_Comma);
+        builder->push_back(param);
+        return true;
     }
+};
 
-    plnnrc_expect_return(state, Token_R_Paren);
-    return true;
+struct Parse_Argument
+{
+    ast::Func* func;
+    Parse_Argument(ast::Func* func) : func(func) {}
+
+    bool operator()(Parser& state)
+    {
+        ast::Expr* node = parse_expr(state);
+        plnnrc_check_return(node);
+        append_child(func, node);
+        return true;
+    }
+};
+
+static bool parse_param_types(Parser& state, Children_Builder<ast::Data_Type>& builder)
+{
+    return parse_tuple(state, Parse_Data_Type(&builder));
+}
+
+static bool parse_params(Parser& state, Children_Builder<ast::Param>& builder)
+{
+    return parse_tuple(state, Parse_Param(&builder));
 }
 
 static bool parse_facts(Parser& state, Children_Builder<ast::Fact>& builder)
@@ -641,45 +663,14 @@ static ast::Expr* parse_term_expr(Parser& state)
 
     if (is_Id(tok))
     {
-        if (is_L_Paren(peek(state)))
+        if (!is_L_Paren(peek(state)))
         {
-            eat(state);
-
-            ast::Func* node = create_func(state.tree, tok.value);
-
-            while (!is_Eos(peek(state)))
-            {
-                Token tok = peek(state);
-
-                if (is_R_Paren(tok))
-                {
-                    break;
-                }
-
-                if (is_Id(tok))
-                {
-                    eat(state);
-                    ast::Expr* node_Var = create_var(state.tree, tok.value);
-                    append_child(node, node_Var);
-                    continue;
-                }
-
-                if (is_Comma(tok))
-                {
-                    eat(state);
-                    continue;
-                }
-
-                emit(state, Error_Unexpected_Token) << tok;
-                eat(state);
-                break;
-            }
-
-            plnnrc_expect_return(state, Token_R_Paren);
-            return node;
+            return create_var(state.tree, tok.value);
         }
 
-        return create_var(state.tree, tok.value);
+        ast::Func* node = create_func(state.tree, tok.value);
+        plnnrc_check_return(parse_tuple(state, Parse_Argument(node)));
+        return node;
     }
 
     return 0;
