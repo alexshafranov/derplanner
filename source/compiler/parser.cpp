@@ -48,6 +48,7 @@ struct Children_Builder;
 static ast::Expr* parse_expr(Parser& state);
 static ast::Expr* parse_binary_expr(Parser& state, uint8_t precedence);
 static ast::Expr* parse_term_expr(Parser& state);
+static ast::Expr* parse_postfix_expr(Parser& state, ast::Expr* lhs);
 
 static ast::Predicate* parse_single_predicate(Parser& state);
 
@@ -641,13 +642,6 @@ static ast::Expr* parse_term_expr(Parser& state)
 {
     Token tok = eat(state);
 
-    if (is_L_Paren(tok))
-    {
-        ast::Expr* node_Expr = parse_expr(state);
-        plnnrc_expect_return(state, Token_R_Paren);
-        return node_Expr;
-    }
-
     if (is_Literal(tok))
     {
         return create_literal(state.tree, tok);
@@ -661,19 +655,46 @@ static ast::Expr* parse_term_expr(Parser& state)
         return node_Not;
     }
 
+    if (is_L_Paren(tok))
+    {
+        ast::Expr* node_Expr = parse_expr(state);
+        plnnrc_expect_return(state, Token_R_Paren);
+        return parse_postfix_expr(state, node_Expr);
+    }
+
     if (is_Id(tok))
     {
+        // variable or constant
         if (!is_L_Paren(peek(state)))
         {
-            return create_var(state.tree, tok.value);
+            ast::Expr* node_Var = create_var(state.tree, tok.value);
+            return parse_postfix_expr(state, node_Var);
         }
 
-        ast::Func* node = create_func(state.tree, tok.value);
-        plnnrc_check_return(parse_tuple(state, Parse_Argument(node)));
-        return node;
+        // otherwise function call.
+        ast::Func* node_Func = create_func(state.tree, tok.value);
+        plnnrc_check_return(parse_tuple(state, Parse_Argument(node_Func)));
+        return parse_postfix_expr(state, node_Func);
     }
 
     return 0;
+}
+
+static ast::Expr* parse_postfix_expr(Parser& state, ast::Expr* lhs)
+{
+    if (is_Dot(peek(state)))
+    {
+        eat(state);
+        ast::Expr* node_Dot = create_op(state.tree, ast::Node_Dot);
+        Token tok = expect(state, Token_Id);
+        plnnrc_check_return(!is_Error(tok));
+        ast::Expr* rhs = create_var(state.tree, tok.value);
+        append_child(node_Dot, lhs);
+        append_child(node_Dot, rhs);
+        return node_Dot;
+    }
+
+    return lhs;
 }
 
 static ast::Predicate* parse_single_predicate(Parser& state)
