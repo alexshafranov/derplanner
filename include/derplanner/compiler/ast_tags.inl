@@ -39,13 +39,30 @@ PLNNRC_NODE(Var,        ::plnnrc::ast::Var)
 PLNNRC_NODE(Data_Type,  ::plnnrc::ast::Data_Type)
 PLNNRC_NODE(Literal,    ::plnnrc::ast::Literal)
 
-PLNNRC_NODE(And,        ::plnnrc::ast::Op)
-PLNNRC_NODE(Or,         ::plnnrc::ast::Op)
-PLNNRC_NODE(Not,        ::plnnrc::ast::Op)
-PLNNRC_NODE(Plus,       ::plnnrc::ast::Op)
-PLNNRC_NODE(Minus,      ::plnnrc::ast::Op)
+#define PLNNRC_NODE_OP(TAG) PLNNRC_NODE(TAG, ::plnnrc::ast::Op)
 
-PLNNRC_NODE_GROUP(Logical, And, Not)
+PLNNRC_NODE_OP(Or)
+PLNNRC_NODE_OP(And)
+PLNNRC_NODE_OP(Not)
 
+PLNNRC_NODE_OP(Equal)
+PLNNRC_NODE_OP(NotEqual)
+PLNNRC_NODE_OP(Less)
+PLNNRC_NODE_OP(LessEqual)
+PLNNRC_NODE_OP(Greater)
+PLNNRC_NODE_OP(GreaterEqual)
+
+PLNNRC_NODE_OP(Plus)
+PLNNRC_NODE_OP(Minus)
+PLNNRC_NODE_OP(Mul)
+PLNNRC_NODE_OP(Div)
+
+PLNNRC_NODE_OP(Dot)
+
+PLNNRC_NODE_GROUP(Logical, Or, Not)
+PLNNRC_NODE_GROUP(Comparison, Equal, GreaterEqual)
+PLNNRC_NODE_GROUP(Arithmetic, Plus, Div)
+
+#undef PLNNRC_NODE_OP
 #undef PLNNRC_NODE
 #undef PLNNRC_NODE_GROUP
