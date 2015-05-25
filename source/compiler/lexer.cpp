@@ -322,9 +322,11 @@ Token plnnrc::lex(Lexer& state)
     {
         switch (c)
         {
-        // single line C-style comments
+        // division or single line C-style comments 
         case '/':
+            tok = make_token(state, Token_Div);
             consume_char(state);
+
             if (get_char(state) == '/')
             {
                 consume_char(state);
@@ -332,8 +334,7 @@ Token plnnrc::lex(Lexer& state)
                 break;
             }
 
-            unconsume_char(state);
-            return lex_unknown(state);
+            return tok;
         // whitespace
         case ' ': case '\f': case '\t': case '\v':
             consume_char(state);
@@ -376,12 +377,7 @@ Token plnnrc::lex(Lexer& state)
             tok = make_token(state, Token_Colon);
             consume_char(state);
             return tok;
-        case '=':
-            tok = make_token(state, Token_Equality);
-            consume_char(state);
-            return tok;
 
-        // single-character operators
         case '&':
             tok = make_token(state, Token_And);
             consume_char(state);
@@ -394,9 +390,21 @@ Token plnnrc::lex(Lexer& state)
             tok = make_token(state, Token_Not);
             consume_char(state);
             return tok;
+        case '.':
+            tok = make_token(state, Token_Dot);
+            consume_char(state);
+            return tok;
+        case '+':
+            tok = make_token(state, Token_Plus);
+            consume_char(state);
+            return tok;
+        case '*':
+            tok = make_token(state, Token_Mul);
+            consume_char(state);
+            return tok;
 
-        // arrow or numeric
         case '-':
+            // arrow or minus
             tok = make_token(state, Token_Unknown);
             consume_char(state);
             if (get_char(state) == '>')
@@ -408,18 +416,59 @@ Token plnnrc::lex(Lexer& state)
 
             tok.type = Token_Minus;
             return tok;
-
-        case '+':
-            tok = make_token(state, Token_Plus);
+        case '=':
+            // '=' or '=='
+            tok = make_token(state, Token_Unknown);
             consume_char(state);
+            if (get_char(state) == '=')
+            {
+                consume_char(state);
+                tok.type = Token_Equal;
+                return tok;
+            }
+
+            tok.type = Token_Equality;
             return tok;
+        case '<':
+            tok = make_token(state, Token_Less);
+            consume_char(state);
+            if (get_char(state) == '=')
+            {
+                consume_char(state);
+                tok.type = Token_LessEqual;
+                return tok;
+            }
+            return tok;
+        case '>':
+            tok = make_token(state, Token_Greater);
+            consume_char(state);
+            if (get_char(state) == '=')
+            {
+                consume_char(state);
+                tok.type = Token_GreaterEqual;
+                return tok;
+            }
+            return tok;
+        case '!':
+            // '!=' or identifier
+            tok = make_token(state, Token_Unknown);
+            consume_char(state);
+            if (get_char(state) == '=')
+            {
+                consume_char(state);
+                tok.type = Token_NotEqual;
+                return tok;
+            }
+            // lex identifier otherwise.
+            unconsume_char(state);
+            return lex_identifier(state);
 
         // identifiers & keywords
         case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I': case 'J': case 'K': case 'L': case 'M': case 'N':
         case 'O': case 'P': case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W': case 'X': case 'Y': case 'Z':
         case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n':
         case 'o': case 'p': case 'q': case 'r': case 's': case 't': case 'u': case 'v': case 'w': case 'x': case 'y': case 'z':
-        case '!': case '?': case '_':
+        case '?': case '_':
             return lex_identifier(state);
 
         // numeric literal

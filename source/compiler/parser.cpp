@@ -543,20 +543,28 @@ static ast::Expr* parse_expr(Parser& state)
     return parse_binary_expr(state, 0);
 }
 
+// NOTE: depends on the order tokens defined in token_tags.inl.
 static uint8_t s_precedence[] =
 {
-    2, // Token_And
     1, // Token_Or
-    3, // Token_Plus
-    3, // Token_Minus
+    2, // Token_And
+    3, // Token_Equal
+    3, // Token_NotEqual
+    4, // Token_Less
+    4, // Token_LessEqual
+    4, // Token_Greater
+    4, // Token_GreaterEqual
+    5, // Token_Plus
+    5, // Token_Minus
+    6, // Token_Mul
+    6, // Token_Div
 };
 
 static ast::Node_Type s_token_to_ast[] =
 {
-    ast::Node_And,      // Token_And
-    ast::Node_Or,       // Token_Or
-    ast::Node_Plus,     // Token_Plus
-    ast::Node_Minus,    // Token_Minus
+    #define PLNNRC_OPERATOR_TOKEN(TAG, STR) ast::Node_##TAG,
+    #include "derplanner/compiler/token_tags.inl"
+    #undef PLNNRC_OPERATOR_TOKEN
 };
 
 static uint8_t get_precedence(Token_Type token_type)

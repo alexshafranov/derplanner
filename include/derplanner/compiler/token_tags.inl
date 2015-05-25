@@ -72,17 +72,29 @@ PLNNRC_PUNCTUATOR_TOKEN(Colon,        ":")
 PLNNRC_PUNCTUATOR_TOKEN(Arrow,        "->")
 PLNNRC_PUNCTUATOR_TOKEN(Equality,     "=")
 
-PLNNRC_OPERATOR_TOKEN(And,            "&")
+// binary
 PLNNRC_OPERATOR_TOKEN(Or,             "|")
+PLNNRC_OPERATOR_TOKEN(And,            "&")
+PLNNRC_OPERATOR_TOKEN(Equal,          "==")
+PLNNRC_OPERATOR_TOKEN(NotEqual,       "!=")
+PLNNRC_OPERATOR_TOKEN(Less,           "<")
+PLNNRC_OPERATOR_TOKEN(LessEqual,      "<=")
+PLNNRC_OPERATOR_TOKEN(Greater,        ">")
+PLNNRC_OPERATOR_TOKEN(GreaterEqual,   ">=")
 PLNNRC_OPERATOR_TOKEN(Plus,           "+")
 PLNNRC_OPERATOR_TOKEN(Minus,          "-")
+PLNNRC_OPERATOR_TOKEN(Mul,            "*")
+PLNNRC_OPERATOR_TOKEN(Div,            "/")
+
+// unary
+PLNNRC_OPERATOR_TOKEN(Dot,            ".")
 PLNNRC_OPERATOR_TOKEN(Not,            "~")
 
 PLNNRC_TOKEN_GROUP(Keyword, Domain, Vec3)
 PLNNRC_TOKEN_GROUP(Block,   Domain, Task)
 PLNNRC_TOKEN_GROUP(Type,    Int32,  Vec3)
 PLNNRC_TOKEN_GROUP(Literal, Literal_Integer, Literal_Float)
-PLNNRC_TOKEN_GROUP(Binary,  And, Minus)
+PLNNRC_TOKEN_GROUP(Binary,  Or, Div)
 
 #undef PLNNRC_TOKEN_GROUP
 #undef PLNNRC_OPERATOR_TOKEN
