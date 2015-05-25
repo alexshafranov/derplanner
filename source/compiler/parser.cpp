@@ -51,6 +51,7 @@ static ast::Expr* parse_term_expr(Parser& state);
 static ast::Expr* parse_postfix_expr(Parser& state, ast::Expr* lhs);
 
 static ast::Predicate* parse_single_predicate(Parser& state);
+static ast::Predicate* parse_single_constant(Parser& state);
 
 static bool parse_param_types(Parser& state, Children_Builder<ast::Data_Type>& builder);
 static bool parse_params(Parser& state, Children_Builder<ast::Param>& builder);
@@ -59,7 +60,8 @@ static bool parse_task_body(Parser& state, ast::Task* task);
 static bool parse_task_list(Parser& state, ast::Case* case_);
 static bool parse_predicate_block(Parser& state, Children_Builder<ast::Predicate>& builder);
 static bool parse_predicates(Parser& state, Children_Builder<ast::Predicate>& builder);
-
+static bool parse_constant_block(Parser& state, Children_Builder<ast::Predicate>& builder);
+static bool parse_constants(Parser& state, Children_Builder<ast::Predicate>& builder);
 
 void plnnrc::init(Parser& state, Lexer* lexer, ast::Root* tree, Array<Error>* errors, Memory_Stack* scratch)
 {
@@ -139,7 +141,7 @@ static bool skip_inside_domain(Parser& state)
     while (!is_Eos(peek(state)))
     {
         Token tok = peek(state);
-        if (is_World(tok) || is_Primitive(tok) || is_Predicate(tok) || is_Task(tok))
+        if (is_World(tok) || is_Primitive(tok) || is_Predicate(tok) || is_Const(tok) || is_Task(tok))
             return true;
 
         eat(state);
@@ -156,7 +158,7 @@ static bool skip_inside_task(Parser& state)
     while (!is_Eos(peek(state)))
     {
         Token tok = peek(state);
-        if (is_Case(tok) || is_Predicate(tok))
+        if (is_Case(tok) || is_Predicate(tok) || is_Const(tok))
             return true;
 
         eat(state);
@@ -310,6 +312,14 @@ ast::Domain* plnnrc::parse_domain(Parser& state)
             {
                 Children_Builder<ast::Predicate> pred_builder(&state, &domain->predicates);
                 bool ok = parse_predicates(state, pred_builder);
+                plnnrc_check_skip(state, ok, skip_inside_domain);
+                continue;
+            }
+
+            if (is_Const(tok))
+            {
+                Children_Builder<ast::Predicate> pred_builder(&state, &domain->predicates);
+                bool ok = parse_constants(state, pred_builder);
                 plnnrc_check_skip(state, ok, skip_inside_domain);
                 continue;
             }
@@ -524,6 +534,14 @@ static bool parse_task_body(Parser& state, ast::Task* task)
             continue;
         }
 
+        if (is_Const(tok))
+        {
+            Children_Builder<ast::Predicate> pred_builder(&state, &task->predicates);
+            bool ok = parse_constants(state, pred_builder);
+            plnnrc_check_skip(state, ok, skip_inside_task);
+            continue;
+        }
+
         emit(state, Error_Unexpected_Token) << tok;
         skip_inside_task(state);
     }
@@ -709,6 +727,15 @@ static ast::Predicate* parse_single_predicate(Parser& state)
     return pred;
 }
 
+static ast::Predicate* parse_single_constant(Parser& state)
+{
+    Token tok = expect(state, Token_Id);
+    ast::Predicate* pred = create_predicate(state.tree, tok.value, tok.loc);
+    plnnrc_expect_return(state, Token_Equality);
+    pred->expression = parse_expr(state);
+    return pred;
+}
+
 static bool parse_predicate_block(Parser& state, Children_Builder<ast::Predicate>& builder)
 {
     plnnrc_expect_return(state, Token_L_Curly);
@@ -738,6 +765,35 @@ static bool parse_predicate_block(Parser& state, Children_Builder<ast::Predicate
     return true;
 }
 
+static bool parse_constant_block(Parser& state, Children_Builder<ast::Predicate>& builder)
+{
+    plnnrc_expect_return(state, Token_L_Curly);
+
+    while (!is_Eos(peek(state)))
+    {
+        Token tok = peek(state);
+
+        if (is_R_Curly(tok))
+        {
+            break;
+        }
+
+        if (is_Id(tok))
+        {
+            ast::Predicate* pred = parse_single_constant(state);
+            builder.push_back(pred);
+            continue;
+        }
+
+        emit(state, Error_Unexpected_Token) << tok;
+        eat(state);
+        break;
+    }
+
+    plnnrc_expect_return(state, Token_R_Curly);
+    return true;
+}
+
 static bool parse_predicates(Parser& state, Children_Builder<ast::Predicate>& builder)
 {
     plnnrc_expect_return(state, Token_Predicate);
@@ -749,6 +805,21 @@ static bool parse_predicates(Parser& state, Children_Builder<ast::Predicate>& bu
 
     // single predicate definition
     ast::Predicate* pred = parse_single_predicate(state);
+    builder.push_back(pred);
+    return true;
+}
+
+static bool parse_constants(Parser& state, Children_Builder<ast::Predicate>& builder)
+{
+    plnnrc_expect_return(state, Token_Const);
+
+    if (is_L_Curly(peek(state)))
+    {
+        return parse_constant_block(state, builder);
+    }
+
+    // single constant definition
+    ast::Predicate* pred = parse_single_constant(state);
     builder.push_back(pred);
     return true;
 }

@@ -241,6 +241,7 @@ namespace ast
                 struct Fact;
                     struct Data_Type;
             struct Primitive;
+            struct Const;
             struct Domain;
                 struct Predicate;
                 struct Task;
@@ -446,7 +447,7 @@ namespace ast
         Token_Type              data_type;
     };
 
-    // Fact/function/task used in precondtition or task list.
+    // Fact/function/task/predicate used in precondtition or task list.
     struct Func : public Expr
     {
         // name of the fact/function/task.
