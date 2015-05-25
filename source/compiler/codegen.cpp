@@ -228,7 +228,7 @@ static bool all_unique(Array<uint32_t>& hashes)
     return true;
 }
 
-static void build_hashes(const Array<Token_Value>& names, Array<uint32_t>& out_hashes, uint32_t& out_seed)
+static bool build_hashes(const Array<Token_Value>& names, Array<uint32_t>& out_hashes, uint32_t& out_seed)
 {
     resize(out_hashes, size(names));
     const uint32_t max_seed = 1000;
@@ -250,9 +250,11 @@ static void build_hashes(const Array<Token_Value>& names, Array<uint32_t>& out_h
                 out_hashes[i] = plnnr::murmur2_32(names[i].str, names[i].length, test_seed);
             }
 
-            break;
+            return true;
         }
     }
+
+    return false;
 }
 
 static void generate_precondition(Codegen& state, ast::Case* case_, uint32_t case_idx, uint32_t input_idx, Signature input_sig, Signature output_sig, Formatter& fmtr);
