@@ -438,10 +438,11 @@ struct Cloner
         return clone;
     }
 
-    ast::Expr* visit(const ast::Func*   node)    { return make_clone(node); }
-    ast::Expr* visit(const ast::Var*    node)    { return make_clone(node); }
-    ast::Expr* visit(const ast::Op*     node)    { return make_clone(node); }
-    ast::Expr* visit(const ast::Node*)           { plnnrc_assert(false); return 0; }
+    ast::Expr* visit(const ast::Func*       node) { return make_clone(node); }
+    ast::Expr* visit(const ast::Var*        node) { return make_clone(node); }
+    ast::Expr* visit(const ast::Op*         node) { return make_clone(node); }
+    ast::Expr* visit(const ast::Literal*    node) { return make_clone(node); }
+    ast::Expr* visit(const ast::Node*) { plnnrc_assert(false); return 0; }
 };
 
 static ast::Expr* clone_node(ast::Root& tree, const ast::Expr* node)
