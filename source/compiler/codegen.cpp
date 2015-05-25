@@ -65,6 +65,10 @@ void plnnrc::generate_header(Codegen& state, const char* header_guard, Writer* o
     flush(fmtr);
 }
 
+static void generate_precondition(Codegen& state, ast::Case* case_, uint32_t case_idx, uint32_t input_idx, Signature input_sig, Signature output_sig, Formatter& fmtr);
+static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_idx, Formatter& fmtr);
+static void generate_literal_chain(Codegen& state, ast::Case* case_, ast::Expr* node, uint32_t& handle_id, uint32_t yield_id, Formatter& fmtr);
+
 static const char* s_runtime_type_tag[] =
 {
     #define PLNNR_TYPE(TAG, TYPE) #TAG,
@@ -256,10 +260,6 @@ static bool build_hashes(const Array<Token_Value>& names, Array<uint32_t>& out_h
 
     return false;
 }
-
-static void generate_precondition(Codegen& state, ast::Case* case_, uint32_t case_idx, uint32_t input_idx, Signature input_sig, Signature output_sig, Formatter& fmtr);
-
-static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_idx, Formatter& fmtr);
 
 void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* output)
 {
@@ -674,8 +674,6 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
 
     flush(fmtr);
 }
-
-static void generate_literal_chain(Codegen& state, ast::Case* case_, ast::Expr* node, uint32_t& handle_id, uint32_t yield_id, Formatter& fmtr);
 
 static void generate_precondition(Codegen& state, ast::Case* case_, uint32_t case_idx, uint32_t input_idx, Signature input_sig, Signature output_sig, Formatter& fmtr)
 {
