@@ -381,7 +381,7 @@ static bool is_trivial_conjunct(ast::Expr* node)
 {
     // assert expression is NNF.
     plnnrc_assert(!is_Not(node) || !is_Logical(node->child));
-    return is_Not(node) || is_Var(node) || is_Literal(node) || is_Func(node);
+    return is_Not(node) || !is_Logical(node);
 }
 
 // check if expression is either trivial (~x, x) or conjunction of trivials.
@@ -1030,8 +1030,6 @@ void plnnrc::annotate(ast::Root& tree)
 
 void plnnrc::infer_types(ast::Root& tree)
 {
-    if (!tree.domain || !tree.world) { return; }
-
     // seed types in preconditions using fact declarations.
     for (uint32_t case_idx = 0; case_idx < size(tree.cases); ++case_idx)
     {
