@@ -207,6 +207,10 @@ namespace
         check_nnf_expr("(  ~~~x )", "Not{ Var[x] }");
         // De-Morgan's law.
         check_nnf_expr("( ~(x & (y | ~z)) )", "Or{ Not{ Var[x] } And{ Not{ Var[y] } Var[z] } }");
+        // non logical ops considered literal.
+        check_nnf_expr("( ~(x + y) )", "Not{ Plus{ Var[x] Var[y] } }");
+        check_nnf_expr("( ~(x - 10.0) )", "Not{ Minus{ Var[x] Literal } }");
+        check_nnf_expr("( ~((x + y) | ~~(x <= y)) )", "And{ Not{ Plus{ Var[x] Var[y] } } Not{ LessEqual{ Var[x] Var[y] } } }");
     }
 
     void check_dnf_expr(const char* input, const char* expected)
@@ -233,5 +237,7 @@ namespace
         check_dnf_expr("( t1 & (~t2 | (t2 & t3 & t4)) )", "Or{ And{ Var[t1] Not{ Var[t2] } } And{ Var[t1] Var[t2] Var[t3] Var[t4] } }");
         check_dnf_expr("( q1 & (r1 | r2) & q2 & (r3 | r4) & q3 )",
                        "Or{ And{ Var[q1] Var[r1] Var[q2] Var[r3] Var[q3] } And{ Var[q1] Var[r1] Var[q2] Var[r4] Var[q3] } And{ Var[q1] Var[r2] Var[q2] Var[r3] Var[q3] } And{ Var[q1] Var[r2] Var[q2] Var[r4] Var[q3] } }");
+        // non logical ops are considered to be trivial conjuncts.
+        check_dnf_expr("( (a | 7.0) & ((c <= d) | (c + d)) )", "Or{ And{ Var[a] LessEqual{ Var[c] Var[d] } } And{ Var[a] Plus{ Var[c] Var[d] } } And{ Literal LessEqual{ Var[c] Var[d] } } And{ Literal Plus{ Var[c] Var[d] } } }");
     }
 }
