@@ -55,10 +55,11 @@ PLNNRC_KEYWORD_TOKEN(Task,              "task")
 PLNNRC_KEYWORD_TOKEN(Case,              "case")
 PLNNRC_KEYWORD_TOKEN(Const,             "const")
 
+PLNNRC_TYPE_KEYWORD_TOKEN(Id32,         "id32")
+PLNNRC_TYPE_KEYWORD_TOKEN(Id64,         "id64")
+PLNNRC_TYPE_KEYWORD_TOKEN(Int8,         "int8")
 PLNNRC_TYPE_KEYWORD_TOKEN(Int32,        "int32")
-PLNNRC_TYPE_KEYWORD_TOKEN(UInt32,       "uint32")
 PLNNRC_TYPE_KEYWORD_TOKEN(Int64,        "int64")
-PLNNRC_TYPE_KEYWORD_TOKEN(UInt64,       "uint64")
 PLNNRC_TYPE_KEYWORD_TOKEN(Float,        "float")
 PLNNRC_TYPE_KEYWORD_TOKEN(Vec3,         "vec3")
 
@@ -93,7 +94,7 @@ PLNNRC_OPERATOR_TOKEN(Not,              "~")
 
 PLNNRC_TOKEN_GROUP(Keyword, Domain, Vec3)
 PLNNRC_TOKEN_GROUP(Block,   Domain, Task)
-PLNNRC_TOKEN_GROUP(Type,    Int32,  Vec3)
+PLNNRC_TOKEN_GROUP(Type,    Id32,   Vec3)
 PLNNRC_TOKEN_GROUP(Literal, Literal_Integer, Literal_Float)
 PLNNRC_TOKEN_GROUP(Binary,  Or, Div)
 

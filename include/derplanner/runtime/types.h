@@ -35,6 +35,12 @@ struct Vec3
     float x, y, z;
 };
 
+// 32-bit size handle to be used to point to entities in a fact database.
+typedef uint32_t Id32;
+
+// 64-bit size handle to be used to point to entities in a fact database.
+typedef uint64_t Id64;
+
 // Type IDs supported by fact database.
 enum Type
 {

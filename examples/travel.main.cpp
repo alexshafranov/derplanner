@@ -4,13 +4,13 @@
 #include "travel.h"
 
 // city
-static const int SPB = 0;
+static const plnnr::Id32 SPB = 0;
 // airport
-static const int LED = 1;
+static const plnnr::Id32 LED = 1;
 // city
-static const int MSC = 2;
+static const plnnr::Id32 MSC = 2;
 // airport
-static const int SVO = 3;
+static const plnnr::Id32 SVO = 3;
 
 static const char* objects[] = { "SPB", "LED", "MSC", "SVO" };
 
@@ -20,7 +20,7 @@ void print_tuple(const char* name, const void* values, plnnr::Param_Layout layou
 
     for (uint32_t i = 0; i < layout.num_params; ++i)
     {
-        int32_t value = plnnr::as_Int32(values, layout, i);
+        int32_t value = plnnr::as_Id32(values, layout, i);
         printf("%s", objects[value]);
 
         if (i + 1 != layout.num_params)
