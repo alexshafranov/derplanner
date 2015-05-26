@@ -1028,6 +1028,25 @@ void plnnrc::annotate(ast::Root& tree)
     }
 }
 
+// static const uint32_t Num_Types = Token_Group_Type_Last - Token_Group_Type_First + 1;
+
+// // Int32, UInt32, Int64, UInt64, Float, Vec3
+// static Token_Type unification_table[Num_Types][Num_Types] =
+// {
+//                 // Int32,         UInt32,        Int64,         UInt64,        Float,         Vec3
+//     /* Int32 */  { Token_Int32,   Token_UInt32,  Token_Int64,   Token_UInt64,  Token_Float,   Token_Unknown },
+//     /* UInt32 */ { Token_UInt32,  Token_UInt32,  Token_Int64,   Token_UInt64,  Token_Float,   Token_Unknown },
+//     /* Int64 */  { Token_Int64,   Token_Int64,   Token_Int64,   Token_UInt64,  Token_Float,   Token_Unknown },
+//     /* UInt64 */ { Token_UInt64,  Token_UInt64,  Token_UInt64,  Token_UInt64,  Token_Float,   Token_Unknown },
+//     /* Float */  { Token_Float,   Token_Float,   Token_Float,   Token_Float,   Token_Float,   Token_Unknown },
+//     /* Vec3 */   { Token_Unknown, Token_Unknown, Token_Unknown, Token_Unknown, Token_Unknown, Token_Vec3 },
+// };
+
+// static Token_Type unify(Token_Type a, Token_Type b)
+// {
+//     return unification_table[a][b];
+// }
+
 void plnnrc::infer_types(ast::Root& tree)
 {
     // seed types in preconditions using fact declarations.

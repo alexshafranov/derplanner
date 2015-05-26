@@ -3,17 +3,17 @@ domain travel
 {
     world
     {
-        start( int32 )
-        finish( int32 )
-        short_distance( int32, int32 )
-        long_distance( int32, int32 )
-        airport( int32, int32 )
+        start( id32 )
+        finish( id32 )
+        short_distance( id32, id32 )
+        long_distance( id32, id32 )
+        airport( id32, id32 )
     }
 
     primitive
     {
-        taxi!( int32, int32 )
-        plane!( int32, int32 )
+        taxi!( id32, id32 )
+        plane!( id32, id32 )
     }
 
     predicate
