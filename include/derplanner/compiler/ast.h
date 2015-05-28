@@ -39,7 +39,7 @@ ast::Param*         create_param(ast::Root* tree, const Token_Value& name, const
 ast::Domain*        create_domain(ast::Root* tree, const Token_Value& name);
 ast::Task*          create_task(ast::Root* tree, const Token_Value& name, const Location& loc);
 ast::Case*          create_case(ast::Root* tree);
-ast::Func*          create_func(ast::Root* tree, const Token_Value& name);
+ast::Func*          create_func(ast::Root* tree, const Token_Value& name, const Location& loc);
 ast::Op*            create_op(ast::Root* tree, ast::Node_Type operation_type);
 ast::Var*           create_var(ast::Root* tree, const Token_Value& name);
 ast::Data_Type*     create_type(ast::Root* tree, Token_Type data_type);
@@ -85,7 +85,7 @@ void convert_to_dnf(ast::Root& tree);
 void annotate(ast::Root& tree);
 
 // figure out types of parameters and variables.
-void infer_types(ast::Root& tree);
+bool infer_types(ast::Root& tree);
 
 // true is `var` is wasn't defined (first occurence in scope).
 bool is_bound(ast::Var* var);

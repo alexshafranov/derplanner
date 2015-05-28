@@ -135,11 +135,12 @@ ast::Case* plnnrc::create_case(ast::Root* tree)
     return node;
 }
 
-ast::Func* plnnrc::create_func(ast::Root* tree, const Token_Value& name)
+ast::Func* plnnrc::create_func(ast::Root* tree, const Token_Value& name, const Location& loc)
 {
     ast::Func* node = pool_alloc<ast::Func>(tree);
     node->type = ast::Node_Func;
     node->name = name;
+    node->loc = loc;
     return node;
 }
 
@@ -1018,61 +1019,86 @@ void plnnrc::annotate(ast::Root& tree)
             init(case_->precond_facts, tree.pool, 8);
             for (ast::Expr* node = case_->precond; node != 0; node = preorder_next(case_->precond, node))
             {
-                if (ast::Func* func = as_Func(node))
+                ast::Func* func = as_Func(node);
+                if (!func)
+                    continue;
+
+                init(func->args, tree.pool, 8);
+                for (ast::Expr* child = func->child; child != 0; child = child->next_sibling)
                 {
-                    ast::Fact* fact = get(tree.fact_lookup, func->name);
-                    push_back(case_->precond_facts, fact);
+                    push_back(func->args, child);
                 }
+
+                ast::Fact* fact = get(tree.fact_lookup, func->name);
+                if (!fact)
+                    continue;
+
+                push_back(case_->precond_facts, fact);
             }
         }
     }
 }
 
-// static const uint32_t Num_Types = Token_Group_Type_Last - Token_Group_Type_First + 1;
+static const uint32_t Num_Types = Token_Group_Type_Last - Token_Group_Type_First + 1;
 
-// // Int32, UInt32, Int64, UInt64, Float, Vec3
-// static Token_Type unification_table[Num_Types][Num_Types] =
-// {
-//                 // Int32,         UInt32,        Int64,         UInt64,        Float,         Vec3
-//     /* Int32 */  { Token_Int32,   Token_UInt32,  Token_Int64,   Token_UInt64,  Token_Float,   Token_Unknown },
-//     /* UInt32 */ { Token_UInt32,  Token_UInt32,  Token_Int64,   Token_UInt64,  Token_Float,   Token_Unknown },
-//     /* Int64 */  { Token_Int64,   Token_Int64,   Token_Int64,   Token_UInt64,  Token_Float,   Token_Unknown },
-//     /* UInt64 */ { Token_UInt64,  Token_UInt64,  Token_UInt64,  Token_UInt64,  Token_Float,   Token_Unknown },
-//     /* Float */  { Token_Float,   Token_Float,   Token_Float,   Token_Float,   Token_Float,   Token_Unknown },
-//     /* Vec3 */   { Token_Unknown, Token_Unknown, Token_Unknown, Token_Unknown, Token_Unknown, Token_Vec3 },
-// };
-
-// static Token_Type unify(Token_Type a, Token_Type b)
-// {
-//     return unification_table[a][b];
-// }
-
-void plnnrc::infer_types(ast::Root& tree)
+static Token_Type unification_table[Num_Types][Num_Types] =
 {
-    // seed types in preconditions using fact declarations.
-    for (uint32_t case_idx = 0; case_idx < size(tree.cases); ++case_idx)
+//                Id32              Id64            Int8                Int32           Int64           Float           Vec3
+/* Id32 */      { Token_Id32,       Token_Unknown,  Token_Unknown,      Token_Unknown,  Token_Unknown,  Token_Unknown,  Token_Unknown   },
+/* Id64 */      { Token_Unknown,    Token_Id64,     Token_Unknown,      Token_Unknown,  Token_Unknown,  Token_Unknown,  Token_Unknown   },
+/* Int8 */      { Token_Unknown,    Token_Unknown,  Token_Int8,         Token_Int32,    Token_Int64,    Token_Float,    Token_Unknown   },
+/* Int32 */     { Token_Unknown,    Token_Unknown,  Token_Int32,        Token_Int32,    Token_Int64,    Token_Float,    Token_Unknown   },
+/* Int64 */     { Token_Unknown,    Token_Unknown,  Token_Int64,        Token_Int64,    Token_Int64,    Token_Float,    Token_Unknown   },
+/* Float */     { Token_Unknown,    Token_Unknown,  Token_Float,        Token_Float,    Token_Float,    Token_Float,    Token_Unknown   },
+/* Vec3 */      { Token_Unknown,    Token_Unknown,  Token_Unknown,      Token_Unknown,  Token_Unknown,  Token_Unknown,  Token_Vec3      },
+};
+
+static void infer_task_types(ast::Root& tree, ast::Task* task)
+{
+    for (uint32_t case_idx = 0; case_idx < size(task->cases); ++case_idx)
     {
-        ast::Case* case_ = tree.cases[case_idx];
+        ast::Case* case_ = task->cases[case_idx];
+        // seed types in preconditions using fact declarations.
         for (ast::Expr* node = case_->precond; node != 0; node = preorder_next(case_->precond, node))
         {
-            if (ast::Func* func = as_Func(node))
-            {
-                ast::Fact* fact = get_fact(tree, func->name);
-                plnnrc_assert(fact);
-                // currently assuming all children are vars.
-                ast::Var* var = as_Var(func->child);
-                for (uint32_t param_idx = 0; param_idx < size(fact->params); ++param_idx)
-                {
-                    plnnrc_assert(var);
-                    ast::Data_Type* param_type = fact->params[param_idx];
-                    var->data_type = param_type->data_type;
-                    var = as_Var(var->next_sibling);
-                }
+            ast::Func* func = as_Func(node);
+            if (!func)
+                continue;
 
-                plnnrc_assert(!var);
+            ast::Fact* fact = get_fact(tree, func->name);
+            if (!fact)
+                continue;
+
+            if (size(fact->params) != size(func->args))
+            {
+                emit(tree, func->loc, Error_Mismatching_Number_Of_Args) << func->name;
+                continue;
+            }
+
+            for (uint32_t param_idx = 0; param_idx < size(fact->params); ++param_idx)
+            {
+                ast::Data_Type* param_type = fact->params[param_idx];
+                ast::Expr* arg = func->args[param_idx];
+
+                if (ast::Var* var = as_Var(arg))
+                    var->data_type = param_type->data_type;
             }
         }
     }
+}
+
+bool plnnrc::infer_types(ast::Root& tree)
+{
+    uint32_t err_count = size(*tree.errs);
+
+    // seed types in preconditions using fact declarations.
+    for (uint32_t task_idx = 0; task_idx < size(tree.domain->tasks); ++task_idx)
+    {
+        infer_task_types(tree, tree.domain->tasks[task_idx]);
+    }
+
+    if (size(*tree.errs) > err_count)
+        return false;
 
     // set task parameter types based on their usage in preconditions.
     for (uint32_t case_idx = 0; case_idx < size(tree.cases); ++case_idx)
@@ -1119,6 +1145,8 @@ void plnnrc::infer_types(ast::Root& tree)
             }
         }
     }
+
+    return true;
 }
 
 static const char* node_type_names[] =

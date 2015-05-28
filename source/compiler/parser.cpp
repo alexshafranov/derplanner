@@ -689,8 +689,8 @@ static ast::Expr* parse_term_expr(Parser& state)
             return parse_postfix_expr(state, node_Var);
         }
 
-        // otherwise function call.
-        ast::Func* node_Func = create_func(state.tree, tok.value);
+        // otherwise a function call.
+        ast::Func* node_Func = create_func(state.tree, tok.value, tok.loc);
         plnnrc_check_return(parse_tuple(state, Parse_Argument(node_Func)));
         return parse_postfix_expr(state, node_Func);
     }

@@ -452,6 +452,10 @@ namespace ast
     {
         // name of the fact/function/task.
         Token_Value             name;
+        // input buffer location where this param is defined.
+        Location                loc;
+        // an expression for each argument.
+        Array<ast::Expr*>       args;
     };
 }
 
