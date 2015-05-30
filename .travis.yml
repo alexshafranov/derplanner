@@ -20,3 +20,6 @@ script:
     - ./bin/x64/debug/derplannerc --out examples examples/travel.domain
     - make config=debug_x64 example-travel
     - ./bin/x64/debug/example-travel
+
+    # compiler tests
+    - python tests/run_cases.py
