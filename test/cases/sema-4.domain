@@ -6,10 +6,17 @@ domain test
     task t1(x, y)
     {
         case( a(x) ) -> [ t2(x, y) ]
+
+        case( ) -> [ t3(y) ]
     }
 
     task t2(x, y)
     {
-        case() -> []
+        case( a(y) ) -> []
+    }
+
+    task t3(x)
+    {
+        case( b(x) ) -> []
     }
 }

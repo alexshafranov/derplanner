@@ -1019,9 +1019,6 @@ void plnnrc::annotate(ast::Root& tree)
                     var->definition = def;
                     continue;
                 }
-
-                // unbound var used in task list.
-                plnnrc_assert(false);
             }
 
             // build `precond_facts`
@@ -1135,7 +1132,7 @@ static bool infer_local_types(ast::Root& tree, ast::Task* task)
 
         Memory_Stack_Scope scratch_scope(tree.scratch);
         Id_Table<Token_Type> var_types;
-        init(var_types, tree.scratch, size(case_->precond_var_lookup));
+        init(var_types, tree.scratch, size(case_->precond_var_lookup) + size(case_->task_list_var_lookup));
 
         for (uint32_t var_idx = 0; var_idx < size(case_->precond_vars); ++var_idx)
         {
@@ -1279,6 +1276,57 @@ static bool infer_global_types(ast::Root& tree)
     return updated;
 }
 
+static bool infer_params_from_task_lists(ast::Root& tree)
+{
+    for (uint32_t task_idx = 0; task_idx < size(tree.domain->tasks); ++task_idx)
+    {
+        ast::Task* task = tree.domain->tasks[task_idx];
+        for (uint32_t case_idx = 0; case_idx < size(task->cases); ++case_idx)
+        {
+            ast::Case* case_ = task->cases[case_idx];
+            for (uint32_t task_list_idx = 0; task_list_idx < size(case_->task_list); ++task_list_idx)
+            {
+                ast::Func* func = as_Func(case_->task_list[task_list_idx]);
+                plnnrc_assert(func);
+                ast::Task* callee = get_task(tree, func->name);
+                if (!callee)
+                    continue;
+
+                for (uint32_t param_idx = 0; param_idx < size(callee->params); ++param_idx)
+                {
+                    ast::Param* param = callee->params[param_idx];
+                    ast::Expr* arg = func->args[param_idx];
+                    ast::Var* var = as_Var(arg);
+
+                    if (is_Any_Type(param->data_type))
+                        continue;
+
+                    if (!var)
+                        continue;
+
+                    if (!is_Any_Type(var->data_type))
+                        continue;
+
+                    var->data_type = param->data_type;
+                    ast::Param* def = as_Param(var->definition);
+                    plnnrc_assert(def);
+
+                    Token_Type unified_type = unify(def->data_type, var->data_type);
+                    if (unified_type == Token_Not_A_Type)
+                    {
+                        emit(tree, def->loc, Error_Failed_To_Unify_Type) << def->name << def->data_type << var->data_type;
+                        return false;
+                    }
+
+                    def->data_type = unified_type;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
 static bool check_all_params_inferred(ast::Root& tree)
 {
     bool has_undefined = false;
@@ -1324,6 +1372,10 @@ bool plnnrc::infer_types(ast::Root& tree)
     }
 
     if (size(*tree.errs) > err_count)
+        return false;
+
+    // some task parameters might still have unknown type, try to get it from task lists (composite task usage).
+    if (!infer_params_from_task_lists(tree))
         return false;
 
     // finally loop through tasks and give errors for type-less params.
