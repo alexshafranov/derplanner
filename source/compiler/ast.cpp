@@ -1212,52 +1212,6 @@ bool plnnrc::infer_types(ast::Root& tree)
     if (size(*tree.errs) > err_count)
         return false;
 
-    // set task parameter types based on their usage in preconditions.
-    for (uint32_t case_idx = 0; case_idx < size(tree.cases); ++case_idx)
-    {
-        ast::Case* case_ = tree.cases[case_idx];
-        ast::Task* task = case_->task;
-
-        for (uint32_t param_idx = 0; param_idx < size(task->params); ++param_idx)
-        {
-            ast::Param* param = task->params[param_idx];
-            if (ast::Var* var = get(case_->precond_var_lookup, param->name))
-            {
-                param->data_type = var->data_type;
-            }
-        }
-    }
-
-    // propagate types "down" to task lists.
-    for (uint32_t case_idx = 0; case_idx < size(tree.cases); ++case_idx)
-    {
-        ast::Case* case_ = tree.cases[case_idx];
-        for (uint32_t task_idx = 0; task_idx < size(case_->task_list); ++task_idx)
-        {
-            ast::Func* func = as_Func(case_->task_list[task_idx]);
-            plnnrc_assert(func);
-            ast::Task* task = get_task(tree, func->name);
-
-            uint32_t param_idx = 0;
-            for (ast::Expr* node = func->child; node != 0; node = node->next_sibling)
-            {
-                ast::Var* var = as_Var(node);
-                plnnrc_assert(var && var->definition);
-                ast::Node* def = var->definition;
-                Token_Type data_type = as_Param(def) ? as_Param(def)->data_type : as_Var(def)->data_type;
-                var->data_type = data_type;
-
-                if (task)
-                {
-                    ast::Param* param = task->params[param_idx];
-                    param->data_type = data_type;
-                }
-
-                ++param_idx;
-            }
-        }
-    }
-
     return true;
 }
 
