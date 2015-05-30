@@ -1053,14 +1053,15 @@ static const uint32_t Num_Types = Token_Group_Type_Last - Token_Group_Type_First
 
 static Token_Type unification_table[Num_Types][Num_Types] =
 {
-//                Id32              Id64            Int8                Int32           Int64           Float           Vec3
-/* Id32 */      { Token_Id32,       Token_Unknown,  Token_Unknown,      Token_Unknown,  Token_Unknown,  Token_Unknown,  Token_Unknown   },
-/* Id64 */      { Token_Unknown,    Token_Id64,     Token_Unknown,      Token_Unknown,  Token_Unknown,  Token_Unknown,  Token_Unknown   },
-/* Int8 */      { Token_Unknown,    Token_Unknown,  Token_Int8,         Token_Int32,    Token_Int64,    Token_Float,    Token_Unknown   },
-/* Int32 */     { Token_Unknown,    Token_Unknown,  Token_Int32,        Token_Int32,    Token_Int64,    Token_Float,    Token_Unknown   },
-/* Int64 */     { Token_Unknown,    Token_Unknown,  Token_Int64,        Token_Int64,    Token_Int64,    Token_Float,    Token_Unknown   },
-/* Float */     { Token_Unknown,    Token_Unknown,  Token_Float,        Token_Float,    Token_Float,    Token_Float,    Token_Unknown   },
-/* Vec3 */      { Token_Unknown,    Token_Unknown,  Token_Unknown,      Token_Unknown,  Token_Unknown,  Token_Unknown,  Token_Vec3      },
+//                Id32                  Id64                Int8                    Int32               Int64               Float               Vec3                Any
+/* Id32 */      { Token_Id32,           Token_Not_A_Type,   Token_Not_A_Type,       Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Id32      },
+/* Id64 */      { Token_Not_A_Type,     Token_Id64,         Token_Not_A_Type,       Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Id64      },
+/* Int8 */      { Token_Not_A_Type,     Token_Not_A_Type,   Token_Int8,             Token_Int32,        Token_Int64,        Token_Float,        Token_Not_A_Type,   Token_Int8      },
+/* Int32 */     { Token_Not_A_Type,     Token_Not_A_Type,   Token_Int32,            Token_Int32,        Token_Int64,        Token_Float,        Token_Not_A_Type,   Token_Int32     },
+/* Int64 */     { Token_Not_A_Type,     Token_Not_A_Type,   Token_Int64,            Token_Int64,        Token_Int64,        Token_Float,        Token_Not_A_Type,   Token_Int64     },
+/* Float */     { Token_Not_A_Type,     Token_Not_A_Type,   Token_Float,            Token_Float,        Token_Float,        Token_Float,        Token_Not_A_Type,   Token_Float     },
+/* Vec3 */      { Token_Not_A_Type,     Token_Not_A_Type,   Token_Not_A_Type,       Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Vec3,         Token_Vec3      },
+/* Any */       { Token_Id32,           Token_Id64,         Token_Int8,             Token_Int32,        Token_Int64,        Token_Float,        Token_Vec3,         Token_Any_Type  },
 };
 
 static Token_Type unify(Token_Type a, Token_Type b)
@@ -1081,29 +1082,31 @@ static bool assign_fact_types(ast::Root& tree, Id_Table<Token_Type>& var_types, 
         if (ast::Var* var = as_Var(arg))
         {
             Token_Type* curr_type = get(var_types, var->name);
-            var->data_type = param_type->data_type;
+            plnnrc_assert(curr_type);
 
-            if (curr_type)
+            Token_Type unified_type = unify(*curr_type, param_type->data_type);
+            if (unified_type == Token_Not_A_Type)
             {
-                Token_Type unified_type = unify(*curr_type, param_type->data_type);
-                if (unified_type == Token_Unknown)
-                {
-                    emit(tree, var->loc, Error_Failed_To_Unify_Type) << var->name << *curr_type << param_type->data_type;
-                    return false;
-                }
-
-                var->data_type = unified_type;
+                emit(tree, var->loc, Error_Failed_To_Unify_Type) << var->name << *curr_type << param_type->data_type;
+                return false;
             }
 
-            set(var_types, var->name, var->data_type);
+            var->data_type = unified_type;
+            set(var_types, var->name, unified_type);
         }
     }
 
     return true;
 }
 
-static void infer_task_types(ast::Root& tree, ast::Task* task)
+static bool infer_task_types(ast::Root& tree, ast::Task* task)
 {
+    for (uint32_t param_idx = 0; param_idx < size(task->params); ++param_idx)
+    {
+        ast::Param* param = task->params[param_idx];
+        param->data_type = Token_Any_Type;
+    }
+
     for (uint32_t case_idx = 0; case_idx < size(task->cases); ++case_idx)
     {
         ast::Case* case_ = task->cases[case_idx];
@@ -1111,6 +1114,18 @@ static void infer_task_types(ast::Root& tree, ast::Task* task)
         Memory_Stack_Scope scratch_scope(tree.scratch);
         Id_Table<Token_Type> var_types;
         init(var_types, tree.scratch, size(case_->precond_var_lookup));
+
+        for (uint32_t var_idx = 0; var_idx < size(case_->precond_vars); ++var_idx)
+        {
+            ast::Var* var = case_->precond_vars[var_idx];
+            set(var_types, var->name, Token_Any_Type);
+        }
+
+        for (uint32_t var_idx = 0; var_idx < size(case_->task_list_vars); ++var_idx)
+        {
+            ast::Var* var = case_->task_list_vars[var_idx];
+            set(var_types, var->name, Token_Any_Type);
+        }
 
         // seed types in precondition using fact declarations.
         for (ast::Expr* node = case_->precond; node != 0; node = preorder_next(case_->precond, node))
@@ -1126,11 +1141,11 @@ static void infer_task_types(ast::Root& tree, ast::Task* task)
             if (size(fact->params) != size(func->args))
             {
                 emit(tree, func->loc, Error_Mismatching_Number_Of_Args) << func->name;
-                break;
+                return false;
             }
 
             if (!assign_fact_types(tree, var_types, func, fact))
-                break;
+                return false;
         }
 
         // seed types in task list using primitive task declarations.
@@ -1153,13 +1168,34 @@ static void infer_task_types(ast::Root& tree, ast::Task* task)
             if (size(prim->params) != size(func->args))
             {
                 emit(tree, func->loc, Error_Mismatching_Number_Of_Args) << func->name;
-                break;
+                return false;
             }
 
             if (!assign_fact_types(tree, var_types, func, prim))
-                break;
+                return false;
+        }
+
+        // unify task parameters for each new case.
+        for (uint32_t param_idx = 0; param_idx < size(task->params); ++param_idx)
+        {
+            ast::Param* param = task->params[param_idx];
+            Token_Type* new_type = get(var_types, param->name);
+
+            if (!new_type)
+                continue;
+
+            Token_Type unified_type = unify(*new_type, param->data_type);
+            if (unified_type == Token_Not_A_Type)
+            {
+                emit(tree, param->loc, Error_Failed_To_Unify_Type) << param->name << param->data_type << *new_type;
+                return false;
+            }
+
+            param->data_type = unified_type;
         }
     }
+
+    return true;
 }
 
 bool plnnrc::infer_types(ast::Root& tree)
