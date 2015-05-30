@@ -967,6 +967,15 @@ void plnnrc::annotate(ast::Root& tree)
             {
                 ast::Expr* task_expr = case_->task_list[task_idx];
                 build_var_lookup(task_expr, case_->task_list_vars, case_->task_list_var_lookup);
+
+                ast::Func* func = as_Func(task_expr);
+                plnnrc_assert(func);
+
+                init(func->args, tree.pool, 8);
+                for (ast::Expr* child = func->child; child != 0; child = child->next_sibling)
+                {
+                    push_back(func->args, child);
+                }
             }
 
             // set `definition` for vars referencing task parameters.
@@ -1061,8 +1070,9 @@ static Token_Type unify(Token_Type a, Token_Type b)
     return unification_table[a - Token_Group_Type_First][b - Token_Group_Type_First];
 }
 
-static bool assign_types(ast::Root& tree, Id_Table<Token_Type>& var_types, ast::Func* func, ast::Fact* fact)
+static bool assign_fact_types(ast::Root& tree, Id_Table<Token_Type>& var_types, ast::Func* func, ast::Fact* fact)
 {
+    // assign variable types based on the fact they're used in.
     for (uint32_t param_idx = 0; param_idx < size(fact->params); ++param_idx)
     {
         ast::Data_Type* param_type = fact->params[param_idx];
@@ -1102,7 +1112,7 @@ static void infer_task_types(ast::Root& tree, ast::Task* task)
         Id_Table<Token_Type> var_types;
         init(var_types, tree.scratch, size(case_->precond_var_lookup));
 
-        // seed types in preconditions using fact declarations.
+        // seed types in precondition using fact declarations.
         for (ast::Expr* node = case_->precond; node != 0; node = preorder_next(case_->precond, node))
         {
             ast::Func* func = as_Func(node);
@@ -1119,7 +1129,34 @@ static void infer_task_types(ast::Root& tree, ast::Task* task)
                 break;
             }
 
-            if (!assign_types(tree, var_types, func, fact))
+            if (!assign_fact_types(tree, var_types, func, fact))
+                break;
+        }
+
+        // seed types in task list using primitive task declarations.
+        for (uint32_t task_list_idx = 0; task_list_idx < size(case_->task_list); ++task_list_idx)
+        {
+            ast::Expr* expr = case_->task_list[task_list_idx];
+            ast::Func* func = as_Func(expr);
+            plnnrc_assert(func);
+
+            if (!get_primitive(tree, func->name) && !get_task(tree, func->name))
+            {
+                emit(tree, func->loc, Error_Undeclared_Task) << func->name;
+                break;
+            }
+
+            ast::Fact* prim = get_primitive(tree, func->name);
+            if (!prim)
+                continue;
+
+            if (size(prim->params) != size(func->args))
+            {
+                emit(tree, func->loc, Error_Mismatching_Number_Of_Args) << func->name;
+                break;
+            }
+
+            if (!assign_fact_types(tree, var_types, func, prim))
                 break;
         }
     }

@@ -30,14 +30,15 @@
     #define PLNNRC_AST_ERROR(TAG, FORMAT_STR) PLNNRC_ERROR(TAG, FORMAT_STR)
 #endif
 
-PLNNRC_PARSER_ERROR(Unexpected_Token,       "unexpected token $0.")
-PLNNRC_PARSER_ERROR(Expected,               "expected $0, got $1.")
-PLNNRC_PARSER_ERROR(Redefinition,           "multiple definitions of $0 found.")
-PLNNRC_PARSER_ERROR(Expected_End_Of_Stream, "expected end-of-stream.")
+PLNNRC_PARSER_ERROR(Unexpected_Token,           "unexpected token $0.")
+PLNNRC_PARSER_ERROR(Expected,                   "expected $0, got $1.")
+PLNNRC_PARSER_ERROR(Redefinition,               "multiple definitions of $0 found.")
+PLNNRC_PARSER_ERROR(Expected_End_Of_Stream,     "expected end-of-stream.")
 
 PLNNRC_AST_ERROR(Recursive_Predicate,           "recursive predicate $0 found.")
 PLNNRC_AST_ERROR(Mismatching_Number_Of_Args,    "mismatching number of arguments for $0.")
 PLNNRC_AST_ERROR(Failed_To_Unify_Type,          "failed to unify type for $0, current inferred type is $1, new constraint is $2.")
+PLNNRC_AST_ERROR(Undeclared_Task,               "using undeclared task $0.")
 
 #undef PLNNRC_AST_ERROR
 #undef PLNNRC_PARSER_ERROR
