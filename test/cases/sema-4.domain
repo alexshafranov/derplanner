@@ -1,4 +1,4 @@
-
+//> error (6, 16): failed to unify type for 'y', current inferred type is type 'id32', new constraint is type 'id64'.
 domain test
 {
     world { a(id32) b(id64) }

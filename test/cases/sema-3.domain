@@ -1,4 +1,6 @@
-
+//> error (10, 15): mismatching number of arguments for 'a'.
+//> error (15, 17): unbound variable 'x'.
+//> error (20, 21): task 'prim!' is not declared.
 domain test
 {
     world { a(id32, id32) }
