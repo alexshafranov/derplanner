@@ -1,4 +1,7 @@
-
+//> error (11, 24): failed to unify type for 'x', current inferred type is type 'id64', new constraint is type 'id32'.
+//> error (16, 24): failed to unify type for 'y', current inferred type is type 'id64', new constraint is type 'vec3'.
+//> error (19, 13): failed to unify type for 'x', current inferred type is type 'id64', new constraint is type 'id32'.
+//> error (28, 27): unbound variable 'z'.
 domain test
 {
     world { a(id64) b(id32) c(vec3) }

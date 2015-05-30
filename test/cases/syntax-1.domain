@@ -1,4 +1,5 @@
-
+//> error (7, 14): expected Type, got 'xxx'.
+//> error (12, 13): expected '(', got keyword 'case'.
 domain test
 {
     world

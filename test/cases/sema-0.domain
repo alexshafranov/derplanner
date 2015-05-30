@@ -1,4 +1,11 @@
-
+//> error (11, 31): multiple definitions of 'a' found.
+//> error (13, 15): recursive predicate 'p0' found.
+//> error (15, 15): recursive predicate 'p1' found.
+//> error (17, 15): recursive predicate 'p2' found.
+//> error (19, 15): multiple definitions of 'p0' found.
+//> error (27, 13): multiple definitions of 'p1' found.
+//> error (31, 10): multiple definitions of 'hello' found.
+//> error (33, 16): multiple definitions of 'x' found.
 domain test
 {
     world { a(int32) b(int32) a(int32) }
