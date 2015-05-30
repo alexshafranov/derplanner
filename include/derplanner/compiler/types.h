@@ -424,6 +424,8 @@ namespace ast
     {
         // name of the variable.
         Token_Value             name;
+        // input buffer location of this variable.
+        Location                loc;
         // `ast::Param` or `ast::Var` when this variable was first bound (i.e. the first occurence in expression)
         Node*                   definition;
         // inferred data type for this variable.
@@ -447,12 +449,12 @@ namespace ast
         Token_Type              data_type;
     };
 
-    // Fact/function/task/predicate used in precondtition or task list.
+    // Functional Symbol: fact/function/task/predicate used in precondtition or task list.
     struct Func : public Expr
     {
         // name of the fact/function/task.
         Token_Value             name;
-        // input buffer location where this param is defined.
+        // input buffer location where this functional symbol.
         Location                loc;
         // an expression for each argument.
         Array<ast::Expr*>       args;

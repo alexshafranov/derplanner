@@ -331,6 +331,9 @@ int main(int argc, char** argv)
 
             plnnrc::infer_types(tree);
 
+            if (!plnnrc::empty(errors))
+                break;
+
             // generate source code.
             {
                 std::string header_name = output_name + ".h";
