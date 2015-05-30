@@ -584,7 +584,7 @@ static ast::Expr* parse_expr(Parser& state)
     return parse_binary_expr(state, 0);
 }
 
-// NOTE: depends on the order tokens defined in token_tags.inl.
+// NOTE: depends on the order of token definition in token_tags.inl.
 static uint8_t s_precedence[] =
 {
     1, // Token_Or
