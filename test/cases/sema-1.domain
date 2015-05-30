@@ -19,4 +19,9 @@ domain test
 
         case( b(x) ) -> []
     }
+
+    task t4()
+    {
+        case( a(x) & (x < z) ) -> []
+    }
 }

@@ -986,7 +986,6 @@ void plnnrc::annotate(ast::Root& tree)
                 {
                     plnnrc_assert(!var->definition);
                     var->definition = param;
-                    plnnrc_assert(param->data_type == Token_Unknown || param->data_type == var->data_type);
                 }
             }
 
@@ -1099,7 +1098,30 @@ static bool assign_fact_types(ast::Root& tree, Id_Table<Token_Type>& var_types, 
     return true;
 }
 
-static bool infer_task_types(ast::Root& tree, ast::Task* task)
+// update var types of variables based on the types of their definitions.
+static bool update_usage_types(ast::Root& tree, Array<ast::Var*>& vars)
+{
+    for (uint32_t var_idx = 0; var_idx < size(vars); ++var_idx)
+    {
+        ast::Var* var = vars[var_idx];
+
+        if (is_Unknown(var->data_type) && !var->definition)
+        {
+            // this var is not a parameter usage, nor used inside fact or primitive task.
+            emit(tree, var->loc, Error_Unbound_Var) << var->name;
+            return false;
+        }
+
+        if (!var->definition)
+            continue;
+
+        var->data_type = is_Param(var->definition) ? as_Param(var->definition)->data_type : as_Var(var->definition)->data_type;
+    }
+
+    return true;
+}
+
+static bool infer_local_types(ast::Root& tree, ast::Task* task)
 {
     for (uint32_t param_idx = 0; param_idx < size(task->params); ++param_idx)
     {
@@ -1193,24 +1215,92 @@ static bool infer_task_types(ast::Root& tree, ast::Task* task)
 
             param->data_type = unified_type;
         }
+
+        if (!update_usage_types(tree, case_->precond_vars))
+            return false;
+
+        if (!update_usage_types(tree, case_->task_list_vars))
+            return false;
     }
 
     return true;
+}
+
+static bool infer_global_types(ast::Root& tree)
+{
+    bool updated = false;
+
+    for (uint32_t task_idx = 0; task_idx < size(tree.domain->tasks); ++task_idx)
+    {
+        ast::Task* task = tree.domain->tasks[task_idx];
+        for (uint32_t case_idx = 0; case_idx < size(task->cases); ++case_idx)
+        {
+            ast::Case* case_ = task->cases[case_idx];
+            update_usage_types(tree, case_->precond_vars);
+            update_usage_types(tree, case_->task_list_vars);
+
+            for (uint32_t task_list_idx = 0; task_list_idx < size(case_->task_list); ++task_list_idx)
+            {
+                ast::Func* func = as_Func(case_->task_list[task_list_idx]);
+                plnnrc_assert(func);
+                ast::Task* callee = get_task(tree, func->name);
+                if (!callee)
+                    continue;
+
+                for (uint32_t param_idx = 0; param_idx < size(callee->params); ++param_idx)
+                {
+                    ast::Param* param = callee->params[param_idx];
+                    ast::Expr* arg = func->args[param_idx];
+
+                    if (ast::Var* var = as_Var(arg))
+                    {
+                        if (is_Unknown(var->data_type))
+                            continue;
+
+                        Token_Type unified_type = unify(var->data_type, param->data_type);
+                        if (unified_type == Token_Not_A_Type)
+                        {
+                            emit(tree, param->loc, Error_Failed_To_Unify_Type) << param->name << var->data_type << param->data_type;
+                            return false;
+                        }
+
+                        updated |= (param->data_type != unified_type);
+                        param->data_type = unified_type;
+                        continue;
+                    }
+
+                    // support expressions as task arguments.
+                    plnnrc_assert(false);
+                }
+            }
+        }
+    }
+
+    return updated;
 }
 
 bool plnnrc::infer_types(ast::Root& tree)
 {
     uint32_t err_count = size(*tree.errs);
 
-    // seed types in preconditions using fact declarations.
+    // in the first step we set and unify variable types based on their usage in facts and primitive tasks.
+    // task parameter types are also set in this stage, if it's possible to derive them from their "local" usage in preconditions.
     for (uint32_t task_idx = 0; task_idx < size(tree.domain->tasks); ++task_idx)
     {
         ast::Task* task = tree.domain->tasks[task_idx];
-        infer_task_types(tree, task);
+        infer_local_types(tree, task);
     }
 
     if (size(*tree.errs) > err_count)
         return false;
+
+    // in the second step we infer remaining parameter types based on their usage in task lists.
+    for (;;)
+    {
+        bool has_updates = infer_global_types(tree);
+        if (!has_updates)
+            break;
+    }
 
     return true;
 }
