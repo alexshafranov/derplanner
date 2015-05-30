@@ -29,7 +29,6 @@ using namespace plnnrc;
 
 static const char* s_token_type_names[] =
 {
-    "Unknown",
     #define PLNNRC_TOKEN(TOKEN_TAG) #TOKEN_TAG,
     #include "derplanner/compiler/token_tags.inl"
     #undef PLNNRC_TOKEN

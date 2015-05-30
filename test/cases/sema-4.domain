@@ -1,0 +1,15 @@
+
+domain test
+{
+    world { a(id32) b(id64) }
+
+    task t1(x, y)
+    {
+        case( a(x) ) -> [ t2(x, y) ]
+    }
+
+    task t2(x, y)
+    {
+        case() -> []
+    }
+}

@@ -1279,6 +1279,27 @@ static bool infer_global_types(ast::Root& tree)
     return updated;
 }
 
+static bool check_all_params_inferred(ast::Root& tree)
+{
+    bool has_undefined = false;
+
+    for (uint32_t task_idx = 0; task_idx < size(tree.domain->tasks); ++task_idx)
+    {
+        ast::Task* task = tree.domain->tasks[task_idx];
+        for (uint32_t param_idx = 0; param_idx < size(task->params); ++param_idx)
+        {
+            ast::Param* param = task->params[param_idx];
+            if (is_Any_Type(param->data_type))
+            {
+                emit(tree, param->loc, Error_Failed_To_Infer_Type) << param->name;
+                has_undefined = true;
+            }
+        }
+    }
+
+    return has_undefined;
+}
+
 bool plnnrc::infer_types(ast::Root& tree)
 {
     uint32_t err_count = size(*tree.errs);
@@ -1301,6 +1322,13 @@ bool plnnrc::infer_types(ast::Root& tree)
         if (!has_updates)
             break;
     }
+
+    if (size(*tree.errs) > err_count)
+        return false;
+
+    // finally loop through tasks and give errors for type-less params.
+    if (!check_all_params_inferred(tree))
+        return false;
 
     return true;
 }

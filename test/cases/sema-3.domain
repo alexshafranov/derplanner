@@ -1,0 +1,25 @@
+
+domain test
+{
+    world { a(id32, id32) }
+
+    task t1()
+    {
+        case( a(x, y, z, w) ) -> []
+    }
+
+    task t2()
+    {
+        case( d(x, y) ) -> []
+    }
+
+    task t3()
+    {
+        case() -> [ prim!() ]
+    }
+
+    task t4(x, y, w)
+    {
+        case( a(x, y) ) -> []
+    }
+}
