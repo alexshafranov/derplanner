@@ -94,7 +94,6 @@ enum Error_Type
 // Token type tags.
 enum Token_Type
 {
-    Token_Unknown = 0,
     #define PLNNRC_TOKEN(TAG) Token_##TAG,
     #include "derplanner/compiler/token_tags.inl"
     #undef PLNNRC_TOKEN

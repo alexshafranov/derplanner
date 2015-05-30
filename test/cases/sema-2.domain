@@ -1,0 +1,20 @@
+
+domain test
+{
+    world { a(vec3) b(int32) }
+
+    task t1()
+    {
+        case( a(x) ) -> [ t3(x) ]
+    }
+
+    task t2()
+    {
+        case( b(x) ) -> [ t3(x) ]
+    }
+
+    task t3(x)
+    {
+        case() -> []
+    }
+}
