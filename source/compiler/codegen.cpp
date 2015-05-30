@@ -730,6 +730,10 @@ static void generate_precondition(Codegen& state, ast::Case* case_, uint32_t cas
         {
             if (is_And(conjunct))
             {
+                // empty `and`.
+                if (!conjunct->child)
+                    continue;
+
                 generate_literal_chain(state, case_, conjunct->child, handle_id, yield_id, fmtr);
                 continue;
             }
