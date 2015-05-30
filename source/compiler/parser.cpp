@@ -685,7 +685,7 @@ static ast::Expr* parse_term_expr(Parser& state)
         // variable or constant
         if (!is_L_Paren(peek(state)))
         {
-            ast::Expr* node_Var = create_var(state.tree, tok.value);
+            ast::Expr* node_Var = create_var(state.tree, tok.value, tok.loc);
             return parse_postfix_expr(state, node_Var);
         }
 
@@ -706,7 +706,7 @@ static ast::Expr* parse_postfix_expr(Parser& state, ast::Expr* lhs)
         ast::Expr* node_Dot = create_op(state.tree, ast::Node_Dot);
         Token tok = expect(state, Token_Id);
         plnnrc_check_return(!is_Error(tok));
-        ast::Expr* rhs = create_var(state.tree, tok.value);
+        ast::Expr* rhs = create_var(state.tree, tok.value, tok.loc);
         append_child(node_Dot, lhs);
         append_child(node_Dot, rhs);
         return node_Dot;

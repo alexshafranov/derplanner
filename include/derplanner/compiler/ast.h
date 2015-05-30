@@ -41,7 +41,7 @@ ast::Task*          create_task(ast::Root* tree, const Token_Value& name, const 
 ast::Case*          create_case(ast::Root* tree);
 ast::Func*          create_func(ast::Root* tree, const Token_Value& name, const Location& loc);
 ast::Op*            create_op(ast::Root* tree, ast::Node_Type operation_type);
-ast::Var*           create_var(ast::Root* tree, const Token_Value& name);
+ast::Var*           create_var(ast::Root* tree, const Token_Value& name, const Location& loc);
 ast::Data_Type*     create_type(ast::Root* tree, Token_Type data_type);
 ast::Literal*       create_literal(ast::Root* tree, const Token& token);
 

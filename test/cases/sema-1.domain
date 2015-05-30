@@ -1,0 +1,12 @@
+
+domain test
+{
+    world { a(id64) b(id32) c(vec3) }
+
+    task t1(x, y)
+    {
+        case( a(x) & b(x) ) -> []
+
+        case( a(y) & c(y) ) -> []
+    }
+}
