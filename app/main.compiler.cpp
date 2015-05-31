@@ -346,7 +346,10 @@ int main(int argc, char** argv)
                 plnnrc::Codegen codegen;
                 plnnrc::init(codegen, &tree, mem_scratch);
 
-                plnnrc::generate_header(codegen, (output_name + "_H_").c_str(), &header_writer);
+                std::string header_guard = output_name + "_H_";
+                std::replace(header_guard.begin(), header_guard.end(), '-', '_');
+
+                plnnrc::generate_header(codegen, header_guard.c_str(), &header_writer);
                 plnnrc::generate_source(codegen, header_name.c_str(), &source_writer);
             }
 
