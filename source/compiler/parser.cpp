@@ -158,7 +158,7 @@ static bool skip_inside_task(Parser& state)
     while (!is_Eos(peek(state)))
     {
         Token tok = peek(state);
-        if (is_Case(tok) || is_Predicate(tok) || is_Const(tok))
+        if (is_Case(tok) || is_Each(tok) || is_Predicate(tok) || is_Const(tok))
             return true;
 
         eat(state);
@@ -509,12 +509,13 @@ static bool parse_task_body(Parser& state, ast::Task* task)
             break;
         }
 
-        if (is_Case(tok))
+        if (is_Case(tok) || is_Each(tok))
         {
             eat(state);
             ast::Case* case_ = create_case(state.tree);
-            cases_builder.push_back(case_);
+            case_->foreach = is_Each(tok);
             case_->task = task;
+            cases_builder.push_back(case_);
 
             ast::Expr* precond = parse_precond(state);
             plnnrc_check_skip(state, precond, skip_inside_task);

@@ -54,6 +54,7 @@ PLNNRC_KEYWORD_TOKEN(Primitive,         "primitive")
 PLNNRC_KEYWORD_TOKEN(Predicate,         "predicate")
 PLNNRC_KEYWORD_TOKEN(Task,              "task")
 PLNNRC_KEYWORD_TOKEN(Case,              "case")
+PLNNRC_KEYWORD_TOKEN(Each,              "each")
 PLNNRC_KEYWORD_TOKEN(Const,             "const")
 
 PLNNRC_TYPE_KEYWORD_TOKEN(Id32,         "id32")
