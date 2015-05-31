@@ -1,0 +1,17 @@
+//
+//: a = [1]
+//: b = [2]
+//
+//> t1(1, 2)
+//
+domain test
+{
+    world { a(id32) b(id32) }
+
+    primitive { t!(id32, id32) }
+
+    task r()
+    {
+        case( a(x) & b(x) ) -> [ t!(x, y) ]
+    }
+}
