@@ -46,8 +46,8 @@ def make_test(domain_path):
     return test
 
 def generate(base_path):
-    domains = glob.glob(os.path.join(base_path, '*.domain'))
-    for domain_path in domains:
+    diagnostic_domains = glob.glob(os.path.join(base_path, 'sema-*.domain')) + glob.glob(os.path.join(base_path, 'syntax-*.domain'))
+    for domain_path in diagnostic_domains:
         setattr(Main, 'test#' + domain_path, make_test(domain_path))
 
 
