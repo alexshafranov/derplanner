@@ -54,10 +54,10 @@ enum Find_Plan_Status
     Find_Plan_Succeeded = 1,
     // `find_plan_step` exits with `Find_Plan_In_Progress`, when a primitive task is added to the task stack, or composite task added to the expansion stack.
     Find_Plan_In_Progress = 2,
-    // `find_plan_step` exits with `Find_Plan_Max_Depth_Reached` when there's no space left in the expansion stack.
-    Find_Plan_Max_Depth_Reached = 3,
-    // `find_plan_step` exits with `Find_Plan_Max_Plan_Length_Reached` when there's no space left in the task stack.
-    Find_Plan_Max_Plan_Length_Reached = 4,
+    // `find_plan_step` exits with `Find_Plan_Max_Depth_Exceeded` when there's no space left in the expansion stack.
+    Find_Plan_Max_Depth_Exceeded = 3,
+    // `find_plan_step` exits with `Find_Plan_Max_Plan_Length_Exceeded` when there's no space left in the task stack.
+    Find_Plan_Max_Plan_Length_Exceeded = 4,
 };
 
 // pushes the first composite task on the expansion stack.

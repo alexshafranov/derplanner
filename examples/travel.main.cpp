@@ -95,14 +95,14 @@ int main()
     plnnr::init(pstate, &default_mem, config);
 
     plnnr::Find_Plan_Status status = plnnr::find_plan(domain, &db, &pstate);
-    if (status == plnnr::Find_Plan_Max_Depth_Reached)
+    if (status == plnnr::Find_Plan_Max_Depth_Exceeded)
     {
-        printf("maximum expansion depth reached!\n");
+        printf("maximum expansion depth exceeded!\n");
     }
 
-    if (status == plnnr::Find_Plan_Max_Plan_Length_Reached)
+    if (status == plnnr::Find_Plan_Max_Plan_Length_Exceeded)
     {
-        printf("maximum plan length reached!\n");
+        printf("maximum plan length exceeded!\n");
     }
 
     // resulting plan is stored on the task stack.
