@@ -373,6 +373,8 @@ namespace ast
     // Parsed `case` block.
     struct Case : public Node
     {
+        // is this `each` case? `each` cases iterate all precondition satisfiers.
+        uint8_t                 foreach : 1;
         // a pointer to the task this case is part of.
         Task*                   task;
         // precondition.
