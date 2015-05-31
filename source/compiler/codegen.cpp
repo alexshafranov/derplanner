@@ -914,6 +914,7 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
 
             if (empty(case_->task_list))
             {
+                writeln(fmtr, "frame->flags |= Expansion_Frame::Flags_Expanded;");
                 writeln(fmtr, "plnnr_coroutine_yield(frame, expand_label, %d);", yield_id);
                 ++yield_id;
             }
