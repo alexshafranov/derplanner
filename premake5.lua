@@ -66,6 +66,8 @@ solution "derplanner"
         files { "test/*.cpp" }
         includedirs { "deps/unittestpp", "include", "source" }
         links { "deps-unittestpp", "derplanner-compiler", "derplanner-runtime" }
+        configuration { "linux or macosx" }
+            buildoptions { "-std=c++0x" }
 
     project "domain-travel"
         kind "SharedLib"
