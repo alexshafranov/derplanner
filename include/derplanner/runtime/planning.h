@@ -69,9 +69,14 @@ Find_Plan_Status find_plan_step(Fact_Database* db, Planning_State* state);
 // runs the full planning loop (executes `find_plan_step` until status other than `Find_Plan_In_Progress` is returned).
 Find_Plan_Status find_plan(const Domain_Info* domain, Fact_Database* db, Planning_State* state);
 
+// resulting plan.
+Plan get_plan(const Planning_State* state);
+
 /// Domain_Info
 
 const char* get_task_name(const Domain_Info* domain, uint32_t task_id);
+
+Param_Layout get_task_param_layout(const Domain_Info* domain, uint32_t task_id);
 
 /// Stack
 

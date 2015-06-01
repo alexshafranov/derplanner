@@ -1143,6 +1143,12 @@ static bool infer_local_types(ast::Root& tree, ast::Task* task)
         for (uint32_t var_idx = 0; var_idx < size(case_->task_list_vars); ++var_idx)
         {
             ast::Var* var = case_->task_list_vars[var_idx];
+            if (!get(case_->precond_var_lookup, var->name) && !get(task->param_lookup, var->name))
+            {
+                emit(tree, var->loc, Error_Unbound_Var) << var->name;
+                return false;
+            }
+
             set(var_types, var->name, Token_Any_Type);
         }
 

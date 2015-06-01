@@ -36,12 +36,25 @@ inline plnnr::Planning_State::~Planning_State()
     }
 }
 
+inline plnnr::Plan plnnr::get_plan(const plnnr::Planning_State* state)
+{
+    plnnr::Plan plan;
+    plan.tasks = state->task_stack.frames;
+    plan.length = size(state->task_stack);
+    return plan;
+}
+
 /// Domain_Info
 
 inline const char* plnnr::get_task_name(const plnnr::Domain_Info* domain, uint32_t task_id)
 {
     plnnr_assert(task_id < domain->task_info.num_tasks);
     return domain->task_info.names ? domain->task_info.names[task_id] : 0;
+}
+
+inline plnnr::Param_Layout plnnr::get_task_param_layout(const plnnr::Domain_Info* domain, uint32_t task_id)
+{
+    return domain->task_info.parameters[task_id];
 }
 
 /// Stack

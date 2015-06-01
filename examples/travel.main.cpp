@@ -34,11 +34,12 @@ void print_tuple(const char* name, const void* values, plnnr::Param_Layout layou
 
 void print_plan(const plnnr::Planning_State* state, const plnnr::Domain_Info* domain)
 {
-    for (uint32_t i = 0; i < state->task_stack.size; ++i)
+    plnnr::Plan plan = plnnr::get_plan(state);
+    for (uint32_t i = 0; i < plan.length; ++i)
     {
-        plnnr::Task_Frame task = state->task_stack.frames[i];
+        plnnr::Task_Frame task = plan.tasks[i];
         const char* name = plnnr::get_task_name(domain, task.task_type);
-        plnnr::Param_Layout layout = domain->task_info.parameters[task.task_type];
+        plnnr::Param_Layout layout = get_task_param_layout(domain, task.task_type);
 
         print_tuple(name, task.arguments, layout);
         printf("\n");

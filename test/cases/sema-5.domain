@@ -1,0 +1,8 @@
+//> error (6, 24): unbound variable 'x'.
+domain test
+{
+    task t()
+    {
+        case() -> [ ty(x) ]
+    }
+}
