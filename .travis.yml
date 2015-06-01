@@ -5,6 +5,7 @@ compiler:
     - clang
 
 script:
+    - python ./test/gen_runtime_cases.py
     - ./premake5 gmake
 
     # release x64
