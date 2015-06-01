@@ -148,12 +148,8 @@ inline const Fact_Table* find_table(const Fact_Database& db, const char* fact_na
     const Fact_Table* db_tables = db.tables;
 
     for (uint32_t i = 0; i < num_hashes; ++i)
-    {
         if (hash == db_hashes[i])
-        {
             return &db_tables[i];
-        }
-    }
 
     return 0;
 }
@@ -167,12 +163,8 @@ inline Fact_Table* find_table(Fact_Database& db, const char* fact_name)
     Fact_Table* db_tables = db.tables;
 
     for (uint32_t i = 0; i < num_hashes; ++i)
-    {
         if (hash == db_hashes[i])
-        {
             return &db_tables[i];
-        }
-    }
 
     return 0;
 }
@@ -275,7 +267,6 @@ inline size_t get_type_alignment(Type t)
     {                                                                                                               \
         plnnr_assert(entry_index < table.num_entries);                                                              \
         plnnr_assert(param_index < table.format.num_params);                                                        \
-        plnnr_assert(Type_##TYPE_TAG == table.format.types[param_index]);                                           \
         TYPE_NAME* column = static_cast<TYPE_NAME*>(table.columns[param_index]);                                    \
         column[entry_index] = value;                                                                                \
     }                                                                                                               \
@@ -290,7 +281,6 @@ inline size_t get_type_alignment(Type t)
     {                                                                                                       \
         plnnr_assert(data != 0);                                                                            \
         plnnr_assert(param_index < layout.num_params);                                                      \
-        plnnr_assert(Type_##TYPE_TAG == layout.types[param_index]);                                         \
         uint8_t* bytes = static_cast<uint8_t*>(data);                                                       \
         size_t offset = layout.offsets[param_index];                                                        \
         TYPE_NAME* param = reinterpret_cast<TYPE_NAME*>(bytes + offset);                                    \

@@ -41,6 +41,9 @@ typedef uint32_t Id32;
 // 64-bit size handle to be used to point to entities in a fact database.
 typedef uint64_t Id64;
 
+// Allocator.
+class Memory;
+
 // Type IDs supported by fact database.
 enum Type
 {
@@ -213,6 +216,15 @@ struct Planning_State
     Linear_Blob             task_blob;
     // allocator used for allocating & growing planning blobs and stacks.
     Memory*                 memory;
+};
+
+// Helper to wrap an array of tasks `Task_Frame`, memory is owned by `Planning_State`. 
+struct Plan
+{
+    // array of tasks.
+    Task_Frame*             tasks;
+    // number of tasks in the plan.
+    uint32_t                length;
 };
 
 // Database construction parameters.

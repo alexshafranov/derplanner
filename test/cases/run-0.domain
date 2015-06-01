@@ -1,17 +1,19 @@
-//
-//: a = [1]
-//: b = [2]
-//
-//> t1(1, 2)
-//
-domain test
+//:
+//: plnnr::Fact_Table* a = plnnr::find_table(db, "a");
+//: plnnr::Fact_Table* b = plnnr::find_table(db, "b");
+//: plnnr::add_entry(a, 1);
+//: plnnr::add_entry(b, 2);
+//:
+//! check_plan("t!(1, 2)", pstate, domain);
+//!
+domain run_0
 {
-    world { a(id32) b(id32) }
+    world { a(int32) b(int32) }
 
-    primitive { t!(id32, id32) }
+    primitive { t!(int32, int32) }
 
     task r()
     {
-        case( a(x) & b(x) ) -> [ t!(x, y) ]
+        case( a(x) & b(y) ) -> [ t!(x, y) ]
     }
 }

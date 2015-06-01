@@ -337,10 +337,15 @@ int main(int argc, char** argv)
             // generate source code.
             {
                 std::string header_name = output_name + ".h";
+                std::replace(header_name.begin(), header_name.end(), '-', '_');
+
+                std::string source_name = output_name + ".cpp";
+                std::replace(source_name.begin(), source_name.end(), '-', '_');
+
                 File_Context header_context((cmdline.output_dir + "/" + header_name).c_str(), "wb");
                 plnnrc::Writer_Crt header_writer(header_context.fd);
 
-                File_Context source_context((cmdline.output_dir + "/" + output_name + ".cpp").c_str(), "wb");
+                File_Context source_context((cmdline.output_dir + "/" + source_name).c_str(), "wb");
                 plnnrc::Writer_Crt source_writer(source_context.fd);
 
                 plnnrc::Codegen codegen;
