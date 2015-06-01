@@ -22,4 +22,4 @@ script:
     - ./bin/x64/debug/example-travel
 
     # compiler tests
-    - python ./test/run_cases.py
+    - python ./test/run_compiler_cases.py
