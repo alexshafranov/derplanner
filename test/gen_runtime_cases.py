@@ -91,7 +91,7 @@ TEST(%(test_case_name)s)
     %(database_source)s
 
     plnnr::Find_Plan_Status status = plnnr::find_plan(domain, &db, &pstate);
-    CHECK_EQUAL(status, plnnr::Find_Plan_Succeeded);
+    CHECK_EQUAL(plnnr::Find_Plan_Succeeded, status);
 
     %(checks_source)s
 }

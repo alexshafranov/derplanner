@@ -96,7 +96,7 @@ plnnr::add_entry(c, 2);
 
 
     plnnr::Find_Plan_Status status = plnnr::find_plan(domain, &db, &pstate);
-    CHECK_EQUAL(status, plnnr::Find_Plan_Succeeded);
+    CHECK_EQUAL(plnnr::Find_Plan_Succeeded, status);
 
     check_plan("p2!(2) p1!(2) p1!(2)", pstate, domain);
 
