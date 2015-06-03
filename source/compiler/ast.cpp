@@ -1186,6 +1186,17 @@ static bool infer_local_types(ast::Root& tree, ast::Task* task)
                 break;
             }
 
+            if (ast::Task* callee = get_task(tree, func->name))
+            {
+                if (size(callee->params) != size(func->args))
+                {
+                    emit(tree, func->loc, Error_Mismatching_Number_Of_Args) << func->name;
+                    return false;
+                }
+
+                continue;
+            }
+
             ast::Fact* prim = get_primitive(tree, func->name);
             if (!prim)
                 continue;

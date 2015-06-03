@@ -1,6 +1,7 @@
-//> error (10, 15): mismatching number of arguments for 'a'.
-//> error (15, 17): unbound variable 'x'.
-//> error (20, 21): task 'prim!' is not declared.
+//> error (11, 15): mismatching number of arguments for 'a'.
+//> error (16, 17): unbound variable 'x'.
+//> error (21, 21): task 'prim!' is not declared.
+//> error (31, 30): mismatching number of arguments for 't4'.
 domain test
 {
     world { a(id32, id32) }
@@ -23,5 +24,10 @@ domain test
     task t4(x, y, w)
     {
         case( a(x, y) ) -> []
+    }
+
+    task t5()
+    {
+        case( a(x, y) ) -> [ t4(x) ]
     }
 }
