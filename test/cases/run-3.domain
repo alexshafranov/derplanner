@@ -1,0 +1,35 @@
+//: // trying next case when expansion fails.
+//:
+//: plnnr::Fact_Table* a = plnnr::find_table(db, "a");
+//: plnnr::Fact_Table* b = plnnr::find_table(db, "b");
+//: plnnr::Fact_Table* c = plnnr::find_table(db, "c");
+//: plnnr::add_entry(a, 1);
+//: plnnr::add_entry(b, 2);
+//: plnnr::add_entry(c, 3);
+//: plnnr::add_entry(c, 2);
+//:
+//! check_plan("p2!(2) p1!(2) p1!(2)", pstate, domain);
+//!
+domain run_3
+{
+    world { a(id32) b(id32) c(id32) }
+
+    primitive { p1!(id32) p2!(id32) }
+
+    task r()
+    {
+        case( a(x) ) -> [ p1!(x), t1(x), p1!(x) ]
+
+        case( b(x) ) -> [ p2!(x), t2(x), p1!(x) ]
+    }
+
+    task t1(x)
+    {
+        case( b(x) ) -> [ p2!(x) ]
+    }
+
+    task t2(x)
+    {
+        case( c(x) ) -> [ p1!(x) ]
+    }
+}
