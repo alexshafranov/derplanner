@@ -1,7 +1,7 @@
 
 #include <string>
 #include <stdio.h>
-#include "run_1.h"
+#include "run_3.h"
 #include "derplanner/runtime/database.h"
 #include "derplanner/runtime/planning.h"
 #include "unittestpp.h"
@@ -65,12 +65,12 @@ void check_plan(const char* expected, plnnr::Planning_State& pstate, const plnnr
     CHECK_EQUAL(expected, actual.c_str());
 }
 
-TEST(run_1)
+TEST(run_3)
 {
     plnnr::Memory_Default default_mem;
 
-    run_1_init_domain_info();
-    const plnnr::Domain_Info* domain = run_1_get_domain_info();
+    run_3_init_domain_info();
+    const plnnr::Domain_Info* domain = run_3_get_domain_info();
 
     plnnr::Fact_Database db;
     plnnr::init(db, &default_mem, domain->database_req);
@@ -84,19 +84,21 @@ TEST(run_1)
     plnnr::Planning_State pstate;
     plnnr::init(pstate, &default_mem, config);
 
-    // expansion undo.
+    // trying next case when expansion fails.
 
 plnnr::Fact_Table* a = plnnr::find_table(db, "a");
 plnnr::Fact_Table* b = plnnr::find_table(db, "b");
+plnnr::Fact_Table* c = plnnr::find_table(db, "c");
 plnnr::add_entry(a, 1);
-plnnr::add_entry(a, 2);
 plnnr::add_entry(b, 2);
+plnnr::add_entry(c, 3);
+plnnr::add_entry(c, 2);
 
 
     plnnr::Find_Plan_Status status = plnnr::find_plan(domain, &db, &pstate);
     CHECK_EQUAL(status, plnnr::Find_Plan_Succeeded);
 
-    check_plan("p1!(2) p2!(2)", pstate, domain);
+    check_plan("p2!(2) p1!(2) p1!(2)", pstate, domain);
 
 }
 

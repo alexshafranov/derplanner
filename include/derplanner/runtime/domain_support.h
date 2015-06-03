@@ -130,16 +130,22 @@ inline void begin_task(Planning_State* state, uint32_t id, const Param_Layout& a
 
 inline bool expand_next_case(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, Composite_Task_Expand* expand, const Param_Layout& args_layout)
 {
-    frame->case_index++;
-    frame->expand_label = 0;
-    frame->precond_label = 0;
-    frame->expand = expand;
+    uint32_t next_case_index = frame->case_index + 1;
+    void* arguments = frame->arguments;
 
-    // rewind data past arguments.
+    // rewind all data after this task arguments.
     Linear_Blob* blob = &state->expansion_blob;
+    // first rewind to the state before this task was added.
     blob->top = blob->base + frame->orig_blob_size;
+    // next, skip over arguments (actual arguments are not cleared by this call).
     allocate_with_layout(blob, args_layout);
 
+    memset(frame, 0, sizeof(Expansion_Frame));
+    frame->case_index = next_case_index;
+    frame->expand = expand;
+    frame->arguments = arguments;
+
+    // then try the new expansion.
     return frame->expand(state, frame, db);
 }
 

@@ -1,3 +1,4 @@
+//: // expansion undo.
 //:
 //: plnnr::Fact_Table* a = plnnr::find_table(db, "a");
 //: plnnr::Fact_Table* b = plnnr::find_table(db, "b");
