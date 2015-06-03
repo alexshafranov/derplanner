@@ -289,7 +289,6 @@ static bool travel_by_plane_case_0(Planning_State* state, Expansion_Frame* frame
     set_composite_arg(state, s_task_parameters[3], 0, as_Id32(frame->arguments, s_task_parameters[4], 0));
     set_composite_arg(state, s_task_parameters[3], 1, as_Id32(frame->precond_output, s_precond_output[3], 0));
     plnnr_coroutine_yield(frame, expand_label, 1);
-    if ((frame->flags & Expansion_Frame::Flags_Failed) != 0) { continue; }
 
     begin_task(state, 1, s_task_parameters[1]); // plane!
     set_task_arg(state, s_task_parameters[1], 0, as_Id32(frame->precond_output, s_precond_output[3], 0));
