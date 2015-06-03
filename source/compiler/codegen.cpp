@@ -959,12 +959,6 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
 
                     writeln(fmtr, "plnnr_coroutine_yield(frame, expand_label, %d);", yield_id);
                     ++yield_id;
-
-                    if (item != back(case_->task_list))
-                    {
-                        writeln(fmtr, "if ((frame->flags & Expansion_Frame::Flags_Failed) != 0) { continue; }");
-                    }
-
                     newline(fmtr);
 
                     continue;

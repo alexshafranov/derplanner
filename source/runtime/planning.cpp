@@ -81,7 +81,9 @@ static void undo_expansion(plnnr::Planning_State* state)
     plnnr_assert(state->expansion_stack.size > 0);
 
     Expansion_Frame* frame = top(state->expansion_stack);
-    frame->flags |= Expansion_Frame::Flags_Failed;
+    frame->flags = Expansion_Frame::Flags_Failed;
+    // rewind to the expand function start, so the we exit expansion loop and try the next satisifer.
+    frame->expand_label = 0;
 
     // now revert any tasks parent expansion has produced.
     uint32_t curr_task_count = state->task_stack.size;
@@ -93,7 +95,7 @@ static void undo_expansion(plnnr::Planning_State* state)
     if (curr_task_count > orig_task_count)
     {
         // the first task added by expansion.
-        Task_Frame* task_frame = &state->task_stack.frames[orig_task_count + 1];
+        Task_Frame* task_frame = &state->task_stack.frames[orig_task_count];
         blob->top = blob->base + task_frame->orig_blob_size;
         state->task_stack.size = orig_task_count;
     }
