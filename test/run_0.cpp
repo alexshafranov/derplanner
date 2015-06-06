@@ -116,7 +116,7 @@ static bool r_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Databas
     begin_task(state, 0, s_task_parameters[0]); // t!
     set_task_arg(state, s_task_parameters[0], 0, as_Int32(frame->precond_output, s_precond_output[0], 0));
     set_task_arg(state, s_task_parameters[0], 1, as_Int32(frame->precond_output, s_precond_output[0], 1));
-    frame->flags |= Expansion_Frame::Flags_Expanded;
+    frame->status = Expansion_Frame::Status_Expanded;
     plnnr_coroutine_yield(frame, expand_label, 1);
 
   }

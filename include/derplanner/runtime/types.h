@@ -128,17 +128,17 @@ typedef bool Composite_Task_Expand(Planning_State*, Expansion_Frame*, Fact_Datab
 // Composite task case expansion state.
 struct Expansion_Frame
 {
-    enum Flags
+    enum Status
     {
-        Flags_None      = 0x0,
+        Status_None         = 0,
         // expand has generated it's last task on expansion stack.
-        Flags_Expanded  = 0x1,
-        // composite task has failed to expand.
-        Flags_Failed    = 0x2,
+        Status_Expanded     = 1,
+        // in `each` case, one of the possible expansions was sucessfull.
+        Status_Was_Expanded = 2,
     };
 
-    // in-progress/expanded/failed flags.
-    uint32_t                flags               : 2;
+    // `Status` of expand function.
+    uint32_t                status              : 2;
     // composite task type this frame holds data for, can be used for lookups in `Task_Info`.
     uint32_t                task_type           : 15;
     // index of the expanding case.

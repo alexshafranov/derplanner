@@ -128,6 +128,13 @@ inline void begin_task(Planning_State* state, uint32_t id, const Param_Layout& a
     push(state->task_stack, frame);
 }
 
+inline void continue_iteration(Planning_State* state, Expansion_Frame* frame)
+{
+    frame->orig_task_count = (uint16_t)(state->task_stack.size);
+    frame->orig_blob_size = (uint32_t)(state->expansion_blob.top - state->expansion_blob.base);
+    frame->status = Expansion_Frame::Status_Was_Expanded;
+}
+
 inline bool expand_next_case(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, Composite_Task_Expand* expand, const Param_Layout& args_layout)
 {
     uint32_t next_case_index = frame->case_index + 1;
