@@ -815,8 +815,7 @@ static void generate_literal_chain(Codegen& state, ast::Case* case_, ast::Expr* 
 
         if (!literal->next_sibling)
         {
-            writeln(fmtr, "plnnr_coroutine_yield(frame, precond_label, %d);", yield_id);
-            ++yield_id;
+            writeln(fmtr, "plnnr_coroutine_yield(frame, precond_label, %d);", yield_id++);
         }
         else
         {
@@ -914,9 +913,8 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
 
             if (empty(case_->task_list))
             {
-                writeln(fmtr, "frame->flags |= Expansion_Frame::Flags_Expanded;");
-                writeln(fmtr, "plnnr_coroutine_yield(frame, expand_label, %d);", yield_id);
-                ++yield_id;
+                writeln(fmtr, "frame->status = Expansion_Frame::Status_Expanded;");
+                writeln(fmtr, "plnnr_coroutine_yield(frame, expand_label, %d);", yield_id++);
             }
 
             for (uint32_t item_idx = 0; item_idx < size(case_->task_list); ++item_idx)
@@ -931,14 +929,18 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
 
                     generate_arg_setters(state, "set_task_arg", item, case_, primitive_index, fmtr);
 
-                    if (item == back(case_->task_list))
+                    if (item == back(case_->task_list) && !case_->foreach)
                     {
-                        writeln(fmtr, "frame->flags |= Expansion_Frame::Flags_Expanded;");
+                        writeln(fmtr, "frame->status = Expansion_Frame::Status_Expanded;");
                     }
 
-                    writeln(fmtr, "plnnr_coroutine_yield(frame, expand_label, %d);", yield_id);
-                    ++yield_id;
+                    writeln(fmtr, "plnnr_coroutine_yield(frame, expand_label, %d);", yield_id++);
                     newline(fmtr);
+
+                    if (item == back(case_->task_list) && case_->foreach)
+                    {
+                        writeln(fmtr, "continue_iteration(state, frame);");
+                    }
 
                     continue;
                 }
@@ -952,14 +954,18 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
 
                     generate_arg_setters(state, "set_composite_arg", item, case_, composite_index, fmtr);
 
-                    if (item == back(case_->task_list))
+                    if (item == back(case_->task_list) && !case_->foreach)
                     {
-                        writeln(fmtr, "frame->flags |= Expansion_Frame::Flags_Expanded;");
+                        writeln(fmtr, "frame->status = Expansion_Frame::Status_Expanded;");
                     }
 
-                    writeln(fmtr, "plnnr_coroutine_yield(frame, expand_label, %d);", yield_id);
-                    ++yield_id;
+                    writeln(fmtr, "plnnr_coroutine_yield(frame, expand_label, %d);", yield_id++);
                     newline(fmtr);
+
+                    if (item == back(case_->task_list) && case_->foreach)
+                    {
+                        writeln(fmtr, "continue_iteration(state, frame);");
+                    }
 
                     continue;
                 }
@@ -970,6 +976,18 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
 
         writeln(fmtr, "}");
         newline(fmtr);
+
+        if (case_->foreach)
+        {
+            writeln(fmtr, "if (frame->status == Expansion_Frame::Status_Was_Expanded) {");
+            {
+                Indent_Scope s(fmtr);
+                writeln(fmtr, "frame->status = Expansion_Frame::Status_Expanded;");
+                writeln(fmtr, "plnnr_coroutine_yield(frame, expand_label, %d);", yield_id++);
+            }
+            writeln(fmtr, "}");
+            newline(fmtr);
+        }
 
         if (case_ != back(task->cases))
         {

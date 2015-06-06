@@ -226,7 +226,7 @@ static bool root_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Data
     begin_composite(state, 3, travel_case_0, s_task_parameters[3]); // travel
     set_composite_arg(state, s_task_parameters[3], 0, as_Id32(frame->precond_output, s_precond_output[0], 0));
     set_composite_arg(state, s_task_parameters[3], 1, as_Id32(frame->precond_output, s_precond_output[0], 1));
-    frame->flags |= Expansion_Frame::Flags_Expanded;
+    frame->status = Expansion_Frame::Status_Expanded;
     plnnr_coroutine_yield(frame, expand_label, 1);
 
   }
@@ -246,7 +246,7 @@ static bool travel_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Da
     begin_task(state, 0, s_task_parameters[0]); // taxi!
     set_task_arg(state, s_task_parameters[0], 0, as_Id32(frame->arguments, s_task_parameters[3], 0));
     set_task_arg(state, s_task_parameters[0], 1, as_Id32(frame->arguments, s_task_parameters[3], 1));
-    frame->flags |= Expansion_Frame::Flags_Expanded;
+    frame->status = Expansion_Frame::Status_Expanded;
     plnnr_coroutine_yield(frame, expand_label, 1);
 
   }
@@ -268,7 +268,7 @@ static bool travel_case_1(Planning_State* state, Expansion_Frame* frame, Fact_Da
     begin_composite(state, 4, travel_by_plane_case_0, s_task_parameters[4]); // travel_by_plane
     set_composite_arg(state, s_task_parameters[4], 0, as_Id32(frame->arguments, s_task_parameters[3], 0));
     set_composite_arg(state, s_task_parameters[4], 1, as_Id32(frame->arguments, s_task_parameters[3], 1));
-    frame->flags |= Expansion_Frame::Flags_Expanded;
+    frame->status = Expansion_Frame::Status_Expanded;
     plnnr_coroutine_yield(frame, expand_label, 1);
 
   }
@@ -298,7 +298,7 @@ static bool travel_by_plane_case_0(Planning_State* state, Expansion_Frame* frame
     begin_composite(state, 3, travel_case_0, s_task_parameters[3]); // travel
     set_composite_arg(state, s_task_parameters[3], 0, as_Id32(frame->precond_output, s_precond_output[3], 1));
     set_composite_arg(state, s_task_parameters[3], 1, as_Id32(frame->arguments, s_task_parameters[4], 1));
-    frame->flags |= Expansion_Frame::Flags_Expanded;
+    frame->status = Expansion_Frame::Status_Expanded;
     plnnr_coroutine_yield(frame, expand_label, 3);
 
   }

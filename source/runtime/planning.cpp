@@ -81,7 +81,7 @@ static void undo_expansion(plnnr::Planning_State* state)
     plnnr_assert(state->expansion_stack.size > 0);
 
     Expansion_Frame* frame = top(state->expansion_stack);
-    frame->flags = Expansion_Frame::Flags_Failed;
+    frame->status = Expansion_Frame::Status_None;
     // rewind to the expand function start, so the we exit expansion loop and try the next satisifer.
     frame->expand_label = 0;
 
@@ -125,9 +125,9 @@ Find_Plan_Status plnnr::find_plan_step(Fact_Database* db, Planning_State* state)
         Expansion_Frame* new_top_frame = top(state->expansion_stack);
 
         // expanded to primitive tasks -> pop all expanded composites.
-        if (frame == new_top_frame && (frame->flags & Expansion_Frame::Flags_Expanded) != 0)
+        if ((frame == new_top_frame) && (frame->status == Expansion_Frame::Status_Expanded))
         {
-            while (frame && (frame->flags & Expansion_Frame::Flags_Expanded) != 0)
+            while (frame && (frame->status == Expansion_Frame::Status_Expanded))
             {
                 frame = pop_expansion(state);
             }

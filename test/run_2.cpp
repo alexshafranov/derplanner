@@ -152,7 +152,7 @@ static bool r_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Databas
 
     begin_task(state, 0, s_task_parameters[0]); // p1!
     set_task_arg(state, s_task_parameters[0], 0, as_Id32(frame->precond_output, s_precond_output[0], 0));
-    frame->flags |= Expansion_Frame::Flags_Expanded;
+    frame->status = Expansion_Frame::Status_Expanded;
     plnnr_coroutine_yield(frame, expand_label, 3);
 
   }
@@ -170,7 +170,7 @@ static bool t_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Databas
   while (p1_next(state, frame, db, &args)) {
     begin_task(state, 1, s_task_parameters[1]); // p2!
     set_task_arg(state, s_task_parameters[1], 0, as_Id32(frame->arguments, s_task_parameters[3], 0));
-    frame->flags |= Expansion_Frame::Flags_Expanded;
+    frame->status = Expansion_Frame::Status_Expanded;
     plnnr_coroutine_yield(frame, expand_label, 1);
 
   }
