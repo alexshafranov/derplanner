@@ -696,6 +696,7 @@ static ast::Expr* parse_term_expr(Parser& state)
         return parse_postfix_expr(state, node_Func);
     }
 
+    emit(state, Error_Unexpected_Token) << tok;
     return 0;
 }
 
