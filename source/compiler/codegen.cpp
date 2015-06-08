@@ -679,7 +679,7 @@ static void generate_precondition(Codegen& state, ast::Case* case_, uint32_t cas
 {
     if (input_sig.length > 0)
     {
-        writeln(fmtr, "static bool p%d_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, const input_%d* args)", case_idx, input_idx);
+        writeln(fmtr, "static bool p%d_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, const input_%d& args)", case_idx, input_idx);
     }
     else
     {
@@ -779,7 +779,7 @@ static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* liter
                 if (ast::Param* param = as_Param(def))
                 {
                     ast::Var* first = get(case_->precond_var_lookup, param->name);
-                    writeln(fmtr, "if (args->_%d %s as_%s(db, handles[%d], %d)) {",
+                    writeln(fmtr, "if (args._%d %s as_%s(db, handles[%d], %d)) {",
                         first->input_index, comparison_op, data_type_tag, handle_id, arg_idx);
                     {
                         Indent_Scope s(fmtr);
@@ -836,7 +836,6 @@ static void generate_arg_setters(Codegen& state, const char* set_arg_name, ast::
 {
     ast::Task* task = case_->task;
     uint32_t case_index = index_of(state.tree->cases, case_);
-    uint32_t task_params_idx = size(state.tree->primitive->tasks) + index_of(state.tree->domain->tasks, task);
 
     uint32_t arg_index = 0;
     for (ast::Expr* arg_node = task_list_item->child; arg_node != 0; arg_node = arg_node->next_sibling, ++arg_index)
@@ -854,10 +853,9 @@ static void generate_arg_setters(Codegen& state, const char* set_arg_name, ast::
 
         if (ast::Param* def_param = as_Param(arg_var->definition))
         {
-            const char* data_type_tag = get_runtime_type_tag(def_param->data_type);
             uint32_t task_param_idx = index_of(task->params, def_param);
-            writeln(fmtr, "%s(state, s_task_parameters[%d], %d, as_%s(frame->arguments, s_task_parameters[%d], %d));",
-                set_arg_name, target_task_index, arg_index, data_type_tag, task_params_idx, task_param_idx);
+            writeln(fmtr, "%s(state, s_task_parameters[%d], %d, args._%d);",
+                set_arg_name, target_task_index, arg_index, task_param_idx);
             continue;
         }
 
@@ -906,7 +904,7 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
 
         if (precond_input_sig.length > 0)
         {
-            writeln(fmtr, "while (p%d_next(state, frame, db, &args)) {", case_idx);
+            writeln(fmtr, "while (p%d_next(state, frame, db, args)) {", case_idx);
         }
         else
         {
