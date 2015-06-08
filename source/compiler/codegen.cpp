@@ -67,7 +67,7 @@ void plnnrc::generate_header(Codegen& state, const char* header_guard, Writer* o
 
 static void generate_precondition(Codegen& state, ast::Case* case_, uint32_t case_idx, uint32_t input_idx, Signature input_sig, Signature output_sig, Formatter& fmtr);
 static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_idx, Formatter& fmtr);
-static void generate_literal_chain(Codegen& state, ast::Case* case_, ast::Expr* node, uint32_t& handle_id, uint32_t yield_id, Formatter& fmtr);
+static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* node, uint32_t& handle_id, uint32_t yield_id, Formatter& fmtr);
 
 static const char* s_runtime_type_tag[] =
 {
@@ -734,11 +734,11 @@ static void generate_precondition(Codegen& state, ast::Case* case_, uint32_t cas
                 if (!conjunct->child)
                     continue;
 
-                generate_literal_chain(state, case_, conjunct->child, handle_id, yield_id, fmtr);
+                generate_conjunct(state, case_, conjunct->child, handle_id, yield_id, fmtr);
                 continue;
             }
 
-            generate_literal_chain(state, case_, conjunct, handle_id, yield_id, fmtr);
+            generate_conjunct(state, case_, conjunct, handle_id, yield_id, fmtr);
         }
 
         newline(fmtr);
@@ -749,7 +749,7 @@ static void generate_precondition(Codegen& state, ast::Case* case_, uint32_t cas
     newline(fmtr);
 }
 
-static void generate_literal_chain(Codegen& state, ast::Case* case_, ast::Expr* literal, uint32_t& handle_id, uint32_t yield_id, Formatter& fmtr)
+static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* literal, uint32_t& handle_id, uint32_t yield_id, Formatter& fmtr)
 {
     ast::Func* func = is_Not(literal) ? as_Func(literal->child) : as_Func(literal);
     plnnrc_assert(func);
@@ -762,43 +762,49 @@ static void generate_literal_chain(Codegen& state, ast::Case* case_, ast::Expr* 
         Indent_Scope indent_scope(fmtr);
 
         const char* comparison_op = is_Not(literal) ? "==" : "!=";
-        uint32_t fact_param_idx = 0;
-        for (ast::Expr* arg = func->child; arg != 0; arg = arg->next_sibling, ++fact_param_idx)
+        for (uint32_t arg_idx = 0; arg_idx < size(func->args); ++arg_idx)
         {
-            ast::Var* var = as_Var(arg);
-            plnnrc_assert(var);
-            Token_Type data_type = var->data_type;
-            const char* data_type_tag = get_runtime_type_tag(data_type);
+            ast::Expr* arg = func->args[arg_idx];
 
-            ast::Node* def = var->definition;
-            // output variable -> skip
-            if (!def) { continue; }
-
-            // parameter -> use `args` struct
-            if (ast::Param* param = as_Param(def))
+            if (ast::Var* var = as_Var(arg))
             {
-                ast::Var* first = get(case_->precond_var_lookup, param->name);
-                writeln(fmtr, "if (args->_%d %s as_%s(db, handles[%d], %d)) {",
-                    first->input_index, comparison_op, data_type_tag, handle_id, fact_param_idx);
+                Token_Type data_type = var->data_type;
+                const char* data_type_tag = get_runtime_type_tag(data_type);
+
+                ast::Node* def = var->definition;
+                // output variable -> skip.
+                if (!def) { continue; }
+
+                // parameter -> match with the variable in `args` struct.
+                if (ast::Param* param = as_Param(def))
                 {
-                    Indent_Scope s(fmtr);
-                    writeln(fmtr, "continue;");
+                    ast::Var* first = get(case_->precond_var_lookup, param->name);
+                    writeln(fmtr, "if (args->_%d %s as_%s(db, handles[%d], %d)) {",
+                        first->input_index, comparison_op, data_type_tag, handle_id, arg_idx);
+                    {
+                        Indent_Scope s(fmtr);
+                        writeln(fmtr, "continue;");
+                    }
+                    writeln(fmtr, "}");
+                    newline(fmtr);
+                    continue;
                 }
-                writeln(fmtr, "}");
-                newline(fmtr);
+
+                // variable -> compare handle to handle
+                plnnrc_assert(false);
                 continue;
             }
 
-            // variable -> compare handle to handle
-            plnnrc_assert(false);
+            // otherwise, expression is an argument, result has to be matched with handle.
         }
 
-        fact_param_idx = 0;
         uint32_t output_idx = 0;
-        for (ast::Expr* arg = func->child; arg != 0; arg = arg->next_sibling, ++fact_param_idx)
+        for (uint32_t arg_idx = 0; arg_idx < size(func->args); ++arg_idx)
         {
+            ast::Expr* arg = func->args[arg_idx];
             ast::Var* var = as_Var(arg);
             plnnrc_assert(var);
+
             Token_Type data_type = var->data_type;
             const char* data_type_tag = get_runtime_type_tag(data_type);
 
@@ -806,7 +812,7 @@ static void generate_literal_chain(Codegen& state, ast::Case* case_, ast::Expr* 
             if (def) { continue; }
 
             writeln(fmtr, "set_precond_output(frame, output_layout, %d, as_%s(db, handles[%d], %d));",
-                handle_id + output_idx, data_type_tag, handle_id, fact_param_idx);
+                handle_id + output_idx, data_type_tag, handle_id, arg_idx);
 
             ++output_idx;
         }
@@ -819,7 +825,7 @@ static void generate_literal_chain(Codegen& state, ast::Case* case_, ast::Expr* 
         }
         else
         {
-            generate_literal_chain(state, case_, literal->next_sibling, handle_id, yield_id, fmtr);
+            generate_conjunct(state, case_, literal->next_sibling, handle_id, yield_id, fmtr);
         }
     }
 
