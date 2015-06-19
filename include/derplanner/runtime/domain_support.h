@@ -121,7 +121,7 @@ inline void begin_composite(Planning_State* state, const Domain_Info* domain, ui
 
 inline void begin_task(Planning_State* state, const Domain_Info* domain, uint32_t task_id)
 {
-    plnnr_assert(task_id >= 0 && task_id < domain->task_info.num_tasks);
+    plnnr_assert(task_id < domain->task_info.num_tasks);
     const Param_Layout& param_layout = domain->task_info.parameters[task_id];
 
     Linear_Blob* blob = &state->task_blob;
