@@ -278,6 +278,8 @@ struct Task_Info
     Param_Layout*               parameters;
     // format of the bindings created by composite task preconditions.
     Param_Layout*               precond_output;
+    // number of fact handles for each case.
+    uint32_t*                   num_case_handles;
     // pointer to generated expand function for each composite task.
     Composite_Task_Expand**     expands;
 };
