@@ -513,6 +513,26 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         newline(fmtr);
     }
 
+    // s_num_case_handles
+    {
+        writeln(fmtr, "static uint32_t s_num_case_handles[] = {");
+        for (uint32_t case_idx = 0; case_idx < size(tree->cases); ++case_idx)
+        {
+            ast::Case* case_ = tree->cases[case_idx];
+            Indent_Scope s(fmtr);
+            writeln(fmtr, "%d, ", size(case_->precond_facts));
+        }
+
+        if (empty(world->facts))
+        {
+            Indent_Scope s(fmtr);
+            writeln(fmtr, "0");
+        }
+
+        writeln(fmtr, "};");
+        newline(fmtr);
+    }
+
     uint32_t fact_names_hash_seed = 0;
     // s_fact_name_hashes
     {
@@ -598,7 +618,7 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         {
             Indent_Scope s(fmtr);
             // task_info
-            writeln(fmtr, "{ %d, %d, %d, s_num_cases, %d, s_task_name_hashes, s_task_names, s_task_parameters, s_precond_output, s_task_expands },",
+            writeln(fmtr, "{ %d, %d, %d, s_num_cases, %d, s_task_name_hashes, s_task_names, s_task_parameters, s_precond_output, s_num_case_handles, s_task_expands },",
                 num_tasks, num_primitive, num_composite, task_names_hash_seed);
             // database_req
             writeln(fmtr, "{ %d, %d, s_size_hints, s_fact_types, s_fact_name_hashes, s_fact_names },", size(world->facts), fact_names_hash_seed);

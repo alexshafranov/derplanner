@@ -67,6 +67,11 @@ static uint32_t s_size_hints[] = {
   0, 
 };
 
+static uint32_t s_num_case_handles[] = {
+  1, 
+  1, 
+};
+
 static uint32_t s_fact_name_hashes[] = {
   2456313694, 
   2260187636, 
@@ -80,7 +85,7 @@ static uint32_t s_task_name_hashes[] = {
 };
 
 static Domain_Info s_domain_info = {
-  { 4, 2, 2, s_num_cases, 0, s_task_name_hashes, s_task_names, s_task_parameters, s_precond_output, s_task_expands },
+  { 4, 2, 2, s_num_cases, 0, s_task_name_hashes, s_task_names, s_task_parameters, s_precond_output, s_num_case_handles, s_task_expands },
   { 2, 0, s_size_hints, s_fact_types, s_fact_name_hashes, s_fact_names },
 };
 
