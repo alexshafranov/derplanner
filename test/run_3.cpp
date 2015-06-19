@@ -72,6 +72,12 @@ static uint32_t s_num_cases[] = {
   1, 
 };
 
+static uint32_t s_first_case[] = {
+  0, 
+  2, 
+  3, 
+};
+
 static uint32_t s_size_hints[] = {
   0, 
   0, 
@@ -100,7 +106,7 @@ static uint32_t s_task_name_hashes[] = {
 };
 
 static Domain_Info s_domain_info = {
-  { 5, 2, 3, s_num_cases, 0, s_task_name_hashes, s_task_names, s_task_parameters, s_precond_output, s_num_case_handles, s_task_expands },
+  { 5, 2, 3, s_num_cases, s_first_case, 0, s_task_name_hashes, s_task_names, s_task_parameters, s_precond_output, s_num_case_handles, s_task_expands },
   { 3, 0, s_size_hints, s_fact_types, s_fact_name_hashes, s_fact_names },
 };
 
@@ -127,8 +133,6 @@ static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
   const Param_Layout& output_layout = s_precond_output[0];
 
   plnnr_coroutine_begin(frame, precond_label);
-  handles = allocate_precond_handles(state, frame, 1);
-  allocate_precond_output(state, frame, output_layout);
 
   for (handles[0] = first(db, 0); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // a
     set_precond_output(frame, output_layout, 0, as_Id32(db, handles[0], 0));
@@ -144,8 +148,6 @@ static bool p1_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
   const Param_Layout& output_layout = s_precond_output[1];
 
   plnnr_coroutine_begin(frame, precond_label);
-  handles = allocate_precond_handles(state, frame, 1);
-  allocate_precond_output(state, frame, output_layout);
 
   for (handles[0] = first(db, 1); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // b
     set_precond_output(frame, output_layout, 0, as_Id32(db, handles[0], 0));
@@ -161,7 +163,6 @@ static bool p2_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
   const Param_Layout& output_layout = s_precond_output[2];
 
   plnnr_coroutine_begin(frame, precond_label);
-  handles = allocate_precond_handles(state, frame, 1);
 
   for (handles[0] = first(db, 1); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // b
     if (args._0 != as_Id32(db, handles[0], 0)) {
@@ -180,7 +181,6 @@ static bool p3_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
   const Param_Layout& output_layout = s_precond_output[3];
 
   plnnr_coroutine_begin(frame, precond_label);
-  handles = allocate_precond_handles(state, frame, 1);
 
   for (handles[0] = first(db, 2); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // c
     if (args._0 != as_Id32(db, handles[0], 0)) {
@@ -213,7 +213,7 @@ static bool r_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Databas
 
   }
 
-  return expand_next_case(state, frame, db, r_case_1, s_task_parameters[2]);
+  return expand_next_case(state, &s_domain_info, 2, frame, db, r_case_1, s_task_parameters[2]);
 
   plnnr_coroutine_end();
 }
