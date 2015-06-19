@@ -258,7 +258,7 @@ static bool travel_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Da
 
   }
 
-  return expand_next_case(state, &s_domain_info, 3, frame, db, travel_case_1, s_task_parameters[3]);
+  return expand_next_case(state, &s_domain_info, 3, frame, db, travel_case_1);
 
   plnnr_coroutine_end();
 }

@@ -1027,8 +1027,8 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
         {
             uint32_t task_id = index_of(state.tree->domain->tasks, task) + size(state.tree->primitive->tasks);
             Token_Value next_expand_name = get(state.expand_names, case_idx + 1);
-            writeln(fmtr, "return expand_next_case(state, &s_domain_info, %d, frame, db, %n, s_task_parameters[%d]);",
-                task_id, next_expand_name, task_params_idx);
+            writeln(fmtr, "return expand_next_case(state, &s_domain_info, %d, frame, db, %n);",
+                task_id, next_expand_name);
             newline(fmtr);
         }
 
