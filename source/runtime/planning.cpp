@@ -128,28 +128,20 @@ Find_Plan_Status plnnr::find_plan_step(Fact_Database* db, Planning_State* state)
         if ((frame == new_top_frame) && (frame->status == Expansion_Frame::Status_Expanded))
         {
             while (frame && (frame->status == Expansion_Frame::Status_Expanded))
-            {
                 frame = pop_expansion(state);
-            }
 
             // all composites are now expanded -> plan found.
             if (!frame)
-            {
                 return Find_Plan_Succeeded;
-            }
         }
 
         // check if maximum expansion depth reached.
         if (size(state->expansion_stack) > state->max_depth)
-        {
             return Find_Plan_Max_Depth_Exceeded;
-        }
 
         // check if maximum plan length reached.
         if (size(state->task_stack) > state->max_plan_length)
-        {
             return Find_Plan_Max_Plan_Length_Exceeded;
-        }
     }
     else
     {
@@ -157,9 +149,7 @@ Find_Plan_Status plnnr::find_plan_step(Fact_Database* db, Planning_State* state)
         frame = pop_expansion(state);
 
         if (!frame)
-        {
             return Find_Plan_Failed;
-        }
 
         undo_expansion(state);
     }
@@ -173,9 +163,7 @@ Find_Plan_Status plnnr::find_plan(const Domain_Info* domain, Fact_Database* db, 
 
     Find_Plan_Status status = find_plan_step(db, state);
     while (status == Find_Plan_In_Progress)
-    {
         status = find_plan_step(db, state);
-    }
 
     return status;
 }
