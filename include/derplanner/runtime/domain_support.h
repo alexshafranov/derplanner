@@ -67,7 +67,7 @@ inline void compute_offsets_and_size(Param_Layout& layout)
 
 inline uint8_t* allocate_with_layout(Linear_Blob* blob, const Param_Layout& layout)
 {
-    if (layout.size == 0) { return 0; }
+    if (layout.size == 0) return 0;
 
     Type first_type = layout.types[0];
     size_t alignment = get_type_alignment(first_type);
@@ -83,6 +83,8 @@ inline uint8_t* allocate_with_layout(Linear_Blob* blob, const Param_Layout& layo
 
 inline Fact_Handle* allocate_precond_handles(Planning_State* state, Expansion_Frame* frame, uint32_t num_handles)
 {
+    if (num_handles == 0) return 0;
+
     Linear_Blob* blob = &state->expansion_blob;
     uint8_t* bytes = blob->top;
     blob->top = (uint8_t*)align(blob->top, plnnr_alignof(Fact_Handle)) + sizeof(Fact_Handle) * num_handles;
@@ -116,7 +118,44 @@ inline void begin_composite(Planning_State* state, const Domain_Info* domain, ui
     frame.orig_blob_size = blob_size;
     frame.arguments = allocate_with_layout(blob, param_layout);
 
+    const uint32_t global_case_index = domain->task_info.first_case[task_id - num_primitive];
+    const uint32_t num_handles = domain->task_info.num_case_handles[global_case_index];
+    const Param_Layout& precond_output_layout = domain->task_info.precond_output[global_case_index];
+
+    allocate_precond_handles(state, &frame, num_handles);
+    allocate_precond_output(state, &frame, precond_output_layout);
+
     push(state->expansion_stack, frame);
+}
+
+inline bool expand_next_case(Planning_State* state, const Domain_Info* domain, uint32_t task_id,
+    Expansion_Frame* frame, Fact_Database* db, Composite_Task_Expand* expand, const Param_Layout& param_layout)
+{
+    const uint32_t num_primitive = domain->task_info.num_primitive;
+    const uint32_t next_case_index = frame->case_index + 1;
+    void* arguments = frame->arguments;
+
+    // rewind all data after this task arguments.
+    Linear_Blob* blob = &state->expansion_blob;
+    // first rewind to the state before this task was added.
+    blob->top = blob->base + frame->orig_blob_size;
+    // next, skip over arguments (actual arguments are not cleared by this call).
+    allocate_with_layout(blob, param_layout);
+
+    memset(frame, 0, sizeof(Expansion_Frame));
+    frame->case_index = next_case_index;
+    frame->expand = expand;
+    frame->arguments = arguments;
+
+    const uint32_t global_case_index = domain->task_info.first_case[task_id - num_primitive] + next_case_index;
+    const uint32_t num_handles = domain->task_info.num_case_handles[global_case_index];
+    const Param_Layout& precond_output_layout = domain->task_info.precond_output[global_case_index];
+
+    allocate_precond_handles(state, frame, num_handles);
+    allocate_precond_output(state, frame, precond_output_layout);
+
+    // then try the new expansion.
+    return frame->expand(state, frame, db);
 }
 
 inline void begin_task(Planning_State* state, const Domain_Info* domain, uint32_t task_id)
@@ -141,27 +180,6 @@ inline void continue_iteration(Planning_State* state, Expansion_Frame* frame)
     frame->orig_task_count = (uint16_t)(state->task_stack.size);
     frame->orig_blob_size = (uint32_t)(state->expansion_blob.top - state->expansion_blob.base);
     frame->status = Expansion_Frame::Status_Was_Expanded;
-}
-
-inline bool expand_next_case(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, Composite_Task_Expand* expand, const Param_Layout& param_layout)
-{
-    uint32_t next_case_index = frame->case_index + 1;
-    void* arguments = frame->arguments;
-
-    // rewind all data after this task arguments.
-    Linear_Blob* blob = &state->expansion_blob;
-    // first rewind to the state before this task was added.
-    blob->top = blob->base + frame->orig_blob_size;
-    // next, skip over arguments (actual arguments are not cleared by this call).
-    allocate_with_layout(blob, param_layout);
-
-    memset(frame, 0, sizeof(Expansion_Frame));
-    frame->case_index = next_case_index;
-    frame->expand = expand;
-    frame->arguments = arguments;
-
-    // then try the new expansion.
-    return frame->expand(state, frame, db);
 }
 
 template <typename T>
