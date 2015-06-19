@@ -34,7 +34,7 @@ namespace
 
     inline bool operator==(const Vec3& a, const Vec3& b) { return a.x == b.x && a.y == b.y && a.z == b.z; }
 
-    UnitTest::MemoryOutStream& operator<<(UnitTest::MemoryOutStream& stream, const Vec3& v) { stream << '(' << v.x << ', ' << v.y << ', ' << v.z << ')'; return stream; }
+    UnitTest::MemoryOutStream& operator<<(UnitTest::MemoryOutStream& stream, const Vec3& v) { stream << "(" << v.x << ", " << v.y << ", " << v.z << ")"; return stream; }
 
     TEST(layout_struct_aliasing)
     {
