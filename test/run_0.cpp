@@ -113,7 +113,7 @@ static bool r_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Databas
   plnnr_coroutine_begin(frame, expand_label);
 
   while (p0_next(state, frame, db)) {
-    begin_task(state, 0, s_task_parameters[0]); // t!
+    begin_task(state, &s_domain_info, 0); // t!
     set_task_arg(state, s_task_parameters[0], 0, as_Int32(frame->precond_output, s_precond_output[0], 0));
     set_task_arg(state, s_task_parameters[0], 1, as_Int32(frame->precond_output, s_precond_output[0], 1));
     frame->status = Expansion_Frame::Status_Expanded;

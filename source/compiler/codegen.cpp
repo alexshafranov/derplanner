@@ -928,8 +928,8 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
                 if (ast::Fact* primitive = get_primitive(*state.tree, item->name))
                 {
                     uint32_t primitive_index = index_of(state.tree->primitive->tasks, primitive);
-                    writeln(fmtr, "begin_task(state, %d, s_task_parameters[%d]); // %n",
-                        primitive_index, primitive_index, primitive->name);
+                    writeln(fmtr, "begin_task(state, &s_domain_info, %d); // %n",
+                        primitive_index, primitive->name);
 
                     generate_arg_setters(state, "set_task_arg", item, case_, primitive_index, fmtr);
 
@@ -953,8 +953,8 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
                 if (ast::Task* composite = get_task(*state.tree, item->name))
                 {
                     uint32_t composite_index = size(state.tree->primitive->tasks) + index_of(state.tree->domain->tasks, composite);
-                    writeln(fmtr, "begin_composite(state, %d, %n_case_0, s_task_parameters[%d]); // %n",
-                        composite_index, composite->name, composite_index, composite->name);
+                    writeln(fmtr, "begin_composite(state, &s_domain_info, %d); // %n",
+                        composite_index, composite->name);
 
                     generate_arg_setters(state, "set_composite_arg", item, case_, composite_index, fmtr);
 

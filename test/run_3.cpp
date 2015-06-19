@@ -191,15 +191,15 @@ static bool r_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Databas
   plnnr_coroutine_begin(frame, expand_label);
 
   while (p0_next(state, frame, db)) {
-    begin_task(state, 0, s_task_parameters[0]); // p1!
+    begin_task(state, &s_domain_info, 0); // p1!
     set_task_arg(state, s_task_parameters[0], 0, as_Id32(frame->precond_output, s_precond_output[0], 0));
     plnnr_coroutine_yield(frame, expand_label, 1);
 
-    begin_composite(state, 3, t1_case_0, s_task_parameters[3]); // t1
+    begin_composite(state, &s_domain_info, 3); // t1
     set_composite_arg(state, s_task_parameters[3], 0, as_Id32(frame->precond_output, s_precond_output[0], 0));
     plnnr_coroutine_yield(frame, expand_label, 2);
 
-    begin_task(state, 0, s_task_parameters[0]); // p1!
+    begin_task(state, &s_domain_info, 0); // p1!
     set_task_arg(state, s_task_parameters[0], 0, as_Id32(frame->precond_output, s_precond_output[0], 0));
     frame->status = Expansion_Frame::Status_Expanded;
     plnnr_coroutine_yield(frame, expand_label, 3);
@@ -216,15 +216,15 @@ static bool r_case_1(Planning_State* state, Expansion_Frame* frame, Fact_Databas
   plnnr_coroutine_begin(frame, expand_label);
 
   while (p1_next(state, frame, db)) {
-    begin_task(state, 1, s_task_parameters[1]); // p2!
+    begin_task(state, &s_domain_info, 1); // p2!
     set_task_arg(state, s_task_parameters[1], 0, as_Id32(frame->precond_output, s_precond_output[1], 0));
     plnnr_coroutine_yield(frame, expand_label, 1);
 
-    begin_composite(state, 4, t2_case_0, s_task_parameters[4]); // t2
+    begin_composite(state, &s_domain_info, 4); // t2
     set_composite_arg(state, s_task_parameters[4], 0, as_Id32(frame->precond_output, s_precond_output[1], 0));
     plnnr_coroutine_yield(frame, expand_label, 2);
 
-    begin_task(state, 0, s_task_parameters[0]); // p1!
+    begin_task(state, &s_domain_info, 0); // p1!
     set_task_arg(state, s_task_parameters[0], 0, as_Id32(frame->precond_output, s_precond_output[1], 0));
     frame->status = Expansion_Frame::Status_Expanded;
     plnnr_coroutine_yield(frame, expand_label, 3);
@@ -242,7 +242,7 @@ static bool t1_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Databa
   plnnr_coroutine_begin(frame, expand_label);
 
   while (p2_next(state, frame, db, args)) {
-    begin_task(state, 1, s_task_parameters[1]); // p2!
+    begin_task(state, &s_domain_info, 1); // p2!
     set_task_arg(state, s_task_parameters[1], 0, args._0);
     frame->status = Expansion_Frame::Status_Expanded;
     plnnr_coroutine_yield(frame, expand_label, 1);
@@ -260,7 +260,7 @@ static bool t2_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Databa
   plnnr_coroutine_begin(frame, expand_label);
 
   while (p3_next(state, frame, db, args)) {
-    begin_task(state, 0, s_task_parameters[0]); // p1!
+    begin_task(state, &s_domain_info, 0); // p1!
     set_task_arg(state, s_task_parameters[0], 0, args._0);
     frame->status = Expansion_Frame::Status_Expanded;
     plnnr_coroutine_yield(frame, expand_label, 1);
