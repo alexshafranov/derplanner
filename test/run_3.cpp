@@ -213,7 +213,7 @@ static bool r_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Databas
 
   }
 
-  return expand_next_case(state, &s_domain_info, 2, frame, db, r_case_1, s_task_parameters[2]);
+  return expand_next_case(state, &s_domain_info, 2, frame, db, r_case_1);
 
   plnnr_coroutine_end();
 }

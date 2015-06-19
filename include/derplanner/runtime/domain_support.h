@@ -128,10 +128,11 @@ inline void begin_composite(Planning_State* state, const Domain_Info* domain, ui
     push(state->expansion_stack, frame);
 }
 
-inline bool expand_next_case(Planning_State* state, const Domain_Info* domain, uint32_t task_id,
-    Expansion_Frame* frame, Fact_Database* db, Composite_Task_Expand* expand, const Param_Layout& param_layout)
+inline bool expand_next_case(Planning_State* state, const Domain_Info* domain, uint32_t task_id, Expansion_Frame* frame, Fact_Database* db, Composite_Task_Expand* expand)
 {
     const uint32_t num_primitive = domain->task_info.num_primitive;
+    const Param_Layout& param_layout = domain->task_info.parameters[task_id];
+
     const uint32_t next_case_index = frame->case_index + 1;
     void* arguments = frame->arguments;
 
