@@ -140,17 +140,17 @@ Find_Plan_Status plnnr::find_plan_step(Fact_Database* db, Planning_State* state)
         // check if maximum plan length reached.
         if (size(state->task_stack) > state->max_plan_length)
             return Find_Plan_Max_Plan_Length_Exceeded;
-    }
-    else
-    {
-        // expansion failed -> pop expansion and revert tasks.
-        frame = pop_expansion(state);
 
-        if (!frame)
-            return Find_Plan_Failed;
-
-        undo_expansion(state);
+        return Find_Plan_In_Progress;
     }
+
+    // expansion failed -> pop expansion and revert tasks.
+    frame = pop_expansion(state);
+
+    if (!frame)
+        return Find_Plan_Failed;
+
+    undo_expansion(state);
 
     return Find_Plan_In_Progress;
 }
