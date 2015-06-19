@@ -107,13 +107,11 @@ void plnnr::find_plan_init(const Domain_Info* domain, Planning_State* state)
 
     // the root task is the first composite task in domain.
     uint32_t root_id = domain->task_info.num_primitive;
-    Composite_Task_Expand* root_expand = domain->task_info.expands[0];
-    Param_Layout args_layout = domain->task_info.parameters[root_id];
     // this find_plan variant doesn't support root tasks with arguments.
-    plnnr_assert(args_layout.num_params == 0);
+    plnnr_assert(domain->task_info.parameters[root_id].num_params == 0);
 
     // put the root task on stack.
-    begin_composite(state, root_id, root_expand, args_layout);
+    begin_composite(state, domain, root_id);
 }
 
 Find_Plan_Status plnnr::find_plan_step(Fact_Database* db, Planning_State* state)
