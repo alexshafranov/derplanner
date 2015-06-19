@@ -377,14 +377,10 @@ int main(int argc, char** argv)
         std::sort(&errors[0], &errors[0] + size(errors), Error_Location_Compare());
 
         for (uint32_t i = 0; i < plnnrc::size(errors); ++i)
-        {
             plnnrc::format_error(errors[i], error_frmtr);
-        }
 
         if (!plnnrc::empty(errors))
-        {
             return 1;
-        }
     }
 
     return 0;
