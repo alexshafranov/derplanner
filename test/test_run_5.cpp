@@ -87,10 +87,10 @@ TEST(run_5)
     // matching with previously bound variables
 
 plnnr::Fact_Table* a = plnnr::find_table(db, "a");
-plnnr::add_entry(a, 1, 2, 3);
-plnnr::add_entry(a, 2, 2, 2);
-plnnr::add_entry(a, 3, 3, 1);
-plnnr::add_entry(a, 1, 3, 3);
+plnnr::add_entry(a, 1, 2, int8_t(3));
+plnnr::add_entry(a, 2, 2, int8_t(2));
+plnnr::add_entry(a, 3, 3, int8_t(1));
+plnnr::add_entry(a, 1, 3, int8_t(3));
 
 
     plnnr::Find_Plan_Status status = plnnr::find_plan(domain, &db, &pstate);
