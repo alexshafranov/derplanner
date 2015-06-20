@@ -834,15 +834,7 @@ void plnnrc::inline_predicates(ast::Root& tree)
             {
                 if (ast::Func* func = as_Func(node))
                 {
-                    // look up the predicate in the `task` scope first.
-                    if (ast::Predicate* pred = get(task->predicate_lookup, func->name))
-                    {
-                        node = inline_predicate(tree, func, pred);
-                        continue;
-                    }
-
-                    // look up in the global, `domain` scope next.
-                    if (ast::Predicate* pred = get(domain->predicate_lookup, func->name))
+                    if (ast::Predicate* pred = lookup_referenced_predicate(domain, task, func->name))
                     {
                         node = inline_predicate(tree, func, pred);
                         continue;
