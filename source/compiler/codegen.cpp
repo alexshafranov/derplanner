@@ -817,10 +817,13 @@ static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* liter
         {
             ast::Expr* arg = func->args[arg_idx];
 
+            Token_Type source_data_type = fact->params[arg_idx]->data_type;
+            const char* source_data_type_tag = get_runtime_type_tag(source_data_type);
+
             if (ast::Var* var = as_Var(arg))
             {
-                Token_Type data_type = var->data_type;
-                const char* data_type_tag = get_runtime_type_tag(data_type);
+                // Token_Type data_type = var->data_type;
+                // const char* data_type_tag = get_runtime_type_tag(data_type);
 
                 ast::Node* def = var->definition;
 
@@ -828,7 +831,7 @@ static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* liter
                 if (!def)
                 {
                     writeln(fmtr, "binds->_%d = as_%s(db, handles[%d], %d);",
-                        var->output_index, data_type_tag, handle_id, arg_idx);
+                        var->output_index, source_data_type_tag, handle_id, arg_idx);
                     continue;
                 }
 
@@ -837,7 +840,7 @@ static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* liter
                 {
                     ast::Var* first = get(case_->precond_var_lookup, param->name);
                     writeln(fmtr, "if (args->_%d %s as_%s(db, handles[%d], %d)) {",
-                        first->input_index, comparison_op, data_type_tag, handle_id, arg_idx);
+                        first->input_index, comparison_op, source_data_type_tag, handle_id, arg_idx);
                     {
                         Indent_Scope s(fmtr);
                         writeln(fmtr, "continue;");
@@ -851,7 +854,7 @@ static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* liter
                 if (ast::Var* var_def = as_Var(def))
                 {
                     writeln(fmtr, "if (binds->_%d %s as_%s(db, handles[%d], %d)) {",
-                        var_def->output_index, comparison_op, data_type_tag, handle_id, arg_idx);
+                        var_def->output_index, comparison_op, source_data_type_tag, handle_id, arg_idx);
                     {
                         Indent_Scope s(fmtr);
                         writeln(fmtr, "continue;");
@@ -865,6 +868,7 @@ static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* liter
             }
 
             // otherwise, expression is an argument, result has to be matched with handle.
+            plnnrc_assert(false);
         }
 
         ++handle_id;

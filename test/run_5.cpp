@@ -30,7 +30,7 @@ static const char* s_task_names[] = {
  };
 
 static Fact_Type s_fact_types[] = {
-  { 3, {Type_Int32, Type_Int32, Type_Int32, } },
+  { 3, {Type_Int32, Type_Int32, Type_Int8, } },
 };
 
 static Type s_layout_types[] = {
@@ -107,7 +107,7 @@ static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
   for (handles[0] = first(db, 0); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // a
     binds->_0 = as_Int32(db, handles[0], 0);
     binds->_1 = as_Int32(db, handles[0], 1);
-    if (binds->_1 != as_Int32(db, handles[0], 2)) {
+    if (binds->_1 != as_Int8(db, handles[0], 2)) {
       continue;
     }
 
