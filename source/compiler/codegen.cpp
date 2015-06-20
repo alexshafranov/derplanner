@@ -113,7 +113,7 @@ static Signature get_composite_task_signature(Codegen& state, ast::Task* task)
     ast::Primitive* prim = state.tree->primitive;
     ast::Domain* domain = state.tree->domain;
     uint32_t task_idx = index_of(domain->tasks, task);
-    return get_sparse(state.task_and_pout_sigs, size(prim->tasks) + task_idx);
+    return get_sparse(state.task_and_binding_sigs, size(prim->tasks) + task_idx);
 }
 
 static void build_signatures(Codegen& state)
@@ -127,12 +127,12 @@ static void build_signatures(Codegen& state)
     {
         ast::Fact* task = prim->tasks[task_idx];
 
-        begin_signature(state.task_and_pout_sigs);
+        begin_signature(state.task_and_binding_sigs);
         for (uint32_t param_idx = 0; param_idx < size(task->params); ++param_idx)
         {
-            add_param(state.task_and_pout_sigs, task->params[param_idx]->data_type);
+            add_param(state.task_and_binding_sigs, task->params[param_idx]->data_type);
         }
-        end_signature(state.task_and_pout_sigs);
+        end_signature(state.task_and_binding_sigs);
     }
 
     // composite task signatures.
@@ -140,12 +140,12 @@ static void build_signatures(Codegen& state)
     {
         ast::Task* task = domain->tasks[task_idx];
 
-        begin_signature(state.task_and_pout_sigs);
+        begin_signature(state.task_and_binding_sigs);
         for (uint32_t param_idx = 0; param_idx < size(task->params); ++param_idx)
         {
-            add_param(state.task_and_pout_sigs, task->params[param_idx]->data_type);
+            add_param(state.task_and_binding_sigs, task->params[param_idx]->data_type);
         }
-        end_signature(state.task_and_pout_sigs);
+        end_signature(state.task_and_binding_sigs);
     }
 
     // precondition output.
@@ -153,16 +153,16 @@ static void build_signatures(Codegen& state)
     {
         ast::Case* case_ = tree->cases[case_idx];
 
-        begin_signature(state.task_and_pout_sigs);
+        begin_signature(state.task_and_binding_sigs);
         for (uint32_t var_idx = 0; var_idx < size(case_->precond_vars); ++var_idx)
         {
             ast::Var* var = case_->precond_vars[var_idx];
             // skip bound vars.
             if (var->definition != 0) { continue; }
             // save variable index in output signature.
-            var->output_index = add_param(state.task_and_pout_sigs, var->data_type);
+            var->output_index = add_param(state.task_and_binding_sigs, var->data_type);
         }
-        end_signature(state.task_and_pout_sigs);
+        end_signature(state.task_and_binding_sigs);
     }
 
     // build separate set of signatures for task params and precdondition outputs (i.e. bindings).
@@ -289,7 +289,7 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
     Formatter& fmtr = state.fmtr;
 
     init(state.expand_names, state.scratch, 64, 4096);
-    init(state.task_and_pout_sigs, state.scratch, size(prim->tasks) + size(domain->tasks) + size(tree->cases));
+    init(state.task_and_binding_sigs, state.scratch, size(prim->tasks) + size(domain->tasks) + size(tree->cases));
     init(state.struct_sigs, state.scratch, size(domain->tasks) + size(tree->cases));
 
     // includes & pragmas
@@ -421,23 +421,23 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
     build_signatures(state);
 
     // s_layout_types, s_layout_offsets
-    if (size(state.task_and_pout_sigs.types) > 0)
+    if (size(state.task_and_binding_sigs.types) > 0)
     {
         writeln(fmtr, "static Type s_layout_types[] = {");
-        for (uint32_t type_idx = 0; type_idx < size(state.task_and_pout_sigs.types); ++type_idx)
+        for (uint32_t type_idx = 0; type_idx < size(state.task_and_binding_sigs.types); ++type_idx)
         {
-            Token_Type type = state.task_and_pout_sigs.types[type_idx];
+            Token_Type type = state.task_and_binding_sigs.types[type_idx];
             Indent_Scope s(fmtr);
             writeln(fmtr, "%s,", get_runtime_type_enum(type));
         }
         writeln(fmtr, "};");
         newline(fmtr);
 
-        writeln(fmtr, "static size_t s_layout_offsets[%d];", size(state.task_and_pout_sigs.types));
+        writeln(fmtr, "static size_t s_layout_offsets[%d];", size(state.task_and_binding_sigs.types));
         newline(fmtr);
     }
 
-    // s_task_parameters & s_precond_output.
+    // s_task_parameters & s_bindings.
     {
         struct Format_Param_Layout
         {
@@ -462,7 +462,7 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         writeln(fmtr, "static Param_Layout s_task_parameters[] = {");
         for (uint32_t sig_idx = 0; sig_idx < num_tasks; ++sig_idx)
         {
-            Format_Param_Layout()(fmtr, state.task_and_pout_sigs, sig_idx);
+            Format_Param_Layout()(fmtr, state.task_and_binding_sigs, sig_idx);
         }
 
         if (!num_tasks)
@@ -474,13 +474,13 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         writeln(fmtr, "};");
         newline(fmtr);
 
-        writeln(fmtr, "static Param_Layout s_precond_output[] = {");
-        for (uint32_t sig_idx = num_tasks; sig_idx < size(state.task_and_pout_sigs.remap); ++sig_idx)
+        writeln(fmtr, "static Param_Layout s_bindings[] = {");
+        for (uint32_t sig_idx = num_tasks; sig_idx < size(state.task_and_binding_sigs.remap); ++sig_idx)
         {
-            Format_Param_Layout()(fmtr, state.task_and_pout_sigs, sig_idx);
+            Format_Param_Layout()(fmtr, state.task_and_binding_sigs, sig_idx);
         }
 
-        if (empty(state.task_and_pout_sigs.remap))
+        if (empty(state.task_and_binding_sigs.remap))
         {
             Indent_Scope s(fmtr);
             writeln(fmtr, "{ 0, 0, 0, 0 }");
@@ -656,7 +656,7 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         {
             Indent_Scope s(fmtr);
             // task_info
-            writeln(fmtr, "{ %d, %d, %d, s_num_cases, s_first_case, %d, s_task_name_hashes, s_task_names, s_task_parameters, s_precond_output, s_num_case_handles, s_task_expands },",
+            writeln(fmtr, "{ %d, %d, %d, s_num_cases, s_first_case, %d, s_task_name_hashes, s_task_names, s_task_parameters, s_bindings, s_num_case_handles, s_task_expands },",
                 num_tasks, num_primitive, num_composite, task_names_hash_seed);
             // database_req
             writeln(fmtr, "{ %d, %d, s_size_hints, s_fact_types, s_fact_name_hashes, s_fact_names },", size(world->facts), fact_names_hash_seed);
@@ -679,10 +679,10 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
             writeln(fmtr, "}");
             newline(fmtr);
 
-            writeln(fmtr, "for (size_t i = 0; i < plnnr_static_array_size(s_precond_output); ++i) {");
+            writeln(fmtr, "for (size_t i = 0; i < plnnr_static_array_size(s_bindings); ++i) {");
             {
                 Indent_Scope s(fmtr);
-                writeln(fmtr, "compute_offsets_and_size(s_precond_output[i]);");
+                writeln(fmtr, "compute_offsets_and_size(s_bindings[i]);");
             }
             writeln(fmtr, "}");
         }
@@ -739,7 +739,7 @@ static void generate_precondition(Codegen& state, uint32_t case_idx, Formatter& 
     uint32_t input_idx = get_dense_index(state.struct_sigs, task_idx);
 
     if (input_sig.length > 0)
-        writeln(fmtr, "static bool p%d_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, const S_%d* input)", case_idx, input_idx);
+        writeln(fmtr, "static bool p%d_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, const S_%d* args)", case_idx, input_idx);
     else
         writeln(fmtr, "static bool p%d_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)", case_idx);
 
@@ -769,7 +769,7 @@ static void generate_precondition(Codegen& state, uint32_t case_idx, Formatter& 
         Signature output_sig = get_dense(state.struct_sigs, output_idx);
 
         if (output_sig.length > 0)
-            writeln(fmtr, "S_%d* output = (S_%d*)(frame->precond_output);", output_idx, output_idx);
+            writeln(fmtr, "S_%d* binds = (S_%d*)(frame->bindings);", output_idx, output_idx);
 
         newline(fmtr);
         writeln(fmtr, "plnnr_coroutine_begin(frame, precond_label);");
@@ -826,11 +826,11 @@ static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* liter
                 // output variable -> skip.
                 if (!def) { continue; }
 
-                // parameter -> match with the variable in `input` struct.
+                // parameter -> match with the variable in `args` struct.
                 if (ast::Param* param = as_Param(def))
                 {
                     ast::Var* first = get(case_->precond_var_lookup, param->name);
-                    writeln(fmtr, "if (input->_%d %s as_%s(db, handles[%d], %d)) {",
+                    writeln(fmtr, "if (args->_%d %s as_%s(db, handles[%d], %d)) {",
                         first->input_index, comparison_op, data_type_tag, handle_id, arg_idx);
                     {
                         Indent_Scope s(fmtr);
@@ -861,7 +861,7 @@ static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* liter
             ast::Node* def = var->definition;
             if (def) { continue; }
 
-            writeln(fmtr, "output->_%d = as_%s(db, handles[%d], %d);",
+            writeln(fmtr, "binds->_%d = as_%s(db, handles[%d], %d);",
                 var->output_index, data_type_tag, handle_id, arg_idx);
         }
 
@@ -892,7 +892,7 @@ static void generate_arg_setters(Codegen& /*state*/, const char* set_arg_name, a
 
         if (ast::Var* def_var = as_Var(arg_var->definition))
         {
-            writeln(fmtr, "%s(state, s_task_parameters[%d], %d, binding->_%d);",
+            writeln(fmtr, "%s(state, s_task_parameters[%d], %d, binds->_%d);",
                 set_arg_name, target_task_index, arg_index, def_var->output_index);
             continue;
         }
@@ -931,7 +931,7 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
 
         uint32_t binding_idx = get_dense_index(state.struct_sigs, size(domain->tasks) + case_idx);
         if (get_dense(state.struct_sigs, binding_idx).length > 0)
-            writeln(fmtr, "const S_%d* binding = (const S_%d*)(frame->precond_output);",
+            writeln(fmtr, "const S_%d* binds = (const S_%d*)(frame->bindings);",
                 binding_idx, binding_idx);
 
         newline(fmtr);
