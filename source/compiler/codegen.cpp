@@ -823,8 +823,14 @@ static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* liter
                 const char* data_type_tag = get_runtime_type_tag(data_type);
 
                 ast::Node* def = var->definition;
-                // output variable -> skip.
-                if (!def) { continue; }
+
+                // unbound variable -> create binding.
+                if (!def)
+                {
+                    writeln(fmtr, "binds->_%d = as_%s(db, handles[%d], %d);",
+                        var->output_index, data_type_tag, handle_id, arg_idx);
+                    continue;
+                }
 
                 // parameter -> match with the variable in `args` struct.
                 if (ast::Param* param = as_Param(def))
@@ -841,28 +847,24 @@ static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* liter
                     continue;
                 }
 
-                // variable -> compare handle to handle
+                // variable -> matching with existing binding.
+                if (ast::Var* var_def = as_Var(def))
+                {
+                    writeln(fmtr, "if (binds->_%d %s as_%s(db, handles[%d], %d)) {",
+                        var_def->output_index, comparison_op, data_type_tag, handle_id, arg_idx);
+                    {
+                        Indent_Scope s(fmtr);
+                        writeln(fmtr, "continue;");
+                    }
+                    writeln(fmtr, "}");
+                    newline(fmtr);
+                    continue;
+                }
+
                 plnnrc_assert(false);
-                continue;
             }
 
             // otherwise, expression is an argument, result has to be matched with handle.
-        }
-
-        for (uint32_t arg_idx = 0; arg_idx < size(func->args); ++arg_idx)
-        {
-            ast::Expr* arg = func->args[arg_idx];
-            ast::Var* var = as_Var(arg);
-            plnnrc_assert(var);
-
-            Token_Type data_type = var->data_type;
-            const char* data_type_tag = get_runtime_type_tag(data_type);
-
-            ast::Node* def = var->definition;
-            if (def) { continue; }
-
-            writeln(fmtr, "binds->_%d = as_%s(db, handles[%d], %d);",
-                var->output_index, data_type_tag, handle_id, arg_idx);
         }
 
         ++handle_id;
