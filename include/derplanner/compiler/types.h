@@ -517,8 +517,8 @@ struct Codegen
     String_Buffer       expand_names;
     // signatures in the following order: primitive, composite, precondition outputs.
     Signature_Table     task_and_pout_sigs;
-    // precondition input signatures.
-    Signature_Table     pin_sigs;
+    // signatures of task parameters & precondition output structs.
+    Signature_Table     struct_sigs;
 };
 
 }
