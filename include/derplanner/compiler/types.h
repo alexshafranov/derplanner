@@ -515,8 +515,8 @@ struct Codegen
 
     // expand function names `<composite_task_name>_case_<case_index>`, in order of definition.
     String_Buffer       expand_names;
-    // signatures in the following order: primitive, composite, precondition outputs.
-    Signature_Table     task_and_pout_sigs;
+    // signatures in the following order: primitive, composite, precondition bindings.
+    Signature_Table     task_and_binding_sigs;
     // signatures of task parameters & precondition output structs.
     Signature_Table     struct_sigs;
 };

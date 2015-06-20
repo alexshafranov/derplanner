@@ -47,7 +47,7 @@ static Param_Layout s_task_parameters[] = {
   { 0, 0, 0, 0 },
 };
 
-static Param_Layout s_precond_output[] = {
+static Param_Layout s_bindings[] = {
   { 2, s_layout_types + 0, 0, s_layout_offsets + 0 },
 };
 
@@ -79,7 +79,7 @@ static uint32_t s_task_name_hashes[] = {
 };
 
 static Domain_Info s_domain_info = {
-  { 2, 1, 1, s_num_cases, s_first_case, 0, s_task_name_hashes, s_task_names, s_task_parameters, s_precond_output, s_num_case_handles, s_task_expands },
+  { 2, 1, 1, s_num_cases, s_first_case, 0, s_task_name_hashes, s_task_names, s_task_parameters, s_bindings, s_num_case_handles, s_task_expands },
   { 2, 0, s_size_hints, s_fact_types, s_fact_name_hashes, s_fact_names },
 };
 
@@ -89,8 +89,8 @@ void run_0_init_domain_info()
     compute_offsets_and_size(s_task_parameters[i]);
   }
 
-  for (size_t i = 0; i < plnnr_static_array_size(s_precond_output); ++i) {
-    compute_offsets_and_size(s_precond_output[i]);
+  for (size_t i = 0; i < plnnr_static_array_size(s_bindings); ++i) {
+    compute_offsets_and_size(s_bindings[i]);
   }
 }
 
@@ -104,14 +104,14 @@ struct S_1 {
 static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
 {
   Fact_Handle* handles = frame->handles;
-  S_1* output = (S_1*)(frame->precond_output);
+  S_1* binds = (S_1*)(frame->bindings);
 
   plnnr_coroutine_begin(frame, precond_label);
 
   for (handles[0] = first(db, 0); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // a
-    output->_0 = as_Int32(db, handles[0], 0);
+    binds->_0 = as_Int32(db, handles[0], 0);
     for (handles[1] = first(db, 1); is_valid(db, handles[1]); handles[1] = next(db, handles[1])) { // b
-      output->_1 = as_Int32(db, handles[1], 0);
+      binds->_1 = as_Int32(db, handles[1], 0);
       plnnr_coroutine_yield(frame, precond_label, 1);
     }
   }
@@ -121,14 +121,14 @@ static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 
 static bool r_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
 {
-  const S_1* binding = (const S_1*)(frame->precond_output);
+  const S_1* binds = (const S_1*)(frame->bindings);
 
   plnnr_coroutine_begin(frame, expand_label);
 
   while (p0_next(state, frame, db)) {
     begin_task(state, &s_domain_info, 0); // t!
-    set_task_arg(state, s_task_parameters[0], 0, binding->_0);
-    set_task_arg(state, s_task_parameters[0], 1, binding->_1);
+    set_task_arg(state, s_task_parameters[0], 0, binds->_0);
+    set_task_arg(state, s_task_parameters[0], 1, binds->_1);
     frame->status = Expansion_Frame::Status_Expanded;
     plnnr_coroutine_yield(frame, expand_label, 1);
 

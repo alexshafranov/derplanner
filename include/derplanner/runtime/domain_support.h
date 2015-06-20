@@ -93,11 +93,11 @@ inline Fact_Handle* allocate_precond_handles(Planning_State* state, Expansion_Fr
     return frame->handles;
 }
 
-inline void allocate_precond_output(Planning_State* state, Expansion_Frame* frame, const Param_Layout& output_type)
+inline void allocate_precond_bindings(Planning_State* state, Expansion_Frame* frame, const Param_Layout& output_type)
 {
     Linear_Blob* blob = &state->expansion_blob;
     uint8_t* bytes = allocate_with_layout(blob, output_type);
-    frame->precond_output = bytes;
+    frame->bindings = bytes;
 }
 
 inline void begin_composite(Planning_State* state, const Domain_Info* domain, uint32_t task_id)
@@ -120,10 +120,10 @@ inline void begin_composite(Planning_State* state, const Domain_Info* domain, ui
 
     const uint32_t global_case_index = domain->task_info.first_case[task_id - num_primitive];
     const uint32_t num_handles = domain->task_info.num_case_handles[global_case_index];
-    const Param_Layout& precond_output_layout = domain->task_info.precond_output[global_case_index];
+    const Param_Layout& precond_output_layout = domain->task_info.bindings[global_case_index];
 
     allocate_precond_handles(state, &frame, num_handles);
-    allocate_precond_output(state, &frame, precond_output_layout);
+    allocate_precond_bindings(state, &frame, precond_output_layout);
 
     push(state->expansion_stack, frame);
 }
@@ -150,10 +150,10 @@ inline bool expand_next_case(Planning_State* state, const Domain_Info* domain, u
 
     const uint32_t global_case_index = domain->task_info.first_case[task_id - num_primitive] + next_case_index;
     const uint32_t num_handles = domain->task_info.num_case_handles[global_case_index];
-    const Param_Layout& precond_output_layout = domain->task_info.precond_output[global_case_index];
+    const Param_Layout& precond_output_layout = domain->task_info.bindings[global_case_index];
 
     allocate_precond_handles(state, frame, num_handles);
-    allocate_precond_output(state, frame, precond_output_layout);
+    allocate_precond_bindings(state, frame, precond_output_layout);
 
     // then try the new expansion.
     return frame->expand(state, frame, db);
@@ -195,12 +195,6 @@ inline void set_task_arg(Planning_State* state, const Param_Layout& layout, uint
 {
     Task_Frame* frame = top(state->task_stack);
     set_arg(frame->arguments, layout, param_index, value);
-}
-
-template <typename T>
-inline void set_precond_output(Expansion_Frame* frame, const Param_Layout& layout, uint32_t param_index, const T& value)
-{
-    set_arg(frame->precond_output, layout, param_index, value);
 }
 
 }
