@@ -123,19 +123,19 @@ void run_3_init_domain_info()
 
 const Domain_Info* run_3_get_domain_info() { return &s_domain_info; }
 
-struct input_1 {
+struct S_1 {
   Id32 _0;
 };
 
 static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
 {
   Fact_Handle* handles = frame->handles;
-  const Param_Layout& output_layout = s_precond_output[0];
+  S_1* output = (S_1*)(frame->precond_output);
 
   plnnr_coroutine_begin(frame, precond_label);
 
   for (handles[0] = first(db, 0); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // a
-    set_precond_output(frame, output_layout, 0, as_Id32(db, handles[0], 0));
+    output->_0 = as_Id32(db, handles[0], 0);
     plnnr_coroutine_yield(frame, precond_label, 1);
   }
 
@@ -145,27 +145,26 @@ static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 static bool p1_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
 {
   Fact_Handle* handles = frame->handles;
-  const Param_Layout& output_layout = s_precond_output[1];
+  S_1* output = (S_1*)(frame->precond_output);
 
   plnnr_coroutine_begin(frame, precond_label);
 
   for (handles[0] = first(db, 1); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // b
-    set_precond_output(frame, output_layout, 0, as_Id32(db, handles[0], 0));
+    output->_0 = as_Id32(db, handles[0], 0);
     plnnr_coroutine_yield(frame, precond_label, 1);
   }
 
   plnnr_coroutine_end();
 }
 
-static bool p2_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, const input_1& args)
+static bool p2_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, const S_1* input)
 {
   Fact_Handle* handles = frame->handles;
-  const Param_Layout& output_layout = s_precond_output[2];
 
   plnnr_coroutine_begin(frame, precond_label);
 
   for (handles[0] = first(db, 1); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // b
-    if (args._0 != as_Id32(db, handles[0], 0)) {
+    if (input->_0 != as_Id32(db, handles[0], 0)) {
       continue;
     }
 
@@ -175,15 +174,14 @@ static bool p2_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
   plnnr_coroutine_end();
 }
 
-static bool p3_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, const input_1& args)
+static bool p3_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, const S_1* input)
 {
   Fact_Handle* handles = frame->handles;
-  const Param_Layout& output_layout = s_precond_output[3];
 
   plnnr_coroutine_begin(frame, precond_label);
 
   for (handles[0] = first(db, 2); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // c
-    if (args._0 != as_Id32(db, handles[0], 0)) {
+    if (input->_0 != as_Id32(db, handles[0], 0)) {
       continue;
     }
 
@@ -195,19 +193,21 @@ static bool p3_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 
 static bool r_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
 {
+  const S_1* binding = (const S_1*)(frame->precond_output);
+
   plnnr_coroutine_begin(frame, expand_label);
 
   while (p0_next(state, frame, db)) {
     begin_task(state, &s_domain_info, 0); // p1!
-    set_task_arg(state, s_task_parameters[0], 0, as_Id32(frame->precond_output, s_precond_output[0], 0));
+    set_task_arg(state, s_task_parameters[0], 0, binding->_0);
     plnnr_coroutine_yield(frame, expand_label, 1);
 
     begin_composite(state, &s_domain_info, 3); // t1
-    set_composite_arg(state, s_task_parameters[3], 0, as_Id32(frame->precond_output, s_precond_output[0], 0));
+    set_composite_arg(state, s_task_parameters[3], 0, binding->_0);
     plnnr_coroutine_yield(frame, expand_label, 2);
 
     begin_task(state, &s_domain_info, 0); // p1!
-    set_task_arg(state, s_task_parameters[0], 0, as_Id32(frame->precond_output, s_precond_output[0], 0));
+    set_task_arg(state, s_task_parameters[0], 0, binding->_0);
     frame->status = Expansion_Frame::Status_Expanded;
     plnnr_coroutine_yield(frame, expand_label, 3);
 
@@ -220,19 +220,21 @@ static bool r_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Databas
 
 static bool r_case_1(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
 {
+  const S_1* binding = (const S_1*)(frame->precond_output);
+
   plnnr_coroutine_begin(frame, expand_label);
 
   while (p1_next(state, frame, db)) {
     begin_task(state, &s_domain_info, 1); // p2!
-    set_task_arg(state, s_task_parameters[1], 0, as_Id32(frame->precond_output, s_precond_output[1], 0));
+    set_task_arg(state, s_task_parameters[1], 0, binding->_0);
     plnnr_coroutine_yield(frame, expand_label, 1);
 
     begin_composite(state, &s_domain_info, 4); // t2
-    set_composite_arg(state, s_task_parameters[4], 0, as_Id32(frame->precond_output, s_precond_output[1], 0));
+    set_composite_arg(state, s_task_parameters[4], 0, binding->_0);
     plnnr_coroutine_yield(frame, expand_label, 2);
 
     begin_task(state, &s_domain_info, 0); // p1!
-    set_task_arg(state, s_task_parameters[0], 0, as_Id32(frame->precond_output, s_precond_output[1], 0));
+    set_task_arg(state, s_task_parameters[0], 0, binding->_0);
     frame->status = Expansion_Frame::Status_Expanded;
     plnnr_coroutine_yield(frame, expand_label, 3);
 
@@ -243,14 +245,13 @@ static bool r_case_1(Planning_State* state, Expansion_Frame* frame, Fact_Databas
 
 static bool t1_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
 {
-  input_1 args;
-  args._0 = as_Id32(frame->arguments, s_task_parameters[3], 0);
+  const S_1* args = (const S_1*)(frame->arguments);
 
   plnnr_coroutine_begin(frame, expand_label);
 
   while (p2_next(state, frame, db, args)) {
     begin_task(state, &s_domain_info, 1); // p2!
-    set_task_arg(state, s_task_parameters[1], 0, args._0);
+    set_task_arg(state, s_task_parameters[1], 0, args->_0);
     frame->status = Expansion_Frame::Status_Expanded;
     plnnr_coroutine_yield(frame, expand_label, 1);
 
@@ -261,14 +262,13 @@ static bool t1_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Databa
 
 static bool t2_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
 {
-  input_1 args;
-  args._0 = as_Id32(frame->arguments, s_task_parameters[4], 0);
+  const S_1* args = (const S_1*)(frame->arguments);
 
   plnnr_coroutine_begin(frame, expand_label);
 
   while (p3_next(state, frame, db, args)) {
     begin_task(state, &s_domain_info, 0); // p1!
-    set_task_arg(state, s_task_parameters[0], 0, args._0);
+    set_task_arg(state, s_task_parameters[0], 0, args->_0);
     frame->status = Expansion_Frame::Status_Expanded;
     plnnr_coroutine_yield(frame, expand_label, 1);
 
