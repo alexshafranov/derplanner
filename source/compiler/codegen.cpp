@@ -822,16 +822,16 @@ static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* liter
 
             if (ast::Var* var = as_Var(arg))
             {
-                // Token_Type data_type = var->data_type;
-                // const char* data_type_tag = get_runtime_type_tag(data_type);
+                Token_Type target_data_type = var->data_type;
+                const char* target_data_type_name = get_runtime_type_name(target_data_type);
 
                 ast::Node* def = var->definition;
 
                 // unbound variable -> create binding.
                 if (!def)
                 {
-                    writeln(fmtr, "binds->_%d = as_%s(db, handles[%d], %d);",
-                        var->output_index, source_data_type_tag, handle_id, arg_idx);
+                    writeln(fmtr, "binds->_%d = %s(as_%s(db, handles[%d], %d));",
+                        var->output_index, target_data_type_name, source_data_type_tag, handle_id, arg_idx);
                     continue;
                 }
 
@@ -839,8 +839,8 @@ static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* liter
                 if (ast::Param* param = as_Param(def))
                 {
                     ast::Var* first = get(case_->precond_var_lookup, param->name);
-                    writeln(fmtr, "if (args->_%d %s as_%s(db, handles[%d], %d)) {",
-                        first->input_index, comparison_op, source_data_type_tag, handle_id, arg_idx);
+                    writeln(fmtr, "if (args->_%d %s %s(as_%s(db, handles[%d], %d))) {",
+                        first->input_index, comparison_op, target_data_type_name, source_data_type_tag, handle_id, arg_idx);
                     {
                         Indent_Scope s(fmtr);
                         writeln(fmtr, "continue;");
@@ -853,8 +853,8 @@ static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* liter
                 // variable -> matching with existing binding.
                 if (ast::Var* var_def = as_Var(def))
                 {
-                    writeln(fmtr, "if (binds->_%d %s as_%s(db, handles[%d], %d)) {",
-                        var_def->output_index, comparison_op, source_data_type_tag, handle_id, arg_idx);
+                    writeln(fmtr, "if (binds->_%d %s %s(as_%s(db, handles[%d], %d))) {",
+                        var_def->output_index, comparison_op, target_data_type_name, source_data_type_tag, handle_id, arg_idx);
                     {
                         Indent_Scope s(fmtr);
                         writeln(fmtr, "continue;");
@@ -893,24 +893,28 @@ static void generate_arg_setters(Codegen& /*state*/, const char* set_arg_name, a
     uint32_t arg_index = 0;
     for (ast::Expr* arg_node = task_list_item->child; arg_node != 0; arg_node = arg_node->next_sibling, ++arg_index)
     {
-        ast::Var* arg_var = as_Var(arg_node);
-        plnnrc_assert(arg_var);
-
-        if (ast::Var* def_var = as_Var(arg_var->definition))
+        if (ast::Var* arg_var = as_Var(arg_node))
         {
-            writeln(fmtr, "%s(state, s_task_parameters[%d], %d, binds->_%d);",
-                set_arg_name, target_task_index, arg_index, def_var->output_index);
-            continue;
+            if (ast::Var* def_var = as_Var(arg_var->definition))
+            {
+                writeln(fmtr, "%s(state, s_task_parameters[%d], %d, binds->_%d);",
+                    set_arg_name, target_task_index, arg_index, def_var->output_index);
+                continue;
+            }
+
+            if (ast::Param* def_param = as_Param(arg_var->definition))
+            {
+                uint32_t task_param_idx = index_of(task->params, def_param);
+                writeln(fmtr, "%s(state, s_task_parameters[%d], %d, args->_%d);",
+                    set_arg_name, target_task_index, arg_index, task_param_idx);
+                continue;
+            }
+
+            // undefined variable must have been flagged as error earlier.
+            plnnrc_assert(false);
         }
 
-        if (ast::Param* def_param = as_Param(arg_var->definition))
-        {
-            uint32_t task_param_idx = index_of(task->params, def_param);
-            writeln(fmtr, "%s(state, s_task_parameters[%d], %d, args->_%d);",
-                set_arg_name, target_task_index, arg_index, task_param_idx);
-            continue;
-        }
-
+        // expression
         plnnrc_assert(false);
     }
 }

@@ -109,9 +109,9 @@ static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
   plnnr_coroutine_begin(frame, precond_label);
 
   for (handles[0] = first(db, 0); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // a
-    binds->_0 = as_Int32(db, handles[0], 0);
+    binds->_0 = int32_t(as_Int32(db, handles[0], 0));
     for (handles[1] = first(db, 1); is_valid(db, handles[1]); handles[1] = next(db, handles[1])) { // b
-      binds->_1 = as_Int32(db, handles[1], 0);
+      binds->_1 = int32_t(as_Int32(db, handles[1], 0));
       plnnr_coroutine_yield(frame, precond_label, 1);
     }
   }
