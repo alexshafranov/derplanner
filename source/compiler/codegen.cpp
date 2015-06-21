@@ -211,6 +211,25 @@ static void build_signatures(Codegen& state)
         }
         end_signature(state.struct_sigs);
     }
+
+    // initialize indices for case all variables.
+    for (uint32_t case_idx = 0; case_idx < size(tree->cases); ++case_idx)
+    {
+        ast::Case* case_ = tree->cases[case_idx];
+        for (uint32_t var_idx = 0; var_idx < size(case_->precond_vars); ++var_idx)
+        {
+            ast::Var* var = case_->precond_vars[var_idx];
+            ast::Var* first = get(case_->precond_var_lookup, var->name);
+            var->input_index = first->input_index;
+        }
+
+        for (uint32_t var_idx = 0; var_idx < size(case_->task_list_vars); ++var_idx)
+        {
+            ast::Var* var = case_->task_list_vars[var_idx];
+            ast::Var* first = get(case_->precond_var_lookup, var->name);
+            var->input_index = first->input_index;
+        }
+    }
 }
 
 static void build_expand_names(String_Buffer& expand_names, ast::Domain* domain)
@@ -800,83 +819,193 @@ static void generate_precondition(Codegen& state, uint32_t case_idx, Formatter& 
     newline(fmtr);
 }
 
+struct Expr_Writer
+{
+    Formatter* fmtr;
+
+    void visit(const ast::Var* node)
+    {
+        plnnrc_assert(node->definition);
+
+        if (is_Param(node->definition))
+        {
+            write(*fmtr, "args->_%d", node->input_index);
+            return;
+        }
+
+        if (is_Var(node->definition))
+        {
+            write(*fmtr, "binds->_%d", node->output_index);
+            return;
+        }
+
+        plnnrc_assert(false);
+    }
+
+    void visit(const ast::Literal* node)
+    {
+        write(*fmtr, "%n", node->value);
+    }
+
+    const char* get_op_str(ast::Node_Type node_type)
+    {
+        switch (node_type)
+        {
+        case ast::Node_Or: return "||";
+        case ast::Node_And: return "&&";
+        case ast::Node_Not: return "!";
+        case ast::Node_Equal: return "==";
+        case ast::Node_NotEqual: return "!=";
+        case ast::Node_Less: return "<";
+        case ast::Node_LessEqual: return "<=";
+        case ast::Node_Greater: return ">";
+        case ast::Node_GreaterEqual: return ">=";
+        case ast::Node_Plus: return "+";
+        case ast::Node_Minus: return "-";
+        case ast::Node_Mul: return "*";
+        case ast::Node_Div: return "/";
+        }
+
+        plnnrc_assert(false);
+        return "";
+    }
+
+    void visit(const ast::Op* node)
+    {
+        const char* op = get_op_str(node->type);
+
+        write(*fmtr, "(");
+        for (ast::Expr* arg = node->child; arg != 0; arg = arg->next_sibling)
+        {
+            visit_node<void>(arg, this);
+            if (arg->next_sibling != 0)
+                write(*fmtr, " %s ", op);
+        }
+        write(*fmtr, ")");
+    }
+
+    void visit(const ast::Node*) { plnnrc_assert(false); }
+};
+
 static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* literal, uint32_t& handle_id, uint32_t yield_id, Formatter& fmtr)
 {
     ast::Func* func = is_Not(literal) ? as_Func(literal->child) : as_Func(literal);
-    plnnrc_assert(func);
-    ast::Fact* fact = get_fact(*state.tree, func->name);
-    uint32_t fact_idx = index_of(state.tree->world->facts, fact);
 
-    writeln(fmtr, "for (handles[%d] = first(db, %d); is_valid(db, handles[%d]); handles[%d] = next(db, handles[%d])) { // %n",
-        handle_id, fact_idx, handle_id, handle_id, handle_id, fact->name);
+    // expression -> generate `if` check.
+    if (!func)
     {
+        Expr_Writer visitor = { &fmtr };
+        ast::Expr* expr = is_Not(literal) ? literal->child : literal;
+
+        if (is_Not(literal))
+            write(fmtr, "%iif (!bool(");
+        else
+            write(fmtr, "%iif (bool(");
+
+        visit_node<void>(expr, &visitor);
+
+        write(fmtr, ")) {");
+        newline(fmtr);
+
         Indent_Scope indent_scope(fmtr);
-
-        const char* comparison_op = is_Not(literal) ? "==" : "!=";
-        for (uint32_t arg_idx = 0; arg_idx < size(func->args); ++arg_idx)
-        {
-            ast::Expr* arg = func->args[arg_idx];
-
-            Token_Type source_data_type = fact->params[arg_idx]->data_type;
-            const char* source_data_type_tag = get_runtime_type_tag(source_data_type);
-
-            if (ast::Var* var = as_Var(arg))
-            {
-                Token_Type target_data_type = var->data_type;
-                const char* target_data_type_name = get_runtime_type_name(target_data_type);
-
-                ast::Node* def = var->definition;
-
-                // unbound variable -> create binding.
-                if (!def)
-                {
-                    writeln(fmtr, "binds->_%d = %s(as_%s(db, handles[%d], %d));",
-                        var->output_index, target_data_type_name, source_data_type_tag, handle_id, arg_idx);
-                    continue;
-                }
-
-                // parameter -> match with the variable in `args` struct.
-                if (ast::Param* param = as_Param(def))
-                {
-                    ast::Var* first = get(case_->precond_var_lookup, param->name);
-                    writeln(fmtr, "if (args->_%d %s %s(as_%s(db, handles[%d], %d))) {",
-                        first->input_index, comparison_op, target_data_type_name, source_data_type_tag, handle_id, arg_idx);
-                    {
-                        Indent_Scope s(fmtr);
-                        writeln(fmtr, "continue;");
-                    }
-                    writeln(fmtr, "}");
-                    newline(fmtr);
-                    continue;
-                }
-
-                // variable -> matching with existing binding.
-                if (ast::Var* var_def = as_Var(def))
-                {
-                    writeln(fmtr, "if (binds->_%d %s %s(as_%s(db, handles[%d], %d))) {",
-                        var_def->output_index, comparison_op, target_data_type_name, source_data_type_tag, handle_id, arg_idx);
-                    {
-                        Indent_Scope s(fmtr);
-                        writeln(fmtr, "continue;");
-                    }
-                    writeln(fmtr, "}");
-                    newline(fmtr);
-                    continue;
-                }
-
-                plnnrc_assert(false);
-            }
-
-            // otherwise, expression is an argument, result has to be matched with handle.
-            plnnrc_assert(false);
-        }
-
-        ++handle_id;
 
         if (!literal->next_sibling)
             writeln(fmtr, "plnnr_coroutine_yield(frame, precond_label, %d);", yield_id++);
         else
             generate_conjunct(state, case_, literal->next_sibling, handle_id, yield_id, fmtr);
+    }
+    // fact -> generate iterator.
+    else
+    {
+        ast::Fact* fact = get_fact(*state.tree, func->name);
+        uint32_t fact_idx = index_of(state.tree->world->facts, fact);
+
+        writeln(fmtr, "for (handles[%d] = first(db, %d); is_valid(db, handles[%d]); handles[%d] = next(db, handles[%d])) { // %n",
+            handle_id, fact_idx, handle_id, handle_id, handle_id, fact->name);
+        {
+            Indent_Scope indent_scope(fmtr);
+
+            const char* comparison_op = is_Not(literal) ? "==" : "!=";
+            for (uint32_t arg_idx = 0; arg_idx < size(func->args); ++arg_idx)
+            {
+                ast::Expr* arg = func->args[arg_idx];
+
+                Token_Type source_data_type = fact->params[arg_idx]->data_type;
+                const char* source_data_type_tag = get_runtime_type_tag(source_data_type);
+                const char* source_data_type_name = get_runtime_type_name(source_data_type);
+
+                // variable -> match or create a new binding.
+                if (ast::Var* var = as_Var(arg))
+                {
+                    Token_Type target_data_type = var->data_type;
+                    const char* target_data_type_name = get_runtime_type_name(target_data_type);
+
+                    ast::Node* def = var->definition;
+
+                    // unbound variable -> create binding.
+                    if (!def)
+                    {
+                        writeln(fmtr, "binds->_%d = %s(as_%s(db, handles[%d], %d));",
+                            var->output_index, target_data_type_name, source_data_type_tag, handle_id, arg_idx);
+                        continue;
+                    }
+
+                    // parameter -> match with the variable in `args` struct.
+                    if (ast::Param* param = as_Param(def))
+                    {
+                        ast::Var* first = get(case_->precond_var_lookup, param->name);
+                        writeln(fmtr, "if (args->_%d %s %s(as_%s(db, handles[%d], %d))) {",
+                            first->input_index, comparison_op, target_data_type_name, source_data_type_tag, handle_id, arg_idx);
+                        {
+                            Indent_Scope s(fmtr);
+                            writeln(fmtr, "continue;");
+                        }
+                        writeln(fmtr, "}");
+                        newline(fmtr);
+                        continue;
+                    }
+
+                    // variable -> matching with existing binding.
+                    if (ast::Var* var_def = as_Var(def))
+                    {
+                        writeln(fmtr, "if (binds->_%d %s %s(as_%s(db, handles[%d], %d))) {",
+                            var_def->output_index, comparison_op, target_data_type_name, source_data_type_tag, handle_id, arg_idx);
+                        {
+                            Indent_Scope s(fmtr);
+                            writeln(fmtr, "continue;");
+                        }
+                        writeln(fmtr, "}");
+                        newline(fmtr);
+                        continue;
+                    }
+
+                    plnnrc_assert(false);
+                }
+
+                // expression -> match result with handle.
+                {
+                    Expr_Writer visitor = { &fmtr };
+
+                    write(fmtr, "%iif (%s(", source_data_type_name);
+                    visit_node<void>(arg, &visitor);
+                    write(fmtr, ") %s as_%s(db, handles[%d], %d)) {", comparison_op, source_data_type_tag, handle_id, arg_idx);
+                    newline(fmtr);
+                    {
+                        Indent_Scope s(fmtr);
+                        writeln(fmtr, "continue;");
+                    }
+                    writeln(fmtr, "}");
+                    newline(fmtr);
+                }
+            }
+
+            ++handle_id;
+
+            if (!literal->next_sibling)
+                writeln(fmtr, "plnnr_coroutine_yield(frame, precond_label, %d);", yield_id++);
+            else
+                generate_conjunct(state, case_, literal->next_sibling, handle_id, yield_id, fmtr);
+        }
     }
 
     writeln(fmtr, "}");

@@ -1,0 +1,20 @@
+//: // expressions in preconditions and task lists.
+//:
+//: plnnr::Fact_Table* a = plnnr::find_table(db, "a");
+//: plnnr::add_entry(a, int8_t(10), int32_t(10), int64_t(29), float(2.0f));
+//: plnnr::add_entry(a, int8_t(50), int32_t(25), int64_t(99), float(0.1f));
+//: plnnr::add_entry(a, int8_t(11), int32_t(10), int64_t(30), float(1.0f));
+//:
+//! check_plan("p!(10) p!(11)", pstate, domain);
+//!
+domain run_6
+{
+    world { a(int8, int32, int64, float) }
+
+    primitive { p!(int8) }
+
+    task r()
+    {
+        each( a(x, y, y*2 + x - 1, z) & (z + 0.5 > 1.0) ) -> [ p!(x) ]
+    }
+}
