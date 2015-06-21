@@ -22,6 +22,10 @@
     #define PLNNRC_NODE(TAG, TYPE)
 #endif
 
+#ifndef PLNNRC_NODE_OP
+    #define PLNNRC_NODE_OP(TAG) PLNNRC_NODE(TAG, ::plnnrc::ast::Op)
+#endif
+
 #ifndef PLNNRC_NODE_GROUP
     #define PLNNRC_NODE_GROUP(GROUP_TAG, FIRST_NODE_TAG, LAST_NODE_TAG)
 #endif
@@ -38,8 +42,6 @@ PLNNRC_NODE(Func,       ::plnnrc::ast::Func)
 PLNNRC_NODE(Var,        ::plnnrc::ast::Var)
 PLNNRC_NODE(Data_Type,  ::plnnrc::ast::Data_Type)
 PLNNRC_NODE(Literal,    ::plnnrc::ast::Literal)
-
-#define PLNNRC_NODE_OP(TAG) PLNNRC_NODE(TAG, ::plnnrc::ast::Op)
 
 PLNNRC_NODE_OP(Or)
 PLNNRC_NODE_OP(And)

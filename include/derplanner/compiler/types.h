@@ -407,6 +407,8 @@ namespace ast
     // Parsed precondition expression or task list item.
     struct Expr : public Node
     {
+        // input buffer location of this expression.
+        Location                loc;
         // parent node.
         Expr*                   parent;
         // first child node.
@@ -425,8 +427,6 @@ namespace ast
     {
         // name of the variable.
         Token_Value             name;
-        // input buffer location of this variable.
-        Location                loc;
         // `ast::Param` or `ast::Var` when this variable was first bound (i.e. the first occurence in expression)
         Node*                   definition;
         // inferred data type for this variable.
@@ -455,8 +455,6 @@ namespace ast
     {
         // name of the fact/function/task.
         Token_Value             name;
-        // input buffer location where this functional symbol.
-        Location                loc;
         // an expression for each argument.
         Array<ast::Expr*>       args;
     };
