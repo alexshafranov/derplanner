@@ -135,7 +135,7 @@ static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
   plnnr_coroutine_begin(frame, precond_label);
 
   for (handles[0] = first(db, 0); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // a
-    binds->_0 = as_Id32(db, handles[0], 0);
+    binds->_0 = Id32(as_Id32(db, handles[0], 0));
     plnnr_coroutine_yield(frame, precond_label, 1);
   }
 
@@ -150,7 +150,7 @@ static bool p1_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
   plnnr_coroutine_begin(frame, precond_label);
 
   for (handles[0] = first(db, 1); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // b
-    binds->_0 = as_Id32(db, handles[0], 0);
+    binds->_0 = Id32(as_Id32(db, handles[0], 0));
     plnnr_coroutine_yield(frame, precond_label, 1);
   }
 
@@ -164,7 +164,7 @@ static bool p2_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
   plnnr_coroutine_begin(frame, precond_label);
 
   for (handles[0] = first(db, 1); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // b
-    if (args->_0 != as_Id32(db, handles[0], 0)) {
+    if (args->_0 != Id32(as_Id32(db, handles[0], 0))) {
       continue;
     }
 
@@ -181,7 +181,7 @@ static bool p3_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
   plnnr_coroutine_begin(frame, precond_label);
 
   for (handles[0] = first(db, 2); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // c
-    if (args->_0 != as_Id32(db, handles[0], 0)) {
+    if (args->_0 != Id32(as_Id32(db, handles[0], 0))) {
       continue;
     }
 

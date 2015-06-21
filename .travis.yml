@@ -7,6 +7,13 @@ compiler:
 script:
     - ./premake5 gmake
 
+    # build debug compiler first.
+    - make config=debug_x64 derplannerc
+    # then generate test case code.
+    - python ./test/gen_runtime_cases.py
+    # and premake again.
+    - ./premake5 gmake
+
     # release x64
     - make config=release_x64
     - ./bin/x64/release/tests
