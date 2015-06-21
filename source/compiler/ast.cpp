@@ -18,6 +18,9 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
+#include <limits>
+#include <stdlib.h>
+
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/io.h"
 #include "derplanner/compiler/array.h"
@@ -190,6 +193,16 @@ ast::Task* plnnrc::get_task(ast::Root& tree, const Token_Value& name)
 ast::Fact* plnnrc::get_primitive(ast::Root& tree, const Token_Value& name)
 {
     return get(tree.primitive_lookup, name);
+}
+
+int64_t plnnrc::as_int(const ast::Literal* node)
+{
+    return int64_t(strtoll(node->value.str, 0, 10));
+}
+
+float plnnrc::as_float(const ast::Literal* node)
+{
+    return float(strtod(node->value.str, 0));
 }
 
 void plnnrc::flatten(ast::Expr* root)
@@ -1336,6 +1349,89 @@ static bool infer_params_from_task_lists(ast::Root& tree)
     return true;
 }
 
+static Token_Type get_op_token_type(ast::Node_Type node_type)
+{
+    switch (node_type)
+    {
+    #define PLNNRC_NODE_OP(TAG) \
+        case ast::Node_##TAG: return Token_##TAG;
+    #include "derplanner/compiler/ast_tags.inl"
+    #undef PLNNRC_NODE_OP
+        default:
+            plnnrc_assert(false);
+            return Token_Unknown;
+    }
+}
+
+struct Expr_Type_Visitor
+{
+    ast::Root* tree;
+
+    Token_Type visit(const ast::Var* node) { return node->data_type; }
+
+    Token_Type visit(const ast::Literal* node)
+    {
+        if (node->data_type == Token_Literal_Float)
+            return Token_Float;
+
+        int64_t val = as_int(node);
+
+        if (val >= std::numeric_limits<int8_t>::min() && val <= std::numeric_limits<int8_t>::max())
+            return Token_Int8;
+
+        if (val >= std::numeric_limits<int32_t>::min() && val <= std::numeric_limits<int32_t>::max())
+            return Token_Int32;
+
+        return Token_Int64;
+    }
+
+    Token_Type visit(const ast::Op* node)
+    {
+        if (is_Logical(node) || is_Comparison(node))
+        {
+            for (const ast::Expr* child = node->child; child != 0; child = child->next_sibling)
+            {
+                Token_Type arg_type = visit_node<Token_Type>(child, this);
+                // must be unifiable with Int8
+                Token_Type unified_type = unify(Token_Int8, arg_type);
+
+                if (unified_type == Token_Not_A_Type)
+                {
+                    emit(*tree, child->loc, Error_Expected_Argument_Type) << Token_Int8 << get_op_token_type(node->type) << arg_type;
+                    break;
+                }
+            }
+
+            return Token_Int8;
+        }
+
+        if (is_Arithmetic(node))
+        {
+            Token_Type result_type = Token_Any_Type;
+
+            for (const ast::Expr* child = node->child; child != 0; child = child->next_sibling)
+            {
+                Token_Type arg_type = visit_node<Token_Type>(child, this);
+                // must be unifiable with Int8
+                result_type = unify(result_type, arg_type);
+
+                if (result_type == Token_Not_A_Type)
+                {
+                    emit(*tree, child->loc, Error_Expected_Argument_Type) << Token_Int8 << get_op_token_type(node->type) << arg_type;
+                    break;
+                }
+            }
+
+            return result_type;
+        }
+
+        plnnrc_assert(false);
+        return Token_Not_A_Type;
+    }
+
+    Token_Type visit(const ast::Node*) { plnnrc_assert(false); return Token_Not_A_Type; }
+};
+
 static bool check_all_params_inferred(ast::Root& tree)
 {
     bool has_undefined = false;
@@ -1355,6 +1451,43 @@ static bool check_all_params_inferred(ast::Root& tree)
     }
 
     return has_undefined;
+}
+
+static bool check_expression_types(ast::Root& tree)
+{
+    uint32_t err_count = size(*tree.errs);
+
+    for (uint32_t case_idx = 0; case_idx < size(tree.cases); ++case_idx)
+    {
+        ast::Case* case_ = tree.cases[case_idx];
+        ast::Expr* precond = case_->precond;
+
+        for (ast::Expr* node = precond->child; node != 0; node = node->next_sibling)
+        {
+            if (ast::Func* func = as_Func(node))
+            {
+                ast::Fact* fact = get_fact(tree, func->name);
+                if (!fact)
+                    continue;
+
+                Expr_Type_Visitor visitor = { &tree };
+                for (uint32_t arg_idx = 0; arg_idx < size(func->args); ++arg_idx)
+                {
+                    ast::Expr* arg = func->args[arg_idx];
+                    ast::Data_Type* param = fact->params[arg_idx];
+                    Token_Type type = visit_node<Token_Type>(arg, &visitor);
+
+                    if (unify(type, param->data_type) == Token_Not_A_Type)
+                    {
+                        emit(tree, arg->loc, Error_Expected_Argument_Type) << param->data_type << func->name << type;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    return size(*tree.errs) > err_count;
 }
 
 bool plnnrc::infer_types(ast::Root& tree)
@@ -1387,8 +1520,12 @@ bool plnnrc::infer_types(ast::Root& tree)
     if (!infer_params_from_task_lists(tree))
         return false;
 
-    // finally loop through tasks and give errors for type-less params.
+    // loop through tasks and give errors for type-less params.
     if (!check_all_params_inferred(tree))
+        return false;
+
+    // compute expression types and check them against expected parameter types.
+    if (!check_expression_types(tree))
         return false;
 
     return true;

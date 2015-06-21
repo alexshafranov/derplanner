@@ -41,6 +41,7 @@ PLNNRC_AST_ERROR(Failed_To_Unify_Type,          "failed to unify type for $0, cu
 PLNNRC_AST_ERROR(Failed_To_Infer_Type,          "failed to infer type for $0.")
 PLNNRC_AST_ERROR(Undeclared_Task,               "task $0 is not declared.")
 PLNNRC_AST_ERROR(Unbound_Var,                   "unbound variable $0.")
+PLNNRC_AST_ERROR(Expected_Argument_Type,        "expected argument type $0 for $1, got $2.")
 
 #undef PLNNRC_AST_ERROR
 #undef PLNNRC_PARSER_ERROR
