@@ -882,8 +882,8 @@ static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* liter
     writeln(fmtr, "}");
 }
 
-template <typename T>
-static void generate_arg_setters(const char* set_arg_name, ast::Func* task_func, ast::Case* case_, uint32_t target_task_index, const Array<T*>& param_types, Formatter& fmtr)
+template <typename Param_Node>
+static void generate_arg_setters(const char* set_arg_name, ast::Func* task_func, ast::Case* case_, uint32_t target_task_index, const Array<Param_Node*>& param_types, Formatter& fmtr)
 {
     ast::Task* task = case_->task;
 
