@@ -216,6 +216,8 @@ static void build_signatures(Codegen& state)
     for (uint32_t case_idx = 0; case_idx < size(tree->cases); ++case_idx)
     {
         ast::Case* case_ = tree->cases[case_idx];
+        ast::Task* task = case_->task;
+
         for (uint32_t var_idx = 0; var_idx < size(case_->precond_vars); ++var_idx)
         {
             ast::Var* var = case_->precond_vars[var_idx];
@@ -227,7 +229,17 @@ static void build_signatures(Codegen& state)
         {
             ast::Var* var = case_->task_list_vars[var_idx];
             ast::Var* first = get(case_->precond_var_lookup, var->name);
-            var->input_index = first->input_index;
+
+            if (first)
+            {
+                var->input_index = first->input_index;
+            }
+            else
+            {
+                ast::Param* param = as_Param(var->definition);
+                uint32_t task_param_idx = index_of(task->params, param);
+                var->input_index = task_param_idx;
+            }
         }
     }
 }
@@ -864,10 +876,10 @@ struct Expr_Writer
         case ast::Node_Minus: return "-";
         case ast::Node_Mul: return "*";
         case ast::Node_Div: return "/";
+        default:
+            plnnrc_assert(false);
+            return "";
         }
-
-        plnnrc_assert(false);
-        return "";
     }
 
     void visit(const ast::Op* node)
@@ -1012,10 +1024,8 @@ static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* liter
 }
 
 template <typename Param_Node>
-static void generate_arg_setters(const char* set_arg_name, ast::Func* task_func, ast::Case* case_, uint32_t target_task_index, const Array<Param_Node*>& param_types, Formatter& fmtr)
+static void generate_arg_setters(const char* set_arg_name, ast::Func* task_func, uint32_t target_task_index, const Array<Param_Node*>& param_types, Formatter& fmtr)
 {
-    ast::Task* task = case_->task;
-
     for (uint32_t arg_idx = 0; arg_idx < size(task_func->args); ++arg_idx)
     {
         ast::Expr* arg = task_func->args[arg_idx];
@@ -1033,18 +1043,27 @@ static void generate_arg_setters(const char* set_arg_name, ast::Func* task_func,
 
             if (ast::Param* def_param = as_Param(arg_var->definition))
             {
-                uint32_t task_param_idx = index_of(task->params, def_param);
                 writeln(fmtr, "%s(state, s_task_parameters[%d], %d, %s(args->_%d));",
-                    set_arg_name, target_task_index, arg_idx, target_data_type_name, task_param_idx);
+                    set_arg_name, target_task_index, arg_idx, target_data_type_name, arg_var->input_index);
                 continue;
             }
 
-            // undefined variable must have been flagged as error earlier.
+            // undefined variable must be reported as error earlier.
             plnnrc_assert(false);
         }
 
         // expression
-        plnnrc_assert(false);
+        {
+            Expr_Writer visitor = { &fmtr };
+
+            write(fmtr, "%i%s(state, s_task_parameters[%d], %d, %s(",
+                set_arg_name, target_task_index, arg_idx, target_data_type_name);
+
+            visit_node<void>(arg, &visitor);
+
+            write(fmtr, "));");
+            newline(fmtr);
+        }
     }
 }
 
@@ -1103,7 +1122,7 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
                     writeln(fmtr, "begin_task(state, &s_domain_info, %d); // %n",
                         primitive_index, primitive->name);
 
-                    generate_arg_setters("set_task_arg", item, case_, primitive_index, primitive->params, fmtr);
+                    generate_arg_setters("set_task_arg", item, primitive_index, primitive->params, fmtr);
 
                     if (item == back(case_->task_list) && !case_->foreach)
                     {
@@ -1128,7 +1147,7 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
                     writeln(fmtr, "begin_composite(state, &s_domain_info, %d); // %n",
                         composite_index, composite->name);
 
-                    generate_arg_setters("set_composite_arg", item, case_, composite_index, composite->params, fmtr);
+                    generate_arg_setters("set_composite_arg", item, composite_index, composite->params, fmtr);
 
                     if (item == back(case_->task_list) && !case_->foreach)
                     {
