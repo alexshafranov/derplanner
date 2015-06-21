@@ -22,8 +22,8 @@ domain run_6
 
     task t(x, y)
     {
-        case( x == Ten() )    -> [ p!(0), p!(x*5 + y) ]
+        case( x == Ten )    -> [ p!(0), p!(x*5 + y) ]
 
-        case( x == Eleven() ) -> [ p!(1), p!(x*5 + y) ]
+        case( x == Eleven ) -> [ p!(1), p!(x*5 + y) ]
     }
 }

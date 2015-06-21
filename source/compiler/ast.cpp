@@ -854,6 +854,20 @@ void plnnrc::inline_predicates(ast::Root& tree)
                     }
                 }
 
+                // syntax sugar for zero-sized argument predicates (e.g. constants).
+                if (ast::Var* var = as_Var(node))
+                {
+                    if (ast::Predicate* pred = lookup_referenced_predicate(domain, task, var->name))
+                    {
+                        ast::Func* func = create_func(&tree, var->name, var->loc);
+                        insert_child(var, func);
+                        unparent(var);
+
+                        node = inline_predicate(tree, func, pred);
+                        continue;
+                    }
+                }
+
                 node = preorder_next(new_root, node);
             }
         }
