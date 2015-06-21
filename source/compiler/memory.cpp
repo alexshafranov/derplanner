@@ -53,7 +53,7 @@ namespace plnnrc
 
     };
 
-    enum { bookkeeping_size = sizeof(Memory_Stack) + plnnrc_alignof(Memory_Stack) + sizeof(Memory_Stack_Page) + plnnrc_alignof(Memory_Stack_Page) };
+    enum { Bookkeeping_Size = sizeof(Memory_Stack) + plnnrc_alignof(Memory_Stack) + sizeof(Memory_Stack_Page) + plnnrc_alignof(Memory_Stack_Page) };
 }
 
 void plnnrc::set_memory_functions(Allocate* a, Deallocate* f)
@@ -118,7 +118,7 @@ void plnnrc::Memory_Default::deallocate(void* ptr)
 
 plnnrc::Memory_Stack* plnnrc::Memory_Stack::create(size_t page_size)
 {
-    plnnrc_assert(page_size > bookkeeping_size);
+    plnnrc_assert(page_size > Bookkeeping_Size);
 
     uint8_t* blob = static_cast<uint8_t*>(plnnrc::allocate(page_size));
     plnnrc_assert(blob != 0);
@@ -173,9 +173,9 @@ void* plnnrc::Memory_Stack::allocate(size_t size, size_t alignment)
     if (top + size > page->blob + page->size)
     {
         size_t new_page_size = page_size;
-        if (size + alignment + bookkeeping_size > new_page_size)
+        if (size + alignment + Bookkeeping_Size > new_page_size)
         {
-            new_page_size = size + alignment + bookkeeping_size;
+            new_page_size = size + alignment + Bookkeeping_Size;
         }
 
         page = allocate_page(new_page_size);
