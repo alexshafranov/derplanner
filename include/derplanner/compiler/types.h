@@ -160,8 +160,8 @@ struct Token_Value
 // Location in the input buffer.
 struct Location
 {
-    uint32_t line;
-    uint32_t column;
+    uint32_t        line;
+    uint32_t        column;
 };
 
 // Token data returned by the lexer.
