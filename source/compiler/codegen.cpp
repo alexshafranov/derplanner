@@ -1041,7 +1041,7 @@ static void generate_arg_setters(const char* set_arg_name, ast::Func* task_func,
                 continue;
             }
 
-            if (ast::Param* def_param = as_Param(arg_var->definition))
+            if (is_Param(arg_var->definition))
             {
                 writeln(fmtr, "%s(state, s_task_parameters[%d], %d, %s(args->_%d));",
                     set_arg_name, target_task_index, arg_idx, target_data_type_name, arg_var->input_index);
