@@ -874,39 +874,39 @@ static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* liter
         ++handle_id;
 
         if (!literal->next_sibling)
-        {
             writeln(fmtr, "plnnr_coroutine_yield(frame, precond_label, %d);", yield_id++);
-        }
         else
-        {
             generate_conjunct(state, case_, literal->next_sibling, handle_id, yield_id, fmtr);
-        }
     }
 
     writeln(fmtr, "}");
 }
 
-static void generate_arg_setters(Codegen& /*state*/, const char* set_arg_name, ast::Func* task_list_item, ast::Case* case_, uint32_t target_task_index, Formatter& fmtr)
+template <typename T>
+static void generate_arg_setters(const char* set_arg_name, ast::Func* task_func, ast::Case* case_, uint32_t target_task_index, const Array<T*>& param_types, Formatter& fmtr)
 {
     ast::Task* task = case_->task;
 
-    uint32_t arg_index = 0;
-    for (ast::Expr* arg_node = task_list_item->child; arg_node != 0; arg_node = arg_node->next_sibling, ++arg_index)
+    for (uint32_t arg_idx = 0; arg_idx < size(task_func->args); ++arg_idx)
     {
-        if (ast::Var* arg_var = as_Var(arg_node))
+        ast::Expr* arg = task_func->args[arg_idx];
+        Token_Type target_data_type = param_types[arg_idx]->data_type;
+        const char* target_data_type_name = get_runtime_type_name(target_data_type);
+
+        if (ast::Var* arg_var = as_Var(arg))
         {
             if (ast::Var* def_var = as_Var(arg_var->definition))
             {
-                writeln(fmtr, "%s(state, s_task_parameters[%d], %d, binds->_%d);",
-                    set_arg_name, target_task_index, arg_index, def_var->output_index);
+                writeln(fmtr, "%s(state, s_task_parameters[%d], %d, %s(binds->_%d));",
+                    set_arg_name, target_task_index, arg_idx, target_data_type_name, def_var->output_index);
                 continue;
             }
 
             if (ast::Param* def_param = as_Param(arg_var->definition))
             {
                 uint32_t task_param_idx = index_of(task->params, def_param);
-                writeln(fmtr, "%s(state, s_task_parameters[%d], %d, args->_%d);",
-                    set_arg_name, target_task_index, arg_index, task_param_idx);
+                writeln(fmtr, "%s(state, s_task_parameters[%d], %d, %s(args->_%d));",
+                    set_arg_name, target_task_index, arg_idx, target_data_type_name, task_param_idx);
                 continue;
             }
 
@@ -950,13 +950,9 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
         newline(fmtr);
 
         if (task_sig.length > 0)
-        {
             writeln(fmtr, "while (p%d_next(state, frame, db, args)) {", case_idx);
-        }
         else
-        {
             writeln(fmtr, "while (p%d_next(state, frame, db)) {", case_idx);
-        }
 
         // generate task list expansion
         {
@@ -978,7 +974,7 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
                     writeln(fmtr, "begin_task(state, &s_domain_info, %d); // %n",
                         primitive_index, primitive->name);
 
-                    generate_arg_setters(state, "set_task_arg", item, case_, primitive_index, fmtr);
+                    generate_arg_setters("set_task_arg", item, case_, primitive_index, primitive->params, fmtr);
 
                     if (item == back(case_->task_list) && !case_->foreach)
                     {
@@ -1003,7 +999,7 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
                     writeln(fmtr, "begin_composite(state, &s_domain_info, %d); // %n",
                         composite_index, composite->name);
 
-                    generate_arg_setters(state, "set_composite_arg", item, case_, composite_index, fmtr);
+                    generate_arg_setters("set_composite_arg", item, case_, composite_index, composite->params, fmtr);
 
                     if (item == back(case_->task_list) && !case_->foreach)
                     {

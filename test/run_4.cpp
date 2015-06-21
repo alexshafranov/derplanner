@@ -151,11 +151,11 @@ static bool r_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Databas
 
   while (p0_next(state, frame, db)) {
     begin_task(state, &s_domain_info, 0); // p1!
-    set_task_arg(state, s_task_parameters[0], 0, binds->_0);
+    set_task_arg(state, s_task_parameters[0], 0, Id32(binds->_0));
     plnnr_coroutine_yield(frame, expand_label, 1);
 
     begin_composite(state, &s_domain_info, 3); // t
-    set_composite_arg(state, s_task_parameters[3], 0, binds->_0);
+    set_composite_arg(state, s_task_parameters[3], 0, Id32(binds->_0));
     plnnr_coroutine_yield(frame, expand_label, 2);
 
     continue_iteration(state, frame);
@@ -177,7 +177,7 @@ static bool t_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Databas
 
   while (p1_next(state, frame, db, args)) {
     begin_task(state, &s_domain_info, 1); // p2!
-    set_task_arg(state, s_task_parameters[1], 0, args->_0);
+    set_task_arg(state, s_task_parameters[1], 0, Id32(args->_0));
     frame->status = Expansion_Frame::Status_Expanded;
     plnnr_coroutine_yield(frame, expand_label, 1);
 

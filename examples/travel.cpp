@@ -231,8 +231,8 @@ static bool root_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Data
 
   while (p0_next(state, frame, db)) {
     begin_composite(state, &s_domain_info, 3); // travel
-    set_composite_arg(state, s_task_parameters[3], 0, binds->_0);
-    set_composite_arg(state, s_task_parameters[3], 1, binds->_1);
+    set_composite_arg(state, s_task_parameters[3], 0, Id32(binds->_0));
+    set_composite_arg(state, s_task_parameters[3], 1, Id32(binds->_1));
     frame->status = Expansion_Frame::Status_Expanded;
     plnnr_coroutine_yield(frame, expand_label, 1);
 
@@ -249,8 +249,8 @@ static bool travel_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Da
 
   while (p1_next(state, frame, db, args)) {
     begin_task(state, &s_domain_info, 0); // taxi!
-    set_task_arg(state, s_task_parameters[0], 0, args->_0);
-    set_task_arg(state, s_task_parameters[0], 1, args->_1);
+    set_task_arg(state, s_task_parameters[0], 0, Id32(args->_0));
+    set_task_arg(state, s_task_parameters[0], 1, Id32(args->_1));
     frame->status = Expansion_Frame::Status_Expanded;
     plnnr_coroutine_yield(frame, expand_label, 1);
 
@@ -269,8 +269,8 @@ static bool travel_case_1(Planning_State* state, Expansion_Frame* frame, Fact_Da
 
   while (p2_next(state, frame, db, args)) {
     begin_composite(state, &s_domain_info, 4); // travel_by_plane
-    set_composite_arg(state, s_task_parameters[4], 0, args->_0);
-    set_composite_arg(state, s_task_parameters[4], 1, args->_1);
+    set_composite_arg(state, s_task_parameters[4], 0, Id32(args->_0));
+    set_composite_arg(state, s_task_parameters[4], 1, Id32(args->_1));
     frame->status = Expansion_Frame::Status_Expanded;
     plnnr_coroutine_yield(frame, expand_label, 1);
 
@@ -288,18 +288,18 @@ static bool travel_by_plane_case_0(Planning_State* state, Expansion_Frame* frame
 
   while (p3_next(state, frame, db, args)) {
     begin_composite(state, &s_domain_info, 3); // travel
-    set_composite_arg(state, s_task_parameters[3], 0, args->_0);
-    set_composite_arg(state, s_task_parameters[3], 1, binds->_0);
+    set_composite_arg(state, s_task_parameters[3], 0, Id32(args->_0));
+    set_composite_arg(state, s_task_parameters[3], 1, Id32(binds->_0));
     plnnr_coroutine_yield(frame, expand_label, 1);
 
     begin_task(state, &s_domain_info, 1); // plane!
-    set_task_arg(state, s_task_parameters[1], 0, binds->_0);
-    set_task_arg(state, s_task_parameters[1], 1, binds->_1);
+    set_task_arg(state, s_task_parameters[1], 0, Id32(binds->_0));
+    set_task_arg(state, s_task_parameters[1], 1, Id32(binds->_1));
     plnnr_coroutine_yield(frame, expand_label, 2);
 
     begin_composite(state, &s_domain_info, 3); // travel
-    set_composite_arg(state, s_task_parameters[3], 0, binds->_1);
-    set_composite_arg(state, s_task_parameters[3], 1, args->_1);
+    set_composite_arg(state, s_task_parameters[3], 0, Id32(binds->_1));
+    set_composite_arg(state, s_task_parameters[3], 1, Id32(args->_1));
     frame->status = Expansion_Frame::Status_Expanded;
     plnnr_coroutine_yield(frame, expand_label, 3);
 
