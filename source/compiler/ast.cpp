@@ -771,6 +771,43 @@ static bool disallow_recursive_predicate(ast::Root& tree, ast::Task* task_scope,
     return false;
 }
 
+static void inline_predicates_in_expr(ast::Root& tree, ast::Domain* domain, ast::Task* task, ast::Expr* root)
+{
+    for (ast::Expr* node = root; node != 0; )
+    {
+        if (ast::Func* func = as_Func(node))
+        {
+            if (ast::Predicate* pred = lookup_referenced_predicate(domain, task, func->name))
+            {
+                node = inline_predicate(tree, func, pred);
+                if (root == func)
+                    return;
+
+                continue;
+            }
+        }
+
+        // syntax sugar for zero-sized argument predicates (e.g. constants).
+        if (ast::Var* var = as_Var(node))
+        {
+            if (ast::Predicate* pred = lookup_referenced_predicate(domain, task, var->name))
+            {
+                ast::Func* func = create_func(&tree, var->name, var->loc);
+                insert_child(var, func);
+                unparent(var);
+
+                node = inline_predicate(tree, func, pred);
+                if (root == var)
+                    return;
+
+                continue;
+            }
+        }
+
+        node = preorder_next(root, node);
+    }
+}
+
 void plnnrc::inline_predicates(ast::Root& tree)
 {
     Memory_Stack_Scope scratch_scope(tree.scratch);
@@ -830,45 +867,28 @@ void plnnrc::inline_predicates(ast::Root& tree)
     if (has_errors)
         return;
 
-    // inline predicates in each precondition.
     for (uint32_t task_idx = 0; task_idx < size(domain->tasks); ++task_idx)
     {
         ast::Task* task = domain->tasks[task_idx];
+        // inline predicates in each preconditions and task lists.
         for (uint32_t case_idx = 0; case_idx < size(task->cases); ++case_idx)
         {
             ast::Case* case_ = task->cases[case_idx];
             ast::Expr* precond = case_->precond;
-            // add the dummy root node to simplify `inline_predicates`, as it may need to replace the precondition root.
+            // add the dummy root node as `inline_predicates` may need to replace the precondition root.
             ast::Expr* new_root = create_op(&tree, ast::Node_And);
             append_child(new_root, precond);
             case_->precond = new_root;
+            inline_predicates_in_expr(tree, domain, task, new_root);
 
-            for (ast::Expr* node = new_root->child; node != 0; )
+            for (uint32_t task_list_idx = 0; task_list_idx < size(case_->task_list); ++task_list_idx)
             {
-                if (ast::Func* func = as_Func(node))
+                ast::Func* callee = as_Func(case_->task_list[task_list_idx]);
+                plnnrc_assert(callee);
+                for (ast::Expr* arg = callee->child; arg != 0; arg = arg->next_sibling)
                 {
-                    if (ast::Predicate* pred = lookup_referenced_predicate(domain, task, func->name))
-                    {
-                        node = inline_predicate(tree, func, pred);
-                        continue;
-                    }
+                    inline_predicates_in_expr(tree, domain, task, arg);
                 }
-
-                // syntax sugar for zero-sized argument predicates (e.g. constants).
-                if (ast::Var* var = as_Var(node))
-                {
-                    if (ast::Predicate* pred = lookup_referenced_predicate(domain, task, var->name))
-                    {
-                        ast::Func* func = create_func(&tree, var->name, var->loc);
-                        insert_child(var, func);
-                        unparent(var);
-
-                        node = inline_predicate(tree, func, pred);
-                        continue;
-                    }
-                }
-
-                node = preorder_next(new_root, node);
             }
         }
     }
