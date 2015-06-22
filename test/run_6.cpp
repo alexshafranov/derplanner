@@ -203,7 +203,7 @@ static bool t_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Databas
     plnnr_coroutine_yield(frame, expand_label, 1);
 
     begin_task(state, &s_domain_info, 0); // p!
-    set_task_arg(state, s_task_parameters[0], 0, int8_t(-(((args->_0 * 5) + args->_1))));
+    set_task_arg(state, s_task_parameters[0], 0, int8_t(-(((args->_0 * (4 + 1)) + args->_1))));
     frame->status = Expansion_Frame::Status_Expanded;
     plnnr_coroutine_yield(frame, expand_label, 2);
 
