@@ -885,15 +885,29 @@ struct Expr_Writer
     void visit(const ast::Op* node)
     {
         const char* op = get_op_str(node->type);
+        plnnrc_assert(node->child);
 
-        write(*fmtr, "(");
-        for (ast::Expr* arg = node->child; arg != 0; arg = arg->next_sibling)
+        // unary
+        if (!node->child->next_sibling)
         {
-            visit_node<void>(arg, this);
-            if (arg->next_sibling != 0)
-                write(*fmtr, " %s ", op);
+            plnnrc_assert(is_Plus(node) || is_Minus(node) || is_Not(node));
+            write(*fmtr, "%s", op);
+            write(*fmtr, "(");
+            visit_node<void>(node->child, this);
+            write(*fmtr, ")");
         }
-        write(*fmtr, ")");
+        // binary
+        else
+        {
+            write(*fmtr, "(");
+            for (ast::Expr* arg = node->child; arg != 0; arg = arg->next_sibling)
+            {
+                visit_node<void>(arg, this);
+                if (arg->next_sibling != 0)
+                    write(*fmtr, " %s ", op);
+            }
+            write(*fmtr, ")");
+        }
     }
 
     void visit(const ast::Node*) { plnnrc_assert(false); }

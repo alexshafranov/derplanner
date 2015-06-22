@@ -618,8 +618,8 @@ static uint8_t get_precedence(Token_Type token_type)
 
 static ast::Node_Type get_op_type(Token_Type token_type)
 {
-    plnnrc_assert(is_Binary(token_type));
-    uint32_t idx = (uint32_t)(token_type - Token_Group_Binary_First);
+    plnnrc_assert(is_Operator(token_type));
+    uint32_t idx = (uint32_t)(token_type - Token_Group_Operator_First);
     return s_token_to_ast[idx];
 }
 
@@ -666,12 +666,13 @@ static ast::Expr* parse_term_expr(Parser& state)
         return create_literal(state.tree, tok);
     }
 
-    if (is_Not(tok))
+    // unary operators
+    if (is_Not(tok) || is_Plus(tok) || is_Minus(tok))
     {
-        ast::Expr* node_Not = create_op(state.tree, ast::Node_Not);
-        ast::Expr* node = parse_term_expr(state);
-        append_child(node_Not, node);
-        return node_Not;
+        ast::Expr* node_op = create_op(state.tree, get_op_type(tok.type));
+        ast::Expr* node_arg = parse_term_expr(state);
+        append_child(node_op, node_arg);
+        return node_op;
     }
 
     if (is_L_Paren(tok))

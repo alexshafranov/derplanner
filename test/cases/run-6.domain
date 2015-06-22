@@ -5,7 +5,7 @@
 //: plnnr::add_entry(a, int8_t(50), int32_t(25), int64_t(99), float(0.1f));
 //: plnnr::add_entry(a, int8_t(11), int32_t(10), int64_t(30), float(1.0f));
 //:
-//! check_plan("p!(0) p!(60) p!(1) p!(65)", pstate, domain);
+//! check_plan("p!(0) p!(-60) p!(1) p!(65)", pstate, domain);
 //!
 domain run_6
 {
@@ -22,7 +22,7 @@ domain run_6
 
     task t(x, y)
     {
-        case( x == Ten )    -> [ p!(0), p!(x*5 + y) ]
+        case( x == Ten )    -> [ p!(0), p!(-(x*5 + y)) ]
 
         case( x == Eleven ) -> [ p!(1), p!(x*5 + y) ]
     }
