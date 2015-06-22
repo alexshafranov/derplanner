@@ -382,10 +382,10 @@ ast::Expr* plnnrc::parse_precond(Parser& state)
         return create_op(state.tree, ast::Node_And);
     }
 
-    ast::Expr* node_Expr = parse_expr(state);
-    plnnrc_check_return(node_Expr);
+    ast::Expr* expr = parse_expr(state);
+    plnnrc_check_return(expr);
     plnnrc_expect_return(state, Token_R_Paren);
-    return node_Expr;
+    return expr;
 }
 
 template <typename T>
@@ -565,8 +565,10 @@ static bool parse_task_list(Parser& state, ast::Case* case_)
             break;
         }
 
-        ast::Expr* node_Task = parse_term_expr(state);
-        builder.push_back(node_Task);
+        ast::Expr* node_task = parse_term_expr(state);
+        plnnrc_check_return(node_task);
+
+        builder.push_back(node_task);
 
         if (!is_Comma(peek(state)))
         {
@@ -671,15 +673,17 @@ static ast::Expr* parse_term_expr(Parser& state)
     {
         ast::Expr* node_op = create_op(state.tree, get_op_type(tok.type));
         ast::Expr* node_arg = parse_term_expr(state);
+        plnnrc_check_return(node_arg);
         append_child(node_op, node_arg);
         return node_op;
     }
 
     if (is_L_Paren(tok))
     {
-        ast::Expr* node_Expr = parse_expr(state);
+        ast::Expr* expr = parse_expr(state);
+        plnnrc_check_return(expr);
         plnnrc_expect_return(state, Token_R_Paren);
-        return parse_postfix_expr(state, node_Expr);
+        return parse_postfix_expr(state, expr);
     }
 
     if (is_Id(tok))
@@ -727,6 +731,7 @@ static ast::Predicate* parse_single_predicate(Parser& state)
     parse_params(state, param_builder);
     plnnrc_expect_return(state, Token_Equality);
     pred->expression = parse_precond(state);
+    plnnrc_check_return(pred->expression);
     return pred;
 }
 
@@ -736,6 +741,7 @@ static ast::Predicate* parse_single_constant(Parser& state)
     ast::Predicate* pred = create_predicate(state.tree, tok.value, tok.loc);
     plnnrc_expect_return(state, Token_Equality);
     pred->expression = parse_expr(state);
+    plnnrc_check_return(pred->expression);
     return pred;
 }
 
@@ -755,6 +761,7 @@ static bool parse_predicate_block(Parser& state, Children_Builder<ast::Predicate
         if (is_Id(tok))
         {
             ast::Predicate* pred = parse_single_predicate(state);
+            plnnrc_check_return(pred);
             builder.push_back(pred);
             continue;
         }
@@ -784,6 +791,7 @@ static bool parse_constant_block(Parser& state, Children_Builder<ast::Predicate>
         if (is_Id(tok))
         {
             ast::Predicate* pred = parse_single_constant(state);
+            plnnrc_check_return(pred);
             builder.push_back(pred);
             continue;
         }
@@ -808,6 +816,7 @@ static bool parse_predicates(Parser& state, Children_Builder<ast::Predicate>& bu
 
     // single predicate definition
     ast::Predicate* pred = parse_single_predicate(state);
+    plnnrc_check_return(pred);
     builder.push_back(pred);
     return true;
 }
@@ -823,6 +832,7 @@ static bool parse_constants(Parser& state, Children_Builder<ast::Predicate>& bui
 
     // single constant definition
     ast::Predicate* pred = parse_single_constant(state);
+    plnnrc_check_return(pred);
     builder.push_back(pred);
     return true;
 }
