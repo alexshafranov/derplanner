@@ -102,6 +102,7 @@ PLNNRC_TOKEN_GROUP(Keyword, Domain, Vec3)
 PLNNRC_TOKEN_GROUP(Block,   Domain, Task)
 PLNNRC_TOKEN_GROUP(Type,    Id32,   Any_Type)
 PLNNRC_TOKEN_GROUP(Literal, Literal_Integer, Literal_Float)
+PLNNRC_TOKEN_GROUP(Operator, Or, Not)
 PLNNRC_TOKEN_GROUP(Binary,  Or, Div)
 
 #undef PLNNRC_TOKEN_GROUP
