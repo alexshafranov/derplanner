@@ -39,11 +39,14 @@ ast::Param*         create_param(ast::Root* tree, const Token_Value& name, const
 ast::Domain*        create_domain(ast::Root* tree, const Token_Value& name);
 ast::Task*          create_task(ast::Root* tree, const Token_Value& name, const Location& loc);
 ast::Case*          create_case(ast::Root* tree);
-ast::Func*          create_func(ast::Root* tree, const Token_Value& name, const Location& loc);
-ast::Op*            create_op(ast::Root* tree, ast::Node_Type operation_type);
-ast::Var*           create_var(ast::Root* tree, const Token_Value& name, const Location& loc);
 ast::Data_Type*     create_type(ast::Root* tree, Token_Type data_type);
-ast::Literal*       create_literal(ast::Root* tree, const Token& token);
+
+ast::Op*            create_op(ast::Root* tree, ast::Node_Type operation_type);
+ast::Op*            create_op(ast::Root* tree, ast::Node_Type operation_type, const Location& loc);
+ast::Var*           create_var(ast::Root* tree, const Token_Value& name, const Location& loc);
+ast::Literal*       create_literal(ast::Root* tree, const Token& token, const Location& loc);
+ast::Func*          create_func(ast::Root* tree, const Token_Value& name, const Location& loc);
+
 
 // lookup `ast::Task` node by name.
 ast::Task*      get_task(ast::Root& tree, const Token_Value& name);
