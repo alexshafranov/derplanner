@@ -646,7 +646,7 @@ static ast::Expr* parse_binary_expr(Parser& state, uint8_t precedence)
 
         eat(state);
 
-        ast::Expr* node_Op = create_op(state.tree, get_op_type(tok.type));
+        ast::Expr* node_Op = create_op(state.tree, get_op_type(tok.type), get_loc(*state.lexer));
         append_child(node_Op, root);
 
         ast::Expr* next_expr = parse_binary_expr(state, new_precedence);
@@ -665,13 +665,13 @@ static ast::Expr* parse_term_expr(Parser& state)
 
     if (is_Literal(tok))
     {
-        return create_literal(state.tree, tok);
+        return create_literal(state.tree, tok, get_loc(*state.lexer));
     }
 
     // unary operators
     if (is_Not(tok) || is_Plus(tok) || is_Minus(tok))
     {
-        ast::Expr* node_op = create_op(state.tree, get_op_type(tok.type));
+        ast::Expr* node_op = create_op(state.tree, get_op_type(tok.type), get_loc(*state.lexer));
         ast::Expr* node_arg = parse_term_expr(state);
         plnnrc_check_return(node_arg);
         append_child(node_op, node_arg);
@@ -710,7 +710,7 @@ static ast::Expr* parse_postfix_expr(Parser& state, ast::Expr* lhs)
     if (is_Dot(peek(state)))
     {
         eat(state);
-        ast::Expr* node_Dot = create_op(state.tree, ast::Node_Dot);
+        ast::Expr* node_Dot = create_op(state.tree, ast::Node_Dot, get_loc(*state.lexer));
         Token tok = expect(state, Token_Id);
         plnnrc_check_return(!is_Error(tok));
         ast::Expr* rhs = create_var(state.tree, tok.value, tok.loc);

@@ -138,6 +138,14 @@ ast::Case* plnnrc::create_case(ast::Root* tree)
     return node;
 }
 
+ast::Data_Type* plnnrc::create_type(ast::Root* tree, Token_Type data_type)
+{
+    ast::Data_Type* node = pool_alloc<ast::Data_Type>(tree);
+    node->type = ast::Node_Data_Type;
+    node->data_type = data_type;
+    return node;
+}
+
 ast::Func* plnnrc::create_func(ast::Root* tree, const Token_Value& name, const Location& loc)
 {
     ast::Func* node = pool_alloc<ast::Func>(tree);
@@ -154,6 +162,14 @@ ast::Op* plnnrc::create_op(ast::Root* tree, ast::Node_Type operation)
     return node;
 }
 
+ast::Op* plnnrc::create_op(ast::Root* tree, ast::Node_Type operation, const Location& loc)
+{
+    ast::Op* node = pool_alloc<ast::Op>(tree);
+    node->type = operation;
+    node->loc = loc;
+    return node;
+}
+
 ast::Var* plnnrc::create_var(ast::Root* tree, const Token_Value& name, const Location& loc)
 {
     ast::Var* node = pool_alloc<ast::Var>(tree);
@@ -163,20 +179,13 @@ ast::Var* plnnrc::create_var(ast::Root* tree, const Token_Value& name, const Loc
     return node;
 }
 
-ast::Data_Type* plnnrc::create_type(ast::Root* tree, Token_Type data_type)
-{
-    ast::Data_Type* node = pool_alloc<ast::Data_Type>(tree);
-    node->type = ast::Node_Data_Type;
-    node->data_type = data_type;
-    return node;
-}
-
-ast::Literal* plnnrc::create_literal(ast::Root* tree, const Token& token)
+ast::Literal* plnnrc::create_literal(ast::Root* tree, const Token& token, const Location& loc)
 {
     ast::Literal* node = pool_alloc<ast::Literal>(tree);
     node->type = ast::Node_Literal;
     node->value = token.value;
     node->data_type = token.type;
+    node->loc = loc;
     return node;
 }
 
