@@ -506,8 +506,6 @@ struct Codegen
 {
     // input AST.
     ast::Root*          tree;
-    // formatter used to write files.
-    Formatter           fmtr;
     // allocator for scratch data.
     Memory_Stack*       scratch;
 
