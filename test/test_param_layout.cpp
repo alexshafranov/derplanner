@@ -56,7 +56,7 @@ namespace
         compute_offsets_and_size(layout);
 
         Vec3    a0(5.f, 4.f, 3.f);
-        uint8_t a1 = 111;
+        int8_t  a1 = 111;
         Vec3    a2(1.f, 2.f, 3.f);
 
         char buffer[2048];

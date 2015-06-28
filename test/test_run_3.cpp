@@ -89,10 +89,10 @@ TEST(run_3)
 plnnr::Fact_Table* a = plnnr::find_table(db, "a");
 plnnr::Fact_Table* b = plnnr::find_table(db, "b");
 plnnr::Fact_Table* c = plnnr::find_table(db, "c");
-plnnr::add_entry(a, 1);
-plnnr::add_entry(b, 2);
-plnnr::add_entry(c, 3);
-plnnr::add_entry(c, 2);
+plnnr::add_entry(a, plnnr::Id32(1));
+plnnr::add_entry(b, plnnr::Id32(2));
+plnnr::add_entry(c, plnnr::Id32(3));
+plnnr::add_entry(c, plnnr::Id32(2));
 
 
     plnnr::Find_Plan_Status status = plnnr::find_plan(domain, &db, &pstate);
