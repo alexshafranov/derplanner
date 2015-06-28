@@ -1,26 +1,26 @@
-//> error (11, 31): multiple definitions of 'a' found.
-//> error (13, 15): recursive predicate 'p0' found.
-//> error (15, 15): recursive predicate 'p1' found.
-//> error (17, 15): recursive predicate 'p2' found.
-//> error (19, 15): multiple definitions of 'p0' found.
-//> error (27, 13): multiple definitions of 'p1' found.
+//> error (11, 31): multiple definitions of 'a' found.    
+//> error (13, 11): recursive macro 'p0' found.           
+//> error (15, 11): recursive macro 'p1' found.           
+//> error (17, 11): recursive macro 'p2' found.           
+//> error (19, 11): multiple definitions of 'p0' found.   
+//> error (27, 13): multiple definitions of 'p1' found.   
 //> error (31, 10): multiple definitions of 'hello' found.
-//> error (33, 16): multiple definitions of 'x' found.
+//> error (33, 16): multiple definitions of 'x' found.    
 domain test
 {
     world { a(int32) b(int32) a(int32) }
 
-    predicate p0(x, y) = ( a(x) & p0(x, y) & b(y) )
+    macro p0(x, y) = ( a(x) & p0(x, y) & b(y) )
 
-    predicate p1(x, y) = ( a(x) & p2(x, y) & b(y) )
+    macro p1(x, y) = ( a(x) & p2(x, y) & b(y) )
 
-    predicate p2(x, y) = ( b(x) & p1(x, y) & p0(x, y) )
+    macro p2(x, y) = ( b(x) & p1(x, y) & p0(x, y) )
 
-    predicate p0() = ()
+    macro p0() = ()
 
     task hello()
     {
-        predicate
+        macro
         {
             p1(x) = ()
             p2(x) = ()
