@@ -307,9 +307,8 @@ ast::Expr* plnnrc::convert_to_nnf(ast::Root& tree, ast::Expr* root)
             continue;
         }
 
-        // De-Morgan's law:
-        //      Not{ Or{ <x...> <y...> } }  -> And{ Not{ <x...> } Not{ <y...> } }
-        //      Not{ And{ <x...> <y...> } } ->  Or{ Not{ <x...> } Not{ <y...> } }
+        // Not{ Or{ <x...> <y...> } }  -> And{ Not{ <x...> } Not{ <y...> } }
+        // Not{ And{ <x...> <y...> } } ->  Or{ Not{ <x...> } Not{ <y...> } }
         if (is_And(node_Logical) || is_Or(node_Logical))
         {
             // node_Not becomes `And` or `Or`.
