@@ -242,7 +242,7 @@ namespace ast
             struct Primitive;
             struct Const;
             struct Domain;
-                struct Predicate;
+                struct Macro;
                 struct Task;
                     struct Param;
                     struct Case;
@@ -314,10 +314,10 @@ namespace ast
         Token_Value             name;
         // tasks.
         Array<Task*>            tasks;
-        // predicates defined inside `domain`.
-        Array<Predicate*>       predicates;
-        // predicate name -> `ast::Predicate`.
-        Id_Table<Predicate*>    predicate_lookup;
+        // macros defined inside `domain`.
+        Array<Macro*>           macros;
+        // macro name -> `ast::Macro`.
+        Id_Table<Macro*>        macro_lookup;
     };
 
     // Fact: Id + Parameters.
@@ -338,16 +338,16 @@ namespace ast
         Token_Type              data_type;
     };
 
-    // Parsed `predicate`.
-    struct Predicate : public Node
+    // Parsed `macro`.
+    struct Macro : public Node
     {
-        // name of the predicate.
+        // name of the macro.
         Token_Value             name;
-        // input buffer location where this predicate is defined.
+        // input buffer location where this macro is defined.
         Location                loc;
-        // predicate parameters.
+        // parameters.
         Array<Param*>           params;
-        // expression this predicate is expanded into.
+        // expression this macro is expanded into.
         Expr*                   expression;
     };
 
@@ -364,10 +364,10 @@ namespace ast
         Array<Case*>            cases;
         // param name -> node.
         Id_Table<Param*>        param_lookup;
-        // predicates defined inside `task`.
-        Array<Predicate*>       predicates;
-        // predicate name -> `ast::Predicate`.
-        Id_Table<Predicate*>    predicate_lookup;
+        // macros defined inside `task`.
+        Array<Macro*>           macros;
+        // macro name -> `ast::Macro`.
+        Id_Table<Macro*>        macro_lookup;
     };
 
     // Parsed `case` block.
@@ -450,7 +450,7 @@ namespace ast
         Token_Type              data_type;
     };
 
-    // Functional Symbol: fact/function/task/predicate used in precondtition or task list.
+    // Functional Symbol: fact/function/task/macro used in precondtition or task list.
     struct Func : public Expr
     {
         // name of the fact/function/task.

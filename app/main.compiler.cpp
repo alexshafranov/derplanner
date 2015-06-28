@@ -322,7 +322,7 @@ int main(int argc, char** argv)
                 break;
 
             // process AST.
-            plnnrc::inline_predicates(tree);
+            plnnrc::inline_macros(tree);
             plnnrc::convert_to_dnf(tree);
             plnnrc::annotate(tree);
 

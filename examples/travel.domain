@@ -16,7 +16,7 @@ domain travel
         plane!( id32, id32 )
     }
 
-    predicate
+    macro
     {
         start_and_finish(x, y) = ( start(x) & finish(y) )
     }
@@ -35,7 +35,7 @@ domain travel
 
     task travel_by_plane(x, y)
     {
-        predicate airports(ax, ay) = ( airport(x, ax) & airport(y, ay) )
+        macro airports(ax, ay) = ( airport(x, ax) & airport(y, ay) )
 
         case( airports(ax, ay) ) -> [ travel(x, ax), plane!(ax, ay), travel(ay, y) ]
     }

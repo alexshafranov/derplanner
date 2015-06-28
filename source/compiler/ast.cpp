@@ -87,10 +87,10 @@ ast::Primitive* plnnrc::create_primitive(ast::Root* tree)
     return node;
 }
 
-ast::Predicate* plnnrc::create_predicate(ast::Root* tree, const Token_Value& name, const Location& loc)
+ast::Macro* plnnrc::create_macro(ast::Root* tree, const Token_Value& name, const Location& loc)
 {
-    ast::Predicate* node = pool_alloc<ast::Predicate>(tree);
-    node->type = ast::Node_Predicate;
+    ast::Macro* node = pool_alloc<ast::Macro>(tree);
+    node->type = ast::Node_Macro;
     node->name = name;
     node->loc = loc;
     return node;
@@ -682,14 +682,14 @@ void plnnrc::convert_to_dnf(ast::Root& tree)
     }
 }
 
-static ast::Expr* inline_predicate(ast::Root& tree, ast::Func* func, ast::Predicate* pred)
+static ast::Expr* inline_macro(ast::Root& tree, ast::Func* func, ast::Macro* macro)
 {
     // clone and replace variables with the arguments from `func`.
-    ast::Expr* pred_clone = clone_tree(tree, pred->expression);
+    ast::Expr* macro_clone = clone_tree(tree, macro->expression);
 
-    for (ast::Expr* node = pred_clone; node != 0; )
+    for (ast::Expr* node = macro_clone; node != 0; )
     {
-        ast::Expr* next_node = preorder_next(pred_clone, node);
+        ast::Expr* next_node = preorder_next(macro_clone, node);
         ast::Var* var = as_Var(node);
         node = next_node;
 
@@ -700,8 +700,8 @@ static ast::Expr* inline_predicate(ast::Root& tree, ast::Func* func, ast::Predic
             uint32_t arg_index = 0;
             for (ast::Expr* arg = func->child; arg != 0; arg = arg->next_sibling, ++arg_index)
             {
-                plnnrc_assert(arg_index < size(pred->params));
-                ast::Param* param = pred->params[arg_index];
+                plnnrc_assert(arg_index < size(macro->params));
+                ast::Param* param = macro->params[arg_index];
                 uint32_t param_hash = hash(param->name);
 
                 if (var_hash == param_hash && equal(var->name, param->name))
@@ -714,58 +714,58 @@ static ast::Expr* inline_predicate(ast::Root& tree, ast::Func* func, ast::Predic
         }
     }
 
-    // replace `func` with `pred_clone`.
-    insert_child(func, pred_clone);
+    // replace `func` with `macro_clone`.
+    insert_child(func, macro_clone);
     unparent(func);
 
-    return pred_clone;
+    return macro_clone;
 }
 
-static ast::Predicate* lookup_referenced_predicate(ast::Domain* domain, ast::Task* task, const Token_Value& name)
+static ast::Macro* lookup_referenced_macro(ast::Domain* domain, ast::Task* task, const Token_Value& name)
 {
     if (task != 0)
     {
-        if (ast::Predicate* ref_pred = get(task->predicate_lookup, name))
+        if (ast::Macro* ref_macro = get(task->macro_lookup, name))
         {
-            return ref_pred;
+            return ref_macro;
         }
     }
 
-    if (ast::Predicate* ref_pred = get(domain->predicate_lookup, name))
+    if (ast::Macro* ref_macro = get(domain->macro_lookup, name))
     {
-        return ref_pred;
+        return ref_macro;
     }
 
     return 0;
 }
 
-static bool disallow_recursive_predicate(ast::Root& tree, ast::Task* task_scope, ast::Predicate* pred)
+static bool disallow_recursive_macro(ast::Root& tree, ast::Task* task_scope, ast::Macro* macro)
 {
     Memory_Stack_Scope scratch_scope(tree.scratch);
 
     ast::Domain* domain_scope = tree.domain;
 
-    Id_Table<ast::Predicate*> preds_seen;
-    init(preds_seen, tree.scratch, 8);
-    set(preds_seen, pred->name, pred);
+    Id_Table<ast::Macro*> macros_seen;
+    init(macros_seen, tree.scratch, 8);
+    set(macros_seen, macro->name, macro);
 
     ast::Expr* root = create_op(&tree, ast::Node_Or);
-    append_child(root, pred->expression);
+    append_child(root, macro->expression);
 
     for (ast::Expr* node = root->child; node != 0; node = preorder_next(root, node))
     {
         if (ast::Func* func = as_Func(node))
         {
-            if (ast::Predicate* ref_pred = lookup_referenced_predicate(domain_scope, task_scope, func->name))
+            if (ast::Macro* ref_macro = lookup_referenced_macro(domain_scope, task_scope, func->name))
             {
-                if (get(preds_seen, func->name) != 0)
+                if (get(macros_seen, func->name) != 0)
                 {
-                    emit(tree, pred->loc, Error_Recursive_Predicate) << pred->name;
+                    emit(tree, macro->loc, Error_Recursive_Macro) << macro->name;
                     return true;
                 }
 
-                set(preds_seen, func->name, ref_pred);
-                insert_child(node, ref_pred->expression);
+                set(macros_seen, func->name, ref_macro);
+                insert_child(node, ref_macro->expression);
             }
         }
     }
@@ -780,15 +780,15 @@ static bool disallow_recursive_predicate(ast::Root& tree, ast::Task* task_scope,
     return false;
 }
 
-static void inline_predicates_in_expr(ast::Root& tree, ast::Domain* domain, ast::Task* task, ast::Expr* root)
+static void inline_macros_in_expr(ast::Root& tree, ast::Domain* domain, ast::Task* task, ast::Expr* root)
 {
     for (ast::Expr* node = root; node != 0; )
     {
         if (ast::Func* func = as_Func(node))
         {
-            if (ast::Predicate* pred = lookup_referenced_predicate(domain, task, func->name))
+            if (ast::Macro* macro = lookup_referenced_macro(domain, task, func->name))
             {
-                node = inline_predicate(tree, func, pred);
+                node = inline_macro(tree, func, macro);
                 if (root == func)
                     return;
 
@@ -796,16 +796,16 @@ static void inline_predicates_in_expr(ast::Root& tree, ast::Domain* domain, ast:
             }
         }
 
-        // syntax sugar for zero-sized argument predicates (e.g. constants).
+        // syntax sugar for zero-sized argument macros (e.g. constants).
         if (ast::Var* var = as_Var(node))
         {
-            if (ast::Predicate* pred = lookup_referenced_predicate(domain, task, var->name))
+            if (ast::Macro* macro = lookup_referenced_macro(domain, task, var->name))
             {
                 ast::Func* func = create_func(&tree, var->name, var->loc);
                 insert_child(var, func);
                 unparent(var);
 
-                node = inline_predicate(tree, func, pred);
+                node = inline_macro(tree, func, macro);
                 if (root == var)
                     return;
 
@@ -817,60 +817,60 @@ static void inline_predicates_in_expr(ast::Root& tree, ast::Domain* domain, ast:
     }
 }
 
-void plnnrc::inline_predicates(ast::Root& tree)
+void plnnrc::inline_macros(ast::Root& tree)
 {
     Memory_Stack_Scope scratch_scope(tree.scratch);
 
     ast::Domain* domain = tree.domain;
 
-    Array<ast::Predicate*> redefines;
+    Array<ast::Macro*> redefines;
     init(redefines, tree.scratch, 16);
 
     // build lookups.
-    init(domain->predicate_lookup, tree.pool, size(domain->predicates));
-    for (uint32_t pred_idx = 0; pred_idx < size(domain->predicates); ++pred_idx)
+    init(domain->macro_lookup, tree.pool, size(domain->macros));
+    for (uint32_t macro_idx = 0; macro_idx < size(domain->macros); ++macro_idx)
     {
-        ast::Predicate* pred = domain->predicates[pred_idx];
-        if (set(domain->predicate_lookup, pred->name, pred))
-            push_back(redefines, pred);
+        ast::Macro* macro = domain->macros[macro_idx];
+        if (set(domain->macro_lookup, macro->name, macro))
+            push_back(redefines, macro);
     }
 
     for (uint32_t task_idx = 0; task_idx < size(domain->tasks); ++task_idx)
     {
         ast::Task* task = domain->tasks[task_idx];
-        init(task->predicate_lookup, tree.pool, size(task->predicates));
+        init(task->macro_lookup, tree.pool, size(task->macros));
 
-        for (uint32_t pred_idx = 0; pred_idx < size(task->predicates); ++pred_idx)
+        for (uint32_t macro_idx = 0; macro_idx < size(task->macros); ++macro_idx)
         {
-            ast::Predicate* pred = task->predicates[pred_idx];
-            if (set(task->predicate_lookup, pred->name, pred))
-                push_back(redefines, pred);
+            ast::Macro* macro = task->macros[macro_idx];
+            if (set(task->macro_lookup, macro->name, macro))
+                push_back(redefines, macro);
         }
     }
 
     bool has_errors = !empty(redefines);
 
     // check recursion.
-    for (uint32_t pred_idx = 0; pred_idx < size(domain->predicates); ++pred_idx)
+    for (uint32_t macro_idx = 0; macro_idx < size(domain->macros); ++macro_idx)
     {
-        ast::Predicate* pred = domain->predicates[pred_idx];
-        has_errors |= disallow_recursive_predicate(tree, 0, pred);
+        ast::Macro* macro = domain->macros[macro_idx];
+        has_errors |= disallow_recursive_macro(tree, 0, macro);
     }
 
     for (uint32_t task_idx = 0; task_idx < size(domain->tasks); ++task_idx)
     {
         ast::Task* task = domain->tasks[task_idx];
-        for (uint32_t pred_idx = 0; pred_idx < size(task->predicates); ++pred_idx)
+        for (uint32_t macro_idx = 0; macro_idx < size(task->macros); ++macro_idx)
         {
-            ast::Predicate* pred = task->predicates[pred_idx];
-            has_errors |= disallow_recursive_predicate(tree, task, pred);
+            ast::Macro* macro = task->macros[macro_idx];
+            has_errors |= disallow_recursive_macro(tree, task, macro);
         }
     }
 
     for (uint32_t redef_idx = 0; redef_idx < size(redefines); ++redef_idx)
     {
-        ast::Predicate* pred = redefines[redef_idx];
-        emit(tree, pred->loc, Error_Redefinition) << pred->name;
+        ast::Macro* macro = redefines[redef_idx];
+        emit(tree, macro->loc, Error_Redefinition) << macro->name;
     }
 
     if (has_errors)
@@ -879,16 +879,16 @@ void plnnrc::inline_predicates(ast::Root& tree)
     for (uint32_t task_idx = 0; task_idx < size(domain->tasks); ++task_idx)
     {
         ast::Task* task = domain->tasks[task_idx];
-        // inline predicates in each preconditions and task lists.
+        // inline macros in each preconditions and task lists.
         for (uint32_t case_idx = 0; case_idx < size(task->cases); ++case_idx)
         {
             ast::Case* case_ = task->cases[case_idx];
             ast::Expr* precond = case_->precond;
-            // add the dummy root node as `inline_predicates` may need to replace the precondition root.
+            // add the dummy root node as `inline_macros` may need to replace the precondition root.
             ast::Expr* new_root = create_op(&tree, ast::Node_And);
             append_child(new_root, precond);
             case_->precond = new_root;
-            inline_predicates_in_expr(tree, domain, task, new_root);
+            inline_macros_in_expr(tree, domain, task, new_root);
 
             for (uint32_t task_list_idx = 0; task_list_idx < size(case_->task_list); ++task_list_idx)
             {
@@ -896,7 +896,7 @@ void plnnrc::inline_predicates(ast::Root& tree)
                 plnnrc_assert(callee);
                 for (ast::Expr* arg = callee->child; arg != 0; arg = arg->next_sibling)
                 {
-                    inline_predicates_in_expr(tree, domain, task, arg);
+                    inline_macros_in_expr(tree, domain, task, arg);
                 }
             }
         }
@@ -1630,10 +1630,10 @@ struct Debug_Output_Visitor
 
     void visit(const ast::World* node) { print(node); print_children(node->facts); }
     void visit(const ast::Primitive* node) { print(node); print_children(node->tasks); }
-    void visit(const ast::Domain* node) { print_named(node); print_children(node->predicates); print_children(node->tasks); }
+    void visit(const ast::Domain* node) { print_named(node); print_children(node->macros); print_children(node->tasks); }
     void visit(const ast::Fact* node) { print_named(node); print_children(node->params); }
-    void visit(const ast::Predicate* node) { print_named(node); print_children(node->params); print_expr(node->expression); }
-    void visit(const ast::Task* node) { print_named(node); print_children(node->params); print_children(node->predicates); print_children(node->cases); }
+    void visit(const ast::Macro* node) { print_named(node); print_children(node->params); print_expr(node->expression); }
+    void visit(const ast::Task* node) { print_named(node); print_children(node->params); print_children(node->macros); print_children(node->cases); }
     void visit(const ast::Case* node) { print(node); print_expr(node->precond); print_children(node->task_list); }
     void visit(const ast::Param* node) { print_named(node); print_data_type(node); }
     void visit(const ast::Var* node) { print_named(node); print_data_type(node); }
