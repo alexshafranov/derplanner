@@ -260,32 +260,48 @@ inline size_t get_type_alignment(Type t)
     #include "derplanner/runtime/type_tags.inl"
 #undef PLNNR_TYPE
 
-/// overloaded `set_arg` functions for Fact_Table tuple data. (column-major order).
+/// `set_arg` functions for Fact_Table tuple data. (column-major order).
 
-#define PLNNR_TYPE(TYPE_TAG, TYPE_NAME)                                                                             \
-    inline void set_arg(Fact_Table& table, uint32_t entry_index, uint32_t param_index, const TYPE_NAME& value)      \
-    {                                                                                                               \
-        plnnr_assert(entry_index < table.num_entries);                                                              \
-        plnnr_assert(param_index < table.format.num_params);                                                        \
-        TYPE_NAME* column = static_cast<TYPE_NAME*>(table.columns[param_index]);                                    \
-        column[entry_index] = value;                                                                                \
-    }                                                                                                               \
+    template <typename T>
+    inline void set_arg(Fact_Table&, uint32_t, uint32_t, const T&)
+    {
+        plnnr_assert(false);
+    }
+
+#define PLNNR_TYPE(TYPE_TAG, TYPE_NAME)                                                                                     \
+    template <>                                                                                                             \
+    inline void set_arg<TYPE_NAME>(Fact_Table& table, uint32_t entry_index, uint32_t param_index, const TYPE_NAME& value)   \
+    {                                                                                                                       \
+        plnnr_assert(entry_index < table.num_entries);                                                                      \
+        plnnr_assert(param_index < table.format.num_params);                                                                \
+        plnnr_assert(Type_##TYPE_TAG == table.format.types[param_index]);                                                   \
+        TYPE_NAME* column = static_cast<TYPE_NAME*>(table.columns[param_index]);                                            \
+        column[entry_index] = value;                                                                                        \
+    }                                                                                                                       \
 
     #include "derplanner/runtime/type_tags.inl"
 #undef PLNNR_TYPE
 
-/// overloaded `set_arg` functions for row-major tuple data. (specified by Param_Layout).
+/// `set_arg` functions for row-major tuple data. (specified by Param_Layout).
 
-#define PLNNR_TYPE(TYPE_TAG, TYPE_NAME)                                                                     \
-    inline void set_arg(void* data, Param_Layout layout, uint32_t param_index, const TYPE_NAME& value)      \
-    {                                                                                                       \
-        plnnr_assert(data != 0);                                                                            \
-        plnnr_assert(param_index < layout.num_params);                                                      \
-        uint8_t* bytes = static_cast<uint8_t*>(data);                                                       \
-        size_t offset = layout.offsets[param_index];                                                        \
-        TYPE_NAME* param = reinterpret_cast<TYPE_NAME*>(bytes + offset);                                    \
-        *param = value;                                                                                     \
-    }                                                                                                       \
+    template <typename T>
+    inline void set_arg(void*, Param_Layout, uint32_t, const T&)
+    {
+        plnnr_assert(false);
+    }
+
+#define PLNNR_TYPE(TYPE_TAG, TYPE_NAME)                                                                                     \
+    template <>                                                                                                             \
+    inline void set_arg<TYPE_NAME>(void* data, Param_Layout layout, uint32_t param_index, const TYPE_NAME& value)           \
+    {                                                                                                                       \
+        plnnr_assert(data != 0);                                                                                            \
+        plnnr_assert(param_index < layout.num_params);                                                                      \
+        plnnr_assert(Type_##TYPE_TAG == layout.types[param_index]);                                                         \
+        uint8_t* bytes = static_cast<uint8_t*>(data);                                                                       \
+        size_t offset = layout.offsets[param_index];                                                                        \
+        TYPE_NAME* param = reinterpret_cast<TYPE_NAME*>(bytes + offset);                                                    \
+        *param = value;                                                                                                     \
+    }                                                                                                                       \
 
     #include "derplanner/runtime/type_tags.inl"
 #undef PLNNR_TYPE
