@@ -77,7 +77,7 @@ void print_help()
 "   --help, -h\n"
 "       Print this help message and exit.\n"
 "\n"
-"   --debug, -d\n"
+"   --compiler-debug\n"
 "       Outputs lexer and parser debugging info.\n"
 "\n");
 }
@@ -278,6 +278,18 @@ int main(int argc, char** argv)
 
     std::string output_name = get_output_name(normalize(cmdline.input_path));
 
+    std::string header_name = output_name + ".h";
+    std::replace(header_name.begin(), header_name.end(), '-', '_');
+
+    std::string source_name = output_name + ".cpp";
+    std::replace(source_name.begin(), source_name.end(), '-', '_');
+
+    std::string header_path = cmdline.output_dir + "/" + header_name;
+    std::string source_path = cmdline.output_dir + "/" + source_name;
+
+    std::string header_guard = output_name + "_H_";
+    std::replace(header_guard.begin(), header_guard.end(), '-', '_');
+
     plnnrc::Memory_Stack_Context mem_ctx_ast(32 * 1024);
     plnnrc::Memory_Stack_Context mem_ctx_scratch(32 * 1024);
 
@@ -305,13 +317,14 @@ int main(int argc, char** argv)
         plnnrc::init(error_frmtr, "\t", "\n", &error_writer);
 
         plnnrc::ast::Root tree;
-        plnnrc::init(tree, &errors, mem_ast, mem_scratch);
-
         plnnrc::Lexer lexer;
-        plnnrc::init(lexer, input_buffer, mem_scratch);
-
         plnnrc::Parser parser;
+        plnnrc::Codegen codegen;
+
+        plnnrc::init(tree, &errors, mem_ast, mem_scratch);
+        plnnrc::init(lexer, input_buffer, mem_scratch);
         plnnrc::init(parser, &lexer, &tree, &errors, mem_scratch);
+        plnnrc::init(codegen, &tree, mem_scratch);
 
         for (;;)
         {
@@ -334,29 +347,14 @@ int main(int argc, char** argv)
             if (!plnnrc::empty(errors))
                 break;
 
-            // generate source code.
-            {
-                std::string header_name = output_name + ".h";
-                std::replace(header_name.begin(), header_name.end(), '-', '_');
+            File_Context header_context(header_path.c_str(), "wb");
+            plnnrc::Writer_Crt header_writer(header_context.fd);
 
-                std::string source_name = output_name + ".cpp";
-                std::replace(source_name.begin(), source_name.end(), '-', '_');
+            File_Context source_context(source_path.c_str(), "wb");
+            plnnrc::Writer_Crt source_writer(source_context.fd);
 
-                File_Context header_context((cmdline.output_dir + "/" + header_name).c_str(), "wb");
-                plnnrc::Writer_Crt header_writer(header_context.fd);
-
-                File_Context source_context((cmdline.output_dir + "/" + source_name).c_str(), "wb");
-                plnnrc::Writer_Crt source_writer(source_context.fd);
-
-                plnnrc::Codegen codegen;
-                plnnrc::init(codegen, &tree, mem_scratch);
-
-                std::string header_guard = output_name + "_H_";
-                std::replace(header_guard.begin(), header_guard.end(), '-', '_');
-
-                plnnrc::generate_header(codegen, header_guard.c_str(), &header_writer);
-                plnnrc::generate_source(codegen, header_name.c_str(), &source_writer);
-            }
+            plnnrc::generate_header(codegen, header_guard.c_str(), &header_writer);
+            plnnrc::generate_source(codegen, header_name.c_str(), &source_writer);
 
             if (cmdline.compiler_debug)
             {
