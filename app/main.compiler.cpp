@@ -348,9 +348,21 @@ int main(int argc, char** argv)
                 break;
 
             File_Context header_context(header_path.c_str(), "wb");
-            plnnrc::Writer_Crt header_writer(header_context.fd);
+            if (!header_context.fd)
+            {
+                fprintf(stderr, "error: can't open output file: '%s'.\n", header_path.c_str());
+                return 1;
+            }
 
             File_Context source_context(source_path.c_str(), "wb");
+            if (!source_context.fd)
+            {
+                fprintf(stderr, "error: can't open output file: '%s'.\n", source_path.c_str());
+                return 1;
+            }
+
+            plnnrc::Writer_Crt header_writer(header_context.fd);
+
             plnnrc::Writer_Crt source_writer(source_context.fd);
 
             plnnrc::generate_header(codegen, header_guard.c_str(), &header_writer);

@@ -1491,7 +1491,27 @@ static bool check_all_params_inferred(ast::Root& tree)
         }
     }
 
-    return has_undefined;
+    return !has_undefined;
+}
+
+template <typename Def>
+static bool check_arguments(ast::Root& tree, ast::Func* func, Def* definition)
+{
+    Expr_Result_Type visitor = { &tree };
+    for (uint32_t arg_idx = 0; arg_idx < size(func->args); ++arg_idx)
+    {
+        ast::Expr* arg = func->args[arg_idx];
+        Token_Type data_type = definition->params[arg_idx]->data_type;
+        Token_Type type = visit_node<Token_Type>(arg, &visitor);
+
+        if (unify(type, data_type) == Token_Not_A_Type)
+        {
+            emit(tree, arg->loc, Error_Expected_Argument_Type) << data_type << func->name << type;
+            return false;
+        }
+    }
+
+    return true;
 }
 
 static bool check_expression_types(ast::Root& tree)
@@ -1511,20 +1531,20 @@ static bool check_expression_types(ast::Root& tree)
                 if (!fact)
                     continue;
 
-                Expr_Result_Type visitor = { &tree };
-                for (uint32_t arg_idx = 0; arg_idx < size(func->args); ++arg_idx)
-                {
-                    ast::Expr* arg = func->args[arg_idx];
-                    ast::Data_Type* param = fact->params[arg_idx];
-                    Token_Type type = visit_node<Token_Type>(arg, &visitor);
-
-                    if (unify(type, param->data_type) == Token_Not_A_Type)
-                    {
-                        emit(tree, arg->loc, Error_Expected_Argument_Type) << param->data_type << func->name << type;
-                        break;
-                    }
-                }
+                check_arguments(tree, func, fact);
             }
+        }
+
+        for (uint32_t task_list_idx = 0; task_list_idx < size(case_->task_list); ++task_list_idx)
+        {
+            ast::Func* callee = as_Func(case_->task_list[task_list_idx]);
+            plnnrc_assert(callee);
+
+            if (ast::Fact* prim = get_primitive(tree, callee->name))
+                check_arguments(tree, callee, prim);
+
+            if (ast::Task* task = get_task(tree, callee->name))
+                check_arguments(tree, callee, task);
         }
     }
 
