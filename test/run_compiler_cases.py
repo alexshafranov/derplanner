@@ -22,6 +22,8 @@ import types
 import unittest
 import functools
 import subprocess
+import tempfile
+import shutil
 
 class Main(unittest.TestCase):
     pass
@@ -38,8 +40,10 @@ def make_test(domain_path):
     def test(self):
         expected = read_expected(domain_path)
         exe = os.path.join('bin', 'x64', 'debug', 'derplannerc')
-        p = subprocess.Popen(args=[exe, '-o', '.', domain_path], stderr=subprocess.PIPE)
+        temp_dir = tempfile.mkdtemp()
+        p = subprocess.Popen(args=[exe, '-o', temp_dir, domain_path], stderr=subprocess.PIPE)
         (stdoutdata, stderrdata) = p.communicate()
+        shutil.rmtree(temp_dir)
         actual = [line.strip() for line in stderrdata.splitlines()]
         self.assertEqual(expected, actual)
 
