@@ -23,16 +23,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "derplanner/compiler/array.h"
-#include "derplanner/compiler/io.h"
 #include "derplanner/compiler/memory.h"
-#include "derplanner/compiler/lexer.h"
-#include "derplanner/compiler/ast.h"
-#include "derplanner/compiler/parser.h"
-#include "derplanner/compiler/codegen.h"
-#include "derplanner/compiler/errors.h"
-
-using namespace plnnrc;
+#include "derplanner/compiler/io.h"
+#include "derplanner/compiler/entry.h"
 
 struct File_Context
 {
@@ -70,9 +63,6 @@ void print_help()
 "   --out, -o <dir>\n"
 "       Set the directory for generated files.\n"
 "       (default: current directory)\n"
-"\n"
-"   --custom-header, -c <header-name>\n"
-"       Custom header.\n"
 "\n"
 "   --help, -h\n"
 "       Print this help message and exit.\n"
@@ -148,7 +138,6 @@ std::string get_output_name(std::string path)
 struct Commandline
 {
     std::string output_dir;
-    std::string custom_header;
     std::string input_path;
     bool compiler_debug;
 };
@@ -208,18 +197,6 @@ bool parse_cmdline(int argc, char** argv, Commandline& result)
                 result.output_dir = value;
                 continue;
             }
-
-            if (name == "custom-header" || name == "c")
-            {
-                if (!result.custom_header.empty())
-                {
-                    fprintf(stderr, "error: multiple values for flag: %s\n", name.c_str());
-                    return false;
-                }
-
-                result.custom_header = value;
-                continue;
-            }
         }
         else
         {
@@ -241,45 +218,6 @@ bool parse_cmdline(int argc, char** argv, Commandline& result)
 
     return true;
 }
-
-struct Error_Location_Compare
-{
-    bool operator()(const plnnrc::Error& lhs, const plnnrc::Error& rhs)
-    {
-        const uint64_t lhs_key = ((uint64_t)(lhs.loc.line) << 32) | lhs.loc.column;
-        const uint64_t rhs_key = ((uint64_t)(rhs.loc.line) << 32) | rhs.loc.column;
-        return lhs_key < rhs_key;
-    }
-};
-
-struct Debug
-{
-    bool enabled;
-    plnnrc::ast::Root* tree;
-    const char* input_buffer;
-
-    Debug(bool enabled, plnnrc::ast::Root* tree, const char* input_buffer)
-        : enabled(enabled)
-        , tree(tree)
-        , input_buffer(input_buffer)
-        {}
-
-    ~Debug()
-    {
-        if (enabled)
-        {
-            plnnrc::Writer_Crt standard_output = plnnrc::make_stdout_writer();
-            plnnrc::debug_output_tokens(input_buffer, &standard_output);
-
-            plnnrc::debug_output_ast(*tree, &standard_output);
-
-            const size_t requested_size = tree->pool->get_total_requested();
-            const size_t total_size = tree->pool->get_total_allocated();
-            printf("req_size  = %d\n", (uint32_t)requested_size);
-            printf("total_size = %d\n", (uint32_t)total_size);
-        }
-    }
-};
 
 int main(int argc, char** argv)
 {
@@ -319,10 +257,10 @@ int main(int argc, char** argv)
     std::string header_guard = output_name + "_H_";
     std::replace(header_guard.begin(), header_guard.end(), '-', '_');
 
-    plnnrc::Memory_Stack_Context mem_ctx_ast(32 * 1024);
+    plnnrc::Memory_Stack_Context mem_ctx_data(32 * 1024);
     plnnrc::Memory_Stack_Context mem_ctx_scratch(32 * 1024);
 
-    plnnrc::Memory_Stack* mem_ast = mem_ctx_ast.mem;
+    plnnrc::Memory_Stack* mem_data = mem_ctx_data.mem;
     plnnrc::Memory_Stack* mem_scratch = mem_ctx_scratch.mem;
 
     size_t input_size = file_size(cmdline.input_path.c_str());
@@ -335,81 +273,38 @@ int main(int argc, char** argv)
 
     input_buffer[input_size] = 0;
 
+    File_Context header_context(header_path.c_str(), "wb");
+    if (!header_context.fd)
     {
-        Memory_Stack_Scope scratch_scope(mem_scratch);
-
-        plnnrc::Array<plnnrc::Error> errors;
-        plnnrc::init(errors, mem_ast, 16);
-
-        plnnrc::Writer_Crt error_writer = plnnrc::make_stderr_writer();
-        plnnrc::Formatter error_frmtr;
-        plnnrc::init(error_frmtr, "\t", "\n", &error_writer);
-
-        plnnrc::ast::Root tree;
-        plnnrc::Lexer lexer;
-        plnnrc::Parser parser;
-        plnnrc::Codegen codegen;
-
-        plnnrc::init(tree, &errors, mem_ast, mem_scratch);
-        plnnrc::init(lexer, input_buffer, mem_scratch);
-        plnnrc::init(parser, &lexer, &tree, &errors, mem_scratch);
-        plnnrc::init(codegen, &tree, mem_scratch);
-
-        Debug debug(cmdline.compiler_debug, &tree, input_buffer);
-
-        for (;;)
-        {
-            // build AST.
-            plnnrc::parse(parser);
-
-            if (!plnnrc::empty(errors))
-                break;
-
-            // process AST.
-            plnnrc::inline_macros(tree);
-            plnnrc::convert_to_dnf(tree);
-            plnnrc::annotate(tree);
-
-            if (!plnnrc::empty(errors))
-                break;
-
-            plnnrc::infer_types(tree);
-
-            if (!plnnrc::empty(errors))
-                break;
-
-            File_Context header_context(header_path.c_str(), "wb");
-            if (!header_context.fd)
-            {
-                fprintf(stderr, "error: can't open output file: '%s'.\n", header_path.c_str());
-                return 1;
-            }
-
-            File_Context source_context(source_path.c_str(), "wb");
-            if (!source_context.fd)
-            {
-                fprintf(stderr, "error: can't open output file: '%s'.\n", source_path.c_str());
-                return 1;
-            }
-
-            plnnrc::Writer_Crt header_writer(header_context.fd);
-
-            plnnrc::Writer_Crt source_writer(source_context.fd);
-
-            plnnrc::generate_header(codegen, header_guard.c_str(), &header_writer);
-            plnnrc::generate_source(codegen, header_name.c_str(), &source_writer);
-
-            return 0;
-        }
-
-        std::sort(&errors[0], &errors[0] + size(errors), Error_Location_Compare());
-
-        for (uint32_t i = 0; i < plnnrc::size(errors); ++i)
-            plnnrc::format_error(errors[i], error_frmtr);
-
-        if (!plnnrc::empty(errors))
-            return 1;
+        fprintf(stderr, "error: can't open output file: '%s'.\n", header_path.c_str());
+        return 1;
     }
 
-    return 0;
+    File_Context source_context(source_path.c_str(), "wb");
+    if (!source_context.fd)
+    {
+        fprintf(stderr, "error: can't open output file: '%s'.\n", source_path.c_str());
+        return 1;
+    }
+
+    plnnrc::Writer_Crt stderr_writer = plnnrc::make_stderr_writer();
+    plnnrc::Writer_Crt stdout_writer = plnnrc::make_stdout_writer();
+
+    plnnrc::Writer_Crt header_writer(header_context.fd);
+    plnnrc::Writer_Crt source_writer(source_context.fd);
+
+    plnnrc::Compiler_Config compiler_config;
+    compiler_config.diag_writer = &stderr_writer;
+    compiler_config.debug_writer = &stdout_writer;
+    compiler_config.data_allocator = mem_data;
+    compiler_config.scratch_allocator = mem_scratch;
+    compiler_config.print_debug_info = cmdline.compiler_debug;
+    compiler_config.header_guard = header_guard.c_str();
+    compiler_config.header_file_name = header_name.c_str();
+    compiler_config.header_writer = &header_writer;
+    compiler_config.source_writer = &source_writer;
+
+    bool successful = compile(&compiler_config, input_buffer);
+
+    return successful ? 0 : 1;
 }
