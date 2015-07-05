@@ -252,6 +252,35 @@ struct Error_Location_Compare
     }
 };
 
+struct Debug
+{
+    bool enabled;
+    plnnrc::ast::Root* tree;
+    const char* input_buffer;
+
+    Debug(bool enabled, plnnrc::ast::Root* tree, const char* input_buffer)
+        : enabled(enabled)
+        , tree(tree)
+        , input_buffer(input_buffer)
+        {}
+
+    ~Debug()
+    {
+        if (enabled)
+        {
+            plnnrc::Writer_Crt standard_output = plnnrc::make_stdout_writer();
+            plnnrc::debug_output_tokens(input_buffer, &standard_output);
+
+            plnnrc::debug_output_ast(*tree, &standard_output);
+
+            const size_t requested_size = tree->pool->get_total_requested();
+            const size_t total_size = tree->pool->get_total_allocated();
+            printf("req_size  = %d\n", (uint32_t)requested_size);
+            printf("total_size = %d\n", (uint32_t)total_size);
+        }
+    }
+};
+
 int main(int argc, char** argv)
 {
     Commandline cmdline;
@@ -326,6 +355,8 @@ int main(int argc, char** argv)
         plnnrc::init(parser, &lexer, &tree, &errors, mem_scratch);
         plnnrc::init(codegen, &tree, mem_scratch);
 
+        Debug debug(cmdline.compiler_debug, &tree, input_buffer);
+
         for (;;)
         {
             // build AST.
@@ -367,19 +398,6 @@ int main(int argc, char** argv)
 
             plnnrc::generate_header(codegen, header_guard.c_str(), &header_writer);
             plnnrc::generate_source(codegen, header_name.c_str(), &source_writer);
-
-            if (cmdline.compiler_debug)
-            {
-                plnnrc::Writer_Crt standard_output = plnnrc::make_stdout_writer();
-                plnnrc::debug_output_tokens(input_buffer, &standard_output);
-
-                plnnrc::debug_output_ast(tree, &standard_output);
-
-                const size_t requested_size = mem_ast->get_total_requested();
-                const size_t total_size = mem_ast->get_total_allocated();
-                printf("req_size  = %d\n", (uint32_t)requested_size);
-                printf("total_size = %d\n", (uint32_t)total_size);
-            }
 
             return 0;
         }

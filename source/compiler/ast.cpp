@@ -1641,6 +1641,9 @@ struct Debug_Output_Visitor
     void print_named(const T* node) { writeln(*fmtr, "%s[%n]", get_type_name(node->type), node->name); }
 
     template <typename T>
+    void print_value(const T* node) { writeln(*fmtr, "%s[%n]", get_type_name(node->type), node->value); }
+
+    template <typename T>
     void print_data_type(const T* node)
     {
         Indent_Scope s(*fmtr);
@@ -1659,7 +1662,7 @@ struct Debug_Output_Visitor
     void visit(const ast::Func* node) { print_named(node); print_children(node); }
     void visit(const ast::Expr* node) { print(node); print_children(node); }
     void visit(const ast::Data_Type* node) { print(node); print_data_type(node); }
-    void visit(const ast::Literal* node) { print(node); }
+    void visit(const ast::Literal* node) { print_value(node); }
 };
 
 void plnnrc::debug_output_ast(const ast::Root& tree, Writer* output)
