@@ -446,8 +446,8 @@ namespace ast
     {
         // string value of the literal.
         Token_Value             value;
-        // type of the literal.
-        Token_Type              data_type;
+        // type of the literal (one of Token_Literal_*).
+        Token_Type              value_type;
     };
 
     // Functional Symbol: fact/function/task/macro used in precondtition or task list.
