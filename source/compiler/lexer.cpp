@@ -128,14 +128,6 @@ static void consume_char(Lexer& state)
     state.buffer_ptr++;
 }
 
-static void unconsume_char(Lexer& state)
-{
-    plnnrc_assert(state.loc.column >= 1);
-    plnnrc_assert(state.buffer_start <= state.buffer_ptr - 1);
-    --state.loc.column;
-    --state.buffer_ptr;
-}
-
 static void consume_newline(Lexer& state)
 {
     char c1 = get_char(state);
@@ -385,10 +377,6 @@ Token plnnrc::lex(Lexer& state)
             tok = make_token(state, Token_Or);
             consume_char(state);
             return tok;
-        case '~':
-            tok = make_token(state, Token_Not);
-            consume_char(state);
-            return tok;
         case '.':
             tok = make_token(state, Token_Dot);
             consume_char(state);
@@ -448,9 +436,8 @@ Token plnnrc::lex(Lexer& state)
                 return tok;
             }
             return tok;
-        case '!':
-            // '!=' or identifier
-            tok = make_token(state, Token_Unknown);
+        case '~':
+            tok = make_token(state, Token_Not);
             consume_char(state);
             if (get_char(state) == '=')
             {
@@ -458,9 +445,7 @@ Token plnnrc::lex(Lexer& state)
                 tok.type = Token_NotEqual;
                 return tok;
             }
-            // lex identifier otherwise.
-            unconsume_char(state);
-            return lex_identifier(state);
+            return tok;
 
         // identifiers & keywords
         case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I': case 'J': case 'K': case 'L': case 'M': case 'N':
