@@ -184,7 +184,7 @@ ast::Literal* plnnrc::create_literal(ast::Root* tree, const Token& token, const 
     ast::Literal* node = pool_alloc<ast::Literal>(tree);
     node->type = ast::Node_Literal;
     node->value = token.value;
-    node->data_type = token.type;
+    node->value_type = token.type;
     node->loc = loc;
     return node;
 }
@@ -1413,7 +1413,7 @@ struct Expr_Result_Type
 
     Token_Type visit(const ast::Literal* node)
     {
-        if (node->data_type == Token_Literal_Float)
+        if (node->value_type == Token_Literal_Float)
             return Token_Float;
 
         int64_t val = as_int(node);
