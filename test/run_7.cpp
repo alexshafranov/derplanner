@@ -78,9 +78,18 @@ static uint32_t s_task_name_hashes[] = {
   744399309, 
 };
 
+static const char* s_symbol_values[] = {
+  0
+ };
+
+static uint32_t s_symbol_hashes[] = {
+  0
+};
+
 static Domain_Info s_domain_info = {
   { 2, 1, 1, s_num_cases, s_first_case, 0, s_task_name_hashes, s_task_names, s_task_parameters, s_bindings, s_num_case_handles, s_task_expands },
   { 2, 0, s_size_hints, s_fact_types, s_fact_name_hashes, s_fact_names },
+  { 0, 0, s_symbol_hashes, s_symbol_values }
 };
 
 void run_7_init_domain_info()

@@ -26,6 +26,7 @@
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/memory.h"
 #include "derplanner/compiler/types.h"
+#include "derplanner/compiler/array.h"
 
 namespace plnnrc {
 
@@ -76,6 +77,10 @@ T* get(const Id_Table<T*>& table, const Token_Value& token_value);
 
 template <typename T>
 T* get(const Id_Table<T*>& table, const char* key, uint32_t length);
+
+// copy all values from the table to an array.
+template <typename T>
+void values(const Id_Table<T>& table, Array<T>& output_values);
 
 }
 
@@ -387,6 +392,24 @@ template <typename T>
 inline uint32_t plnnrc::size(const plnnrc::Id_Table<T>& table)
 {
     return table.size;
+}
+
+template <typename T>
+inline void plnnrc::values(const plnnrc::Id_Table<T>& table, plnnrc::Array<T>& output_values)
+{
+    plnnrc::resize(output_values, plnnrc::size(table));
+    const T* vals = id_table::get_values(table);
+
+    uint32_t j = 0;
+    for (uint32_t i = 0; i < table.max_size; ++i)
+    {
+        const char* key = table.keys[i];
+        if (key)
+        {
+            const T& value = vals[i];
+            output_values[j++] = value;
+        }
+    }
 }
 
 #endif

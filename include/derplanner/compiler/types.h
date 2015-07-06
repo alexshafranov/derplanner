@@ -324,6 +324,8 @@ namespace ast
         Function_Table          functions;
         // all cases in the order of definition.
         Array<Case*>            cases;
+        // symbol literals appearing in the domain.
+        Id_Table<Token_Value>   symbols;
         // parsed `fact` block.
         World*                  world;
         // parsed `prim` block.

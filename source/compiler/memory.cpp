@@ -50,7 +50,6 @@ namespace plnnrc
         uint8_t*                blob;
         uint8_t*                top;
         uint8_t                 data[1];
-
     };
 
     enum { Bookkeeping_Size = sizeof(Memory_Stack) + plnnrc_alignof(Memory_Stack) + sizeof(Memory_Stack_Page) + plnnrc_alignof(Memory_Stack_Page) };

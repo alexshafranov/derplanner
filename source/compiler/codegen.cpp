@@ -579,7 +579,6 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
             Indent_Scope s(fmtr);
             writeln(fmtr, "0");
         }
-
         writeln(fmtr, " };");
         newline(fmtr);
     }
@@ -664,7 +663,6 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
             Indent_Scope s(fmtr);
             writeln(fmtr, "{ 0, 0, 0, 0 }");
         }
-
         writeln(fmtr, "};");
         newline(fmtr);
 
@@ -679,7 +677,6 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
             Indent_Scope s(fmtr);
             writeln(fmtr, "{ 0, 0, 0, 0 }");
         }
-
         writeln(fmtr, "};");
         newline(fmtr);
     }
@@ -699,7 +696,6 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
             Indent_Scope s(fmtr);
             writeln(fmtr, "0");
         }
-
         writeln(fmtr, "};");
         newline(fmtr);
     }
@@ -721,7 +717,6 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
             Indent_Scope s(fmtr);
             writeln(fmtr, "0");
         }
-
         writeln(fmtr, "};");
         newline(fmtr);
     }
@@ -755,7 +750,6 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
             Indent_Scope s(fmtr);
             writeln(fmtr, "0");
         }
-
         writeln(fmtr, "};");
         newline(fmtr);
     }
@@ -775,7 +769,6 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
             Indent_Scope s(fmtr);
             writeln(fmtr, "0");
         }
-
         writeln(fmtr, "};");
         newline(fmtr);
     }
@@ -810,7 +803,6 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
             Indent_Scope s(fmtr);
             writeln(fmtr, "0");
         }
-
         writeln(fmtr, "};");
         newline(fmtr);
     }
@@ -851,7 +843,52 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
             Indent_Scope s(fmtr);
             writeln(fmtr, "0");
         }
+        writeln(fmtr, "};");
+        newline(fmtr);
+    }
 
+    uint32_t symbol_values_hash_seed = 0;
+    // s_symbol_values & s_symbol_hashes
+    {
+        Memory_Stack_Scope scratch_scope(state.scratch);
+
+        Array<Token_Value> symbol_values;
+        init(symbol_values, state.scratch, size(state.tree->symbols));
+        Array<uint32_t> symbol_hashes;
+        init(symbol_hashes, state.scratch, size(state.tree->symbols));
+
+        values(state.tree->symbols, symbol_values);
+
+        build_hashes(symbol_values, symbol_hashes, symbol_values_hash_seed);
+
+        writeln(fmtr, "static const char* s_symbol_values[] = {");
+        for (uint32_t symbol_idx = 0; symbol_idx < size(symbol_values); ++symbol_idx)
+        {
+            Indent_Scope s(fmtr);
+            Token_Value value = symbol_values[symbol_idx];
+            writeln(fmtr, "\"%n\",", value);
+        }
+
+        if (empty(symbol_values))
+        {
+            Indent_Scope s(fmtr);
+            writeln(fmtr, "0");
+        }
+        writeln(fmtr, " };");
+        newline(fmtr);
+
+        writeln(fmtr, "static uint32_t s_symbol_hashes[] = {");
+        for (uint32_t hash_idx = 0; hash_idx < size(symbol_hashes); ++hash_idx)
+        {
+            Indent_Scope s(fmtr);
+            writeln(fmtr, "%u, ", symbol_hashes[hash_idx]);
+        }
+
+        if (empty(symbol_hashes))
+        {
+            Indent_Scope s(fmtr);
+            writeln(fmtr, "0");
+        }
         writeln(fmtr, "};");
         newline(fmtr);
     }
@@ -869,6 +906,8 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
                 num_tasks, num_primitive, num_compound, task_names_hash_seed);
             // database_req
             writeln(fmtr, "{ %d, %d, s_size_hints, s_fact_types, s_fact_name_hashes, s_fact_names },", size(world->facts), fact_names_hash_seed);
+            // symbols
+            writeln(fmtr, "{ %d, %d, s_symbol_hashes, s_symbol_values }", size(state.tree->symbols), symbol_values_hash_seed);
         }
         writeln(fmtr, "};");
         newline(fmtr);

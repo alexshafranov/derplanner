@@ -821,6 +821,11 @@ static ast::Expr* parse_term_expr(Parser& state)
 
     if (is_Literal(tok))
     {
+        if (is_Literal_Symbol(tok))
+        {
+            set(state.tree->symbols, tok.value, tok.value);
+        }
+
         return create_literal(state.tree, tok, tok.loc);
     }
 

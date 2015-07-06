@@ -49,6 +49,8 @@ void plnnrc::init(ast::Root& root, Array<Error>* errors, Memory_Stack* mem_pool,
     root.pool = mem_pool;
     root.scratch = mem_scratch;
 
+    init(root.symbols, root.pool, 16);
+
     // add instrinsics to the function table.
     init(root.functions, root.pool, 16);
     add_function(root.functions, "empty", Token_Int8, Token_Fact_Ref);
@@ -1615,13 +1617,16 @@ struct Compute_Expr_Result_Type
     {
         plnnrc_assert(is_Literal(node->value_type));
 
-        if (node->value_type == Token_Literal_Fact)
+        if (is_Literal_Fact(node->value_type))
             return Token_Fact_Ref;
 
-        if (node->value_type == Token_Literal_Float)
+        if (is_Literal_Symbol(node->value_type))
+            return Token_Id32;
+
+        if (is_Literal_Float(node->value_type))
             return Token_Float;
 
-        if (node->value_type == Token_Literal_Integer)
+        if (is_Literal_Integer(node->value_type))
             return get_integral_literal_type(node);
 
         plnnrc_assert(false);
