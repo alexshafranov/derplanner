@@ -1,0 +1,15 @@
+//: // `empty` predicate to test if there're any values in the fact table.
+//:
+//! check_plan("p!(777)", pstate, domain);
+//!
+domain run_7
+{
+    world { a(int32) b(int32) }
+
+    primitive { p!(int32) }
+
+    task r()
+    {
+        case( empty(a) & empty(b) ) -> [ p!(777) ]
+    }
+}

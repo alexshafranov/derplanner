@@ -47,6 +47,7 @@ PLNNRC_TOKEN(Eos)
 PLNNRC_TOKEN(Id)
 PLNNRC_TOKEN(Literal_Integer)
 PLNNRC_TOKEN(Literal_Float)
+PLNNRC_TOKEN(Literal_Fact)
 
 PLNNRC_KEYWORD_TOKEN(Domain,            "domain")
 PLNNRC_KEYWORD_TOKEN(World,             "world")
@@ -64,10 +65,10 @@ PLNNRC_TYPE_KEYWORD_TOKEN(Int32,        "int32")
 PLNNRC_TYPE_KEYWORD_TOKEN(Int64,        "int64")
 PLNNRC_TYPE_KEYWORD_TOKEN(Float,        "float")
 PLNNRC_TYPE_KEYWORD_TOKEN(Vec3,         "vec3")
-// special token to denote type unifiable with any other (i.e. uninitialized type).
-PLNNRC_TOKEN(Any_Type)
-// special token to denote failed inference.
-PLNNRC_TOKEN(Not_A_Type)
+
+PLNNRC_TOKEN(Any_Type) // special token to denote type unifiable with any other (i.e. uninitialized type).
+PLNNRC_TOKEN(Fact_Ref)
+PLNNRC_TOKEN(Not_A_Type) // special token to denote a failed inference.
 
 PLNNRC_PUNCTUATOR_TOKEN(L_Curly,        "{")
 PLNNRC_PUNCTUATOR_TOKEN(R_Curly,        "}")
@@ -100,8 +101,8 @@ PLNNRC_OPERATOR_TOKEN(Not,              "~")
 
 PLNNRC_TOKEN_GROUP(Keyword, Domain, Vec3)
 PLNNRC_TOKEN_GROUP(Block,   Domain, Task)
-PLNNRC_TOKEN_GROUP(Type,    Id32,   Any_Type)
-PLNNRC_TOKEN_GROUP(Literal, Literal_Integer, Literal_Float)
+PLNNRC_TOKEN_GROUP(Type,    Id32,   Fact_Ref)
+PLNNRC_TOKEN_GROUP(Literal, Literal_Integer, Literal_Fact)
 PLNNRC_TOKEN_GROUP(Operator, Or, Not)
 PLNNRC_TOKEN_GROUP(Binary,  Or, Div)
 

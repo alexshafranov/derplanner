@@ -1003,6 +1003,27 @@ void plnnrc::annotate(ast::Root& tree)
             ast::Case* case_ = tree.cases[case_idx];
             ast::Task* task = case_->task;
 
+            // find fact refs and replace with literal nodes.
+            for (ast::Expr* node = case_->precond; node != 0; )
+            {
+                ast::Expr* next = preorder_next(case_->precond, node);
+
+                if (ast::Var* var = as_Var(node))
+                {
+                    if (get_fact(tree, var->name))
+                    {
+                        Token tok;
+                        tok.value = var->name;
+                        tok.type = Token_Literal_Fact;
+                        ast::Literal* literal = create_literal(&tree, tok, var->loc);
+                        insert_child(var, literal);
+                        unparent(var);
+                    }
+                }
+
+                node = next;
+            }
+
             init(case_->precond_var_lookup, tree.pool, 8);
             init(case_->precond_vars, tree.pool, 8);
             init(case_->task_list_var_lookup, tree.pool, 8);
@@ -1096,15 +1117,16 @@ static const uint32_t Num_Types = Token_Group_Type_Last - Token_Group_Type_First
 
 static Token_Type unification_table[Num_Types][Num_Types] =
 {
-//                Id32                  Id64                Int8                    Int32               Int64               Float               Vec3                Any
-/* Id32 */      { Token_Id32,           Token_Not_A_Type,   Token_Not_A_Type,       Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Id32      },
-/* Id64 */      { Token_Not_A_Type,     Token_Id64,         Token_Not_A_Type,       Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Id64      },
-/* Int8 */      { Token_Not_A_Type,     Token_Not_A_Type,   Token_Int8,             Token_Int32,        Token_Int64,        Token_Float,        Token_Not_A_Type,   Token_Int8      },
-/* Int32 */     { Token_Not_A_Type,     Token_Not_A_Type,   Token_Int32,            Token_Int32,        Token_Int64,        Token_Float,        Token_Not_A_Type,   Token_Int32     },
-/* Int64 */     { Token_Not_A_Type,     Token_Not_A_Type,   Token_Int64,            Token_Int64,        Token_Int64,        Token_Float,        Token_Not_A_Type,   Token_Int64     },
-/* Float */     { Token_Not_A_Type,     Token_Not_A_Type,   Token_Float,            Token_Float,        Token_Float,        Token_Float,        Token_Not_A_Type,   Token_Float     },
-/* Vec3 */      { Token_Not_A_Type,     Token_Not_A_Type,   Token_Not_A_Type,       Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Vec3,         Token_Vec3      },
-/* Any */       { Token_Id32,           Token_Id64,         Token_Int8,             Token_Int32,        Token_Int64,        Token_Float,        Token_Vec3,         Token_Any_Type  },
+//                  Id32                  Id64                Int8                    Int32               Int64               Float               Vec3                Any               Fact_Ref
+/* Id32 */      { Token_Id32,           Token_Not_A_Type,   Token_Not_A_Type,       Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Id32,         Token_Not_A_Type },
+/* Id64 */      { Token_Not_A_Type,     Token_Id64,         Token_Not_A_Type,       Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Id64,         Token_Not_A_Type },
+/* Int8 */      { Token_Not_A_Type,     Token_Not_A_Type,   Token_Int8,             Token_Int32,        Token_Int64,        Token_Float,        Token_Not_A_Type,   Token_Int8,         Token_Not_A_Type },
+/* Int32 */     { Token_Not_A_Type,     Token_Not_A_Type,   Token_Int32,            Token_Int32,        Token_Int64,        Token_Float,        Token_Not_A_Type,   Token_Int32,        Token_Not_A_Type },
+/* Int64 */     { Token_Not_A_Type,     Token_Not_A_Type,   Token_Int64,            Token_Int64,        Token_Int64,        Token_Float,        Token_Not_A_Type,   Token_Int64,        Token_Not_A_Type },
+/* Float */     { Token_Not_A_Type,     Token_Not_A_Type,   Token_Float,            Token_Float,        Token_Float,        Token_Float,        Token_Not_A_Type,   Token_Float,        Token_Not_A_Type },
+/* Vec3 */      { Token_Not_A_Type,     Token_Not_A_Type,   Token_Not_A_Type,       Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Vec3,         Token_Vec3,         Token_Not_A_Type },
+/* Any */       { Token_Id32,           Token_Id64,         Token_Int8,             Token_Int32,        Token_Int64,        Token_Float,        Token_Vec3,         Token_Any_Type,     Token_Not_A_Type },
+/* Fact_Ref */  { Token_Not_A_Type,     Token_Not_A_Type,   Token_Not_A_Type,       Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Fact_Ref   },
 };
 
 static Token_Type unify(Token_Type a, Token_Type b)

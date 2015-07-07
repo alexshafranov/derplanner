@@ -308,6 +308,11 @@ inline size_t get_type_alignment(Type t)
 
 /// Fact_Table
 
+inline bool empty(Fact_Table& table)
+{
+    return !table.num_entries;
+}
+
 template <typename T0>
 inline void add_entry(Fact_Table& table, const T0& a0)
 {

@@ -90,13 +90,6 @@ void annotate(ast::Root& tree);
 // figure out types of parameters and variables.
 bool infer_types(ast::Root& tree);
 
-// true is `var` is wasn't defined (first occurence in scope).
-bool is_bound(const ast::Var* var);
-// true if all arguments are bound.
-bool all_bound(const ast::Func* node);
-// true if all arguments are unbound.
-bool all_unbound(const ast::Func* node);
-
 // convert literal token value to integer.
 int64_t as_int(const ast::Literal* node);
 // convert literal token value to float.
@@ -169,28 +162,4 @@ inline Return_Type plnnrc::visit_node(const plnnrc::ast::Node* node, Visitor_Typ
         plnnrc_assert(false);
         return Return_Type();
     }
-}
-
-inline bool plnnrc::is_bound(const plnnrc::ast::Var* var)
-{
-    return var->definition != 0;
-}
-
-inline bool plnnrc::all_bound(const plnnrc::ast::Func* node)
-{
-    for (ast::Expr* n = node->child; n != 0; n = preorder_next(node, n))
-        if (ast::Var* var = as_Var(n))
-            if (!is_bound(var))
-                return false;
-
-    return true;
-}
-
-inline bool plnnrc::all_unbound(const plnnrc::ast::Func* node)
-{
-    for (ast::Expr* n = node->child; n != 0; n = preorder_next(node, n))
-        if (ast::Var* var = as_Var(n))
-            if (is_bound(var))
-                return false;
-    return true;
 }
