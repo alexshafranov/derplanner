@@ -32,6 +32,9 @@ namespace plnnr {
 void init(Fact_Table& table, Memory* mem, const Fact_Type& format, uint32_t max_entries);
 void destroy(Fact_Table& t);
 
+// retuns true if there're no tuples in the table.
+bool empty(Fact_Table& table);
+
 /// Fact_Database
 
 void init(Fact_Database& db, Memory* mem, const Database_Format& format);

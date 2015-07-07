@@ -122,7 +122,7 @@ enum Token_Group_Ranges
     #undef PLNNRC_TOKEN_GROUP
 };
 
-// Reference to signature (tuple of types) stored `Signature_Table`.
+// Reference to signature (tuple of types), owned by `Signature_Table`.
 struct Signature
 {
     // type of each parameter.

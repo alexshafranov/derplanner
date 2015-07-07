@@ -837,6 +837,7 @@ static void generate_precondition(Codegen& state, uint32_t case_idx, Formatter& 
 struct Expr_Writer
 {
     Formatter* fmtr;
+    ast::Root* tree;
 
     void visit(const ast::Var* node)
     {
@@ -859,7 +860,17 @@ struct Expr_Writer
 
     void visit(const ast::Literal* node)
     {
-        write(*fmtr, "%n", node->value);
+        if (is_Literal_Fact(node->value_type))
+        {
+            ast::Fact* fact = get_fact(*tree, node->value);
+            plnnrc_assert(fact);
+            uint32_t fact_idx = index_of(tree->world->facts, fact);
+            write(*fmtr, "db->tables[%d]", fact_idx);
+        }
+        else
+        {
+            write(*fmtr, "%n", node->value);
+        }
     }
 
     const char* get_op_str(ast::Node_Type node_type)
@@ -913,6 +924,18 @@ struct Expr_Writer
         }
     }
 
+    void visit(const ast::Func* func)
+    {
+        write(*fmtr, "%n(", func->name);
+        for (ast::Expr* arg = func->child; arg != 0; arg = arg->next_sibling)
+        {
+            visit_node<void>(arg, this);
+            if (arg->next_sibling != 0)
+                write(*fmtr, ", ");
+        }
+        write(*fmtr, ")");
+    }
+
     void visit(const ast::Node*) { plnnrc_assert(false); }
 };
 
@@ -920,10 +943,14 @@ static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* liter
 {
     ast::Func* func = is_Not(literal) ? as_Func(literal->child) : as_Func(literal);
 
+    ast::Fact* fact = 0;
+    if (func)
+        fact = get_fact(*state.tree, func->name);
+
     // expression -> generate `if` check.
-    if (!func)
+    if (!func || !fact)
     {
-        Expr_Writer visitor = { &fmtr };
+        Expr_Writer visitor = { &fmtr, state.tree };
         ast::Expr* expr = is_Not(literal) ? literal->child : literal;
 
         if (is_Not(literal))
@@ -1013,7 +1040,7 @@ static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* liter
 
                 // expression -> match result with handle.
                 {
-                    Expr_Writer visitor = { &fmtr };
+                    Expr_Writer visitor = { &fmtr, state.tree };
 
                     write(fmtr, "%iif (%s(", source_data_type_name);
                     visit_node<void>(arg, &visitor);

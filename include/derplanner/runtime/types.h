@@ -206,7 +206,7 @@ struct Planning_State
     uint32_t                max_depth;
     // maximum plan length.
     uint32_t                max_plan_length;
-    // expansion stack to support back-tracking
+    // expansion stack to support back-tracking.
     Stack<Expansion_Frame>  expansion_stack;
     // the resulting plan is stored on this stack.
     Stack<Task_Frame>       task_stack;
