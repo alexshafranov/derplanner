@@ -148,6 +148,23 @@ struct Signature_Table
     Array<uint32_t>     remap;
 };
 
+// Function table with overloading support.
+struct Function_Table
+{
+    // info stored per each function in the table.
+    struct Info
+    {
+        // index of the first signature in `sigs`.
+        uint32_t        first_sig;
+        // number of signatures.
+        uint32_t        num_sigs;
+    };
+    // function signature storage.
+    Signature_Table     sigs;
+    // maps function name -> info.
+    Id_Table<Info>      infos;
+};
+
 // String value of the token.
 struct Token_Value
 {
@@ -177,6 +194,8 @@ struct Token
     Token_Value     value;
 };
 
+namespace ast { struct Func; }
+
 // Emitted error information.
 struct Error
 {
@@ -190,15 +209,17 @@ struct Error
         Arg_Type_Token_Value,
         Arg_Type_Token_Type,
         Arg_Type_Token_Group,
+        Arg_Type_Func_Call_Signature,
     };
 
     // error format argument.
     union Arg
     {
-        Token           token;
-        Token_Value     token_value;
-        Token_Type      token_type;
-        Token_Group     token_group;
+        Token               token;
+        Token_Value         token_value;
+        Token_Type          token_type;
+        Token_Group         token_group;
+        const ast::Func*    func_call;
     };
 
     // type code of the error.
@@ -278,6 +299,8 @@ namespace ast
         Id_Table<Task*>         task_lookup;
         // maps primitive task name -> Fact node.
         Id_Table<Fact*>         primitive_lookup;
+        // intrinsics and user-defined C++ function signatures.
+        Function_Table          functions;
         // all cases in the order of definition.
         Array<Case*>            cases;
         // parsed `world` block.
@@ -457,6 +480,10 @@ namespace ast
         Token_Value             name;
         // an expression for each argument.
         Array<ast::Expr*>       args;
+        // inferred type of each argument.
+        Array<Token_Type>       arg_types;
+        // index of the selected function overload signature (used for intrinsics and user-defined C++ functions).
+        uint32_t                signature_index;
     };
 }
 

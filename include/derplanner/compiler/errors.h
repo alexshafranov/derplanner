@@ -36,6 +36,7 @@ Error& operator<<(Error& builder, const Token& token);
 Error& operator<<(Error& builder, const Token_Value& value);
 Error& operator<<(Error& builder, const Token_Type&  token_type);
 Error& operator<<(Error& builder, const Token_Group& token_group);
+Error& operator<<(Error& builder, const ast::Func* func_call);
 
 void format_error(const Error& error, Formatter& fmtr);
 
@@ -83,6 +84,15 @@ inline plnnrc::Error& plnnrc::operator<<(plnnrc::Error& builder, const plnnrc::T
     plnnrc_assert(builder.num_args < plnnrc::Error::Max_Args);
     builder.args[builder.num_args].token_group = token_group;
     builder.arg_types[builder.num_args] = plnnrc::Error::Arg_Type_Token_Group;
+    ++builder.num_args;
+    return builder;
+}
+
+inline plnnrc::Error& operator<<(plnnrc::Error& builder, plnnrc::ast::Func* func_call)
+{
+    plnnrc_assert(builder.num_args < plnnrc::Error::Max_Args);
+    builder.args[builder.num_args].func_call = func_call;
+    builder.arg_types[builder.num_args] = plnnrc::Error::Arg_Type_Func_Call_Signature;
     ++builder.num_args;
     return builder;
 }

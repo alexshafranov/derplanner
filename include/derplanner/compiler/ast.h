@@ -95,10 +95,13 @@ int64_t as_int(const ast::Literal* node);
 // convert literal token value to float.
 float   as_float(const ast::Literal* node);
 
-// gets token type name as a string to aid debugging.
-const char* get_type_name(ast::Node_Type token_type);
+// returns the type which is unification (i.e. the common type to cast to) of 'a' and 'b'.
+Token_Type unify(Token_Type a, Token_Type b);
+
+// gets token type name as a string to help debugging.
+const char*     get_type_name(ast::Node_Type token_type);
 // writes formatted Abstract-Syntax-Tree to `output`.
-void        debug_output_ast(const ast::Root& root, Writer* output);
+void            debug_output_ast(const ast::Root& root, Writer* output);
 
 #define PLNNRC_NODE(TAG, TYPE)                          \
     bool            is_##TAG(ast::Node_Type type);      \

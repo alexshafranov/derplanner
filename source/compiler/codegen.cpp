@@ -25,6 +25,7 @@
 #include "derplanner/compiler/id_table.h"
 #include "derplanner/compiler/string_buffer.h"
 #include "derplanner/compiler/signature_table.h"
+#include "derplanner/compiler/function_table.h"
 #include "derplanner/compiler/ast.h"
 #include "derplanner/compiler/lexer.h"
 #include "derplanner/compiler/codegen.h"
@@ -926,10 +927,26 @@ struct Expr_Writer
 
     void visit(const ast::Func* func)
     {
-        write(*fmtr, "%n(", func->name);
-        for (ast::Expr* arg = func->child; arg != 0; arg = arg->next_sibling)
+        const Signature sig = get_params_signature(tree->functions, func->signature_index);
+        plnnrc_assert(sig.length == size(func->args));
+
+        write(*fmtr, "plnnr::%n(", func->name);
+        for (uint32_t arg_idx = 0; arg_idx < size(func->args); ++arg_idx)
         {
-            visit_node<void>(arg, this);
+            const ast::Expr* arg = func->args[arg_idx];
+            const Token_Type param_type = sig.types[arg_idx];
+
+            if (param_type != Token_Fact_Ref)
+            {
+                write(*fmtr, "%s(", get_runtime_type_name(param_type));
+                visit_node<void>(arg, this);
+                write(*fmtr, ")");
+            }
+            else
+            {
+                visit_node<void>(arg, this);
+            }
+
             if (arg->next_sibling != 0)
                 write(*fmtr, ", ");
         }
@@ -1068,7 +1085,7 @@ static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* liter
 }
 
 template <typename Param_Node>
-static void generate_arg_setters(const char* set_arg_name, ast::Func* task_func, uint32_t target_task_index, const Array<Param_Node*>& param_types, Formatter& fmtr)
+static void generate_arg_setters(Codegen& state, const char* set_arg_name, ast::Func* task_func, uint32_t target_task_index, const Array<Param_Node*>& param_types, Formatter& fmtr)
 {
     for (uint32_t arg_idx = 0; arg_idx < size(task_func->args); ++arg_idx)
     {
@@ -1098,7 +1115,7 @@ static void generate_arg_setters(const char* set_arg_name, ast::Func* task_func,
 
         // expression
         {
-            Expr_Writer visitor = { &fmtr };
+            Expr_Writer visitor = { &fmtr, state.tree };
 
             write(fmtr, "%i%s(state, s_task_parameters[%d], %d, %s(",
                 set_arg_name, target_task_index, arg_idx, target_data_type_name);
@@ -1166,7 +1183,7 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
                     writeln(fmtr, "begin_task(state, &s_domain_info, %d); // %n",
                         primitive_index, primitive->name);
 
-                    generate_arg_setters("set_task_arg", item, primitive_index, primitive->params, fmtr);
+                    generate_arg_setters(state, "set_task_arg", item, primitive_index, primitive->params, fmtr);
 
                     if (item == back(case_->task_list) && !case_->foreach)
                     {
@@ -1191,7 +1208,7 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
                     writeln(fmtr, "begin_composite(state, &s_domain_info, %d); // %n",
                         composite_index, composite->name);
 
-                    generate_arg_setters("set_composite_arg", item, composite_index, composite->params, fmtr);
+                    generate_arg_setters(state, "set_composite_arg", item, composite_index, composite->params, fmtr);
 
                     if (item == back(case_->task_list) && !case_->foreach)
                     {

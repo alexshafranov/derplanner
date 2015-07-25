@@ -20,6 +20,7 @@
 
 #include <ctype.h>
 
+#include "derplanner/compiler/array.h"
 #include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/errors.h"
 #include "derplanner/compiler/lexer.h"
@@ -135,6 +136,20 @@ void plnnrc::format_error(const plnnrc::Error& error, plnnrc::Formatter& fmtr)
             case Error::Arg_Type_Token_Group:
                 {
                     write(fmtr, "%s", get_group_name(error.args[slot].token_group));
+                    break;
+                }
+            case Error::Arg_Type_Func_Call_Signature:
+                {
+                    const ast::Func* func = error.args[slot].func_call;
+                    write(fmtr, "%n(", func->name);
+                    for (uint32_t i = 0; i < size(func->arg_types); ++i)
+                    {
+                        const Token_Type type = func->arg_types[i];
+                        write(fmtr, "%s", get_description(type));
+                        if (i < size(func->arg_types) - 1)
+                            write(fmtr, ", ");
+                    }
+                    write(fmtr, ")");
                     break;
                 }
             default:

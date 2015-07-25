@@ -25,6 +25,7 @@
 
 #include "derplanner/runtime/assert.h"
 #include "derplanner/runtime/memory.h"
+#include "derplanner/runtime/intrinsics.h"
 #include "derplanner/runtime/database.h"
 #include "derplanner/runtime/planning.h"
 

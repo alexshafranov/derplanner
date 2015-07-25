@@ -90,7 +90,7 @@ TEST(run_7)
     plnnr::Find_Plan_Status status = plnnr::find_plan(domain, &db, &pstate);
     CHECK_EQUAL(plnnr::Find_Plan_Succeeded, status);
 
-    check_plan("p!(777)", pstate, domain);
+    check_plan("p!(777, 1)", pstate, domain);
 
 }
 

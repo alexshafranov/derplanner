@@ -37,12 +37,13 @@ static Fact_Type s_fact_types[] = {
 
 static Type s_layout_types[] = {
   Type_Int32,
+  Type_Int8,
 };
 
-static size_t s_layout_offsets[1];
+static size_t s_layout_offsets[2];
 
 static Param_Layout s_task_parameters[] = {
-  { 1, s_layout_types + 0, 0, s_layout_offsets + 0 },
+  { 2, s_layout_types + 0, 0, s_layout_offsets + 0 },
   { 0, 0, 0, 0 },
 };
 
@@ -101,8 +102,8 @@ static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 
   plnnr_coroutine_begin(frame, precond_label);
 
-  if (bool(empty(db->tables[0]))) {
-    if (bool(empty(db->tables[1]))) {
+  if (bool(plnnr::empty(db->tables[0]))) {
+    if (bool(plnnr::empty(db->tables[1]))) {
       plnnr_coroutine_yield(frame, precond_label, 1);
     }
   }
@@ -118,6 +119,7 @@ static bool r_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Databas
   while (p0_next(state, frame, db)) {
     begin_task(state, &s_domain_info, 0); // p!
     set_task_arg(state, s_task_parameters[0], 0, int32_t(777));
+    set_task_arg(state, s_task_parameters[0], 1, int8_t(plnnr::empty(db->tables[1])));
     frame->status = Expansion_Frame::Status_Expanded;
     plnnr_coroutine_yield(frame, expand_label, 1);
 

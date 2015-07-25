@@ -1,0 +1,13 @@
+//> error (11, 26): failed to resolve function call empty(Fact_Ref, type 'int8').
+//> error (11, 55): failed to resolve function call empty(type 'int8', Fact_Ref).
+domain test
+{
+    world { a(int32) b(int32) }
+
+    primitive { p!(int32, int8) }
+
+    task r()
+    {
+        case( empty(a) & empty(b, 111) ) -> [ p!(777, empty(111, b)) ]
+    }
+}

@@ -48,42 +48,39 @@ bool set(Id_Table<T>& table, const Token_Value& token_value, const T& value);
 template <typename T>
 bool set(Id_Table<T>& table, const char* key, uint32_t length, const T& value);
 
-
-// returns pointer to value for the given key or null if it doesn't exist.
-template <typename T>
-T* get(Id_Table<T>& table, const char* key);
-
-template <typename T>
-T* get(Id_Table<T>& table, const Token_Value& token_value);
-
-template <typename T>
-T* get(Id_Table<T>& table, const char* key, uint32_t length);
-
-// specializations for `T*`
-template <typename T>
-T* get(Id_Table<T*>& table, const char* key, uint32_t length);
-
-template <typename T>
-T* get(Id_Table<T*>& table, const char* key);
-
-template <typename T>
-T* get(Id_Table<T*>& table, const Token_Value& token_value);
-
-
+// returns the number of entries in the table.
 template <typename T>
 uint32_t size(const Id_Table<T>& table);
 
+// returns pointer to value for the given key or null if it doesn't exist.
 template <typename T>
-uint32_t max_size(const Id_Table<T>& table);
+T* get(const Id_Table<T>& table, const char* key);
+
+template <typename T>
+T* get(const Id_Table<T>& table, const Token_Value& token_value);
+
+template <typename T>
+T* get(const Id_Table<T>& table, const char* key, uint32_t length);
+
+/// `get` specializations for `T*`
+
+template <typename T>
+T* get(const Id_Table<T*>& table, const char* key);
+
+template <typename T>
+T* get(const Id_Table<T*>& table, const Token_Value& token_value);
+
+template <typename T>
+T* get(const Id_Table<T*>& table, const char* key, uint32_t length);
 
 }
 
-/// Implementation
+/// Inline code.
 
 namespace id_table
 {
     template <typename T>
-    inline T* get_values(plnnrc::Id_Table<T>& table)
+    inline T* get_values(const plnnrc::Id_Table<T>& table)
     {
         return static_cast<T*>(table.values);
     }
@@ -126,31 +123,31 @@ namespace id_table
     // distance (number of steps) between ideal slot and actual slot
     inline uint32_t probing_distance(uint32_t hash_code, uint32_t slot, uint32_t max_size)
     {
-        uint32_t ideal_slot = hash_code & (max_size - 1);
-        uint32_t distance = (slot + max_size - ideal_slot) & (max_size - 1);
+        const uint32_t ideal_slot = hash_code & (max_size - 1);
+        const uint32_t distance = (slot + max_size - ideal_slot) & (max_size - 1);
         return distance;
     }
 
     template <typename T>
     bool _set(plnnrc::Id_Table<T>& table, const char* key, uint32_t length, const T& value)
     {
-        uint32_t max_size = table.max_size;
+        const uint32_t max_size = table.max_size;
         uint32_t curr_hash = id_table::hash(key, length);
         const char* curr_key = key;
         uint32_t curr_length = length;
         T curr_value = value;
-        uint32_t ideal_slot = curr_hash & (max_size - 1);
+        uint32_t curr_ideal_slot = curr_hash & (max_size - 1);
         T* values = id_table::get_values(table);
 
-        // robin-hood hashing: linear probing + minimizing variance of the probing distance
+        // robin-hood probing: linear probing + minimizing the variance of the probing distance
         for (uint32_t probe = 0; probe < max_size; ++probe)
         {
-            uint32_t slot = (ideal_slot + probe) & (max_size - 1);
+            const uint32_t slot = (curr_ideal_slot + probe) & (max_size - 1);
 
-            uint32_t slot_hash = table.hashes[slot];
+            const uint32_t slot_hash = table.hashes[slot];
             const char* slot_key = table.keys[slot];
-            uint32_t slot_length = table.lengths[slot];
-            T slot_value = values[slot];
+            const uint32_t slot_length = table.lengths[slot];
+            const T slot_value = values[slot];
 
             // empty slot -> set value and exit.
             if (!slot_key)
@@ -173,11 +170,7 @@ namespace id_table
                 }
             }
 
-            // robin hood probing:
-            // if the number of linear probing steps needed to arrive to this slot
-            // is less than the number of steps for the current key,
-            // re-insert the slot key.
-
+            // robin-hood probing: if the number of linear probing steps needed to arrive to this slot is less than the number of steps for the current key, re-insert the slot key.
             uint32_t slot_dist = id_table::probing_distance(slot_hash, slot, max_size);
             if (slot_dist < probe)
             {
@@ -191,7 +184,7 @@ namespace id_table
                 curr_length = slot_length;
                 curr_value = slot_value;
 
-                ideal_slot = slot_hash & (max_size - 1);
+                curr_ideal_slot = slot_hash & (max_size - 1);
                 probe = slot_dist;
             }
         }
@@ -233,7 +226,7 @@ namespace id_table
         for (uint32_t i = 0; i < old_max; ++i)
         {
             const char* key = old_keys[i];
-            uint32_t length = old_lengths[i];
+            const uint32_t length = old_lengths[i];
             const T& value = old_values[i];
 
             if (key != 0)
@@ -277,7 +270,7 @@ inline void plnnrc::destroy(plnnrc::Id_Table_Base& table)
 template <typename T>
 inline bool plnnrc::set(plnnrc::Id_Table<T>& table, const char* key, const T& value)
 {
-    uint32_t length = (uint32_t)strlen(key);
+    const uint32_t length = (uint32_t)strlen(key);
     return plnnrc::set<T>(table, key, length, value);
 }
 
@@ -304,25 +297,25 @@ inline bool plnnrc::set(plnnrc::Id_Table<T>& table, const char* key, uint32_t le
 }
 
 template <typename T>
-inline T* plnnrc::get(plnnrc::Id_Table<T>& table, const char* key)
+inline T* plnnrc::get(const plnnrc::Id_Table<T>& table, const char* key)
 {
-    uint32_t length = (uint32_t)strlen(key);
+    const uint32_t length = (uint32_t)strlen(key);
     return plnnrc::get<T>(table, key, length);
 }
 
 template <typename T>
-inline T* plnnrc::get(plnnrc::Id_Table<T>& table, const plnnrc::Token_Value& token_value)
+inline T* plnnrc::get(const plnnrc::Id_Table<T>& table, const plnnrc::Token_Value& token_value)
 {
     return plnnrc::get<T>(table, token_value.str, token_value.length);
 }
 
 template <typename T>
-inline T* plnnrc::get(plnnrc::Id_Table<T>& table, const char* key, uint32_t length)
+inline T* plnnrc::get(const plnnrc::Id_Table<T>& table, const char* key, uint32_t length)
 {
     const uint32_t max_size = table.max_size;
 
-    uint32_t hash = id_table::hash(key, length);
-    uint32_t ideal_slot = hash & (max_size - 1);
+    const uint32_t hash = id_table::hash(key, length);
+    const uint32_t ideal_slot = hash & (max_size - 1);
     T* values = id_table::get_values(table);
 
     for (uint32_t probe = 0; probe < max_size; ++probe)
@@ -360,21 +353,21 @@ inline T* plnnrc::get(plnnrc::Id_Table<T>& table, const char* key, uint32_t leng
 }
 
 template <typename T>
-inline T* plnnrc::get(plnnrc::Id_Table<T*>& table, const char* key, uint32_t length)
+inline T* plnnrc::get(const plnnrc::Id_Table<T*>& table, const char* key, uint32_t length)
 {
     T** ptr = plnnrc::get<T*>(table, key, length);
     return ptr ? *ptr : 0;
 }
 
 template <typename T>
-inline T* plnnrc::get(plnnrc::Id_Table<T*>& table, const char* key)
+inline T* plnnrc::get(const plnnrc::Id_Table<T*>& table, const char* key)
 {
     uint32_t length = (uint32_t)strlen(key);
     return plnnrc::get<T>(table, key, length);
 }
 
 template <typename T>
-inline T* plnnrc::get(plnnrc::Id_Table<T*>& table, const plnnrc::Token_Value& token_value)
+inline T* plnnrc::get(const plnnrc::Id_Table<T*>& table, const plnnrc::Token_Value& token_value)
 {
     return plnnrc::get<T>(table, token_value.str, token_value.length);
 }
@@ -383,12 +376,6 @@ template <typename T>
 inline uint32_t plnnrc::size(const plnnrc::Id_Table<T>& table)
 {
     return table.size;
-}
-
-template <typename T>
-inline uint32_t plnnrc::max_size(const plnnrc::Id_Table<T>& table)
-{
-    return table.max_size;
 }
 
 #endif

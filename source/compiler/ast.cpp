@@ -27,6 +27,7 @@
 #include "derplanner/compiler/id_table.h"
 #include "derplanner/compiler/errors.h"
 #include "derplanner/compiler/lexer.h"
+#include "derplanner/compiler/function_table.h"
 #include "derplanner/compiler/ast.h"
 
 using namespace plnnrc;
@@ -47,6 +48,19 @@ void plnnrc::init(ast::Root& root, Array<Error>* errors, Memory_Stack* mem_pool,
     root.errs = errors;
     root.pool = mem_pool;
     root.scratch = mem_scratch;
+
+    // add instrinsics to the function table.
+    init(root.functions, root.pool, 1);
+    add_function(root.functions, "empty", Token_Int8, Token_Fact_Ref);
+
+    add_function(root.functions, "abs", Token_Float, Token_Float);
+    add_function(root.functions, "cos", Token_Float, Token_Float);
+    add_function(root.functions, "sin", Token_Float, Token_Float);
+
+    add_function(root.functions, "dot", Token_Float, Token_Vec3);
+    add_function(root.functions, "x", Token_Float, Token_Vec3);
+    add_function(root.functions, "y", Token_Float, Token_Vec3);
+    add_function(root.functions, "z", Token_Float, Token_Vec3);
 }
 
 template <typename T>
@@ -923,6 +937,30 @@ static void build_var_lookup(ast::Expr* expr, Array<ast::Var*>& out_vars, Id_Tab
     }
 }
 
+static void create_fact_ref_literals(ast::Root& tree, ast::Expr* expr)
+{
+    // find fact refs and replace with literal nodes.
+    for (ast::Expr* node = expr; node != 0; )
+    {
+        ast::Expr* next = preorder_next(expr, node);
+
+        if (ast::Var* var = as_Var(node))
+        {
+            if (get_fact(tree, var->name))
+            {
+                Token tok;
+                tok.value = var->name;
+                tok.type = Token_Literal_Fact;
+                ast::Literal* literal = create_literal(&tree, tok, var->loc);
+                insert_child(var, literal);
+                unparent(var);
+            }
+        }
+
+        node = next;
+    }
+}
+
 void plnnrc::annotate(ast::Root& tree)
 {
     ast::World* world = tree.world;
@@ -1003,26 +1041,7 @@ void plnnrc::annotate(ast::Root& tree)
             ast::Case* case_ = tree.cases[case_idx];
             ast::Task* task = case_->task;
 
-            // find fact refs and replace with literal nodes.
-            for (ast::Expr* node = case_->precond; node != 0; )
-            {
-                ast::Expr* next = preorder_next(case_->precond, node);
-
-                if (ast::Var* var = as_Var(node))
-                {
-                    if (get_fact(tree, var->name))
-                    {
-                        Token tok;
-                        tok.value = var->name;
-                        tok.type = Token_Literal_Fact;
-                        ast::Literal* literal = create_literal(&tree, tok, var->loc);
-                        insert_child(var, literal);
-                        unparent(var);
-                    }
-                }
-
-                node = next;
-            }
+            create_fact_ref_literals(tree, case_->precond);
 
             init(case_->precond_var_lookup, tree.pool, 8);
             init(case_->precond_vars, tree.pool, 8);
@@ -1034,15 +1053,22 @@ void plnnrc::annotate(ast::Root& tree)
             for (uint32_t task_idx = 0; task_idx < size(case_->task_list); ++task_idx)
             {
                 ast::Expr* task_expr = case_->task_list[task_idx];
+
+                create_fact_ref_literals(tree, task_expr);
+
                 build_var_lookup(task_expr, case_->task_list_vars, case_->task_list_var_lookup);
 
-                ast::Func* func = as_Func(task_expr);
-                plnnrc_assert(func);
-
-                init(func->args, tree.pool, 8);
-                for (ast::Expr* child = func->child; child != 0; child = child->next_sibling)
+                for (ast::Expr* node = task_expr; node != 0; node = preorder_next(task_expr, node))
                 {
-                    push_back(func->args, child);
+                    ast::Func* func = as_Func(node);
+                    if (!func)
+                        continue;
+
+                    init(func->args, tree.pool, 8);
+                    for (ast::Expr* child = func->child; child != 0; child = child->next_sibling)
+                    {
+                        push_back(func->args, child);
+                    }
                 }
             }
 
@@ -1129,7 +1155,7 @@ static Token_Type unification_table[Num_Types][Num_Types] =
 /* Fact_Ref */  { Token_Not_A_Type,     Token_Not_A_Type,   Token_Not_A_Type,       Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Fact_Ref   },
 };
 
-static Token_Type unify(Token_Type a, Token_Type b)
+Token_Type plnnrc::unify(Token_Type a, Token_Type b)
 {
     plnnrc_assert(is_Type(a));
     plnnrc_assert(is_Type(b));
@@ -1427,17 +1453,33 @@ static Token_Type get_op_token_type(ast::Node_Type node_type)
     }
 }
 
-struct Expr_Result_Type
+static bool resolve_function_call(ast::Root& tree, ast::Func* func);
+
+struct Expr_Type_Visitor
 {
     ast::Root* tree;
 
-    Token_Type visit(const ast::Var* node) { return node->data_type; }
+    Token_Type visit(ast::Var* node) { return node->data_type; }
 
-    Token_Type visit(const ast::Literal* node)
+    Token_Type visit(ast::Literal* node)
     {
+        plnnrc_assert(is_Literal(node->value_type));
+
+        if (node->value_type == Token_Literal_Fact)
+            return Token_Fact_Ref;
+
         if (node->value_type == Token_Literal_Float)
             return Token_Float;
 
+        if (node->value_type == Token_Literal_Integer)
+            return get_integral_literal_type(node);
+
+        plnnrc_assert(false);
+        return Token_Not_A_Type;
+    }
+
+    Token_Type get_integral_literal_type(ast::Literal* node)
+    {
         int64_t val = as_int(node);
 
         if (val >= std::numeric_limits<int8_t>::min() && val <= std::numeric_limits<int8_t>::max())
@@ -1449,11 +1491,11 @@ struct Expr_Result_Type
         return Token_Int64;
     }
 
-    Token_Type visit(const ast::Op* node)
+    Token_Type visit(ast::Op* node)
     {
         if (is_Logical(node) || is_Comparison(node))
         {
-            for (const ast::Expr* child = node->child; child != 0; child = child->next_sibling)
+            for (ast::Expr* child = node->child; child != 0; child = child->next_sibling)
             {
                 Token_Type arg_type = visit_node<Token_Type>(child, this);
                 // must be unifiable with Int8
@@ -1473,7 +1515,7 @@ struct Expr_Result_Type
         {
             Token_Type result_type = Token_Any_Type;
 
-            for (const ast::Expr* child = node->child; child != 0; child = child->next_sibling)
+            for (ast::Expr* child = node->child; child != 0; child = child->next_sibling)
             {
                 Token_Type arg_type = visit_node<Token_Type>(child, this);
                 result_type = unify(result_type, arg_type);
@@ -1492,10 +1534,18 @@ struct Expr_Result_Type
         return Token_Not_A_Type;
     }
 
-    Token_Type visit(const ast::Node*) { plnnrc_assert(false); return Token_Not_A_Type; }
+    Token_Type visit(ast::Func* node)
+    {
+        if (!resolve_function_call(*tree, node))
+            return Token_Not_A_Type;
+
+        return get_return_type(tree->functions, node->signature_index);
+    }
+
+    Token_Type visit(ast::Node*) { plnnrc_assert(false); return Token_Not_A_Type; }
 };
 
-static bool check_all_params_inferred(ast::Root& tree)
+static bool check_all_task_params_inferred(ast::Root& tree)
 {
     bool has_undefined = false;
 
@@ -1519,12 +1569,17 @@ static bool check_all_params_inferred(ast::Root& tree)
 template <typename Def>
 static bool check_arguments(ast::Root& tree, ast::Func* func, Def* definition)
 {
-    Expr_Result_Type visitor = { &tree };
+    Expr_Type_Visitor visitor = { &tree };
     for (uint32_t arg_idx = 0; arg_idx < size(func->args); ++arg_idx)
     {
         ast::Expr* arg = func->args[arg_idx];
-        Token_Type data_type = definition->params[arg_idx]->data_type;
-        Token_Type type = visit_node<Token_Type>(arg, &visitor);
+        const Token_Type data_type = definition->params[arg_idx]->data_type;
+        const Token_Type type = visit_node<Token_Type>(arg, &visitor);
+
+        if (type == Token_Not_A_Type)
+        {
+            return false;
+        }
 
         if (unify(type, data_type) == Token_Not_A_Type)
         {
@@ -1536,6 +1591,34 @@ static bool check_arguments(ast::Root& tree, ast::Func* func, Def* definition)
     return true;
 }
 
+static bool resolve_function_call(ast::Root& tree, ast::Func* func)
+{
+    // cache argument types.
+    init(func->arg_types, tree.pool, size(func->args));
+
+    Expr_Type_Visitor visitor = { &tree };
+    for (uint32_t arg_idx = 0; arg_idx < size(func->args); ++arg_idx)
+    {
+        ast::Expr* arg = func->args[arg_idx];
+        const Token_Type type = visit_node<Token_Type>(arg, &visitor);
+
+        if (type == Token_Not_A_Type)
+            return false;
+
+        push_back(func->arg_types, type);
+    }
+
+    func->signature_index = resolve(tree.functions, func->name, func->arg_types);
+
+    if (func->signature_index < num_signatures(tree.functions))
+    {
+        return true;
+    }
+
+    emit(tree, func->loc, Error_Failed_To_Resolve_Call) << func;
+    return false;
+}
+
 static bool check_expression_types(ast::Root& tree)
 {
     uint32_t err_count = size(*tree.errs);
@@ -1545,15 +1628,19 @@ static bool check_expression_types(ast::Root& tree)
         ast::Case* case_ = tree.cases[case_idx];
         ast::Expr* precond = case_->precond;
 
-        for (ast::Expr* node = precond->child; node != 0; node = node->next_sibling)
+        for (ast::Expr* node = precond->child; node != 0; node = preorder_next(precond->child, node))
         {
             if (ast::Func* func = as_Func(node))
             {
                 ast::Fact* fact = get_fact(tree, func->name);
-                if (!fact)
-                    continue;
 
-                check_arguments(tree, func, fact);
+                if (fact)
+                {
+                    check_arguments(tree, func, fact);
+                    continue;
+                }
+
+                resolve_function_call(tree, func);
             }
         }
 
@@ -1604,7 +1691,7 @@ bool plnnrc::infer_types(ast::Root& tree)
         return false;
 
     // loop through tasks and give errors for type-less params.
-    if (!check_all_params_inferred(tree))
+    if (!check_all_task_params_inferred(tree))
         return false;
 
     // compute expression types and check them against expected parameter types.
