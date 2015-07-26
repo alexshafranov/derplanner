@@ -86,7 +86,7 @@ void plnnrc::init(Lexer& result, const char* buffer, Memory_Stack* scratch)
     result.buffer_ptr = buffer;
     result.loc.column = 1;
     result.loc.line = 1;
-    const uint32_t num_keywords = (uint32_t)(Token_Group_Keyword_Last - Token_Group_Keyword_First);
+    const uint32_t num_keywords = (uint32_t)(Token_Group_Keyword_Last - Token_Group_Keyword_First + 1);
     plnnrc::init(result.keywords, scratch, num_keywords);
     result.scratch = scratch;
 
