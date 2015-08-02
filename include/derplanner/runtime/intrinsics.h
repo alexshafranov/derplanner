@@ -42,7 +42,7 @@ inline float pi() { return PLNNR_PI; }
 
 inline float clamp(float v, float a, float b) { return (v < a) ? a : ((v > b) ? b : v); }
 
-inline Vec3 vec3(float x, float y, float z) { Vec3 v = { x, y, z }; return v; }
+inline Vec3 vec3(float x, float y, float z) { return Vec3(x, y, z); }
 
 inline float x(Vec3 v) { return v.x; }
 
