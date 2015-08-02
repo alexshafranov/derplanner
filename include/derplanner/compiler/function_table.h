@@ -39,6 +39,7 @@ uint32_t num_signatures(const Function_Table& table);
 void add_function(Function_Table& table, const char* name, Token_Type ret);
 void add_function(Function_Table& table, const char* name, Token_Type ret, Token_Type arg_0);
 void add_function(Function_Table& table, const char* name, Token_Type ret, Token_Type arg_0, Token_Type arg_1);
+void add_function(Function_Table& table, const char* name, Token_Type ret, Token_Type arg_0, Token_Type arg_1, Token_Type arg_2);
 
 // finds the signature index in `table.sigs` which is the first function overload given specific `argument_types`. returns `num_signatures` in case of failure.
 uint32_t resolve(const Function_Table& table, const Token_Value& name, const Array<Token_Type>& argument_types);

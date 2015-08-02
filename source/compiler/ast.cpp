@@ -56,11 +56,20 @@ void plnnrc::init(ast::Root& root, Array<Error>* errors, Memory_Stack* mem_pool,
     add_function(root.functions, "abs", Token_Float, Token_Float);
     add_function(root.functions, "cos", Token_Float, Token_Float);
     add_function(root.functions, "sin", Token_Float, Token_Float);
+    add_function(root.functions, "rad", Token_Float, Token_Float);
+    add_function(root.functions, "deg", Token_Float, Token_Float);
+    add_function(root.functions, "pi", Token_Float);
+    add_function(root.functions, "clamp", Token_Float, Token_Float, Token_Float, Token_Float);
 
-    add_function(root.functions, "dot", Token_Float, Token_Vec3);
+    add_function(root.functions, "vec3", Token_Vec3, Token_Float, Token_Float, Token_Float);
     add_function(root.functions, "x", Token_Float, Token_Vec3);
     add_function(root.functions, "y", Token_Float, Token_Vec3);
     add_function(root.functions, "z", Token_Float, Token_Vec3);
+    add_function(root.functions, "dot", Token_Float, Token_Vec3, Token_Vec3);
+    add_function(root.functions, "cross", Token_Vec3, Token_Vec3, Token_Vec3);
+    add_function(root.functions, "len", Token_Float, Token_Vec3);
+    add_function(root.functions, "dist", Token_Float, Token_Vec3, Token_Vec3);
+    add_function(root.functions, "norm", Token_Vec3, Token_Vec3);
 }
 
 template <typename T>

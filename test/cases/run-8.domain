@@ -1,0 +1,32 @@
+//: // some vector operations.
+//:
+//: plnnr::Fact_Table* me = plnnr::find_table(db, "me");
+//: plnnr::Fact_Table* ob = plnnr::find_table(db, "object");
+//:
+//: plnnr::add_entry(me, plnnr::Vec3(0.0f, 1.0f, 0.0f), plnnr::Vec3(1.f, 0.0f, 0.f));
+//:
+//: plnnr::add_entry(ob, plnnr::Id32(1), plnnr::Vec3(0.f, -1.f, 0.f));
+//: plnnr::add_entry(ob, plnnr::Id32(2), plnnr::Vec3(3.f,  0.5f, 0.f));
+//: plnnr::add_entry(ob, plnnr::Id32(3), plnnr::Vec3(0.f,  2.f, 0.f));
+//:
+//! check_plan("attack!(2)", pstate, domain);
+//!
+domain run_8
+{
+    world
+    {
+        me(vec3, vec3)
+        object(id32, vec3)
+    }
+
+    primitive { attack!(id32) }
+
+    const Fov_Cos_Half_Angle = cos(pi() / 4.0)
+
+    macro visible(Pos, Dir, Tgt) = ( dot(norm(Tgt - Pos), Dir) >= Fov_Cos_Half_Angle )
+
+    task attack_all_visible()
+    {
+        each( me(Pos, Dir) & object(Id, Tgt) & visible(Pos, Dir, Tgt) ) -> [ attack!(Id) ]
+    }
+}

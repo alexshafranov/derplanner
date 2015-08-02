@@ -88,6 +88,19 @@ void plnnrc::add_function(Function_Table& table, const char* name, Token_Type re
     end_signature(table.sigs);
 }
 
+void plnnrc::add_function(Function_Table& table, const char* name, Token_Type ret, Token_Type arg_0, Token_Type arg_1, Token_Type arg_2)
+{
+    Function_Table::Info* func_info = get_info(table, name);
+    func_info->num_sigs += 1;
+
+    begin_signature(table.sigs);
+    add_param(table.sigs, ret);
+    add_param(table.sigs, arg_0);
+    add_param(table.sigs, arg_1);
+    add_param(table.sigs, arg_2);
+    end_signature(table.sigs);
+}
+
 bool plnnrc::has_function(const Function_Table& table, const char* name)
 {
     return get(table.infos, name) != 0;
