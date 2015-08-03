@@ -1507,6 +1507,10 @@ struct Expr_Type_Visitor
             for (ast::Expr* child = node->child; child != 0; child = child->next_sibling)
             {
                 Token_Type arg_type = visit_node<Token_Type>(child, this);
+
+                if (arg_type == Token_Not_A_Type)
+                    return Token_Not_A_Type;
+
                 // must be unifiable with Int8
                 Token_Type unified_type = unify(Token_Int8, arg_type);
 
@@ -1527,6 +1531,10 @@ struct Expr_Type_Visitor
             for (ast::Expr* child = node->child; child != 0; child = child->next_sibling)
             {
                 Token_Type arg_type = visit_node<Token_Type>(child, this);
+
+                if (arg_type == Token_Not_A_Type)
+                    return Token_Not_A_Type;
+
                 result_type = unify(result_type, arg_type);
 
                 if (result_type == Token_Not_A_Type)
@@ -1649,7 +1657,8 @@ static bool check_expression_types(ast::Root& tree)
                     continue;
                 }
 
-                resolve_function_call(tree, func);
+                if (!resolve_function_call(tree, func))
+                    break;
             }
         }
 
