@@ -138,6 +138,13 @@ static const uint32_t scalar_numeric_rank[Num_Scalar_Numeric_Types][Num_Scalar_N
 /* Float */     {   8,    6,    7,    0   },
 };
 
+static uint32_t get_rank(Token_Type a, Token_Type b)
+{
+    plnnrc_assert(is_Scalar_Numeric(a));
+    plnnrc_assert(is_Scalar_Numeric(b));
+    return scalar_numeric_rank[a - Token_Group_Scalar_Numeric_First][b - Token_Group_Scalar_Numeric_First];
+}
+
 uint32_t plnnrc::resolve(const Function_Table& table, const Token_Value& name, const Array<Token_Type>& argument_types)
 {
     const Function_Table::Info* func_info = get(table.infos, name);
@@ -177,7 +184,7 @@ uint32_t plnnrc::resolve(const Function_Table& table, const Token_Value& name, c
 
             if (is_Scalar_Numeric(source_type) && is_Scalar_Numeric(target_type))
             {
-                uint32_t rank = scalar_numeric_rank[source_type][target_type];
+                uint32_t rank = get_rank(source_type, target_type);
                 func_rank += rank;
             }
         }
