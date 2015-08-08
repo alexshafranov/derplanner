@@ -166,7 +166,7 @@ uint32_t plnnrc::resolve(const Function_Table& table, const Token_Value& name, c
         for (uint32_t arg_idx = 0; arg_idx < num_args; ++arg_idx)
         {
             const Token_Type source_type = argument_types[arg_idx];
-            const Token_Type target_type = sig.types[arg_idx + 1];
+            const Token_Type target_type = sig.types[arg_idx];
             const Token_Type unified_type = unify(source_type, target_type);
 
             if (is_Not_A_Type(unified_type))
