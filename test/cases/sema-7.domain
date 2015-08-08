@@ -1,0 +1,15 @@
+//> error (4, 27): unbound variable 'z'.
+domain test
+{
+    macro hello(x, y) = ( z )
+
+    task t1(x, y)
+    {
+        case( hello(x, y) ) -> []
+    }
+
+    task t2(x, y)
+    {
+        case( hello(x, y) ) -> []
+    }
+}

@@ -38,6 +38,10 @@ Error& operator<<(Error& builder, const Token_Type&  token_type);
 Error& operator<<(Error& builder, const Token_Group& token_group);
 Error& operator<<(Error& builder, const ast::Func* func_call);
 
+bool operator==(const Error& a, const Error& b);
+
+bool operator!=(const Error& a, const Error& b);
+
 void format_error(const Error& error, Formatter& fmtr);
 
 }
@@ -46,7 +50,7 @@ void format_error(const Error& error, Formatter& fmtr);
 
 inline void plnnrc::init(plnnrc::Error& builder, plnnrc::Error_Type type, plnnrc::Location loc)
 {
-    memset(&builder, 0, sizeof(builder));
+    memset(&builder, 0, sizeof(builder)); // note: important to `memset` to zero, since we want to compare with `memcmp`.
     builder.type = type;
     builder.loc = loc;
     builder.format = plnnrc::get_format_string(type);
@@ -95,6 +99,16 @@ inline plnnrc::Error& operator<<(plnnrc::Error& builder, plnnrc::ast::Func* func
     builder.arg_types[builder.num_args] = plnnrc::Error::Arg_Type_Func_Call_Signature;
     ++builder.num_args;
     return builder;
+}
+
+inline bool plnnrc::operator==(const Error& a, const Error& b)
+{
+    return (memcmp(&a, &b, sizeof(Error)) == 0);
+}
+
+inline bool plnnrc::operator!=(const Error& a, const Error& b)
+{
+    return !(a == b);
 }
 
 #endif

@@ -122,11 +122,19 @@ bool plnnrc::compile(const Compiler_Config* config, const char* input_buffer)
         return true;
     }
 
-    std::sort(&errors[0], &errors[0] + size(errors), Error_Location_Compare());
-
-    for (uint32_t i = 0; i < size(errors); ++i)
+    if (size(errors) > 0)
     {
-        format_error(errors[i], error_frmtr);
+        std::sort(&errors[0], &errors[0] + size(errors), Error_Location_Compare());
+
+        format_error(errors[0], error_frmtr);
+
+        for (uint32_t i = 1; i < size(errors); ++i)
+        {
+            if (errors[i] != errors[i-1])
+            {
+                format_error(errors[i], error_frmtr);
+            }
+        }
     }
 
     return false;
