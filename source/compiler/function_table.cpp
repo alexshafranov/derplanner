@@ -19,6 +19,7 @@
 //
 
 #include "derplanner/compiler/assert.h"
+#include "derplanner/compiler/lexer.h"
 #include "derplanner/compiler/ast.h"
 #include "derplanner/compiler/id_table.h"
 #include "derplanner/compiler/signature_table.h"
@@ -126,21 +127,16 @@ Signature plnnrc::get_params_signature(const Function_Table& table, uint32_t sig
     return sig;
 }
 
-static bool match(const Signature& sig, const Array<Token_Type>& argument_types)
+static const uint32_t Num_Scalar_Numeric_Types = Token_Group_Scalar_Numeric_Last - Token_Group_Scalar_Numeric_First + 1;
+
+static const uint32_t scalar_numeric_rank[Num_Scalar_Numeric_Types][Num_Scalar_Numeric_Types] =
 {
-    plnnrc_assert(sig.length == size(argument_types) + 1);
-
-    for (uint32_t arg_idx = 0; arg_idx < size(argument_types); ++arg_idx)
-    {
-        const Token_Type source_type = argument_types[arg_idx];
-        const Token_Type target_type = sig.types[arg_idx + 1];
-
-        if (unify(source_type, target_type) == Token_Not_A_Type)
-            return false;
-    }
-
-    return true;
-}
+//                Int8  Int32  Int64  Float
+/* Int8 */      {   0,    1,    2,    5   },
+/* Int32 */     {   3,    0,    1,    5   },
+/* Int64 */     {   4,    3,    0,    5   },
+/* Float */     {   8,    6,    7,    0   },
+};
 
 uint32_t plnnrc::resolve(const Function_Table& table, const Token_Value& name, const Array<Token_Type>& argument_types)
 {
@@ -151,17 +147,47 @@ uint32_t plnnrc::resolve(const Function_Table& table, const Token_Value& name, c
 
     const uint32_t first_sig = func_info->first_sig;
     const uint32_t num_sigs = func_info->num_sigs;
+    const uint32_t num_args = size(argument_types);
+
+    uint32_t min_rank = 0xffffffff;
+    uint32_t best_sig = num_signatures(table);
 
     for (uint32_t sig_idx = first_sig; sig_idx < first_sig + num_sigs; ++sig_idx)
     {
-        Signature sig = get_sparse(table.sigs, sig_idx);
+        Signature sig = get_params_signature(table, sig_idx);
 
-        if (sig.length != size(argument_types) + 1)
+        if (sig.length != num_args)
+        {
             continue;
+        }
 
-        if (match(sig, argument_types))
-            return sig_idx;
+        uint32_t func_rank = 0;
+
+        for (uint32_t arg_idx = 0; arg_idx < num_args; ++arg_idx)
+        {
+            const Token_Type source_type = argument_types[arg_idx];
+            const Token_Type target_type = sig.types[arg_idx + 1];
+            const Token_Type unified_type = unify(source_type, target_type);
+
+            if (is_Not_A_Type(unified_type))
+            {
+                func_rank = 0xffffffff;
+                break;
+            }
+
+            if (is_Scalar_Numeric(source_type) && is_Scalar_Numeric(target_type))
+            {
+                uint32_t rank = scalar_numeric_rank[source_type][target_type];
+                func_rank += rank;
+            }
+        }
+
+        if (func_rank < min_rank)
+        {
+            min_rank = func_rank;
+            best_sig = sig_idx;
+        }
     }
 
-    return num_signatures(table);
+    return best_sig;
 }

@@ -99,12 +99,13 @@ PLNNRC_OPERATOR_TOKEN(Div,              "/")
 PLNNRC_OPERATOR_TOKEN(Dot,              ".")
 PLNNRC_OPERATOR_TOKEN(Not,              "~")
 
-PLNNRC_TOKEN_GROUP(Keyword, Domain, Vec3)
-PLNNRC_TOKEN_GROUP(Block,   Domain, Task)
-PLNNRC_TOKEN_GROUP(Type,    Id32,   Fact_Ref)
-PLNNRC_TOKEN_GROUP(Literal, Literal_Integer, Literal_Fact)
-PLNNRC_TOKEN_GROUP(Operator, Or, Not)
-PLNNRC_TOKEN_GROUP(Binary,  Or, Div)
+PLNNRC_TOKEN_GROUP(Keyword,             Domain,             Vec3)
+PLNNRC_TOKEN_GROUP(Block,               Domain,             Task)
+PLNNRC_TOKEN_GROUP(Type,                Id32,               Fact_Ref)
+PLNNRC_TOKEN_GROUP(Scalar_Numeric,      Int8,               Float)
+PLNNRC_TOKEN_GROUP(Literal,             Literal_Integer,    Literal_Fact)
+PLNNRC_TOKEN_GROUP(Operator,            Or,                 Not)
+PLNNRC_TOKEN_GROUP(Binary,              Or,                 Div)
 
 #undef PLNNRC_TOKEN_GROUP
 #undef PLNNRC_OPERATOR_TOKEN

@@ -169,29 +169,31 @@ struct Function_Table
 struct Token_Value
 {
     // number of characters in the string.
-    uint32_t        length;
+    uint32_t            length;
     // pointer to the beginning of the string in an input buffer.
-    const char*     str;
+    const char*         str;
 };
 
 // Location in the input buffer.
 struct Location
 {
-    uint32_t        line;
-    uint32_t        column;
+    // line number, >= 1
+    uint32_t            line;
+    // column number, >= 1
+    uint32_t            column;
 };
 
 // Token data returned by the lexer.
 struct Token
 {
     // indicates that parser has generated this token.
-    uint8_t         error : 1;
+    uint8_t             error : 1;
     // type of the token.
-    Token_Type      type;
+    Token_Type          type;
     // location in the input buffer.
-    Location        loc;
+    Location            loc;
     // string value of the token.
-    Token_Value     value;
+    Token_Value         value;
 };
 
 namespace ast { struct Func; }

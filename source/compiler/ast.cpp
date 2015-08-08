@@ -50,7 +50,7 @@ void plnnrc::init(ast::Root& root, Array<Error>* errors, Memory_Stack* mem_pool,
     root.scratch = mem_scratch;
 
     // add instrinsics to the function table.
-    init(root.functions, root.pool, 1);
+    init(root.functions, root.pool, 16);
     add_function(root.functions, "empty", Token_Int8, Token_Fact_Ref);
 
     add_function(root.functions, "abs", Token_Float, Token_Float);
