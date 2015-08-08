@@ -17,7 +17,7 @@ using namespace plnnr;
 static bool r_case_0(Planning_State*, Expansion_Frame*, Fact_Database*);
 static bool t_case_0(Planning_State*, Expansion_Frame*, Fact_Database*);
 
-static Composite_Task_Expand* s_task_expands[] = {
+static Compound_Task_Expand* s_task_expands[] = {
   r_case_0,
   t_case_0,
 };
@@ -154,8 +154,8 @@ static bool r_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Databas
     set_task_arg(state, s_task_parameters[0], 0, Id32(binds->_0));
     plnnr_coroutine_yield(frame, expand_label, 1);
 
-    begin_composite(state, &s_domain_info, 3); // t
-    set_composite_arg(state, s_task_parameters[3], 0, Id32(binds->_0));
+    begin_compound(state, &s_domain_info, 3); // t
+    set_compound_arg(state, s_task_parameters[3], 0, Id32(binds->_0));
     frame->status = Expansion_Frame::Status_Expanded;
     plnnr_coroutine_yield(frame, expand_label, 2);
 

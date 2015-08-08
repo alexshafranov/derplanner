@@ -4,7 +4,7 @@ domain test
 {
     world { a(int32) b(int32) }
 
-    primitive { p!(int32, int8) }
+    prim { p!(int32, int8) }
 
     task r()
     {

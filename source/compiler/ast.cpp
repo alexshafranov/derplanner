@@ -1704,7 +1704,7 @@ bool plnnrc::infer_types(ast::Root& tree)
     if (size(*tree.errs) > err_count)
         return false;
 
-    // some task parameters might still have unknown type, try to get it from task lists (composite task usage).
+    // some task parameters might still have unknown type, try to get it from task lists (compound task usage).
     if (!infer_params_from_task_lists(tree))
         return false;
 

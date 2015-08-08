@@ -84,7 +84,7 @@ TEST(run_2)
     plnnr::Planning_State pstate;
     plnnr::init(pstate, &default_mem, config);
 
-    // expansion undo with tail primitive tasks.
+    // expansion undo with tail prim tasks.
 
 plnnr::Fact_Table* a = plnnr::find_table(db, "a");
 plnnr::Fact_Table* b = plnnr::find_table(db, "b");

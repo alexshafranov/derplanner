@@ -10,7 +10,7 @@ domain travel
         airport( id32, id32 )
     }
 
-    primitive
+    prim
     {
         taxi!( id32, id32 )
         plane!( id32, id32 )

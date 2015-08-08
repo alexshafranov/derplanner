@@ -10,7 +10,7 @@ domain run_0
 {
     world { a(int32) b(int32) }
 
-    primitive { t!(int32, int32) }
+    prim { t!(int32, int32) }
 
     task r()
     {

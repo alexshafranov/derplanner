@@ -11,7 +11,7 @@ domain run_6
 {
     world { a(int8, int32, int64, float) }
 
-    primitive { p!(int8) }
+    prim { p!(int8) }
 
     const { Ten = 10 Eleven = 11 }
 

@@ -16,7 +16,7 @@ using namespace plnnr;
 
 static bool attack_all_visible_case_0(Planning_State*, Expansion_Frame*, Fact_Database*);
 
-static Composite_Task_Expand* s_task_expands[] = {
+static Compound_Task_Expand* s_task_expands[] = {
   attack_all_visible_case_0,
 };
 

@@ -19,7 +19,7 @@ domain run_8
         object(id32, vec3)
     }
 
-    primitive { attack!(id32) }
+    prim { attack!(id32) }
 
     const Fov_Cos_Half_Angle = cos(pi() / 4.0)
 

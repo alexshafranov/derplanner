@@ -1,4 +1,4 @@
-//: // expansion undo with tail primitive tasks.
+//: // expansion undo with tail prim tasks.
 //:
 //: plnnr::Fact_Table* a = plnnr::find_table(db, "a");
 //: plnnr::Fact_Table* b = plnnr::find_table(db, "b");
@@ -12,7 +12,7 @@ domain run_2
 {
     world { a(id32) b(id32) }
 
-    primitive { p1!(id32) p2!(id32) }
+    prim { p1!(id32) p2!(id32) }
 
     task r()
     {

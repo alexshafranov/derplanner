@@ -19,7 +19,7 @@ static bool r_case_1(Planning_State*, Expansion_Frame*, Fact_Database*);
 static bool t1_case_0(Planning_State*, Expansion_Frame*, Fact_Database*);
 static bool t2_case_0(Planning_State*, Expansion_Frame*, Fact_Database*);
 
-static Composite_Task_Expand* s_task_expands[] = {
+static Compound_Task_Expand* s_task_expands[] = {
   r_case_0,
   t1_case_0,
   t2_case_0,
@@ -202,8 +202,8 @@ static bool r_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Databas
     set_task_arg(state, s_task_parameters[0], 0, Id32(binds->_0));
     plnnr_coroutine_yield(frame, expand_label, 1);
 
-    begin_composite(state, &s_domain_info, 3); // t1
-    set_composite_arg(state, s_task_parameters[3], 0, Id32(binds->_0));
+    begin_compound(state, &s_domain_info, 3); // t1
+    set_compound_arg(state, s_task_parameters[3], 0, Id32(binds->_0));
     plnnr_coroutine_yield(frame, expand_label, 2);
 
     begin_task(state, &s_domain_info, 0); // p1!
@@ -229,8 +229,8 @@ static bool r_case_1(Planning_State* state, Expansion_Frame* frame, Fact_Databas
     set_task_arg(state, s_task_parameters[1], 0, Id32(binds->_0));
     plnnr_coroutine_yield(frame, expand_label, 1);
 
-    begin_composite(state, &s_domain_info, 4); // t2
-    set_composite_arg(state, s_task_parameters[4], 0, Id32(binds->_0));
+    begin_compound(state, &s_domain_info, 4); // t2
+    set_compound_arg(state, s_task_parameters[4], 0, Id32(binds->_0));
     plnnr_coroutine_yield(frame, expand_label, 2);
 
     begin_task(state, &s_domain_info, 0); // p1!

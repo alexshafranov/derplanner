@@ -18,7 +18,7 @@ static bool r_case_0(Planning_State*, Expansion_Frame*, Fact_Database*);
 static bool t_case_0(Planning_State*, Expansion_Frame*, Fact_Database*);
 static bool t_case_1(Planning_State*, Expansion_Frame*, Fact_Database*);
 
-static Composite_Task_Expand* s_task_expands[] = {
+static Compound_Task_Expand* s_task_expands[] = {
   r_case_0,
   t_case_0,
 };
@@ -175,9 +175,9 @@ static bool r_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Databas
   plnnr_coroutine_begin(frame, expand_label);
 
   while (p0_next(state, frame, db)) {
-    begin_composite(state, &s_domain_info, 2); // t
-    set_composite_arg(state, s_task_parameters[2], 0, int8_t(binds->_0));
-    set_composite_arg(state, s_task_parameters[2], 1, int32_t(binds->_1));
+    begin_compound(state, &s_domain_info, 2); // t
+    set_compound_arg(state, s_task_parameters[2], 0, int8_t(binds->_0));
+    set_compound_arg(state, s_task_parameters[2], 1, int32_t(binds->_1));
     plnnr_coroutine_yield(frame, expand_label, 1);
 
     continue_iteration(state, frame);

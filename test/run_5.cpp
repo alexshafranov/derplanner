@@ -16,7 +16,7 @@ using namespace plnnr;
 
 static bool r_case_0(Planning_State*, Expansion_Frame*, Fact_Database*);
 
-static Composite_Task_Expand* s_task_expands[] = {
+static Compound_Task_Expand* s_task_expands[] = {
   r_case_0,
 };
 

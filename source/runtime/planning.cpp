@@ -103,15 +103,15 @@ static void undo_expansion(plnnr::Planning_State* state)
 
 void plnnr::find_plan_init(const Domain_Info* domain, Planning_State* state)
 {
-    plnnr_assert(domain->task_info.num_composite > 0);
+    plnnr_assert(domain->task_info.num_compound > 0);
 
-    // the root task is the first composite task in domain.
+    // the root task is the first compound task in domain.
     uint32_t root_id = domain->task_info.num_primitive;
     // this find_plan variant doesn't support root tasks with arguments.
     plnnr_assert(domain->task_info.parameters[root_id].num_params == 0);
 
     // put the root task on stack.
-    begin_composite(state, domain, root_id);
+    begin_compound(state, domain, root_id);
 }
 
 Find_Plan_Status plnnr::find_plan_step(Fact_Database* db, Planning_State* state)
@@ -122,13 +122,13 @@ Find_Plan_Status plnnr::find_plan_step(Fact_Database* db, Planning_State* state)
     {
         Expansion_Frame* new_top_frame = top(state->expansion_stack);
 
-        // expanded to primitive tasks -> pop all expanded composites.
+        // expanded to primitive tasks -> pop all expanded compound tasks.
         if ((frame == new_top_frame) && (frame->status == Expansion_Frame::Status_Expanded))
         {
             while (frame && (frame->status == Expansion_Frame::Status_Expanded))
                 frame = pop_expansion(state);
 
-            // all composites are now expanded -> plan found.
+            // all compounds are now expanded -> plan found.
             if (!frame)
                 return Find_Plan_Succeeded;
         }

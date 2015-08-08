@@ -111,7 +111,7 @@ static const char* get_runtime_type_name(Token_Type token_type)
     return s_runtime_type_name[token_type - Token_Group_Type_First];
 }
 
-static Signature get_composite_task_signature(Codegen& state, ast::Task* task)
+static Signature get_compound_task_signature(Codegen& state, ast::Task* task)
 {
     ast::Primitive* prim = state.tree->primitive;
     ast::Domain* domain = state.tree->domain;
@@ -138,7 +138,7 @@ static void build_signatures(Codegen& state)
         end_signature(state.task_and_binding_sigs);
     }
 
-    // composite task signatures.
+    // compound task signatures.
     for (uint32_t task_idx = 0; task_idx < size(domain->tasks); ++task_idx)
     {
         ast::Task* task = domain->tasks[task_idx];
@@ -172,7 +172,7 @@ static void build_signatures(Codegen& state)
     // the signatures will be used to generate structs for task arguments access and
     // precondition outputs access.
 
-    // composite tasks.
+    // compound tasks.
     for (uint32_t task_idx = 0; task_idx < size(domain->tasks); ++task_idx)
     {
         ast::Task* task = domain->tasks[task_idx];
@@ -361,7 +361,7 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
 
     // s_task_expands
     {
-        writeln(fmtr, "static Composite_Task_Expand* s_task_expands[] = {");
+        writeln(fmtr, "static Compound_Task_Expand* s_task_expands[] = {");
         for (uint32_t task_idx = 0; task_idx < size(domain->tasks); ++task_idx)
         {
             ast::Task* task = domain->tasks[task_idx];
@@ -407,7 +407,7 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
             ast::Fact* task = prim->tasks[prim_idx];
             writeln(fmtr, "\"%n\",", task->name);
         }
-        // composite tasks after.
+        // compound tasks after.
         for (uint32_t task_idx = 0; task_idx < size(domain->tasks); ++task_idx)
         {
             Indent_Scope s(fmtr);
@@ -657,7 +657,7 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         {
             push_back(task_names, prim->tasks[prim_idx]->name);
         }
-        // composite next
+        // compound next
         for (uint32_t task_idx = 0; task_idx < size(domain->tasks); ++task_idx)
         {
             push_back(task_names, domain->tasks[task_idx]->name);
@@ -686,13 +686,13 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
     {
         const uint32_t num_tasks = size(prim->tasks) + size(domain->tasks);
         const uint32_t num_primitive = size(prim->tasks);
-        const uint32_t num_composite = size(domain->tasks);
+        const uint32_t num_compound = size(domain->tasks);
         writeln(fmtr, "static Domain_Info s_domain_info = {");
         {
             Indent_Scope s(fmtr);
             // task_info
             writeln(fmtr, "{ %d, %d, %d, s_num_cases, s_first_case, %d, s_task_name_hashes, s_task_names, s_task_parameters, s_bindings, s_num_case_handles, s_task_expands },",
-                num_tasks, num_primitive, num_composite, task_names_hash_seed);
+                num_tasks, num_primitive, num_compound, task_names_hash_seed);
             // database_req
             writeln(fmtr, "{ %d, %d, s_size_hints, s_fact_types, s_fact_name_hashes, s_fact_names },", size(world->facts), fact_names_hash_seed);
         }
@@ -1136,7 +1136,7 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
     Token_Value name = get(state.expand_names, case_idx);
     uint32_t yield_id = 1;
 
-    Signature task_sig = get_composite_task_signature(state, task);
+    Signature task_sig = get_compound_task_signature(state, task);
 
     writeln(fmtr, "static bool %n(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)", name);
     writeln(fmtr, "{");
@@ -1201,14 +1201,14 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
                     continue;
                 }
 
-                // adding composite task to expansion.
-                if (ast::Task* composite = get_task(*state.tree, item->name))
+                // adding compound task to expansion.
+                if (ast::Task* compound = get_task(*state.tree, item->name))
                 {
-                    uint32_t composite_index = size(state.tree->primitive->tasks) + index_of(state.tree->domain->tasks, composite);
-                    writeln(fmtr, "begin_composite(state, &s_domain_info, %d); // %n",
-                        composite_index, composite->name);
+                    uint32_t compound_index = size(state.tree->primitive->tasks) + index_of(state.tree->domain->tasks, compound);
+                    writeln(fmtr, "begin_compound(state, &s_domain_info, %d); // %n",
+                        compound_index, compound->name);
 
-                    generate_arg_setters(state, "set_composite_arg", item, composite_index, composite->params, fmtr);
+                    generate_arg_setters(state, "set_compound_arg", item, compound_index, compound->params, fmtr);
 
                     if (item == back(case_->task_list) && !case_->foreach)
                     {

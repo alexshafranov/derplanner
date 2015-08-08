@@ -14,7 +14,7 @@ domain run_3
 {
     world { a(id32) b(id32) c(id32) }
 
-    primitive { p1!(id32) p2!(id32) }
+    prim { p1!(id32) p2!(id32) }
 
     task r()
     {

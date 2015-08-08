@@ -101,11 +101,11 @@ inline void allocate_precond_bindings(Planning_State* state, Expansion_Frame* fr
     frame->bindings = bytes;
 }
 
-inline void begin_composite(Planning_State* state, const Domain_Info* domain, uint32_t task_id)
+inline void begin_compound(Planning_State* state, const Domain_Info* domain, uint32_t task_id)
 {
     const uint32_t num_primitive = domain->task_info.num_primitive;
     plnnr_assert(task_id >= num_primitive && task_id < domain->task_info.num_tasks);
-    Composite_Task_Expand* expand = domain->task_info.expands[task_id - num_primitive];
+    Compound_Task_Expand* expand = domain->task_info.expands[task_id - num_primitive];
     const Param_Layout& param_layout = domain->task_info.parameters[task_id];
 
     Linear_Blob* blob = &state->expansion_blob;
@@ -129,7 +129,7 @@ inline void begin_composite(Planning_State* state, const Domain_Info* domain, ui
     push(state->expansion_stack, frame);
 }
 
-inline bool expand_next_case(Planning_State* state, const Domain_Info* domain, uint32_t task_id, Expansion_Frame* frame, Fact_Database* db, Composite_Task_Expand* expand)
+inline bool expand_next_case(Planning_State* state, const Domain_Info* domain, uint32_t task_id, Expansion_Frame* frame, Fact_Database* db, Compound_Task_Expand* expand)
 {
     const uint32_t num_primitive = domain->task_info.num_primitive;
     const Param_Layout& param_layout = domain->task_info.parameters[task_id];
@@ -185,7 +185,7 @@ inline void continue_iteration(Planning_State* state, Expansion_Frame* frame)
 }
 
 template <typename T>
-inline void set_composite_arg(Planning_State* state, const Param_Layout& layout, uint32_t param_index, const T& value)
+inline void set_compound_arg(Planning_State* state, const Param_Layout& layout, uint32_t param_index, const T& value)
 {
     Expansion_Frame* frame = top(state->expansion_stack);
     set_arg(frame->arguments, layout, param_index, value);
