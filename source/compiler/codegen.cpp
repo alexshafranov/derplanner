@@ -111,14 +111,6 @@ static const char* get_runtime_type_name(Token_Type token_type)
     return s_runtime_type_name[token_type - Token_Group_Type_First];
 }
 
-static Signature get_compound_task_signature(Codegen& state, ast::Task* task)
-{
-    ast::Primitive* prim = state.tree->primitive;
-    ast::Domain* domain = state.tree->domain;
-    uint32_t task_idx = index_of(domain->tasks, task);
-    return get_sparse(state.task_and_binding_sigs, size(prim->tasks) + task_idx);
-}
-
 static void build_signatures(Codegen& state)
 {
     ast::Root* tree = state.tree;
@@ -770,13 +762,8 @@ static void generate_precondition(Codegen& state, uint32_t case_idx, Formatter& 
     ast::Case* case_ = state.tree->cases[case_idx];
 
     uint32_t task_idx = index_of(domain->tasks, case_->task);
-    Signature input_sig = get_sparse(state.struct_sigs, task_idx);
-    uint32_t input_idx = get_dense_index(state.struct_sigs, task_idx);
 
-    if (input_sig.length > 0)
-        writeln(fmtr, "static bool p%d_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, const S_%d* args)", case_idx, input_idx);
-    else
-        writeln(fmtr, "static bool p%d_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)", case_idx);
+    writeln(fmtr, "static bool p%d_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)", case_idx);
 
     ast::Expr* precond = case_->precond;
     plnnrc_assert(is_Or(precond));
@@ -801,7 +788,12 @@ static void generate_precondition(Codegen& state, uint32_t case_idx, Formatter& 
         Indent_Scope s(fmtr);
         writeln(fmtr, "Fact_Handle* handles = frame->handles;");
         uint32_t output_idx = get_dense_index(state.struct_sigs, size(domain->tasks) + case_idx);
+        uint32_t struct_idx = get_dense_index(state.struct_sigs, task_idx);
         Signature output_sig = get_dense(state.struct_sigs, output_idx);
+        Signature struct_sig = get_dense(state.struct_sigs, struct_idx);
+
+        if (struct_sig.length > 0)
+            writeln(fmtr, "const S_%d* args = (const S_%d*)(frame->arguments);", struct_idx, struct_idx);
 
         if (output_sig.length > 0)
             writeln(fmtr, "S_%d* binds = (S_%d*)(frame->bindings);", output_idx, output_idx);
@@ -1136,8 +1128,6 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
     Token_Value name = get(state.expand_names, case_idx);
     uint32_t yield_id = 1;
 
-    Signature task_sig = get_compound_task_signature(state, task);
-
     writeln(fmtr, "static bool %n(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)", name);
     writeln(fmtr, "{");
     {
@@ -1158,10 +1148,7 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
         writeln(fmtr, "plnnr_coroutine_begin(frame, expand_label);");
         newline(fmtr);
 
-        if (task_sig.length > 0)
-            writeln(fmtr, "while (p%d_next(state, frame, db, args)) {", case_idx);
-        else
-            writeln(fmtr, "while (p%d_next(state, frame, db)) {", case_idx);
+        writeln(fmtr, "while (p%d_next(state, frame, db)) {", case_idx);
 
         // generate task list expansion
         {

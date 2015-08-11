@@ -155,9 +155,10 @@ static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
   plnnr_coroutine_end();
 }
 
-static bool p1_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, const S_1* args)
+static bool p1_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
 {
   Fact_Handle* handles = frame->handles;
+  const S_1* args = (const S_1*)(frame->arguments);
 
   plnnr_coroutine_begin(frame, precond_label);
 
@@ -176,9 +177,10 @@ static bool p1_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
   plnnr_coroutine_end();
 }
 
-static bool p2_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, const S_1* args)
+static bool p2_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
 {
   Fact_Handle* handles = frame->handles;
+  const S_1* args = (const S_1*)(frame->arguments);
 
   plnnr_coroutine_begin(frame, precond_label);
 
@@ -197,9 +199,10 @@ static bool p2_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
   plnnr_coroutine_end();
 }
 
-static bool p3_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, const S_1* args)
+static bool p3_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
 {
   Fact_Handle* handles = frame->handles;
+  const S_1* args = (const S_1*)(frame->arguments);
   S_1* binds = (S_1*)(frame->bindings);
 
   plnnr_coroutine_begin(frame, precond_label);
@@ -247,7 +250,7 @@ static bool travel_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Da
 
   plnnr_coroutine_begin(frame, expand_label);
 
-  while (p1_next(state, frame, db, args)) {
+  while (p1_next(state, frame, db)) {
     begin_task(state, &s_domain_info, 0); // taxi!
     set_task_arg(state, s_task_parameters[0], 0, Id32(args->_0));
     set_task_arg(state, s_task_parameters[0], 1, Id32(args->_1));
@@ -267,7 +270,7 @@ static bool travel_case_1(Planning_State* state, Expansion_Frame* frame, Fact_Da
 
   plnnr_coroutine_begin(frame, expand_label);
 
-  while (p2_next(state, frame, db, args)) {
+  while (p2_next(state, frame, db)) {
     begin_compound(state, &s_domain_info, 4); // travel_by_plane
     set_compound_arg(state, s_task_parameters[4], 0, Id32(args->_0));
     set_compound_arg(state, s_task_parameters[4], 1, Id32(args->_1));
@@ -286,7 +289,7 @@ static bool travel_by_plane_case_0(Planning_State* state, Expansion_Frame* frame
 
   plnnr_coroutine_begin(frame, expand_label);
 
-  while (p3_next(state, frame, db, args)) {
+  while (p3_next(state, frame, db)) {
     begin_compound(state, &s_domain_info, 3); // travel
     set_compound_arg(state, s_task_parameters[3], 0, Id32(args->_0));
     set_compound_arg(state, s_task_parameters[3], 1, Id32(binds->_0));

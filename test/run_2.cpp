@@ -126,9 +126,10 @@ static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
   plnnr_coroutine_end();
 }
 
-static bool p1_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db, const S_1* args)
+static bool p1_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
 {
   Fact_Handle* handles = frame->handles;
+  const S_1* args = (const S_1*)(frame->arguments);
 
   plnnr_coroutine_begin(frame, precond_label);
 
@@ -174,7 +175,7 @@ static bool t_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Databas
 
   plnnr_coroutine_begin(frame, expand_label);
 
-  while (p1_next(state, frame, db, args)) {
+  while (p1_next(state, frame, db)) {
     begin_task(state, &s_domain_info, 1); // p2!
     set_task_arg(state, s_task_parameters[1], 0, Id32(args->_0));
     frame->status = Expansion_Frame::Status_Expanded;
