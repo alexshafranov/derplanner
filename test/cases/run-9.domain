@@ -1,0 +1,25 @@
+//: // variables can bound in multiple disjuncts.
+//:
+//: plnnr::Fact_Table* ob1 = plnnr::find_table(db, "object1");
+//: plnnr::Fact_Table* ob2 = plnnr::find_table(db, "object2");
+//:
+//: plnnr::add_entry(ob1, plnnr::Id32(1));
+//: plnnr::add_entry(ob2, plnnr::Id32(2));
+//:
+//! check_plan("p!(1) p!(2)", pstate, domain);
+//!
+domain run_9
+{
+    world
+    {
+        object1(id32)
+        object2(id32)
+    }
+
+    prim { p!(id32) }
+
+    task t()
+    {
+        each( object2(V) & (object1(A) | object2(A)) ) -> [ p!(A) ]
+    }
+}

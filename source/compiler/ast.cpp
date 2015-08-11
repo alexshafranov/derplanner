@@ -381,11 +381,10 @@ ast::Expr* plnnrc::convert_to_dnf(ast::Root& tree, ast::Expr* root)
     // convert `root` to Negative-Normal-Form and put it under a new Or node.
     ast::Expr* nnf_root = convert_to_nnf(tree, root);
     append_child(new_root, nnf_root);
+    // flatten if nnf_root happens to be Or node.
     flatten(new_root);
 
-    // now we have a flattened Or expression
-    // convert it to DNF form:
-    // Expr = C0 | C1 | ... | CN, Ck (conjunct) = either ~X or X where X is variable or fact.
+    // convert to DNF form: Expr = C0 | C1 | ... | CN, Ck (conjunct) = either ~X or X where X is a term.
     new_root = convert_Or_to_dnf(tree, new_root);
     return new_root;
 }
@@ -393,7 +392,7 @@ ast::Expr* plnnrc::convert_to_dnf(ast::Root& tree, ast::Expr* root)
 // convert Or expression to DNF by applying distributive law repeatedly, until no change could be made.
 static ast::Expr* convert_Or_to_dnf(ast::Root& tree, ast::Expr* root)
 {
-    plnnrc_assert(root && is_Or(root->type));
+    plnnrc_assert(root && is_Or(root));
 
     for (;;)
     {
@@ -1048,6 +1047,8 @@ void plnnrc::annotate(ast::Root& tree)
         for (uint32_t case_idx = 0; case_idx < size(tree.cases); ++case_idx)
         {
             ast::Case* case_ = tree.cases[case_idx];
+            plnnrc_assert(is_Or(case_->precond)); // expecting precondition in the DNF form.
+
             ast::Task* task = case_->task;
 
             create_fact_ref_literals(tree, case_->precond);
@@ -1144,6 +1145,34 @@ void plnnrc::annotate(ast::Root& tree)
 
                 push_back(case_->precond_facts, fact);
             }
+
+            // mark ast::Var binding occurrences.
+            {
+                Memory_Stack_Scope scratch_scope(tree.scratch);
+                Id_Table<ast::Var*> seen;
+                init(seen, tree.scratch, size(case_->precond_var_lookup));
+
+                for (ast::Expr* conjunct = case_->precond->child; conjunct != 0; conjunct = conjunct->next_sibling)
+                {
+                    for (ast::Expr* node = conjunct; node != 0; node = preorder_next(conjunct, node))
+                    {
+                        ast::Var* var = as_Var(node);
+                        if (!var)
+                            continue;
+
+                        if (as_Param(var->definition) != 0)
+                            continue;
+
+                        if (get(seen, var->name) == 0)
+                        {
+                            var->binding = true;
+                            set(seen, var->name, var);
+                        }
+                    }
+
+                    clear(seen);
+                }
+            }
         }
     }
 }
@@ -1185,13 +1214,14 @@ static bool assign_fact_types(ast::Root& tree, Id_Table<Token_Type>& var_types, 
             plnnrc_assert(curr_type);
 
             Token_Type unified_type = unify(*curr_type, param_type->data_type);
+            var->data_type = unified_type;
+
             if (unified_type == Token_Not_A_Type)
             {
                 emit(tree, var->loc, Error_Failed_To_Unify_Type) << var->name << *curr_type << param_type->data_type;
                 return false;
             }
 
-            var->data_type = unified_type;
             set(var_types, var->name, unified_type);
         }
     }
@@ -1199,24 +1229,141 @@ static bool assign_fact_types(ast::Root& tree, Id_Table<Token_Type>& var_types, 
     return true;
 }
 
-// update var types of variables based on the types of their definitions.
-static bool update_usage_types(ast::Root& tree, Array<ast::Var*>& vars)
+static void init_var_types(Id_Table<Token_Type>& var_types, Memory* mem, ast::Task* task, ast::Case* case_)
+{
+    init(var_types, mem, size(case_->precond_var_lookup) + size(case_->task_list_var_lookup) + size(task->params));
+
+    for (uint32_t var_idx = 0; var_idx < size(case_->precond_vars); ++var_idx)
+    {
+        ast::Var* var = case_->precond_vars[var_idx];
+        set(var_types, var->name, Token_Any_Type);
+    }
+
+    for (uint32_t var_idx = 0; var_idx < size(case_->task_list_vars); ++var_idx)
+    {
+        ast::Var* var = case_->task_list_vars[var_idx];
+        set(var_types, var->name, Token_Any_Type);
+    }
+
+    for (uint32_t param_idx = 0; param_idx < size(task->params); ++param_idx)
+    {
+        ast::Param* param = task->params[param_idx];
+        set(var_types, param->name, Token_Any_Type);
+    }
+}
+
+static bool check_all_precond_vars_bound(ast::Root& tree, ast::Case* case_)
+{
+    for (uint32_t var_idx = 0; var_idx < size(case_->precond_vars); ++var_idx)
+    {
+        ast::Var* var = case_->precond_vars[var_idx];
+
+        // this var is not a parameter usage, nor used inside fact or primitive task.
+        if (var->binding && is_Unknown(var->data_type))
+        {
+            emit(tree, var->loc, Error_Unbound_Var) << var->name;
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static bool has_var_in_all_conjuncts(ast::Expr* precond, ast::Var* var)
+{
+    const uint32_t hash_val = hash(var->name);
+    plnnrc_assert(is_Or(precond)); // must be in Disjunctive-Normal-Form.
+
+    for (ast::Expr* conjunct = precond->child; conjunct != 0; conjunct = conjunct->next_sibling)
+    {
+        bool found = false;
+        for (ast::Expr* n = conjunct; n != 0; n = preorder_next(conjunct, n))
+        {
+            ast::Var* v = as_Var(n);
+            if (!v)
+                continue;
+
+            const uint32_t h = hash(v->name);
+            if (h != hash_val)
+                continue;
+
+            if (equal(v->name, var->name))
+                found = true;
+        }
+
+        if (!found)
+            return false;
+    }
+
+    return true;
+}
+
+static bool check_all_task_list_vars_bound(ast::Root& tree)
+{
+    bool failed = false;
+
+    for (uint32_t task_idx = 0; task_idx < size(tree.domain->tasks); ++task_idx)
+    {
+        ast::Task* task = tree.domain->tasks[task_idx];
+
+        for (uint32_t case_idx = 0; case_idx < size(task->cases); ++case_idx)
+        {
+            ast::Case* case_ = task->cases[case_idx];
+
+            for (uint32_t var_idx = 0; var_idx < size(case_->task_list_vars); ++var_idx)
+            {
+                ast::Var* var = case_->task_list_vars[var_idx];
+
+                if (var->definition)
+                {
+                    if (is_Param(var->definition))
+                        continue;
+
+                    if (!has_var_in_all_conjuncts(case_->precond, var))
+                    {
+                        emit(tree, var->loc, Error_Not_Bound_In_All_Conjuncts) << var->name;
+                        failed = true;
+                    }
+
+                    continue;
+                }
+
+                emit(tree, var->loc, Error_Unbound_Var) << var->name;
+                failed = true;
+            }
+        }
+    }
+
+    return !failed;
+}
+
+static void update_var_occurrence_types(const Id_Table<Token_Type>& var_types, const Array<ast::Var*>& vars)
 {
     for (uint32_t var_idx = 0; var_idx < size(vars); ++var_idx)
     {
         ast::Var* var = vars[var_idx];
 
-        if (is_Unknown(var->data_type) && !var->definition)
-        {
-            // this var is not a parameter usage, nor used inside fact or primitive task.
-            emit(tree, var->loc, Error_Unbound_Var) << var->name;
-            return false;
-        }
+        Token_Type* new_type = get(var_types, var->name);
+        plnnrc_assert(new_type != 0);
 
-        if (!var->definition)
+        if (is_Any_Type(*new_type))
             continue;
 
-        var->data_type = is_Param(var->definition) ? as_Param(var->definition)->data_type : as_Var(var->definition)->data_type;
+        var->data_type = *new_type;
+    }
+}
+
+static bool update_var_occurrence_types_after_params_update(const Array<ast::Var*>& vars)
+{
+    for (uint32_t var_idx = 0; var_idx < size(vars); ++var_idx)
+    {
+        ast::Var* var = vars[var_idx];
+        ast::Param* param = as_Param(var->definition);
+
+        if (!param)
+            continue;
+
+        var->data_type = param->data_type;
     }
 
     return true;
@@ -1236,25 +1383,7 @@ static bool infer_local_types(ast::Root& tree, ast::Task* task)
 
         Memory_Stack_Scope scratch_scope(tree.scratch);
         Id_Table<Token_Type> var_types;
-        init(var_types, tree.scratch, size(case_->precond_var_lookup) + size(case_->task_list_var_lookup));
-
-        for (uint32_t var_idx = 0; var_idx < size(case_->precond_vars); ++var_idx)
-        {
-            ast::Var* var = case_->precond_vars[var_idx];
-            set(var_types, var->name, Token_Any_Type);
-        }
-
-        for (uint32_t var_idx = 0; var_idx < size(case_->task_list_vars); ++var_idx)
-        {
-            ast::Var* var = case_->task_list_vars[var_idx];
-            if (!get(case_->precond_var_lookup, var->name) && !get(task->param_lookup, var->name))
-            {
-                emit(tree, var->loc, Error_Unbound_Var) << var->name;
-                return false;
-            }
-
-            set(var_types, var->name, Token_Any_Type);
-        }
+        init_var_types(var_types, tree.scratch, task, case_);
 
         // seed types in precondition using fact declarations.
         for (ast::Expr* node = case_->precond; node != 0; node = preorder_next(case_->precond, node))
@@ -1315,16 +1444,16 @@ static bool infer_local_types(ast::Root& tree, ast::Task* task)
                 return false;
         }
 
+        check_all_precond_vars_bound(tree, case_);
+
         // unify task parameters for each new case.
         for (uint32_t param_idx = 0; param_idx < size(task->params); ++param_idx)
         {
             ast::Param* param = task->params[param_idx];
             Token_Type* new_type = get(var_types, param->name);
 
-            if (!new_type)
-                continue;
-
             Token_Type unified_type = unify(*new_type, param->data_type);
+
             if (unified_type == Token_Not_A_Type)
             {
                 emit(tree, param->loc, Error_Failed_To_Unify_Type) << param->name << param->data_type << *new_type;
@@ -1334,11 +1463,9 @@ static bool infer_local_types(ast::Root& tree, ast::Task* task)
             param->data_type = unified_type;
         }
 
-        if (!update_usage_types(tree, case_->precond_vars))
-            return false;
-
-        if (!update_usage_types(tree, case_->task_list_vars))
-            return false;
+        // assign new types to all variable occurences.
+        update_var_occurrence_types(var_types, case_->precond_vars);
+        update_var_occurrence_types(var_types, case_->task_list_vars);
     }
 
     return true;
@@ -1354,8 +1481,6 @@ static bool infer_global_types(ast::Root& tree)
         for (uint32_t case_idx = 0; case_idx < size(task->cases); ++case_idx)
         {
             ast::Case* case_ = task->cases[case_idx];
-            update_usage_types(tree, case_->precond_vars);
-            update_usage_types(tree, case_->task_list_vars);
 
             for (uint32_t task_list_idx = 0; task_list_idx < size(case_->task_list); ++task_list_idx)
             {
@@ -1386,11 +1511,11 @@ static bool infer_global_types(ast::Root& tree)
                         param->data_type = unified_type;
                         continue;
                     }
-
-                    // support expressions as task arguments.
-                    plnnrc_assert(false);
                 }
             }
+
+            update_var_occurrence_types_after_params_update(case_->precond_vars);
+            update_var_occurrence_types_after_params_update(case_->task_list_vars);
         }
     }
 
@@ -1682,6 +1807,9 @@ bool plnnrc::infer_types(ast::Root& tree)
 {
     uint32_t err_count = size(*tree.errs);
 
+    if (!check_all_task_list_vars_bound(tree))
+        return false;
+
     // in the first step we set and unify variable types based on their usage in facts and primitive tasks.
     // task parameter types are also set in this stage, if it's possible to derive them from their "local" usage in preconditions.
     for (uint32_t task_idx = 0; task_idx < size(tree.domain->tasks); ++task_idx)
@@ -1704,7 +1832,7 @@ bool plnnrc::infer_types(ast::Root& tree)
     if (size(*tree.errs) > err_count)
         return false;
 
-    // some task parameters might still have unknown type, try to get it from task lists (compound task usage).
+    // some task parameters could still have unknown type, try to get it from task lists (compound task usage).
     if (!infer_params_from_task_lists(tree))
         return false;
 

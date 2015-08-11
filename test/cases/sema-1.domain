@@ -1,7 +1,9 @@
-//> error (11, 24): failed to unify type for 'x', current inferred type is type 'id64', new constraint is type 'id32'.
-//> error (16, 24): failed to unify type for 'y', current inferred type is type 'id64', new constraint is type 'vec3'.
-//> error (19, 13): failed to unify type for 'x', current inferred type is type 'id64', new constraint is type 'id32'.
-//> error (28, 27): unbound variable 'z'.
+//> error (13, 24): failed to unify type for 'x', current inferred type is type 'id64', new constraint is type 'id32'.
+//> error (18, 24): failed to unify type for 'y', current inferred type is type 'id64', new constraint is type 'vec3'.
+//> error (21, 13): failed to unify type for 'x', current inferred type is type 'id64', new constraint is type 'id32'.
+//> error (30, 27): unbound variable 'z'.
+//> error (35, 23): unbound variable 'x'.
+//> error (40, 24): failed to unify type for 'x', current inferred type is type 'id64', new constraint is type 'id32'.
 domain test
 {
     world { a(id64) b(id32) c(vec3) }
@@ -26,5 +28,15 @@ domain test
     task t4()
     {
         case( a(x) & (x < z) ) -> []
+    }
+
+    task t5()
+    {
+        case( a(x) | (x & a(x)) ) -> []
+    }
+
+    task t6()
+    {
+        case( a(x) | b(x) ) -> []
     }
 }

@@ -1,0 +1,25 @@
+//: // variable type is unified accross disjunction.
+//:
+//: plnnr::Fact_Table* a = plnnr::find_table(db, "a");
+//: plnnr::Fact_Table* b = plnnr::find_table(db, "b");
+//:
+//: plnnr::add_entry(a, int8_t(127));
+//: plnnr::add_entry(b, int32_t(128));
+//:
+//! check_plan("p!(127) p!(128)", pstate, domain);
+//!
+domain run_10
+{
+    world
+    {
+        a(int8)
+        b(int32)
+    }
+
+    prim { p!(int32) }
+
+    task t()
+    {
+        each( a(V) | b(V) ) -> [ p!(V) ]
+    }
+}

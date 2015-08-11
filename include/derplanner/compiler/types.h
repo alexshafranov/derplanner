@@ -263,7 +263,6 @@ namespace ast
                 struct Fact;
                     struct Data_Type;
             struct Primitive;
-            struct Const;
             struct Domain;
                 struct Macro;
                 struct Task;
@@ -429,7 +428,7 @@ namespace ast
         Token_Type              data_type;
     };
 
-    // Parsed precondition expression or task list item.
+    // Parsed precondition expression or a task list item.
     struct Expr : public Node
     {
         // input buffer location of this expression.
@@ -444,16 +443,18 @@ namespace ast
         Expr*                   prev_sibling_cyclic;
     };
 
-    // Operator, used in precondition expression.
+    // Operator used in a precondition expression.
     struct Op : public Expr {};
 
-    // Variable, used in precondition and task list expressions.
+    // Variable occurrence in a precondition or in a task list.
     struct Var : public Expr
     {
         // name of the variable.
         Token_Value             name;
-        // `ast::Param` or `ast::Var` when this variable was first bound (i.e. the first occurence in expression)
+        // `ast::Param` or the first occurrence in a precondition expression (`ast::Var`); null if this var is the first occurrence.
         Node*                   definition;
+        // `true` if this occurrence creates a binding, i.e. the variable is used for the first time inside a conjunct.
+        uint8_t                 binding : 1;
         // inferred data type for this variable.
         Token_Type              data_type;
 

@@ -152,7 +152,7 @@ static void build_signatures(Codegen& state)
         for (uint32_t var_idx = 0; var_idx < size(case_->precond_vars); ++var_idx)
         {
             ast::Var* var = case_->precond_vars[var_idx];
-            // skip bound vars.
+            // skip if not the first occurrence.
             if (var->definition != 0) { continue; }
             // save variable index in output signature.
             var->output_index = add_param(state.task_and_binding_sigs, var->data_type);
@@ -200,14 +200,14 @@ static void build_signatures(Codegen& state)
         for (uint32_t var_idx = 0; var_idx < size(case_->precond_vars); ++var_idx)
         {
             ast::Var* var = case_->precond_vars[var_idx];
-            // skip bound vars.
+            // skip if not the first occurrence.
             if (var->definition != 0) { continue; }
             add_param(state.struct_sigs, var->data_type);
         }
         end_signature(state.struct_sigs);
     }
 
-    // initialize indices for case all variables.
+    // propagate indices to all case variables.
     for (uint32_t case_idx = 0; case_idx < size(tree->cases); ++case_idx)
     {
         ast::Case* case_ = tree->cases[case_idx];
@@ -1005,15 +1005,15 @@ static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* liter
                     Token_Type target_data_type = var->data_type;
                     const char* target_data_type_name = get_runtime_type_name(target_data_type);
 
-                    ast::Node* def = var->definition;
-
-                    // unbound variable -> create binding.
-                    if (!def)
+                    // yet unbound variable -> create binding.
+                    if (var->binding)
                     {
                         writeln(fmtr, "binds->_%d = %s(as_%s(db, handles[%d], %d));",
                             var->output_index, target_data_type_name, source_data_type_tag, handle_id, arg_idx);
                         continue;
                     }
+
+                    ast::Node* def = var->definition;
 
                     // parameter -> match with the variable in `args` struct.
                     if (ast::Param* param = as_Param(def))
@@ -1101,7 +1101,7 @@ static void generate_arg_setters(Codegen& state, const char* set_arg_name, ast::
                 continue;
             }
 
-            // undefined variable must be reported as error earlier.
+            // undefined variable must have been reported as an error earlier.
             plnnrc_assert(false);
         }
 

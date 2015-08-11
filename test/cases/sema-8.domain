@@ -1,0 +1,13 @@
+//> error (11, 37): variable 'X' isn't bound in all precondition conjuncts.
+//> error (11, 44): variable 'Y' isn't bound in all precondition conjuncts.
+domain test
+{
+    world { a(int32) b(int32) }
+
+    prim { p!(int32) }
+
+    task t()
+    {
+        case( a(X) | b(Y) ) -> [ p!(X), p!(Y) ]
+    }
+}

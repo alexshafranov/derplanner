@@ -48,6 +48,10 @@ bool set(Id_Table<T>& table, const Token_Value& token_value, const T& value);
 template <typename T>
 bool set(Id_Table<T>& table, const char* key, uint32_t length, const T& value);
 
+// clears the table, memory is not deallocated.
+template <typename T>
+void clear(Id_Table<T>& table);
+
 // returns the number of entries in the table.
 template <typename T>
 uint32_t size(const Id_Table<T>& table);
@@ -294,6 +298,13 @@ inline bool plnnrc::set(plnnrc::Id_Table<T>& table, const char* key, uint32_t le
     }
 
     return updated;
+}
+
+template <typename T>
+inline void plnnrc::clear(Id_Table<T>& table)
+{
+    table.size = 0;
+    memset(table.keys, 0, sizeof(table.keys[0])*table.max_size);
 }
 
 template <typename T>
