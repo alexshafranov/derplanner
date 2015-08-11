@@ -70,7 +70,7 @@ void plnnrc::generate_header(Codegen& state, const char* header_guard, Writer* o
 
 static void generate_precondition(Codegen& state, uint32_t case_idx, Formatter& fmtr);
 static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_idx, Formatter& fmtr);
-static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* node, uint32_t& handle_id, uint32_t yield_id, Formatter& fmtr);
+static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* literal, uint32_t& handle_id, uint32_t& yield_id, Formatter& fmtr);
 
 static const char* s_runtime_type_tag[] =
 {
@@ -948,7 +948,7 @@ struct Expr_Writer
     void visit(const ast::Node*) { plnnrc_assert(false); }
 };
 
-static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* literal, uint32_t& handle_id, uint32_t yield_id, Formatter& fmtr)
+static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* literal, uint32_t& handle_id, uint32_t& yield_id, Formatter& fmtr)
 {
     ast::Func* func = is_Not(literal) ? as_Func(literal->child) : as_Func(literal);
 
