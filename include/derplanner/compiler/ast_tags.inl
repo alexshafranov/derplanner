@@ -61,9 +61,9 @@ PLNNRC_NODE_OP(Div)
 
 PLNNRC_NODE_OP(Dot)
 
-PLNNRC_NODE_GROUP(Logical, Or, Not)
-PLNNRC_NODE_GROUP(Comparison, Equal, GreaterEqual)
-PLNNRC_NODE_GROUP(Arithmetic, Plus, Div)
+PLNNRC_NODE_GROUP(Logical,      Or,     Not)
+PLNNRC_NODE_GROUP(Comparison,   Equal,  GreaterEqual)
+PLNNRC_NODE_GROUP(Arithmetic,   Plus,   Div)
 
 #undef PLNNRC_NODE_OP
 #undef PLNNRC_NODE
