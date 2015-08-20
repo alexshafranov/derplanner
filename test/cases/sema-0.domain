@@ -1,14 +1,14 @@
-//> error (11, 31): multiple definitions of 'a' found.    
-//> error (13, 11): recursive macro 'p0' found.           
-//> error (15, 11): recursive macro 'p1' found.           
-//> error (17, 11): recursive macro 'p2' found.           
-//> error (19, 11): multiple definitions of 'p0' found.   
-//> error (27, 13): multiple definitions of 'p1' found.   
+//> error (11, 30): multiple definitions of 'a' found.
+//> error (13, 11): recursive macro 'p0' found.
+//> error (15, 11): recursive macro 'p1' found.
+//> error (17, 11): recursive macro 'p2' found.
+//> error (19, 11): multiple definitions of 'p0' found.
+//> error (27, 13): multiple definitions of 'p1' found.
 //> error (31, 10): multiple definitions of 'hello' found.
-//> error (33, 16): multiple definitions of 'x' found.    
+//> error (33, 16): multiple definitions of 'x' found.
 domain test
 {
-    world { a(int32) b(int32) a(int32) }
+    fact { a(int32) b(int32) a(int32) }
 
     macro p0(x, y) = ( a(x) & p0(x, y) & b(y) )
 

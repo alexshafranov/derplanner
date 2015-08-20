@@ -10,13 +10,13 @@
 //!
 domain run_10
 {
-    world
+    fact
     {
         a(int8)
         b(int32)
     }
 
-    prim { p!(int32) }
+    prim p!(int32)
 
     task t()
     {

@@ -32,7 +32,7 @@
 
 using namespace plnnrc;
 
-// main parsing functions, exposed for unit tests
+// partial parsing functions, exposed for unit testing
 namespace plnnrc
 {
     ast::Domain*        parse_domain(Parser& state);
@@ -45,22 +45,29 @@ namespace plnnrc
 template <typename T>
 struct Children_Builder;
 
+template <typename T_Parser>
+static bool parse_tuple(Parser& state, T_Parser parse_element);
+
+template <typename T_Node, typename T_Parser>
+static bool parse_declaration(Parser& state, Children_Builder<T_Node>& builder, T_Parser parse_item, Token_Type keyword);
+
+
 static ast::Expr* parse_expr(Parser& state);
 static ast::Expr* parse_binary_expr(Parser& state, uint8_t precedence);
 static ast::Expr* parse_term_expr(Parser& state);
 static ast::Expr* parse_postfix_expr(Parser& state, ast::Expr* lhs);
 
+static ast::Fact*  parse_single_fact(Parser& state);
 static ast::Macro* parse_single_macro(Parser& state);
 static ast::Macro* parse_single_constant(Parser& state);
 
 static bool parse_param_types(Parser& state, Children_Builder<ast::Data_Type>& builder);
 static bool parse_params(Parser& state, Children_Builder<ast::Param>& builder);
-static bool parse_facts(Parser& state, Children_Builder<ast::Fact>& builder);
+static bool parse_world(Parser& state, Children_Builder<ast::Fact>& builder);
+static bool parse_primitive(Parser& state, Children_Builder<ast::Fact>& builder);
 static bool parse_task_body(Parser& state, ast::Task* task);
 static bool parse_task_list(Parser& state, ast::Case* case_);
-static bool parse_macro_block(Parser& state, Children_Builder<ast::Macro>& builder);
 static bool parse_macros(Parser& state, Children_Builder<ast::Macro>& builder);
-static bool parse_constant_block(Parser& state, Children_Builder<ast::Macro>& builder);
 static bool parse_constants(Parser& state, Children_Builder<ast::Macro>& builder);
 
 void plnnrc::init(Parser& state, Lexer* lexer, ast::Root* tree, Array<Error>* errors, Memory_Stack* scratch)
@@ -141,7 +148,7 @@ static bool skip_inside_domain(Parser& state)
     while (!is_Eos(peek(state)))
     {
         Token tok = peek(state);
-        if (is_World(tok) || is_Primitive(tok) || is_Macro(tok) || is_Const(tok) || is_Task(tok))
+        if (is_Fact(tok) || is_Primitive(tok) || is_Macro(tok) || is_Const(tok) || is_Task(tok))
             return true;
 
         eat(state);
@@ -265,7 +272,12 @@ ast::Domain* plnnrc::parse_domain(Parser& state)
     plnnrc_check_return(!is_Error(name));
 
     ast::Domain* domain = create_domain(state.tree, name.value);
+    ast::World* world = create_world(state.tree);
+    ast::Primitive* prim = create_primitive(state.tree);
+
     state.tree->domain = domain;
+    state.tree->world = world;
+    state.tree->primitive = prim;
 
     plnnrc_expect_return(state, Token_L_Curly);
     {
@@ -280,31 +292,19 @@ ast::Domain* plnnrc::parse_domain(Parser& state)
                 break;
             }
 
-            if (is_World(tok))
+            if (is_Fact(tok))
             {
-                ast::World* world = parse_world(state);
-                plnnrc_check_skip(state, world, skip_inside_domain);
-
-                if (state.tree->world)
-                {
-                    emit(state, Error_Redefinition) << Token_World;
-                }
-
-                state.tree->world = world;
+                Children_Builder<ast::Fact> fact_builder(&state, &world->facts);
+                bool ok = parse_world(state, fact_builder);
+                plnnrc_check_skip(state, ok, skip_inside_domain);
                 continue;
             }
 
             if (is_Primitive(tok))
             {
-                ast::Primitive* prim = parse_primitive(state);
-                plnnrc_check_skip(state, prim, skip_inside_domain);
-
-                if (state.tree->primitive)
-                {
-                    emit(state, Error_Redefinition) << Token_Primitive;
-                }
-
-                state.tree->primitive = prim;
+                Children_Builder<ast::Fact> fact_builder(&state, &prim->tasks);
+                bool ok = parse_primitive(state, fact_builder);
+                plnnrc_check_skip(state, ok, skip_inside_domain);
                 continue;
             }
 
@@ -343,19 +343,17 @@ ast::Domain* plnnrc::parse_domain(Parser& state)
 
 ast::World* plnnrc::parse_world(Parser& state)
 {
-    plnnrc_expect_return(state, Token_World);
     ast::World* world = create_world(state.tree);
     Children_Builder<ast::Fact> builder(&state, &world->facts);
-    plnnrc_check_return(parse_facts(state, builder));
+    plnnrc_check_return(parse_world(state, builder));
     return world;
 }
 
 ast::Primitive* plnnrc::parse_primitive(Parser& state)
 {
-    plnnrc_expect_return(state, Token_Primitive);
     ast::Primitive* prim = create_primitive(state.tree);
     Children_Builder<ast::Fact> builder(&state, &prim->tasks);
-    plnnrc_check_return(parse_facts(state, builder));
+    plnnrc_check_return(parse_primitive(state, builder));
     return prim;
 }
 
@@ -388,8 +386,8 @@ ast::Expr* plnnrc::parse_precond(Parser& state)
     return expr;
 }
 
-template <typename T>
-static bool parse_tuple(Parser& state, T parse_element)
+template <typename T_Parser>
+static bool parse_tuple(Parser& state, T_Parser parse_element)
 {
     plnnrc_expect_return(state, Token_L_Paren);
 
@@ -411,6 +409,49 @@ static bool parse_tuple(Parser& state, T parse_element)
     }
 
     plnnrc_expect_return(state, Token_R_Paren);
+    return true;
+}
+
+template <typename T_Node, typename T_Parser>
+static bool parse_declaration(Parser& state, Children_Builder<T_Node>& builder, T_Parser parse_item, Token_Type keyword)
+{
+    plnnrc_expect_return(state, keyword);
+
+    // a declaration can be a block of items: `fact { a() b() }`
+    if (is_L_Curly(peek(state)))
+    {
+        plnnrc_expect_return(state, Token_L_Curly);
+
+        while (!is_Eos(peek(state)))
+        {
+            Token tok = peek(state);
+
+            if (is_R_Curly(tok))
+            {
+                break;
+            }
+
+            if (is_Id(tok))
+            {
+                T_Node* node = parse_item(state);
+                plnnrc_check_return(node);
+                builder.push_back(node);
+                continue;
+            }
+
+            emit(state, Error_Unexpected_Token) << tok;
+            eat(state);
+            break;
+        }
+
+        plnnrc_expect_return(state, Token_R_Curly);
+        return true;
+    }
+
+    // or a single item: `fact a()`
+    T_Node* node = parse_item(state);
+    plnnrc_check_return(node);
+    builder.push_back(node);
     return true;
 }
 
@@ -468,30 +509,59 @@ static bool parse_params(Parser& state, Children_Builder<ast::Param>& builder)
     return parse_tuple(state, Parse_Param(&builder));
 }
 
-static bool parse_facts(Parser& state, Children_Builder<ast::Fact>& builder)
+static ast::Macro* parse_single_macro(Parser& state)
 {
-    plnnrc_expect_return(state, Token_L_Curly);
+    Token tok = expect(state, Token_Id);
+    plnnrc_check_return(!is_Error(tok));
+    ast::Macro* macro = create_macro(state.tree, tok.value, tok.loc);
 
-    while (!is_Eos(peek(state)))
-    {
-        if (is_R_Curly(peek(state)))
-        {
-            break;
-        }
+    Children_Builder<ast::Param> param_builder(&state, &macro->params);
+    parse_params(state, param_builder);
+    plnnrc_expect_return(state, Token_Equality);
+    macro->expression = parse_precond(state);
+    plnnrc_check_return(macro->expression);
+    return macro;
+}
 
-        Token tok = expect(state, Token_Id);
-        plnnrc_check_return(!is_Error(tok));
+static ast::Macro* parse_single_constant(Parser& state)
+{
+    Token tok = expect(state, Token_Id);
+    plnnrc_check_return(!is_Error(tok));
+    ast::Macro* macro = create_macro(state.tree, tok.value, tok.loc);
+    plnnrc_expect_return(state, Token_Equality);
+    macro->expression = parse_expr(state);
+    plnnrc_check_return(macro->expression);
+    return macro;
+}
 
-        ast::Fact* fact = create_fact(state.tree, tok.value, tok.loc);
+static ast::Fact* parse_single_fact(Parser& state)
+{
+    Token tok = expect(state, Token_Id);
+    plnnrc_check_return(!is_Error(tok));
+    ast::Fact* fact = create_fact(state.tree, tok.value, tok.loc);
+    Children_Builder<ast::Data_Type> param_builder(&state, &fact->params);
+    plnnrc_check_return(parse_param_types(state, param_builder));
+    return fact;
+}
 
-        Children_Builder<ast::Data_Type> param_builder(&state, &fact->params);
-        plnnrc_check_return(parse_param_types(state, param_builder));
+static bool parse_macros(Parser& state, Children_Builder<ast::Macro>& builder)
+{
+    return parse_declaration(state, builder, parse_single_macro, Token_Macro);
+}
 
-        builder.push_back(fact);
-    }
+static bool parse_constants(Parser& state, Children_Builder<ast::Macro>& builder)
+{
+    return parse_declaration(state, builder, parse_single_constant, Token_Const);
+}
 
-    plnnrc_expect_return(state, Token_R_Curly);
-    return true;
+static bool parse_world(Parser& state, Children_Builder<ast::Fact>& builder)
+{
+    return parse_declaration(state, builder, parse_single_fact, Token_Fact);
+}
+
+static bool parse_primitive(Parser& state, Children_Builder<ast::Fact>& builder)
+{
+    return parse_declaration(state, builder, parse_single_fact, Token_Primitive);
 }
 
 static bool parse_task_body(Parser& state, ast::Task* task)
@@ -720,119 +790,4 @@ static ast::Expr* parse_postfix_expr(Parser& state, ast::Expr* lhs)
     }
 
     return lhs;
-}
-
-static ast::Macro* parse_single_macro(Parser& state)
-{
-    Token tok = expect(state, Token_Id);
-    ast::Macro* macro = create_macro(state.tree, tok.value, tok.loc);
-
-    Children_Builder<ast::Param> param_builder(&state, &macro->params);
-    parse_params(state, param_builder);
-    plnnrc_expect_return(state, Token_Equality);
-    macro->expression = parse_precond(state);
-    plnnrc_check_return(macro->expression);
-    return macro;
-}
-
-static ast::Macro* parse_single_constant(Parser& state)
-{
-    Token tok = expect(state, Token_Id);
-    ast::Macro* macro = create_macro(state.tree, tok.value, tok.loc);
-    plnnrc_expect_return(state, Token_Equality);
-    macro->expression = parse_expr(state);
-    plnnrc_check_return(macro->expression);
-    return macro;
-}
-
-static bool parse_macro_block(Parser& state, Children_Builder<ast::Macro>& builder)
-{
-    plnnrc_expect_return(state, Token_L_Curly);
-
-    while (!is_Eos(peek(state)))
-    {
-        Token tok = peek(state);
-
-        if (is_R_Curly(tok))
-        {
-            break;
-        }
-
-        if (is_Id(tok))
-        {
-            ast::Macro* macro = parse_single_macro(state);
-            plnnrc_check_return(macro);
-            builder.push_back(macro);
-            continue;
-        }
-
-        emit(state, Error_Unexpected_Token) << tok;
-        eat(state);
-        break;
-    }
-
-    plnnrc_expect_return(state, Token_R_Curly);
-    return true;
-}
-
-static bool parse_constant_block(Parser& state, Children_Builder<ast::Macro>& builder)
-{
-    plnnrc_expect_return(state, Token_L_Curly);
-
-    while (!is_Eos(peek(state)))
-    {
-        Token tok = peek(state);
-
-        if (is_R_Curly(tok))
-        {
-            break;
-        }
-
-        if (is_Id(tok))
-        {
-            ast::Macro* macro = parse_single_constant(state);
-            plnnrc_check_return(macro);
-            builder.push_back(macro);
-            continue;
-        }
-
-        emit(state, Error_Unexpected_Token) << tok;
-        eat(state);
-        break;
-    }
-
-    plnnrc_expect_return(state, Token_R_Curly);
-    return true;
-}
-
-static bool parse_macros(Parser& state, Children_Builder<ast::Macro>& builder)
-{
-    plnnrc_expect_return(state, Token_Macro);
-
-    if (is_L_Curly(peek(state)))
-    {
-        return parse_macro_block(state, builder);
-    }
-
-    // single macro definition
-    ast::Macro* macro = parse_single_macro(state);
-    plnnrc_check_return(macro);
-    builder.push_back(macro);
-    return true;
-}
-
-static bool parse_constants(Parser& state, Children_Builder<ast::Macro>& builder)
-{
-    plnnrc_expect_return(state, Token_Const);
-
-    if (is_L_Curly(peek(state)))
-    {
-        return parse_constant_block(state, builder);
-    }
-
-    // single constant definition
-    ast::Macro* macro = parse_single_constant(state);
-    plnnrc_check_return(macro);
-    builder.push_back(macro);
-    return true;
 }

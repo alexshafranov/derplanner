@@ -1,9 +1,9 @@
-//> error (6, 14): expected '{', got '###'.
+//> error (6, 13): expected Id, got '###'.
 //> error (9, 16): expected '(', got '->'.
 //> error (11, 19): unexpected token ')'.
 domain test
 {
-    world ### {}
+    fact ### {}
 
     task hello() {
         case -> []

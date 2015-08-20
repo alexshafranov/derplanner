@@ -1,7 +1,7 @@
 
 domain travel
 {
-    world
+    fact
     {
         start( id32 )
         finish( id32 )

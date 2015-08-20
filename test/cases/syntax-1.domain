@@ -2,7 +2,7 @@
 //> error (12, 13): expected '(', got keyword 'case'.
 domain test
 {
-    world
+    fact
     {
         a(xxx)
         b

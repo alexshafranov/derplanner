@@ -304,9 +304,9 @@ namespace ast
         Function_Table          functions;
         // all cases in the order of definition.
         Array<Case*>            cases;
-        // parsed `world` block.
+        // parsed `fact` block.
         World*                  world;
-        // parsed `primitive` block.
+        // parsed `prim` block.
         Primitive*              primitive;
         // parsed `domain` block.
         Domain*                 domain;
@@ -318,14 +318,14 @@ namespace ast
         Memory_Stack*           scratch;
     };
 
-    // Parsed `world` block.
+    // Parsed `fact` block.
     struct World : public Node
     {
         // fact declarations.
         Array<Fact*>            facts;
     };
 
-    // Parsed `primitive` block.
+    // Parsed `prim` block.
     struct Primitive : public Node
     {
         Array<Fact*>            tasks;

@@ -10,7 +10,7 @@
 //!
 domain run_2
 {
-    world { a(id32) b(id32) }
+    fact { a(id32) b(id32) }
 
     prim { p1!(id32) p2!(id32) }
 

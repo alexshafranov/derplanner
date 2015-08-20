@@ -13,13 +13,13 @@
 //!
 domain run_8
 {
-    world
+    fact
     {
         me(vec3, vec3)
         object(id32, vec3)
     }
 
-    prim { attack!(id32) }
+    prim attack!(id32)
 
     const Fov_Cos_Half_Angle = cos(pi() / 4.0)
 

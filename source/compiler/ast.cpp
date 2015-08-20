@@ -484,9 +484,13 @@ struct Cloner
     }
 
     ast::Expr* visit(const ast::Func*       node) { return make_clone(node); }
+
     ast::Expr* visit(const ast::Var*        node) { return make_clone(node); }
+
     ast::Expr* visit(const ast::Op*         node) { return make_clone(node); }
+
     ast::Expr* visit(const ast::Literal*    node) { return make_clone(node); }
+
     ast::Expr* visit(const ast::Node*) { plnnrc_assert(false); return 0; }
 };
 
@@ -1906,17 +1910,29 @@ struct Debug_Output_Visitor
     }
 
     void visit(const ast::World* node) { print(node); print_children(node->facts); }
+
     void visit(const ast::Primitive* node) { print(node); print_children(node->tasks); }
+
     void visit(const ast::Domain* node) { print_named(node); print_children(node->macros); print_children(node->tasks); }
+
     void visit(const ast::Fact* node) { print_named(node); print_children(node->params); }
+
     void visit(const ast::Macro* node) { print_named(node); print_children(node->params); print_expr(node->expression); }
+
     void visit(const ast::Task* node) { print_named(node); print_children(node->params); print_children(node->macros); print_children(node->cases); }
+
     void visit(const ast::Case* node) { print(node); print_expr(node->precond); print_children(node->task_list); }
+
     void visit(const ast::Param* node) { print_named(node); print_data_type(node); }
+
     void visit(const ast::Var* node) { print_named(node); print_data_type(node); }
+
     void visit(const ast::Func* node) { print_named(node); print_children(node); }
+
     void visit(const ast::Expr* node) { print(node); print_children(node); }
+
     void visit(const ast::Data_Type* node) { print(node); print_data_type(node); }
+
     void visit(const ast::Literal* node) { print_value(node); }
 };
 

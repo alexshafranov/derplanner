@@ -4,9 +4,9 @@
 //!
 domain run_7
 {
-    world { a(int32) b(int32) }
+    fact { a(int32) b(int32) }
 
-    prim { p!(int32, int8) }
+    prim p!(int32, int8)
 
     task r()
     {

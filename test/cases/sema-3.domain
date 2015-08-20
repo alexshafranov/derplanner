@@ -4,7 +4,7 @@
 //> error (31, 30): mismatching number of arguments for 't4'.
 domain test
 {
-    world { a(id32, id32) }
+    fact { a(id32, id32) }
 
     task t1()
     {

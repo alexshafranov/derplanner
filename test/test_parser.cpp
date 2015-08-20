@@ -143,7 +143,7 @@ namespace
     TEST(world_parsing)
     {
         Test_Compiler compiler;
-        init(compiler, "world { f1(int32) f2(float, int32) f3() }");
+        init(compiler, "fact { f1(int32) f2(float, int32) f3() }");
         const char* expected = "f1[Int32] f2[Float, Int32] f3[]";
         ast::World* world = plnnrc::parse_world(compiler.parser);
         std::string world_str = to_string(world);

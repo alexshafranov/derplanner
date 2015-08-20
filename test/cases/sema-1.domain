@@ -6,7 +6,7 @@
 //> error (40, 24): failed to unify type for 'x', current inferred type is type 'id64', new constraint is type 'id32'.
 domain test
 {
-    world { a(id64) b(id32) c(vec3) }
+    fact { a(id64) b(id32) c(vec3) }
 
     task t1(x, y)
     {

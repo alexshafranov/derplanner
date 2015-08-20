@@ -8,7 +8,7 @@
 //!
 domain run_0
 {
-    world { a(int32) b(int32) }
+    fact { a(int32) b(int32) }
 
     prim { t!(int32, int32) }
 

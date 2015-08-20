@@ -10,13 +10,13 @@
 //!
 domain run_9
 {
-    world
+    fact
     {
         object1(id32)
         object2(id32)
     }
 
-    prim { p!(id32) }
+    prim p!(id32)
 
     task t()
     {

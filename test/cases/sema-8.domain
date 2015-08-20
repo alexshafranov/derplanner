@@ -2,7 +2,7 @@
 //> error (11, 44): variable 'Y' isn't bound in all precondition conjuncts.
 domain test
 {
-    world { a(int32) b(int32) }
+    fact { a(int32) b(int32) }
 
     prim { p!(int32) }
 

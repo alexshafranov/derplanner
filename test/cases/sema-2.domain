@@ -1,7 +1,7 @@
 //> error (16, 13): failed to unify type for 'x', current inferred type is type 'int32', new constraint is type 'vec3'.
 domain test
 {
-    world { a(vec3) b(int32) }
+    fact { a(vec3) b(int32) }
 
     task t1()
     {
