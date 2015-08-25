@@ -32,6 +32,7 @@
 
 PLNNRC_NODE(World,      ::plnnrc::ast::World)
 PLNNRC_NODE(Primitive,  ::plnnrc::ast::Primitive)
+PLNNRC_NODE(Attribute,  ::plnnrc::ast::Attribute)
 PLNNRC_NODE(Macro,      ::plnnrc::ast::Macro)
 PLNNRC_NODE(Fact,       ::plnnrc::ast::Fact)
 PLNNRC_NODE(Param,      ::plnnrc::ast::Param)

@@ -51,6 +51,7 @@ static bool parse_tuple(Parser& state, T_Parser parse_element);
 template <typename T_Node, typename T_Parser>
 static bool parse_declaration(Parser& state, Children_Builder<T_Node>& builder, T_Parser parse_item, Token_Type keyword);
 
+static ast::Attribute* parse_attribute(Parser& state);
 
 static ast::Expr* parse_expr(Parser& state);
 static ast::Expr* parse_binary_expr(Parser& state, uint8_t precedence);
@@ -61,11 +62,13 @@ static ast::Fact*  parse_single_fact(Parser& state);
 static ast::Macro* parse_single_macro(Parser& state);
 static ast::Macro* parse_single_constant(Parser& state);
 
+static bool parse_attributes(Parser& state, Children_Builder<ast::Attribute>& builder);
 static bool parse_param_types(Parser& state, Children_Builder<ast::Data_Type>& builder);
 static bool parse_params(Parser& state, Children_Builder<ast::Param>& builder);
 static bool parse_world(Parser& state, Children_Builder<ast::Fact>& builder);
 static bool parse_primitive(Parser& state, Children_Builder<ast::Fact>& builder);
 static bool parse_task_body(Parser& state, ast::Task* task);
+static bool parse_case(Parser& state, ast::Task* task, Children_Builder<ast::Case>& builder);
 static bool parse_task_list(Parser& state, ast::Case* case_);
 static bool parse_macros(Parser& state, Children_Builder<ast::Macro>& builder);
 static bool parse_constants(Parser& state, Children_Builder<ast::Macro>& builder);
@@ -499,6 +502,20 @@ struct Parse_Argument
     }
 };
 
+struct Parse_Attribute_Argument
+{
+    Children_Builder<ast::Expr>* builder;
+    Parse_Attribute_Argument(Children_Builder<ast::Expr>* builder) : builder(builder) {}
+
+    bool operator()(Parser& state)
+    {
+        ast::Expr* node = parse_expr(state);
+        plnnrc_check_return(node);
+        builder->push_back(node);
+        return true;
+    }
+};
+
 static bool parse_param_types(Parser& state, Children_Builder<ast::Data_Type>& builder)
 {
     return parse_tuple(state, Parse_Data_Type(&builder));
@@ -507,6 +524,18 @@ static bool parse_param_types(Parser& state, Children_Builder<ast::Data_Type>& b
 static bool parse_params(Parser& state, Children_Builder<ast::Param>& builder)
 {
     return parse_tuple(state, Parse_Param(&builder));
+}
+
+static bool parse_attributes(Parser& state, Children_Builder<ast::Attribute>& builder)
+{
+    while (is_Literal_Symbol(peek(state)))
+    {
+        ast::Attribute* attr = parse_attribute(state);
+        plnnrc_check_return(attr);
+        builder.push_back(attr);
+    }
+
+    return true;
 }
 
 static ast::Macro* parse_single_macro(Parser& state)
@@ -564,11 +593,33 @@ static bool parse_primitive(Parser& state, Children_Builder<ast::Fact>& builder)
     return parse_declaration(state, builder, parse_single_fact, Token_Primitive);
 }
 
+static bool parse_case(Parser& state, ast::Task* task, Children_Builder<ast::Case>& builder)
+{
+    Token tok = eat(state);
+    plnnrc_assert(is_Case(tok) || is_Each(tok));
+
+    ast::Case* case_ = create_case(state.tree);
+    case_->foreach = is_Each(tok);
+    case_->task = task;
+
+    ast::Expr* precond = parse_precond(state);
+    plnnrc_check_return(precond);
+    case_->precond = precond;
+
+    Children_Builder<ast::Attribute> attrs_builder(&state, &case_->attrs);
+    plnnrc_check_return(parse_attributes(state, attrs_builder));
+
+    plnnrc_expect_return(state, Token_Arrow);
+
+    plnnrc_check_return(parse_task_list(state, case_));
+
+    builder.push_back(case_);
+    return true;
+}
+
 static bool parse_task_body(Parser& state, ast::Task* task)
 {
     plnnrc_expect_return(state, Token_L_Curly);
-
-    Children_Builder<ast::Case> cases_builder(&state, &task->cases);
 
     while (!is_Eos(peek(state)))
     {
@@ -581,18 +632,8 @@ static bool parse_task_body(Parser& state, ast::Task* task)
 
         if (is_Case(tok) || is_Each(tok))
         {
-            eat(state);
-            ast::Case* case_ = create_case(state.tree);
-            case_->foreach = is_Each(tok);
-            case_->task = task;
-            cases_builder.push_back(case_);
-
-            ast::Expr* precond = parse_precond(state);
-            plnnrc_check_skip(state, precond, skip_inside_task);
-
-            case_->precond = precond;
-            plnnrc_expect_return(state, Token_Arrow);
-            bool ok = parse_task_list(state, case_);
+            Children_Builder<ast::Case> cases_builder(&state, &task->cases);
+            bool ok = parse_case(state, task, cases_builder);
             plnnrc_check_skip(state, ok, skip_inside_task);
             continue;
         }
@@ -650,6 +691,21 @@ static bool parse_task_list(Parser& state, ast::Case* case_)
 
     plnnrc_expect_return(state, Token_R_Square);
     return true;
+}
+
+static ast::Attribute* parse_attribute(Parser& state)
+{
+    Token tok = expect(state, Token_Literal_Symbol);
+    plnnrc_check_return(!is_Error(tok));
+    ast::Attribute* attr = create_attribute(state.tree, tok.value, tok.loc);
+
+    if (is_L_Paren(peek(state)))
+    {
+        Children_Builder<ast::Expr> builder(&state, &attr->args);
+        plnnrc_check_return(parse_tuple(state, Parse_Attribute_Argument(&builder)));
+    }
+
+    return attr;
 }
 
 static ast::Expr* parse_expr(Parser& state)

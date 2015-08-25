@@ -110,6 +110,15 @@ ast::Primitive* plnnrc::create_primitive(ast::Root* tree)
     return node;
 }
 
+ast::Attribute* plnnrc::create_attribute(ast::Root* tree, const Token_Value& name, const Location& loc)
+{
+    ast::Attribute* node = pool_alloc<ast::Attribute>(tree);
+    node->type = ast::Node_Attribute;
+    node->name = name;
+    node->loc = loc;
+    return node;
+}
+
 ast::Macro* plnnrc::create_macro(ast::Root* tree, const Token_Value& name, const Location& loc)
 {
     ast::Macro* node = pool_alloc<ast::Macro>(tree);
@@ -1913,6 +1922,8 @@ struct Debug_Output_Visitor
 
     void visit(const ast::Primitive* node) { print(node); print_children(node->tasks); }
 
+    void visit(const ast::Attribute* node) { print_named(node); print_children(node->args); }
+
     void visit(const ast::Domain* node) { print_named(node); print_children(node->macros); print_children(node->tasks); }
 
     void visit(const ast::Fact* node) { print_named(node); print_children(node->params); }
@@ -1921,7 +1932,7 @@ struct Debug_Output_Visitor
 
     void visit(const ast::Task* node) { print_named(node); print_children(node->params); print_children(node->macros); print_children(node->cases); }
 
-    void visit(const ast::Case* node) { print(node); print_expr(node->precond); print_children(node->task_list); }
+    void visit(const ast::Case* node) { print(node); print_children(node->attrs); print_expr(node->precond); print_children(node->task_list); }
 
     void visit(const ast::Param* node) { print_named(node); print_data_type(node); }
 

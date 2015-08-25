@@ -259,6 +259,7 @@ namespace ast
 {
     struct Root;
         struct Node;
+            struct Attribute;
             struct World;
                 struct Fact;
                     struct Data_Type;
@@ -362,6 +363,17 @@ namespace ast
         Token_Type              data_type;
     };
 
+    // Parsed attribute.
+    struct Attribute : public Node
+    {
+        // name of the attribute (Token_Literal_Symbol).
+        Token_Value             name;
+        // input buffer location where this attribute is defined.
+        Location                loc;
+        // argument expression passed to the attribute.
+        Array<Expr*>            args;
+    };
+
     // Parsed `macro`.
     struct Macro : public Node
     {
@@ -403,6 +415,8 @@ namespace ast
         Task*                   task;
         // precondition.
         Expr*                   precond;
+        // attributes defined on this case.
+        Array<Attribute*>       attrs;
         // task list expressions.
         Array<Expr*>            task_list;
         // precondition variable name -> first occurence.

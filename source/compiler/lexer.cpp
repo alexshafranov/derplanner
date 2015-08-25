@@ -224,6 +224,32 @@ static Token lex_identifier(Lexer& state)
     return tok;
 }
 
+static Token lex_symbol(Lexer& state)
+{
+    Token tok = begin_token(state);
+    plnnrc_assert(get_char(state) == ':');
+    consume_char(state); // eat ':'
+
+    while (char c = get_char(state))
+    {
+        if (!is_identifier_body(c))
+        {
+            break;
+        }
+
+        consume_char(state);
+    }
+
+    end_token(state, tok, Token_Literal_Symbol);
+
+    if (tok.value.length == 1)
+    {
+        tok.type = Token_Unknown;
+    }
+
+    return tok;
+}
+
 namespace numeric_literal
 {
     int get_char_class(char c)
@@ -364,10 +390,6 @@ Token plnnrc::lex(Lexer& state)
             tok = make_token(state, Token_Comma);
             consume_char(state);
             return tok;
-        case ':':
-            tok = make_token(state, Token_Colon);
-            consume_char(state);
-            return tok;
 
         case '&':
             tok = make_token(state, Token_And);
@@ -446,6 +468,10 @@ Token plnnrc::lex(Lexer& state)
                 return tok;
             }
             return tok;
+
+        // symbol
+        case ':':
+            return lex_symbol(state);
 
         // identifiers & keywords
         case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I': case 'J': case 'K': case 'L': case 'M': case 'N':
