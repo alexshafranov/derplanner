@@ -73,7 +73,7 @@ inline uint32_t murmur2_32(const void* key, uint32_t len, uint32_t seed)
     return h;
 } 
 
-enum { invalid_generation_id = 0x0000000000ffffffull };
+enum { Invalid_Generation_Id = 0x0000000000ffffffull };
 
 inline Fact_Database::Fact_Database()
     : memory(0)
@@ -111,7 +111,7 @@ inline Fact_Handle first(const Fact_Database* db, uint32_t table_index)
     Fact_Handle handle;
     handle.table = table_index;
     handle.entry = 0;
-    handle.generation = (table.num_entries > 0) ? table.generations[0] : (uint64_t) invalid_generation_id;
+    handle.generation = (table.num_entries > 0) ? table.generations[0] : (uint64_t) Invalid_Generation_Id;
 
     return handle;
 }
@@ -133,7 +133,7 @@ inline Fact_Handle next(const Fact_Database* db, Fact_Handle handle)
     else
     {
         result.entry = 0;
-        result.generation = invalid_generation_id;
+        result.generation = Invalid_Generation_Id;
     }
 
     return result;
