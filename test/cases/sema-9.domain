@@ -1,0 +1,18 @@
+//> error (11, 37): variable 'X' isn't bound in all precondition conjuncts.
+//> error (16, 33): only single attribute ':sorted' is allowed.
+domain test
+{
+    fact { a(int32) b(int32) }
+
+    prim { p!(int32) }
+
+    task t()
+    {
+        case( a(X) | b(Y) ) :sorted(X) -> []
+    }
+
+    task s()
+    {
+        case( a(X) ) :sorted(X) :sorted(X) -> []
+    }
+}

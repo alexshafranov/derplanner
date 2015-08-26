@@ -80,18 +80,18 @@ Token_Type plnnrc::get_group_last(Token_Group token_group)
     return s_group_last[token_group];
 }
 
-void plnnrc::init(Lexer& result, const char* buffer, Memory_Stack* scratch)
+void plnnrc::init(Lexer& state, const char* buffer, Memory_Stack* scratch)
 {
-    result.buffer_start = buffer;
-    result.buffer_ptr = buffer;
-    result.loc.column = 1;
-    result.loc.line = 1;
+    state.buffer_start = buffer;
+    state.buffer_ptr = buffer;
+    state.loc.column = 1;
+    state.loc.line = 1;
     const uint32_t num_keywords = (uint32_t)(Token_Group_Keyword_Last - Token_Group_Keyword_First + 1);
-    plnnrc::init(result.keywords, scratch, num_keywords);
-    result.scratch = scratch;
+    init(state.keywords, scratch, num_keywords);
+    state.scratch = scratch;
 
-#define PLNNRC_KEYWORD_TOKEN(TOKEN_TAG, TOKEN_STR)              \
-    plnnrc::set(result.keywords, TOKEN_STR, Token_##TOKEN_TAG); \
+#define PLNNRC_KEYWORD_TOKEN(TOKEN_TAG, TOKEN_STR)      \
+    set(state.keywords, TOKEN_STR, Token_##TOKEN_TAG);  \
 
     #include "derplanner/compiler/token_tags.inl"
 #undef PLNNRC_KEYWORD_TOKEN
@@ -215,10 +215,10 @@ static Token lex_identifier(Lexer& state)
     end_token(state, tok, Token_Id);
 
     // test if the token is actually keyword and modify type accordinly
-    const Token_Type* keyword_type_ptr = get(state.keywords, tok.value.str, tok.value.length);
-    if (keyword_type_ptr != 0)
+    const Token_Type* keyword_type = get(state.keywords, tok.value.str, tok.value.length);
+    if (keyword_type != 0)
     {
-        tok.type = *keyword_type_ptr;
+        tok.type = *keyword_type;
     }
 
     return tok;
@@ -478,7 +478,7 @@ Token plnnrc::lex(Lexer& state)
         case 'O': case 'P': case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W': case 'X': case 'Y': case 'Z':
         case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n':
         case 'o': case 'p': case 'q': case 'r': case 's': case 't': case 'u': case 'v': case 'w': case 'x': case 'y': case 'z':
-        case '?': case '_':
+        case '?': case '!': case '_':
             return lex_identifier(state);
 
         // numeric literal
@@ -498,43 +498,43 @@ void plnnrc::debug_output_tokens(const char* buffer, Writer* output)
     Memory_Stack* scratch = Memory_Stack::create(32*1024);
     {
         Lexer lexer;
-        plnnrc::init(lexer, buffer, scratch);
+        init(lexer, buffer, scratch);
 
         Formatter fmtr;
-        plnnrc::init(fmtr, "  ", "\n", output);
+        init(fmtr, "  ", "\n", output);
 
-        Token tok = plnnrc::lex(lexer);
+        Token tok = lex(lexer);
         uint32_t prev_line = tok.loc.line;
-        plnnrc::newline(fmtr);
+        newline(fmtr);
 
-        for (; tok.type != Token_Eos; tok = plnnrc::lex(lexer))
+        for (; tok.type != Token_Eos; tok = lex(lexer))
         {
             if (tok.loc.line > prev_line)
             {
-                plnnrc::newline(fmtr);
+                newline(fmtr);
             }
 
-            if (plnnrc::has_value(tok))
+            if (has_value(tok))
             {
-                plnnrc::write(fmtr, "%s[%n] ", plnnrc::get_type_name(tok.type), tok.value);
+                write(fmtr, "%s[%n] ", get_type_name(tok.type), tok.value);
             }
             else
             {
-                plnnrc::write(fmtr, "%s ", plnnrc::get_type_name(tok.type));
+                write(fmtr, "%s ", get_type_name(tok.type));
             }
 
             prev_line = tok.loc.line;
         }
 
-        if (tok.type == plnnrc::Token_Eos)
+        if (tok.type == Token_Eos)
         {
             if (tok.loc.line > prev_line)
             {
-                plnnrc::newline(fmtr);
+                newline(fmtr);
             }
 
-            plnnrc::write(fmtr, "%s", plnnrc::get_type_name(tok.type));
-            plnnrc::newline(fmtr);
+            write(fmtr, "%s", get_type_name(tok.type));
+            newline(fmtr);
         }
     }
 

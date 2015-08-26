@@ -74,22 +74,25 @@ Return_Type visit_node(ast::Node* node, Visitor_Type* visitor);
 template <typename Return_Type, typename Visitor_Type>
 Return_Type visit_node(const ast::Node* node, Visitor_Type* visitor);
 
+// finds the first attribute of a given type.
+ast::Attribute* find_attribute(const ast::Node* node, Attribute_Type type);
+
 /// Expression transformations.
 
 // converts expression `root` to Disjunctive-Normal-Form.
-ast::Expr* convert_to_dnf(ast::Root& tree, ast::Expr* root);
+ast::Expr*  convert_to_dnf(ast::Root& tree, ast::Expr* root);
 
 // inline macros into the case preconditions.
-void inline_macros(ast::Root& tree);
+void        inline_macros(ast::Root& tree);
 
 // converts all preconditions to DNF.
-void convert_to_dnf(ast::Root& tree);
+void        convert_to_dnf(ast::Root& tree);
 
 // build various look-ups and traversal info.
-void annotate(ast::Root& tree);
+void        annotate(ast::Root& tree);
 
 // figure out types of parameters and variables.
-bool infer_types(ast::Root& tree);
+bool        infer_types(ast::Root& tree);
 
 // convert literal token value to integer.
 int64_t as_int(const ast::Literal* node);
@@ -120,50 +123,15 @@ void            debug_output_ast(const ast::Root& root, Writer* output);
     #include "derplanner/compiler/ast_tags.inl"
 #undef PLNNRC_NODE_GROUP
 
+#define PLNNRC_ATTRIBUTE(TAG, STR)          \
+    bool is_##TAG(Attribute_Type type);     \
+    bool is_##TAG(ast::Attribute* node);    \
+
+    #include "derplanner/compiler/attribute_tags.inl"
+#undef PLNNRC_ATTRIBUTE
+
 }
 
-/// Inline Code.
+#include "derplanner/compiler/ast.inl"
 
-#define PLNNRC_NODE(TAG, TYPE)                                                                                                                      \
-    inline bool plnnrc::is_##TAG(ast::Node_Type type) { return type == plnnrc::ast::Node_##TAG; }                                                   \
-    inline bool plnnrc::is_##TAG(const ast::Node* node) { return plnnrc::is_##TAG(node->type); }                                                    \
-    inline TYPE* plnnrc::as_##TAG(ast::Node* node) { return (node && plnnrc::is_##TAG(node)) ? static_cast<TYPE*>(node) : 0; }                      \
-    inline const TYPE* plnnrc::as_##TAG(const ast::Node* node) { return (node && plnnrc::is_##TAG(node)) ? static_cast<const TYPE*>(node) : 0; }    \
-
-    #include "derplanner/compiler/ast_tags.inl"
-#undef PLNNRC_NODE
-
-#define PLNNRC_NODE_GROUP(GROUP_TAG, FIRST_NODE_TAG, LAST_NODE_TAG)                                                                                             \
-    inline bool plnnrc::is_##GROUP_TAG(ast::Node_Type type) { return type >= plnnrc::ast::Node_##FIRST_NODE_TAG && type <= plnnrc::ast::Node_##LAST_NODE_TAG; } \
-    inline bool plnnrc::is_##GROUP_TAG(const ast::Node* node) { return is_##GROUP_TAG(node->type); }                                                            \
-
-    #include "derplanner/compiler/ast_tags.inl"
 #endif
-
-template <typename Return_Type, typename Visitor_Type>
-inline Return_Type plnnrc::visit_node(plnnrc::ast::Node* node, Visitor_Type* visitor)
-{
-    switch (node->type)
-    {
-    #define PLNNRC_NODE(TAG, TYPE) case plnnrc::ast::Node_##TAG: return visitor->visit(static_cast<TYPE*>(node));
-    #include "derplanner/compiler/ast_tags.inl"
-    #undef PLNNRC_NODE
-    default:
-        plnnrc_assert(false);
-        return Return_Type();
-    }
-}
-
-template <typename Return_Type, typename Visitor_Type>
-inline Return_Type plnnrc::visit_node(const plnnrc::ast::Node* node, Visitor_Type* visitor)
-{
-    switch (node->type)
-    {
-    #define PLNNRC_NODE(TAG, TYPE) case plnnrc::ast::Node_##TAG: return visitor->visit(static_cast<const TYPE*>(node));
-    #include "derplanner/compiler/ast_tags.inl"
-    #undef PLNNRC_NODE
-    default:
-        plnnrc_assert(false);
-        return Return_Type();
-    }
-}

@@ -83,7 +83,14 @@ void plnnrc::init(Parser& state, Lexer* lexer, ast::Root* tree, Array<Error>* er
     state.lexer = lexer;
     state.tree = tree;
     state.errs = errors;
+    init(state.attrs, scratch, Attribute_Count);
     state.scratch = scratch;
+
+#define PLNNRC_ATTRIBUTE(ATTR_TAG, ATTR_STR)            \
+    set(state.attrs, ATTR_STR, Attribute_##ATTR_TAG);   \
+
+    #include "derplanner/compiler/attribute_tags.inl"
+#undef PLNNRC_ATTRIBUTE
 }
 
 static Token peek(Parser& state)
@@ -698,6 +705,9 @@ static ast::Attribute* parse_attribute(Parser& state)
     Token tok = expect(state, Token_Literal_Symbol);
     plnnrc_check_return(!is_Error(tok));
     ast::Attribute* attr = create_attribute(state.tree, tok.value, tok.loc);
+
+    const Attribute_Type* attr_type = get(state.attrs, tok.value);
+    attr->attr_type = attr_type ? *attr_type : Attribute_Custom;
 
     if (is_L_Paren(peek(state)))
     {

@@ -233,6 +233,7 @@ static bool root_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Data
   plnnr_coroutine_begin(frame, expand_label);
 
   while (p0_next(state, frame, db)) {
+    binds = binds + frame->binding_index;
     begin_compound(state, &s_domain_info, 3); // travel
     set_compound_arg(state, s_task_parameters[3], 0, Id32(binds->_0));
     set_compound_arg(state, s_task_parameters[3], 1, Id32(binds->_1));
@@ -290,6 +291,7 @@ static bool travel_by_plane_case_0(Planning_State* state, Expansion_Frame* frame
   plnnr_coroutine_begin(frame, expand_label);
 
   while (p3_next(state, frame, db)) {
+    binds = binds + frame->binding_index;
     begin_compound(state, &s_domain_info, 3); // travel
     set_compound_arg(state, s_task_parameters[3], 0, Id32(args->_0));
     set_compound_arg(state, s_task_parameters[3], 1, Id32(binds->_0));

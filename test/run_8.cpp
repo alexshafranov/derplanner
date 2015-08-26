@@ -135,6 +135,7 @@ static bool attack_all_visible_case_0(Planning_State* state, Expansion_Frame* fr
   plnnr_coroutine_begin(frame, expand_label);
 
   while (p0_next(state, frame, db)) {
+    binds = binds + frame->binding_index;
     begin_task(state, &s_domain_info, 0); // attack!
     set_task_arg(state, s_task_parameters[0], 0, Id32(binds->_2));
     plnnr_coroutine_yield(frame, expand_label, 1);

@@ -69,8 +69,9 @@ void plnnrc::generate_header(Codegen& state, const char* header_guard, Writer* o
 }
 
 static void generate_precondition(Codegen& state, uint32_t case_idx, Formatter& fmtr);
+static void generate_comparator(Codegen& state, ast::Expr* key_expr, Token_Type key_type, bool has_args, uint32_t case_index, uint32_t struct_index, uint32_t output_index, Formatter& fmtr);
 static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_idx, Formatter& fmtr);
-static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* literal, uint32_t& handle_id, uint32_t& yield_id, Formatter& fmtr);
+static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* literal, uint32_t& handle_id, uint32_t& yield_id, bool store_binds, Formatter& fmtr);
 
 static const char* s_runtime_type_tag[] =
 {
@@ -234,6 +235,33 @@ static void build_signatures(Codegen& state)
                 ast::Param* param = as_Param(var->definition);
                 uint32_t task_param_idx = index_of(task->params, param);
                 var->input_index = task_param_idx;
+            }
+        }
+
+        for (uint32_t attr_idx = 0; attr_idx < size(case_->attrs); ++attr_idx)
+        {
+            ast::Attribute* attr = case_->attrs[attr_idx];
+            for (uint32_t arg_idx = 0; arg_idx < size(attr->args); ++arg_idx)
+            {
+                ast::Expr* arg = attr->args[arg_idx];
+                for (ast::Expr* node = arg; node != 0; node = preorder_next(arg, node))
+                {
+                    if (ast::Var* var = as_Var(node))
+                    {
+                        ast::Var* first = get(case_->precond_var_lookup, var->name);
+
+                        if (first)
+                        {
+                            var->input_index = first->input_index;
+                        }
+                        else
+                        {
+                            ast::Param* param = as_Param(var->definition);
+                            uint32_t task_param_idx = index_of(task->params, param);
+                            var->input_index = task_param_idx;
+                        }
+                    }
+                }
             }
         }
     }
@@ -763,6 +791,20 @@ static void generate_precondition(Codegen& state, uint32_t case_idx, Formatter& 
 
     uint32_t task_idx = index_of(domain->tasks, case_->task);
 
+    uint32_t output_idx = get_dense_index(state.struct_sigs, size(domain->tasks) + case_idx);
+    uint32_t struct_idx = get_dense_index(state.struct_sigs, task_idx);
+    Signature output_sig = get_dense(state.struct_sigs, output_idx);
+    Signature struct_sig = get_dense(state.struct_sigs, struct_idx);
+
+    const bool has_args = (struct_sig.length > 0);
+    const bool has_output = (output_sig.length > 0);
+
+    ast::Attribute* attr_sorted = find_attribute(case_, Attribute_Sorted);
+    if (attr_sorted)
+    {
+        generate_comparator(state, attr_sorted->args[0], attr_sorted->types[0], has_args, case_idx, struct_idx, output_idx, fmtr);
+    }
+
     writeln(fmtr, "static bool p%d_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)", case_idx);
 
     ast::Expr* precond = case_->precond;
@@ -787,15 +829,11 @@ static void generate_precondition(Codegen& state, uint32_t case_idx, Formatter& 
     {
         Indent_Scope s(fmtr);
         writeln(fmtr, "Fact_Handle* handles = frame->handles;");
-        uint32_t output_idx = get_dense_index(state.struct_sigs, size(domain->tasks) + case_idx);
-        uint32_t struct_idx = get_dense_index(state.struct_sigs, task_idx);
-        Signature output_sig = get_dense(state.struct_sigs, output_idx);
-        Signature struct_sig = get_dense(state.struct_sigs, struct_idx);
 
-        if (struct_sig.length > 0)
+        if (has_args)
             writeln(fmtr, "const S_%d* args = (const S_%d*)(frame->arguments);", struct_idx, struct_idx);
 
-        if (output_sig.length > 0)
+        if (has_output)
             writeln(fmtr, "S_%d* binds = (S_%d*)(frame->bindings);", output_idx, output_idx);
 
         newline(fmtr);
@@ -804,19 +842,65 @@ static void generate_precondition(Codegen& state, uint32_t case_idx, Formatter& 
 
         uint32_t handle_id = 0;
         uint32_t yield_id = 1;
+        bool is_empty_precond = true;
         for (ast::Expr* conjunct = precond->child; conjunct != 0; conjunct = conjunct->next_sibling)
         {
+            ast::Expr* node = conjunct;
             if (is_And(conjunct))
             {
                 // empty `and`.
                 if (!conjunct->child)
+                {
+                    is_empty_precond &= true;
                     continue;
+                }
 
-                generate_conjunct(state, case_, conjunct->child, handle_id, yield_id, fmtr);
-                continue;
+                is_empty_precond = false;
+                node = conjunct->child;
             }
 
-            generate_conjunct(state, case_, conjunct, handle_id, yield_id, fmtr);
+            if (attr_sorted)
+            {
+                if (conjunct != precond->child)
+                    writeln(fmtr, "revert(state->expansion_blob, binds + 1);");
+
+                writeln(fmtr, "frame->num_bindings = 0;");
+            }
+
+            generate_conjunct(state, case_, node, handle_id, yield_id, attr_sorted != 0, fmtr);
+
+            if (attr_sorted)
+            {
+                newline(fmtr);
+
+                writeln(fmtr, "if (frame->num_bindings > 0) {");
+                {
+                    Indent_Scope s(fmtr);
+                    writeln(fmtr, "revert(state->expansion_blob, binds);");
+                }
+                writeln(fmtr, "}");
+                newline(fmtr);
+
+                if (has_args)
+                    writeln(fmtr, "std::sort(binds - frame->num_bindings, binds, Compare_p%d(args));", case_idx);
+                else
+                    writeln(fmtr, "std::sort(binds - frame->num_bindings, binds, Compare_p%d());", case_idx);
+
+                newline(fmtr);
+                writeln(fmtr, "for (frame->binding_index = 0; frame->binding_index < frame->num_bindings; ++frame->binding_index) {");
+                {
+                    Indent_Scope s(fmtr);
+                    writeln(fmtr, "plnnr_coroutine_yield(frame, precond_label, %d);", yield_id++);
+                }
+                writeln(fmtr, "}");
+                newline(fmtr);
+            }
+        }
+
+        // empty precondition expression.
+        if (is_empty_precond)
+        {
+            writeln(fmtr, "plnnr_coroutine_yield(frame, precond_label, %d);", yield_id++);
         }
 
         newline(fmtr);
@@ -948,7 +1032,7 @@ struct Expr_Writer
     void visit(const ast::Node*) { plnnrc_assert(false); }
 };
 
-static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* literal, uint32_t& handle_id, uint32_t& yield_id, Formatter& fmtr)
+static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* literal, uint32_t& handle_id, uint32_t& yield_id, bool store_binds, Formatter& fmtr)
 {
     ast::Func* func = is_Not(literal) ? as_Func(literal->child) : as_Func(literal);
 
@@ -975,9 +1059,22 @@ static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* liter
         Indent_Scope indent_scope(fmtr);
 
         if (!literal->next_sibling)
-            writeln(fmtr, "plnnr_coroutine_yield(frame, precond_label, %d);", yield_id++);
+        {
+            if (!store_binds)
+            {
+                writeln(fmtr, "plnnr_coroutine_yield(frame, precond_label, %d);", yield_id++);
+            }
+            else
+            {
+                const uint32_t case_index = index_of(state.tree->cases, case_);
+                writeln(fmtr, "binds = (S_1*)(allocate_precond_bindings(state, s_bindings[%d]));", case_index);
+                writeln(fmtr, "++frame->num_bindings;");
+            }
+        }
         else
-            generate_conjunct(state, case_, literal->next_sibling, handle_id, yield_id, fmtr);
+        {
+            generate_conjunct(state, case_, literal->next_sibling, handle_id, yield_id, store_binds, fmtr);
+        }
     }
     // fact -> generate iterator.
     else
@@ -1067,13 +1164,64 @@ static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* liter
             ++handle_id;
 
             if (!literal->next_sibling)
-                writeln(fmtr, "plnnr_coroutine_yield(frame, precond_label, %d);", yield_id++);
+            {
+                if (!store_binds)
+                {
+                    writeln(fmtr, "plnnr_coroutine_yield(frame, precond_label, %d);", yield_id++);
+                }
+                else
+                {
+                    const uint32_t case_index = index_of(state.tree->cases, case_);
+                    writeln(fmtr, "binds = (S_1*)(allocate_precond_bindings(state, s_bindings[%d]));", case_index);
+                    writeln(fmtr, "++frame->num_bindings;");
+                }
+            }
             else
-                generate_conjunct(state, case_, literal->next_sibling, handle_id, yield_id, fmtr);
+            {
+                generate_conjunct(state, case_, literal->next_sibling, handle_id, yield_id, store_binds, fmtr);
+            }
         }
     }
 
     writeln(fmtr, "}");
+}
+
+static void generate_comparator(Codegen& state, ast::Expr* key_expr, Token_Type key_type, bool has_args, uint32_t case_index, uint32_t struct_index, uint32_t output_index, Formatter& fmtr)
+{
+    const char* key_data_type_name = get_runtime_type_name(key_type);
+
+    writeln(fmtr, "struct Compare_p%d {", case_index);
+    {
+        Indent_Scope s(fmtr);
+
+        if (has_args)
+        {
+            writeln(fmtr, "const S_%d* args;", struct_index);
+            writeln(fmtr, "Compare_p%d(const S_%d* args) :args(args) {}");
+            newline(fmtr);
+        }
+
+        writeln(fmtr, "inline %s key(const S_%d* binds) const {", key_data_type_name, output_index);
+        {
+            Indent_Scope s(fmtr);
+            Expr_Writer visitor = { &fmtr, state.tree };
+            write(fmtr, "%ireturn %s(", key_data_type_name);
+            visit_node<void>(key_expr, &visitor);
+            write(fmtr, ");");
+            newline(fmtr);
+        }
+        writeln(fmtr, "}");
+        newline(fmtr);
+
+        writeln(fmtr, "inline bool operator()(const S_%d& a, const S_%d& b) const {", output_index, output_index);
+        {
+            Indent_Scope s(fmtr);
+            writeln(fmtr, "return key(&a) < key(&b);");
+        }
+        writeln(fmtr, "}");
+    }
+    writeln(fmtr, "};");
+    newline(fmtr);
 }
 
 template <typename Param_Node>
@@ -1139,7 +1287,8 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
                 struct_idx, struct_idx);
 
         uint32_t binding_idx = get_dense_index(state.struct_sigs, size(domain->tasks) + case_idx);
-        if (get_dense(state.struct_sigs, binding_idx).length > 0)
+        const bool has_binds = get_dense(state.struct_sigs, binding_idx).length > 0;
+        if (has_binds)
             writeln(fmtr, "const S_%d* binds = (const S_%d*)(frame->bindings);",
                 binding_idx, binding_idx);
 
@@ -1158,6 +1307,10 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
             {
                 writeln(fmtr, "frame->status = Expansion_Frame::Status_Expanded;");
                 writeln(fmtr, "plnnr_coroutine_yield(frame, expand_label, %d);", yield_id++);
+            }
+            else if (has_binds)
+            {
+                writeln(fmtr, "binds = binds + frame->binding_index;");
             }
 
             for (uint32_t item_idx = 0; item_idx < size(case_->task_list); ++item_idx)

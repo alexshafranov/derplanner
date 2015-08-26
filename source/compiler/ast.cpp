@@ -700,6 +700,22 @@ ast::Expr* plnnrc::preorder_next(const ast::Expr* root, ast::Expr* current)
     return node->next_sibling;
 }
 
+ast::Attribute* plnnrc::find_attribute(const ast::Node* node, Attribute_Type type)
+{
+    // only cases can have attributes currently.
+    if (const ast::Case* case_ = as_Case(node))
+    {
+        for (uint32_t attr_idx = 0; attr_idx < size(case_->attrs); ++attr_idx)
+        {
+            ast::Attribute* attr = case_->attrs[attr_idx];
+            if (attr->attr_type == type)
+                return attr;
+        }
+    }
+
+    return 0;
+}
+
 void plnnrc::convert_to_dnf(ast::Root& tree)
 {
     ast::Domain* domain = tree.domain;
@@ -1602,7 +1618,7 @@ static Token_Type get_op_token_type(ast::Node_Type node_type)
 
 static bool resolve_function_call(ast::Root& tree, ast::Func* func);
 
-struct Expr_Type_Visitor
+struct Compute_Expr_Result_Type
 {
     ast::Root* tree;
 
@@ -1724,7 +1740,7 @@ static bool check_all_task_params_inferred(ast::Root& tree)
 template <typename Def>
 static bool check_arguments(ast::Root& tree, ast::Func* func, Def* definition)
 {
-    Expr_Type_Visitor visitor = { &tree };
+    Compute_Expr_Result_Type visitor = { &tree };
     for (uint32_t arg_idx = 0; arg_idx < size(func->args); ++arg_idx)
     {
         ast::Expr* arg = func->args[arg_idx];
@@ -1751,7 +1767,7 @@ static bool resolve_function_call(ast::Root& tree, ast::Func* func)
     // cache argument types.
     init(func->arg_types, tree.pool, size(func->args));
 
-    Expr_Type_Visitor visitor = { &tree };
+    Compute_Expr_Result_Type visitor = { &tree };
     for (uint32_t arg_idx = 0; arg_idx < size(func->args); ++arg_idx)
     {
         ast::Expr* arg = func->args[arg_idx];
@@ -1813,7 +1829,131 @@ static bool check_expression_types(ast::Root& tree)
         }
     }
 
-    return size(*tree.errs) > err_count;
+    return size(*tree.errs) == err_count;
+}
+
+struct Assign_Var_Defs_And_Types
+{
+    ast::Root* tree;
+    ast::Case* case_;
+
+    bool visit(ast::Var* node)
+    {
+        ast::Task* task = case_->task;
+
+        if (ast::Var* def = get(case_->precond_var_lookup, node->name))
+        {
+            node->definition = def;
+            node->data_type = def->data_type;
+            return true;
+        }
+
+        if (ast::Param* def = get(task->param_lookup, node->name))
+        {
+            node->definition = def;
+            node->data_type = def->data_type;
+            return true;
+        }
+
+        emit(*tree, node->loc, Error_Unbound_Var) << node->name;
+        return false;
+    }
+
+    bool visit(ast::Expr* node)
+    {
+        for (ast::Expr* child = node->child; child != 0; child = child->next_sibling)
+        {
+            if (!visit_node<bool>(child, this))
+                return false;
+        }
+
+        return true;
+    }
+
+    bool visit(ast::Node*) { plnnrc_assert(false); return false; }
+};
+
+struct Resolve_Function_Calls
+{
+    ast::Root* tree;
+
+    bool visit(ast::Func* node)
+    {
+        return resolve_function_call(*tree, node);
+    }
+
+    bool visit(ast::Expr* node)
+    {
+        for (ast::Expr* child = node->child; child != 0; child = child->next_sibling)
+        {
+            if (!visit_node<bool>(child, this))
+                return false;
+        }
+
+        return true;
+    }
+
+    bool visit(ast::Node*) { plnnrc_assert(false); return false; }
+};
+
+static bool process_attributes(ast::Root& tree)
+{
+    const uint32_t err_count = size(*tree.errs);
+
+    // currently, only case attributes are supported.
+    for (uint32_t case_idx = 0; case_idx < size(tree.cases); ++case_idx)
+    {
+        ast::Case* case_ = tree.cases[case_idx];
+
+        uint32_t num_sorted_attr = 0;
+        for (uint32_t attr_idx = 0; attr_idx < size(case_->attrs); ++attr_idx)
+        {
+            ast::Attribute* attr = case_->attrs[attr_idx];
+
+            if (is_Sorted(attr))
+            {
+                ++num_sorted_attr;
+
+                if (num_sorted_attr > 1)
+                    emit(tree, attr->loc, Error_Only_Single_Attr_Allowed) << attr->name;
+
+                if (size(attr->args) != 1)
+                    emit(tree, attr->loc, Error_Mismatching_Number_Of_Args) << attr->name;
+            }
+
+            Assign_Var_Defs_And_Types var_visitor = { &tree, case_ };
+            Resolve_Function_Calls func_visitor = { &tree };
+            for (uint32_t arg_idx = 0; arg_idx < size(attr->args); ++arg_idx)
+            {
+                ast::Expr* arg = attr->args[arg_idx];
+
+                visit_node<bool>(arg, &var_visitor);
+                visit_node<bool>(arg, &func_visitor);
+
+                for (ast::Expr* node = arg; node != 0; node = preorder_next(arg, node))
+                {
+                    ast::Var* var = as_Var(node);
+                    if (!var)
+                        continue;
+
+                    if (!has_var_in_all_conjuncts(case_->precond, var))
+                        emit(tree, var->loc, Error_Not_Bound_In_All_Conjuncts) << var->name;
+                }
+            }
+
+            Compute_Expr_Result_Type type_visitor = { &tree };
+            init(attr->types, tree.pool, size(attr->args));
+            resize(attr->types, size(attr->args));
+            for (uint32_t arg_idx = 0; arg_idx < size(attr->args); ++arg_idx)
+            {
+                ast::Expr* arg = attr->args[arg_idx];
+                const Token_Type arg_type = visit_node<Token_Type>(arg, &type_visitor);
+                attr->types[arg_idx] = arg_type;
+            }
+        }
+    }
+
+    return size(*tree.errs) == err_count;
 }
 
 bool plnnrc::infer_types(ast::Root& tree)
@@ -1855,6 +1995,9 @@ bool plnnrc::infer_types(ast::Root& tree)
 
     // compute expression types and check them against expected parameter types.
     if (!check_expression_types(tree))
+        return false;
+
+    if (!process_attributes(tree))
         return false;
 
     return true;

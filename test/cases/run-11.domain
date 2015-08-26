@@ -1,0 +1,35 @@
+//: // `:sorted` attribute
+//:
+//: plnnr::Fact_Table* values1  = plnnr::find_table(db, "values1");
+//: plnnr::Fact_Table* values2  = plnnr::find_table(db, "values2");
+//: plnnr::Fact_Table* check    = plnnr::find_table(db, "check");
+//:
+//: plnnr::add_entry(values1, 2);
+//: plnnr::add_entry(values1, 3);
+//: plnnr::add_entry(values2, 1);
+//: plnnr::add_entry(values2, 4);
+//:
+//: plnnr::add_entry(check, 2);
+//: plnnr::add_entry(check, 1);
+//: plnnr::add_entry(check, 4);
+//:
+//! check_plan("p!(2) p!(4) p!(1)", pstate, domain);
+//!
+domain run_11
+{
+    fact values1(int32)
+    fact values2(int32)
+    fact check(int32)
+
+    prim p!(int32)
+
+    task r()
+    {
+        case() -> [ t() ]
+    }
+
+    task t()
+    {
+        each( (values1(X) | values2(X)) & check(X) ) :sorted(-X) -> [ p!(X) ]
+    }
+}

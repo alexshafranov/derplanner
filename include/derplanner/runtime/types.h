@@ -149,8 +149,12 @@ struct Expansion_Frame
     uint16_t                expand_label;
     // jump label to support coroutine-like precondition iteration.
     uint16_t                precond_label;
-    // number of fact database handles kept by the case precondition.
+    // number of handles to a fact database kept by the case precondition.
     uint16_t                num_handles;
+    // number of binding tuples stored by the precondition; usually equals to 1, more for ordered preconditions.
+    uint32_t                num_bindings;
+    // index of a binding tuple yielded by precondition.
+    uint32_t                binding_index;
     // offset in the Planning_State::expansion_blob before any data is written.
     uint32_t                orig_blob_size;
     // the expand function of the expanding case.

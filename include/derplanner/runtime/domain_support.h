@@ -21,7 +21,8 @@
 #ifndef DERPLANNER_RUNTIME_DOMAIN_SUPPORT_H_
 #define DERPLANNER_RUNTIME_DOMAIN_SUPPORT_H_
 
-#include <string.h> // memset
+#include <algorithm>    // std::sort
+#include <string.h>     // memset
 
 #include "derplanner/runtime/assert.h"
 #include "derplanner/runtime/memory.h"
@@ -80,25 +81,34 @@ inline uint8_t* allocate_with_layout(Linear_Blob* blob, const Param_Layout& layo
     return bytes;
 }
 
+inline void revert(Linear_Blob& blob, void* new_top)
+{
+    blob.top = (uint8_t*)(new_top);
+}
+
 /// Functions used in generated code.
 
-inline Fact_Handle* allocate_precond_handles(Planning_State* state, Expansion_Frame* frame, uint32_t num_handles)
+inline void allocate_precond_handles(Planning_State* state, Expansion_Frame* frame, uint32_t num_handles)
 {
-    if (num_handles == 0) return 0;
+    if (num_handles == 0) return;
 
     Linear_Blob* blob = &state->expansion_blob;
     uint8_t* bytes = blob->top;
     blob->top = (uint8_t*)align(blob->top, plnnr_alignof(Fact_Handle)) + sizeof(Fact_Handle) * num_handles;
     frame->handles = reinterpret_cast<Fact_Handle*>(bytes);
     frame->num_handles = (uint16_t)(num_handles);
-    return frame->handles;
+}
+
+inline void* allocate_precond_bindings(Planning_State* state, const Param_Layout& output_type)
+{
+    Linear_Blob* blob = &state->expansion_blob;
+    uint8_t* bytes = allocate_with_layout(blob, output_type);
+    return bytes;
 }
 
 inline void allocate_precond_bindings(Planning_State* state, Expansion_Frame* frame, const Param_Layout& output_type)
 {
-    Linear_Blob* blob = &state->expansion_blob;
-    uint8_t* bytes = allocate_with_layout(blob, output_type);
-    frame->bindings = bytes;
+    frame->bindings = allocate_precond_bindings(state, output_type);
 }
 
 inline void begin_compound(Planning_State* state, const Domain_Info* domain, uint32_t task_id)

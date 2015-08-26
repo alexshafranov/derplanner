@@ -125,6 +125,7 @@ static bool t_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Databas
   plnnr_coroutine_begin(frame, expand_label);
 
   while (p0_next(state, frame, db)) {
+    binds = binds + frame->binding_index;
     begin_task(state, &s_domain_info, 0); // p!
     set_task_arg(state, s_task_parameters[0], 0, int32_t(binds->_0));
     plnnr_coroutine_yield(frame, expand_label, 1);

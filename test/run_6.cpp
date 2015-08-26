@@ -177,6 +177,7 @@ static bool r_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Databas
   plnnr_coroutine_begin(frame, expand_label);
 
   while (p0_next(state, frame, db)) {
+    binds = binds + frame->binding_index;
     begin_compound(state, &s_domain_info, 2); // t
     set_compound_arg(state, s_task_parameters[2], 0, int8_t(binds->_0));
     set_compound_arg(state, s_task_parameters[2], 1, int32_t(binds->_1));

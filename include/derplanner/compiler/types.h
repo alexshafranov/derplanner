@@ -94,6 +94,7 @@ enum Error_Type
 // Token type tags.
 enum Token_Type
 {
+    // default value is defined inside token_tags.inl
     #define PLNNRC_TOKEN(TAG) Token_##TAG,
     #include "derplanner/compiler/token_tags.inl"
     #undef PLNNRC_TOKEN
@@ -120,6 +121,17 @@ enum Token_Group_Ranges
     #define PLNNRC_TOKEN_GROUP(GROUP_TAG, FIRST_TOKEN_TAG, LAST_TOKEN_TAG) Token_Group_##GROUP_TAG##_Last = Token_##LAST_TOKEN_TAG,
     #include "derplanner/compiler/token_tags.inl"
     #undef PLNNRC_TOKEN_GROUP
+};
+
+// Internal attribute type tags.
+enum Attribute_Type
+{
+    Attribute_None = 0,
+    #define PLNNRC_ATTRIBUTE(TAG, STR) Attribute_##TAG,
+    #include "derplanner/compiler/attribute_tags.inl"
+    #undef PLNNRC_ATTRIBUTE
+    Attribute_Count,
+    Attribute_Custom,
 };
 
 // Reference to signature (tuple of types), owned by `Signature_Table`.
@@ -366,12 +378,16 @@ namespace ast
     // Parsed attribute.
     struct Attribute : public Node
     {
+        // built-in attribute type, or `Attribute_Custom` for user attributes.
+        Attribute_Type          attr_type;
         // name of the attribute (Token_Literal_Symbol).
         Token_Value             name;
         // input buffer location where this attribute is defined.
         Location                loc;
         // argument expression passed to the attribute.
         Array<Expr*>            args;
+        // inferred type for each argument expression.
+        Array<Token_Type>       types;
     };
 
     // Parsed `macro`.
@@ -508,15 +524,17 @@ namespace ast
 struct Parser
 {
     // token source for parsing.
-    Lexer*              lexer;
+    Lexer*                      lexer;
     // last lexed token.
-    Token               token;
+    Token                       token;
+    // maps built-in attribute names to attribute types.
+    Id_Table<Attribute_Type>    attrs;
     // output Abstract-Syntax-Tree.
-    ast::Root*          tree;
+    ast::Root*                  tree;
     // errors.
-    Array<Error>*       errs;
+    Array<Error>*               errs;
     // allocator for parsing data.
-    Memory_Stack*       scratch;
+    Memory_Stack*               scratch;
 };
 
 class Writer;
