@@ -2077,7 +2077,7 @@ bool plnnrc::infer_types(ast::Root& tree)
     return true;
 }
 
-static const char* node_type_names[] =
+static const char* s_node_type_names[] =
 {
     "None",
     #define PLNNRC_NODE(TAG, TYPE) #TAG,
@@ -2088,7 +2088,7 @@ static const char* node_type_names[] =
 
 const char* plnnrc::get_type_name(ast::Node_Type node_type)
 {
-    return node_type_names[node_type];
+    return s_node_type_names[node_type];
 }
 
 struct Debug_Output_Visitor
