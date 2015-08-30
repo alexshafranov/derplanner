@@ -366,6 +366,8 @@ namespace ast
         Location                loc;
         // parameters.
         Array<Data_Type*>       params;
+        // attributes defined on this fact.
+        Array<Attribute*>       attrs;
     };
 
     // Fact parameter type.

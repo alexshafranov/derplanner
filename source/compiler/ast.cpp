@@ -700,20 +700,33 @@ ast::Expr* plnnrc::preorder_next(const ast::Expr* root, ast::Expr* current)
     return node->next_sibling;
 }
 
-ast::Attribute* plnnrc::find_attribute(const ast::Node* node, Attribute_Type type)
+struct Find_Attribute
 {
-    // only cases can have attributes currently.
-    if (const ast::Case* case_ = as_Case(node))
+    Attribute_Type type;
+
+    ast::Attribute* find(const Array<ast::Attribute*>& attrs)
     {
-        for (uint32_t attr_idx = 0; attr_idx < size(case_->attrs); ++attr_idx)
+        for (uint32_t attr_idx = 0; attr_idx < size(attrs); ++attr_idx)
         {
-            ast::Attribute* attr = case_->attrs[attr_idx];
+            ast::Attribute* attr = attrs[attr_idx];
             if (attr->attr_type == type)
                 return attr;
         }
+
+        return 0;
     }
 
-    return 0;
+    ast::Attribute* visit(const ast::Fact* node) { return find(node->attrs); }
+
+    ast::Attribute* visit(const ast::Case* node) { return find(node->attrs); }
+
+    ast::Attribute* visit(const ast::Node*) { return 0; }
+};
+
+ast::Attribute* plnnrc::find_attribute(const ast::Node* node, Attribute_Type type)
+{
+    Find_Attribute visitor = { type };
+    return visit_node<ast::Attribute*>(node, &visitor);
 }
 
 void plnnrc::convert_to_dnf(ast::Root& tree)
@@ -1896,11 +1909,66 @@ struct Resolve_Function_Calls
     bool visit(ast::Node*) { plnnrc_assert(false); return false; }
 };
 
+struct Is_Const_Expr
+{
+    bool visit(const ast::Var*)
+    {
+        return false;
+    }
+
+    bool visit(const ast::Expr* node)
+    {
+        for (ast::Expr* child = node->child; child != 0; child = child->next_sibling)
+        {
+            if (!visit_node<bool>(child, this))
+                return false;
+        }
+
+        return true;
+    }
+
+    bool visit(const ast::Node*) { plnnrc_assert(false); return false; }
+};
+
 static bool process_attributes(ast::Root& tree)
 {
     const uint32_t err_count = size(*tree.errs);
 
-    // currently, only case attributes are supported.
+    for (uint32_t fact_idx = 0; fact_idx < size(tree.world->facts); ++fact_idx)
+    {
+        ast::Fact* fact = tree.world->facts[fact_idx];
+
+        uint32_t num_size_attr = 0;
+        for (uint32_t attr_idx = 0; attr_idx < size(fact->attrs); ++attr_idx)
+        {
+            ast::Attribute* attr = fact->attrs[attr_idx];
+
+            if (is_Size(attr))
+            {
+                ++num_size_attr;
+
+                if (num_size_attr > 1)
+                {
+                    emit(tree, attr->loc, Error_Only_Single_Attr_Allowed) << attr->name;
+                    break;
+                }
+
+                if (size(attr->args) != 1)
+                {
+                    emit(tree, attr->loc, Error_Mismatching_Number_Of_Args) << attr->name;
+                    break;
+                }
+
+                Is_Const_Expr visitor;
+                if (!visit_node<bool>(attr->args[0], &visitor))
+                {
+                    emit(tree, attr->loc, Error_Only_Const_Expr_Allowed) << attr->name;
+                    break;
+                }
+            }
+        }
+    }
+
     for (uint32_t case_idx = 0; case_idx < size(tree.cases); ++case_idx)
     {
         ast::Case* case_ = tree.cases[case_idx];
@@ -1915,10 +1983,16 @@ static bool process_attributes(ast::Root& tree)
                 ++num_sorted_attr;
 
                 if (num_sorted_attr > 1)
+                {
                     emit(tree, attr->loc, Error_Only_Single_Attr_Allowed) << attr->name;
+                    break;
+                }
 
                 if (size(attr->args) != 1)
+                {
                     emit(tree, attr->loc, Error_Mismatching_Number_Of_Args) << attr->name;
+                    break;
+                }
             }
 
             Assign_Var_Defs_And_Types var_visitor = { &tree, case_ };
@@ -2069,7 +2143,7 @@ struct Debug_Output_Visitor
 
     void visit(const ast::Domain* node) { print_named(node); print_children(node->macros); print_children(node->tasks); }
 
-    void visit(const ast::Fact* node) { print_named(node); print_children(node->params); }
+    void visit(const ast::Fact* node) { print_named(node); print_children(node->params); print_children(node->attrs); }
 
     void visit(const ast::Macro* node) { print_named(node); print_children(node->params); print_expr(node->expression); }
 

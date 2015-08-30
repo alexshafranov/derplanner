@@ -22,6 +22,7 @@
     #define PLNNRC_ATTRIBUTE(TAG, STR)
 #endif
 
-PLNNRC_ATTRIBUTE(Sorted, ":sorted")
+PLNNRC_ATTRIBUTE(Sorted,    ":sorted")
+PLNNRC_ATTRIBUTE(Size,      ":size")
 
 #undef PLNNRC_ATTRIBUTE

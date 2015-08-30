@@ -331,6 +331,127 @@ static bool build_hashes(const Array<Token_Value>& names, Array<uint32_t>& out_h
     return false;
 }
 
+struct Expr_Writer
+{
+    Formatter* fmtr;
+    ast::Root* tree;
+
+    void visit(const ast::Var* node)
+    {
+        plnnrc_assert(node->definition);
+
+        if (is_Param(node->definition))
+        {
+            write(*fmtr, "args->_%d", node->input_index);
+            return;
+        }
+
+        if (is_Var(node->definition))
+        {
+            write(*fmtr, "binds->_%d", node->output_index);
+            return;
+        }
+
+        plnnrc_assert(false);
+    }
+
+    void visit(const ast::Literal* node)
+    {
+        if (is_Literal_Fact(node->value_type))
+        {
+            ast::Fact* fact = get_fact(*tree, node->value);
+            plnnrc_assert(fact);
+            uint32_t fact_idx = index_of(tree->world->facts, fact);
+            write(*fmtr, "db->tables[%d]", fact_idx);
+        }
+        else
+        {
+            write(*fmtr, "%n", node->value);
+        }
+    }
+
+    const char* get_op_str(ast::Node_Type node_type)
+    {
+        switch (node_type)
+        {
+        case ast::Node_Or: return "||";
+        case ast::Node_And: return "&&";
+        case ast::Node_Not: return "!";
+        case ast::Node_Equal: return "==";
+        case ast::Node_NotEqual: return "!=";
+        case ast::Node_Less: return "<";
+        case ast::Node_LessEqual: return "<=";
+        case ast::Node_Greater: return ">";
+        case ast::Node_GreaterEqual: return ">=";
+        case ast::Node_Plus: return "+";
+        case ast::Node_Minus: return "-";
+        case ast::Node_Mul: return "*";
+        case ast::Node_Div: return "/";
+        default:
+            plnnrc_assert(false);
+            return "";
+        }
+    }
+
+    void visit(const ast::Op* node)
+    {
+        const char* op = get_op_str(node->type);
+        plnnrc_assert(node->child);
+
+        // unary
+        if (!node->child->next_sibling)
+        {
+            plnnrc_assert(is_Plus(node) || is_Minus(node) || is_Not(node));
+            write(*fmtr, "%s", op);
+            write(*fmtr, "(");
+            visit_node<void>(node->child, this);
+            write(*fmtr, ")");
+        }
+        // binary
+        else
+        {
+            write(*fmtr, "(");
+            for (ast::Expr* arg = node->child; arg != 0; arg = arg->next_sibling)
+            {
+                visit_node<void>(arg, this);
+                if (arg->next_sibling != 0)
+                    write(*fmtr, " %s ", op);
+            }
+            write(*fmtr, ")");
+        }
+    }
+
+    void visit(const ast::Func* func)
+    {
+        const Signature sig = get_params_signature(tree->functions, func->signature_index);
+        plnnrc_assert(sig.length == size(func->args));
+
+        write(*fmtr, "plnnr::%n(", func->name);
+        for (uint32_t arg_idx = 0; arg_idx < size(func->args); ++arg_idx)
+        {
+            const ast::Expr* arg = func->args[arg_idx];
+            const Token_Type param_type = sig.types[arg_idx];
+
+            if (param_type != Token_Fact_Ref)
+            {
+                write(*fmtr, "%s(", get_runtime_type_name(param_type));
+                visit_node<void>(arg, this);
+                write(*fmtr, ")");
+            }
+            else
+            {
+                visit_node<void>(arg, this);
+            }
+
+            if (arg->next_sibling != 0)
+                write(*fmtr, ", ");
+        }
+        write(*fmtr, ")");
+    }
+
+    void visit(const ast::Node*) { plnnrc_assert(false); }
+};
+
 void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* output)
 {
     Memory_Stack_Scope scratch_scope(state.scratch);
@@ -593,7 +714,22 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         for (uint32_t fact_idx = 0; fact_idx < size(world->facts); ++fact_idx)
         {
             Indent_Scope s(fmtr);
-            writeln(fmtr, "0, ");
+            ast::Fact* fact = world->facts[fact_idx];
+            ast::Attribute* attr = find_attribute(fact, Attribute_Size);
+
+            if (attr)
+            {
+                Expr_Writer visitor = { &fmtr, state.tree };
+                write(fmtr, "%i");
+                const ast::Expr* expr = attr->args[0];
+                visit_node<void>(expr, &visitor);
+                write(fmtr, ",");
+                newline(fmtr);
+            }
+            else
+            {
+                writeln(fmtr, "0,");
+            }
         }
 
         if (empty(world->facts))
@@ -910,127 +1046,6 @@ static void generate_precondition(Codegen& state, uint32_t case_idx, Formatter& 
     writeln(fmtr, "}");
     newline(fmtr);
 }
-
-struct Expr_Writer
-{
-    Formatter* fmtr;
-    ast::Root* tree;
-
-    void visit(const ast::Var* node)
-    {
-        plnnrc_assert(node->definition);
-
-        if (is_Param(node->definition))
-        {
-            write(*fmtr, "args->_%d", node->input_index);
-            return;
-        }
-
-        if (is_Var(node->definition))
-        {
-            write(*fmtr, "binds->_%d", node->output_index);
-            return;
-        }
-
-        plnnrc_assert(false);
-    }
-
-    void visit(const ast::Literal* node)
-    {
-        if (is_Literal_Fact(node->value_type))
-        {
-            ast::Fact* fact = get_fact(*tree, node->value);
-            plnnrc_assert(fact);
-            uint32_t fact_idx = index_of(tree->world->facts, fact);
-            write(*fmtr, "db->tables[%d]", fact_idx);
-        }
-        else
-        {
-            write(*fmtr, "%n", node->value);
-        }
-    }
-
-    const char* get_op_str(ast::Node_Type node_type)
-    {
-        switch (node_type)
-        {
-        case ast::Node_Or: return "||";
-        case ast::Node_And: return "&&";
-        case ast::Node_Not: return "!";
-        case ast::Node_Equal: return "==";
-        case ast::Node_NotEqual: return "!=";
-        case ast::Node_Less: return "<";
-        case ast::Node_LessEqual: return "<=";
-        case ast::Node_Greater: return ">";
-        case ast::Node_GreaterEqual: return ">=";
-        case ast::Node_Plus: return "+";
-        case ast::Node_Minus: return "-";
-        case ast::Node_Mul: return "*";
-        case ast::Node_Div: return "/";
-        default:
-            plnnrc_assert(false);
-            return "";
-        }
-    }
-
-    void visit(const ast::Op* node)
-    {
-        const char* op = get_op_str(node->type);
-        plnnrc_assert(node->child);
-
-        // unary
-        if (!node->child->next_sibling)
-        {
-            plnnrc_assert(is_Plus(node) || is_Minus(node) || is_Not(node));
-            write(*fmtr, "%s", op);
-            write(*fmtr, "(");
-            visit_node<void>(node->child, this);
-            write(*fmtr, ")");
-        }
-        // binary
-        else
-        {
-            write(*fmtr, "(");
-            for (ast::Expr* arg = node->child; arg != 0; arg = arg->next_sibling)
-            {
-                visit_node<void>(arg, this);
-                if (arg->next_sibling != 0)
-                    write(*fmtr, " %s ", op);
-            }
-            write(*fmtr, ")");
-        }
-    }
-
-    void visit(const ast::Func* func)
-    {
-        const Signature sig = get_params_signature(tree->functions, func->signature_index);
-        plnnrc_assert(sig.length == size(func->args));
-
-        write(*fmtr, "plnnr::%n(", func->name);
-        for (uint32_t arg_idx = 0; arg_idx < size(func->args); ++arg_idx)
-        {
-            const ast::Expr* arg = func->args[arg_idx];
-            const Token_Type param_type = sig.types[arg_idx];
-
-            if (param_type != Token_Fact_Ref)
-            {
-                write(*fmtr, "%s(", get_runtime_type_name(param_type));
-                visit_node<void>(arg, this);
-                write(*fmtr, ")");
-            }
-            else
-            {
-                visit_node<void>(arg, this);
-            }
-
-            if (arg->next_sibling != 0)
-                write(*fmtr, ", ");
-        }
-        write(*fmtr, ")");
-    }
-
-    void visit(const ast::Node*) { plnnrc_assert(false); }
-};
 
 static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* literal, uint32_t& handle_id, uint32_t& yield_id, bool store_binds, Formatter& fmtr)
 {

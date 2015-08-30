@@ -45,6 +45,7 @@ PLNNRC_AST_ERROR(Not_Bound_In_All_Conjuncts,    "variable $0 isn't bound in all 
 PLNNRC_AST_ERROR(Expected_Argument_Type,        "expected argument type $0 for $1, got $2.")
 PLNNRC_AST_ERROR(Failed_To_Resolve_Call,        "failed to resolve function call $0.")
 PLNNRC_AST_ERROR(Only_Single_Attr_Allowed,      "only single attribute $0 is allowed.")
+PLNNRC_AST_ERROR(Only_Const_Expr_Allowed,       "only constant expression is allowed in $0.")
 
 #undef PLNNRC_AST_ERROR
 #undef PLNNRC_PARSER_ERROR

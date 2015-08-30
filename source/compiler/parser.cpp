@@ -577,6 +577,8 @@ static ast::Fact* parse_single_fact(Parser& state)
     ast::Fact* fact = create_fact(state.tree, tok.value, tok.loc);
     Children_Builder<ast::Data_Type> param_builder(&state, &fact->params);
     plnnrc_check_return(parse_param_types(state, param_builder));
+    Children_Builder<ast::Attribute> attrs_builder(&state, &fact->attrs);
+    plnnrc_check_return(parse_attributes(state, attrs_builder));
     return fact;
 }
 

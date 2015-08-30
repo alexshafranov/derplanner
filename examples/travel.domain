@@ -3,8 +3,8 @@ domain travel
 {
     fact
     {
-        start( id32 )
-        finish( id32 )
+        start( id32 ) :size(1)
+        finish( id32 ) :size(1)
         short_distance( id32, id32 )
         long_distance( id32, id32 )
         airport( id32, id32 )

@@ -58,7 +58,7 @@ static uint32_t s_first_case[] = {
 };
 
 static uint32_t s_size_hints[] = {
-  0, 
+  0,
 };
 
 static uint32_t s_num_case_handles[] = {
