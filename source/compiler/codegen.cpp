@@ -71,7 +71,7 @@ void plnnrc::generate_header(Codegen& state, const char* header_guard, Writer* o
 static void generate_precondition(Codegen& state, uint32_t case_idx, Formatter& fmtr);
 static void generate_comparator(Codegen& state, ast::Expr* key_expr, Token_Type key_type, bool has_args, uint32_t case_index, uint32_t struct_index, uint32_t output_index, Formatter& fmtr);
 static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_idx, Formatter& fmtr);
-static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* literal, uint32_t& handle_id, uint32_t& yield_id, bool store_binds, Formatter& fmtr);
+static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* literal, uint32_t& handle_id, uint32_t& yield_id, bool store_binds, uint32_t case_index, uint32_t output_index, Formatter& fmtr);
 
 static const char* s_runtime_type_tag[] =
 {
@@ -1003,7 +1003,7 @@ static void generate_precondition(Codegen& state, uint32_t case_idx, Formatter& 
                 writeln(fmtr, "frame->num_bindings = 0;");
             }
 
-            generate_conjunct(state, case_, node, handle_id, yield_id, attr_sorted != 0, fmtr);
+            generate_conjunct(state, case_, node, handle_id, yield_id, attr_sorted != 0, case_idx, output_idx, fmtr);
 
             if (attr_sorted)
             {
@@ -1047,7 +1047,7 @@ static void generate_precondition(Codegen& state, uint32_t case_idx, Formatter& 
     newline(fmtr);
 }
 
-static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* literal, uint32_t& handle_id, uint32_t& yield_id, bool store_binds, Formatter& fmtr)
+static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* literal, uint32_t& handle_id, uint32_t& yield_id, bool store_binds, uint32_t case_index, uint32_t output_index, Formatter& fmtr)
 {
     ast::Func* func = is_Not(literal) ? as_Func(literal->child) : as_Func(literal);
 
@@ -1081,14 +1081,13 @@ static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* liter
             }
             else
             {
-                const uint32_t case_index = index_of(state.tree->cases, case_);
-                writeln(fmtr, "binds = (S_1*)(allocate_precond_bindings(state, s_bindings[%d]));", case_index);
+                writeln(fmtr, "binds = (S_%d*)(allocate_precond_bindings(state, s_bindings[%d]));", output_index, case_index);
                 writeln(fmtr, "++frame->num_bindings;");
             }
         }
         else
         {
-            generate_conjunct(state, case_, literal->next_sibling, handle_id, yield_id, store_binds, fmtr);
+            generate_conjunct(state, case_, literal->next_sibling, handle_id, yield_id, store_binds, case_index, output_index, fmtr);
         }
     }
     // fact -> generate iterator.
@@ -1186,14 +1185,13 @@ static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* liter
                 }
                 else
                 {
-                    const uint32_t case_index = index_of(state.tree->cases, case_);
-                    writeln(fmtr, "binds = (S_1*)(allocate_precond_bindings(state, s_bindings[%d]));", case_index);
+                    writeln(fmtr, "binds = (S_%d*)(allocate_precond_bindings(state, s_bindings[%d]));", output_index, case_index);
                     writeln(fmtr, "++frame->num_bindings;");
                 }
             }
             else
             {
-                generate_conjunct(state, case_, literal->next_sibling, handle_id, yield_id, store_binds, fmtr);
+                generate_conjunct(state, case_, literal->next_sibling, handle_id, yield_id, store_binds, case_index, output_index, fmtr);
             }
         }
     }
@@ -1212,7 +1210,7 @@ static void generate_comparator(Codegen& state, ast::Expr* key_expr, Token_Type 
         if (has_args)
         {
             writeln(fmtr, "const S_%d* args;", struct_index);
-            writeln(fmtr, "Compare_p%d(const S_%d* args) :args(args) {}");
+            writeln(fmtr, "Compare_p%d(const S_%d* args) :args(args) {}", case_index, struct_index);
             newline(fmtr);
         }
 

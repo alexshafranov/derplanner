@@ -42,14 +42,15 @@ static Fact_Type s_fact_types[] = {
 
 static Type s_layout_types[] = {
   Type_Int32,
+  Type_Int8,
 };
 
-static size_t s_layout_offsets[1];
+static size_t s_layout_offsets[2];
 
 static Param_Layout s_task_parameters[] = {
   { 1, s_layout_types + 0, 0, s_layout_offsets + 0 },
   { 0, 0, 0, 0 },
-  { 0, 0, 0, 0 },
+  { 1, s_layout_types + 1, 0, s_layout_offsets + 0 },
 };
 
 static Param_Layout s_bindings[] = {
@@ -109,6 +110,10 @@ void run_11_init_domain_info()
 const Domain_Info* run_11_get_domain_info() { return &s_domain_info; }
 
 struct S_1 {
+  int8_t _0;
+};
+
+struct S_2 {
   int32_t _0;
 };
 
@@ -124,11 +129,14 @@ static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 }
 
 struct Compare_p1 {
-  inline int32_t key(const S_1* binds) const {
-    return int32_t(-(binds->_0));
+  const S_1* args;
+  Compare_p1(const S_1* args) :args(args) {}
+
+  inline int32_t key(const S_2* binds) const {
+    return int32_t((args->_0 * binds->_0));
   }
 
-  inline bool operator()(const S_1& a, const S_1& b) const {
+  inline bool operator()(const S_2& a, const S_2& b) const {
     return key(&a) < key(&b);
   }
 };
@@ -136,7 +144,8 @@ struct Compare_p1 {
 static bool p1_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
 {
   Fact_Handle* handles = frame->handles;
-  S_1* binds = (S_1*)(frame->bindings);
+  const S_1* args = (const S_1*)(frame->arguments);
+  S_2* binds = (S_2*)(frame->bindings);
 
   plnnr_coroutine_begin(frame, precond_label);
 
@@ -148,7 +157,7 @@ static bool p1_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
         continue;
       }
 
-      binds = (S_1*)(allocate_precond_bindings(state, s_bindings[1]));
+      binds = (S_2*)(allocate_precond_bindings(state, s_bindings[1]));
       ++frame->num_bindings;
     }
   }
@@ -157,7 +166,7 @@ static bool p1_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
     revert(state->expansion_blob, binds);
   }
 
-  std::sort(binds - frame->num_bindings, binds, Compare_p1());
+  std::sort(binds - frame->num_bindings, binds, Compare_p1(args));
 
   for (frame->binding_index = 0; frame->binding_index < frame->num_bindings; ++frame->binding_index) {
     plnnr_coroutine_yield(frame, precond_label, 1);
@@ -172,7 +181,7 @@ static bool p1_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
         continue;
       }
 
-      binds = (S_1*)(allocate_precond_bindings(state, s_bindings[1]));
+      binds = (S_2*)(allocate_precond_bindings(state, s_bindings[1]));
       ++frame->num_bindings;
     }
   }
@@ -181,7 +190,7 @@ static bool p1_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
     revert(state->expansion_blob, binds);
   }
 
-  std::sort(binds - frame->num_bindings, binds, Compare_p1());
+  std::sort(binds - frame->num_bindings, binds, Compare_p1(args));
 
   for (frame->binding_index = 0; frame->binding_index < frame->num_bindings; ++frame->binding_index) {
     plnnr_coroutine_yield(frame, precond_label, 2);
@@ -198,6 +207,7 @@ static bool r_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Databas
 
   while (p0_next(state, frame, db)) {
     begin_compound(state, &s_domain_info, 2); // t
+    set_compound_arg(state, s_task_parameters[2], 0, int8_t(-(1)));
     frame->status = Expansion_Frame::Status_Expanded;
     plnnr_coroutine_yield(frame, expand_label, 1);
 
@@ -208,7 +218,8 @@ static bool r_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Databas
 
 static bool t_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
 {
-  const S_1* binds = (const S_1*)(frame->bindings);
+  const S_1* args = (const S_1*)(frame->arguments);
+  const S_2* binds = (const S_2*)(frame->bindings);
 
   plnnr_coroutine_begin(frame, expand_label);
 

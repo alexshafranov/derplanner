@@ -25,11 +25,11 @@ domain run_11
 
     task r()
     {
-        case() -> [ t() ]
+        case() -> [ t(-1) ]
     }
 
-    task t()
+    task t(P)
     {
-        each( (values1(X) | values2(X)) & check(X) ) :sorted(-X) -> [ p!(X) ]
+        each( (values1(X) | values2(X)) & check(X) ) :sorted(P * X) -> [ p!(X) ]
     }
 }

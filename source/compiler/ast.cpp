@@ -1258,7 +1258,7 @@ static bool assign_fact_types(ast::Root& tree, Id_Table<Token_Type>& var_types, 
             Token_Type unified_type = unify(*curr_type, param_type->data_type);
             var->data_type = unified_type;
 
-            if (unified_type == Token_Not_A_Type)
+            if (is_Not_A_Type(unified_type))
             {
                 emit(tree, var->loc, Error_Failed_To_Unify_Type) << var->name << *curr_type << param_type->data_type;
                 return false;
@@ -1496,7 +1496,7 @@ static bool infer_local_types(ast::Root& tree, ast::Task* task)
 
             Token_Type unified_type = unify(*new_type, param->data_type);
 
-            if (unified_type == Token_Not_A_Type)
+            if (is_Not_A_Type(unified_type))
             {
                 emit(tree, param->loc, Error_Failed_To_Unify_Type) << param->name << param->data_type << *new_type;
                 return false;
@@ -1508,108 +1508,6 @@ static bool infer_local_types(ast::Root& tree, ast::Task* task)
         // assign new types to all variable occurences.
         update_var_occurrence_types(var_types, case_->precond_vars);
         update_var_occurrence_types(var_types, case_->task_list_vars);
-    }
-
-    return true;
-}
-
-static bool infer_global_types(ast::Root& tree)
-{
-    bool updated = false;
-
-    for (uint32_t task_idx = 0; task_idx < size(tree.domain->tasks); ++task_idx)
-    {
-        ast::Task* task = tree.domain->tasks[task_idx];
-        for (uint32_t case_idx = 0; case_idx < size(task->cases); ++case_idx)
-        {
-            ast::Case* case_ = task->cases[case_idx];
-
-            for (uint32_t task_list_idx = 0; task_list_idx < size(case_->task_list); ++task_list_idx)
-            {
-                ast::Func* func = as_Func(case_->task_list[task_list_idx]);
-                plnnrc_assert(func);
-                ast::Task* callee = get_task(tree, func->name);
-                if (!callee)
-                    continue;
-
-                for (uint32_t param_idx = 0; param_idx < size(callee->params); ++param_idx)
-                {
-                    ast::Param* param = callee->params[param_idx];
-                    ast::Expr* arg = func->args[param_idx];
-
-                    if (ast::Var* var = as_Var(arg))
-                    {
-                        if (is_Unknown(var->data_type))
-                            continue;
-
-                        Token_Type unified_type = unify(var->data_type, param->data_type);
-                        if (unified_type == Token_Not_A_Type)
-                        {
-                            emit(tree, param->loc, Error_Failed_To_Unify_Type) << param->name << var->data_type << param->data_type;
-                            return false;
-                        }
-
-                        updated |= (param->data_type != unified_type);
-                        param->data_type = unified_type;
-                        continue;
-                    }
-                }
-            }
-
-            update_var_occurrence_types_after_params_update(case_->precond_vars);
-            update_var_occurrence_types_after_params_update(case_->task_list_vars);
-        }
-    }
-
-    return updated;
-}
-
-static bool infer_params_from_task_lists(ast::Root& tree)
-{
-    for (uint32_t task_idx = 0; task_idx < size(tree.domain->tasks); ++task_idx)
-    {
-        ast::Task* task = tree.domain->tasks[task_idx];
-        for (uint32_t case_idx = 0; case_idx < size(task->cases); ++case_idx)
-        {
-            ast::Case* case_ = task->cases[case_idx];
-            for (uint32_t task_list_idx = 0; task_list_idx < size(case_->task_list); ++task_list_idx)
-            {
-                ast::Func* func = as_Func(case_->task_list[task_list_idx]);
-                plnnrc_assert(func);
-                ast::Task* callee = get_task(tree, func->name);
-                if (!callee)
-                    continue;
-
-                for (uint32_t param_idx = 0; param_idx < size(callee->params); ++param_idx)
-                {
-                    ast::Param* param = callee->params[param_idx];
-                    ast::Expr* arg = func->args[param_idx];
-                    ast::Var* var = as_Var(arg);
-
-                    if (is_Any_Type(param->data_type))
-                        continue;
-
-                    if (!var)
-                        continue;
-
-                    if (!is_Any_Type(var->data_type))
-                        continue;
-
-                    var->data_type = param->data_type;
-                    ast::Param* def = as_Param(var->definition);
-                    plnnrc_assert(def);
-
-                    Token_Type unified_type = unify(def->data_type, var->data_type);
-                    if (unified_type == Token_Not_A_Type)
-                    {
-                        emit(tree, def->loc, Error_Failed_To_Unify_Type) << def->name << def->data_type << var->data_type;
-                        return false;
-                    }
-
-                    def->data_type = unified_type;
-                }
-            }
-        }
     }
 
     return true;
@@ -1675,13 +1573,13 @@ struct Compute_Expr_Result_Type
             {
                 Token_Type arg_type = visit_node<Token_Type>(child, this);
 
-                if (arg_type == Token_Not_A_Type)
+                if (is_Not_A_Type(arg_type))
                     return Token_Not_A_Type;
 
                 // must be unifiable with Int8
                 Token_Type unified_type = unify(Token_Int8, arg_type);
 
-                if (unified_type == Token_Not_A_Type)
+                if (is_Not_A_Type(unified_type))
                 {
                     emit(*tree, child->loc, Error_Expected_Argument_Type) << Token_Int8 << get_op_token_type(node->type) << arg_type;
                     break;
@@ -1699,12 +1597,12 @@ struct Compute_Expr_Result_Type
             {
                 Token_Type arg_type = visit_node<Token_Type>(child, this);
 
-                if (arg_type == Token_Not_A_Type)
+                if (is_Not_A_Type(arg_type))
                     return Token_Not_A_Type;
 
                 result_type = unify(result_type, arg_type);
 
-                if (result_type == Token_Not_A_Type)
+                if (is_Not_A_Type(result_type))
                 {
                     emit(*tree, child->loc, Error_Expected_Argument_Type) << Token_Int8 << get_op_token_type(node->type) << arg_type;
                     break;
@@ -1728,6 +1626,124 @@ struct Compute_Expr_Result_Type
 
     Token_Type visit(ast::Node*) { plnnrc_assert(false); return Token_Not_A_Type; }
 };
+
+static bool infer_global_types(ast::Root& tree)
+{
+    bool updated = false;
+
+    for (uint32_t task_idx = 0; task_idx < size(tree.domain->tasks); ++task_idx)
+    {
+        ast::Task* task = tree.domain->tasks[task_idx];
+        for (uint32_t case_idx = 0; case_idx < size(task->cases); ++case_idx)
+        {
+            ast::Case* case_ = task->cases[case_idx];
+
+            for (uint32_t task_list_idx = 0; task_list_idx < size(case_->task_list); ++task_list_idx)
+            {
+                ast::Func* func = as_Func(case_->task_list[task_list_idx]);
+                plnnrc_assert(func);
+                ast::Task* callee = get_task(tree, func->name);
+                if (!callee)
+                    continue;
+
+                for (uint32_t param_idx = 0; param_idx < size(callee->params); ++param_idx)
+                {
+                    ast::Param* param = callee->params[param_idx];
+                    ast::Expr* arg = func->args[param_idx];
+
+                    if (ast::Var* var = as_Var(arg))
+                    {
+                        if (is_Unknown(var->data_type))
+                            continue;
+
+                        Token_Type unified_type = unify(var->data_type, param->data_type);
+                        if (is_Not_A_Type(unified_type))
+                        {
+                            emit(tree, param->loc, Error_Failed_To_Unify_Type) << param->name << var->data_type << param->data_type;
+                            return false;
+                        }
+
+                        updated |= (param->data_type != unified_type);
+                        param->data_type = unified_type;
+                        continue;
+                    }
+
+                    // general expression is used as an argument
+                    {
+                        Compute_Expr_Result_Type visitor = { &tree };
+                        Token_Type arg_type = visit_node<Token_Type>(arg, &visitor);
+                        if (is_Not_A_Type(arg_type))
+                            continue;
+
+                        Token_Type unified_type = unify(arg_type, param->data_type);
+                        if (is_Not_A_Type(unified_type))
+                            continue;
+
+                        updated |= (param->data_type != unified_type);
+                        param->data_type = unified_type;
+                        continue;
+                    }
+                }
+            }
+
+            update_var_occurrence_types_after_params_update(case_->precond_vars);
+            update_var_occurrence_types_after_params_update(case_->task_list_vars);
+        }
+    }
+
+    return updated;
+}
+
+static bool infer_params_from_task_lists(ast::Root& tree)
+{
+    for (uint32_t task_idx = 0; task_idx < size(tree.domain->tasks); ++task_idx)
+    {
+        ast::Task* task = tree.domain->tasks[task_idx];
+        for (uint32_t case_idx = 0; case_idx < size(task->cases); ++case_idx)
+        {
+            ast::Case* case_ = task->cases[case_idx];
+            for (uint32_t task_list_idx = 0; task_list_idx < size(case_->task_list); ++task_list_idx)
+            {
+                ast::Func* func = as_Func(case_->task_list[task_list_idx]);
+                plnnrc_assert(func);
+                ast::Task* callee = get_task(tree, func->name);
+                if (!callee)
+                    continue;
+
+                for (uint32_t param_idx = 0; param_idx < size(callee->params); ++param_idx)
+                {
+                    ast::Param* param = callee->params[param_idx];
+                    ast::Expr* arg = func->args[param_idx];
+                    ast::Var* var = as_Var(arg);
+
+                    if (is_Any_Type(param->data_type))
+                        continue;
+
+                    if (!var)
+                        continue;
+
+                    if (!is_Any_Type(var->data_type))
+                        continue;
+
+                    var->data_type = param->data_type;
+                    ast::Param* def = as_Param(var->definition);
+                    plnnrc_assert(def);
+
+                    Token_Type unified_type = unify(def->data_type, var->data_type);
+                    if (is_Not_A_Type(unified_type))
+                    {
+                        emit(tree, def->loc, Error_Failed_To_Unify_Type) << def->name << def->data_type << var->data_type;
+                        return false;
+                    }
+
+                    def->data_type = unified_type;
+                }
+            }
+        }
+    }
+
+    return true;
+}
 
 static bool check_all_task_params_inferred(ast::Root& tree)
 {
@@ -1760,12 +1776,12 @@ static bool check_arguments(ast::Root& tree, ast::Func* func, Def* definition)
         const Token_Type data_type = definition->params[arg_idx]->data_type;
         const Token_Type type = visit_node<Token_Type>(arg, &visitor);
 
-        if (type == Token_Not_A_Type)
+        if (is_Not_A_Type(type))
         {
             return false;
         }
 
-        if (unify(type, data_type) == Token_Not_A_Type)
+        if (is_Not_A_Type(unify(type, data_type)))
         {
             emit(tree, arg->loc, Error_Expected_Argument_Type) << data_type << func->name << type;
             return false;
@@ -1786,7 +1802,7 @@ static bool resolve_function_call(ast::Root& tree, ast::Func* func)
         ast::Expr* arg = func->args[arg_idx];
         const Token_Type type = visit_node<Token_Type>(arg, &visitor);
 
-        if (type == Token_Not_A_Type)
+        if (is_Not_A_Type(type))
             return false;
 
         push_back(func->arg_types, type);
@@ -2011,6 +2027,9 @@ static bool process_attributes(ast::Root& tree, const Array<ast::Attribute*>& at
             {
                 ast::Var* var = as_Var(node);
                 if (!var)
+                    continue;
+
+                if (is_Param(var->definition))
                     continue;
 
                 if (!has_var_in_all_conjuncts(case_->precond, var))
