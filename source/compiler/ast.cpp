@@ -1848,7 +1848,7 @@ static bool check_expression_types(ast::Root& tree)
 struct Assign_Var_Defs_And_Types
 {
     ast::Root* tree;
-    ast::Case* case_;
+    const ast::Case* case_;
 
     bool visit(ast::Var* node)
     {
@@ -1930,6 +1930,107 @@ struct Is_Const_Expr
     bool visit(const ast::Node*) { plnnrc_assert(false); return false; }
 };
 
+static bool process_attributes(ast::Root& tree, const Array<ast::Attribute*>& attrs)
+{
+    const uint32_t err_count = size(*tree.errs);
+
+    uint32_t attr_counts[Attribute_Count];
+    memset(attr_counts, 0, sizeof(uint32_t) * Attribute_Count);
+
+    for (uint32_t attr_idx = 0; attr_idx < size(attrs); ++attr_idx)
+    {
+        ast::Attribute* attr = attrs[attr_idx];
+        Attribute_Type attr_type = attr->attr_type;
+
+        if (attr_type >= Attribute_Count)
+            continue;
+
+        attr_counts[attr_type] += 1;
+
+        if (attr_counts[attr_type] > 1)
+        {
+            emit(tree, attr->loc, Error_Only_Single_Attr_Allowed) << attr->name;
+            continue;
+        }
+
+        uint32_t attr_num_args = get_num_args(attr_type);
+        if (size(attr->args) != attr_num_args)
+        {
+            emit(tree, attr->loc, Error_Mismatching_Number_Of_Args) << attr->name;
+            continue;
+        }
+
+        const Attribute_Arg_Class* arg_classes = get_arg_classes(attr_type);
+        for (uint32_t arg_idx = 0; arg_idx < attr_num_args; ++arg_idx)
+        {
+            if (arg_classes[arg_idx] != Attribute_Arg_Constant_Expression)
+                continue;
+
+            Is_Const_Expr visitor;
+            if (!visit_node<bool>(attr->args[arg_idx], &visitor))
+            {
+                emit(tree, attr->loc, Error_Only_Const_Expr_Allowed) << attr->name;
+                break;
+            }
+        }
+    }
+
+    return err_count == size(*tree.errs);
+}
+
+static bool process_attributes(ast::Root& tree, const Array<ast::Attribute*>& attrs, const ast::Case* case_)
+{
+    const uint32_t err_count = size(*tree.errs);
+
+    process_attributes(tree, attrs);
+
+    Assign_Var_Defs_And_Types var_visitor = { &tree, case_ };
+    Resolve_Function_Calls func_visitor = { &tree };
+    Compute_Expr_Result_Type type_visitor = { &tree };
+
+    for (uint32_t attr_idx = 0; attr_idx < size(attrs); ++attr_idx)
+    {
+        ast::Attribute* attr = attrs[attr_idx];
+        Attribute_Type attr_type = attr->attr_type;
+
+        if (attr_type >= Attribute_Count)
+            continue;
+
+        uint32_t attr_num_args = get_num_args(attr_type);
+        const Attribute_Arg_Class* arg_classes = get_arg_classes(attr_type);
+        for (uint32_t arg_idx = 0; arg_idx < attr_num_args; ++arg_idx)
+        {
+            if (arg_classes[arg_idx] != Attribute_Arg_Expression)
+                continue;
+
+            ast::Expr* arg = attr->args[arg_idx];
+            visit_node<bool>(arg, &var_visitor);
+            visit_node<bool>(arg, &func_visitor);
+
+            for (ast::Expr* node = arg; node != 0; node = preorder_next(arg, node))
+            {
+                ast::Var* var = as_Var(node);
+                if (!var)
+                    continue;
+
+                if (!has_var_in_all_conjuncts(case_->precond, var))
+                    emit(tree, var->loc, Error_Not_Bound_In_All_Conjuncts) << var->name;
+            }
+        }
+
+        init(attr->types, tree.pool, size(attr->args));
+        resize(attr->types, size(attr->args));
+        for (uint32_t arg_idx = 0; arg_idx < size(attr->args); ++arg_idx)
+        {
+            ast::Expr* arg = attr->args[arg_idx];
+            const Token_Type arg_type = visit_node<Token_Type>(arg, &type_visitor);
+            attr->types[arg_idx] = arg_type;
+        }
+    }
+
+    return err_count == size(*tree.errs);
+}
+
 static bool process_attributes(ast::Root& tree)
 {
     const uint32_t err_count = size(*tree.errs);
@@ -1937,94 +2038,13 @@ static bool process_attributes(ast::Root& tree)
     for (uint32_t fact_idx = 0; fact_idx < size(tree.world->facts); ++fact_idx)
     {
         ast::Fact* fact = tree.world->facts[fact_idx];
-
-        uint32_t num_size_attr = 0;
-        for (uint32_t attr_idx = 0; attr_idx < size(fact->attrs); ++attr_idx)
-        {
-            ast::Attribute* attr = fact->attrs[attr_idx];
-
-            if (is_Size(attr))
-            {
-                ++num_size_attr;
-
-                if (num_size_attr > 1)
-                {
-                    emit(tree, attr->loc, Error_Only_Single_Attr_Allowed) << attr->name;
-                    break;
-                }
-
-                if (size(attr->args) != 1)
-                {
-                    emit(tree, attr->loc, Error_Mismatching_Number_Of_Args) << attr->name;
-                    break;
-                }
-
-                Is_Const_Expr visitor;
-                if (!visit_node<bool>(attr->args[0], &visitor))
-                {
-                    emit(tree, attr->loc, Error_Only_Const_Expr_Allowed) << attr->name;
-                    break;
-                }
-            }
-        }
+        process_attributes(tree, fact->attrs);
     }
 
     for (uint32_t case_idx = 0; case_idx < size(tree.cases); ++case_idx)
     {
         ast::Case* case_ = tree.cases[case_idx];
-
-        uint32_t num_sorted_attr = 0;
-        for (uint32_t attr_idx = 0; attr_idx < size(case_->attrs); ++attr_idx)
-        {
-            ast::Attribute* attr = case_->attrs[attr_idx];
-
-            if (is_Sorted(attr))
-            {
-                ++num_sorted_attr;
-
-                if (num_sorted_attr > 1)
-                {
-                    emit(tree, attr->loc, Error_Only_Single_Attr_Allowed) << attr->name;
-                    break;
-                }
-
-                if (size(attr->args) != 1)
-                {
-                    emit(tree, attr->loc, Error_Mismatching_Number_Of_Args) << attr->name;
-                    break;
-                }
-            }
-
-            Assign_Var_Defs_And_Types var_visitor = { &tree, case_ };
-            Resolve_Function_Calls func_visitor = { &tree };
-            for (uint32_t arg_idx = 0; arg_idx < size(attr->args); ++arg_idx)
-            {
-                ast::Expr* arg = attr->args[arg_idx];
-
-                visit_node<bool>(arg, &var_visitor);
-                visit_node<bool>(arg, &func_visitor);
-
-                for (ast::Expr* node = arg; node != 0; node = preorder_next(arg, node))
-                {
-                    ast::Var* var = as_Var(node);
-                    if (!var)
-                        continue;
-
-                    if (!has_var_in_all_conjuncts(case_->precond, var))
-                        emit(tree, var->loc, Error_Not_Bound_In_All_Conjuncts) << var->name;
-                }
-            }
-
-            Compute_Expr_Result_Type type_visitor = { &tree };
-            init(attr->types, tree.pool, size(attr->args));
-            resize(attr->types, size(attr->args));
-            for (uint32_t arg_idx = 0; arg_idx < size(attr->args); ++arg_idx)
-            {
-                ast::Expr* arg = attr->args[arg_idx];
-                const Token_Type arg_type = visit_node<Token_Type>(arg, &type_visitor);
-                attr->types[arg_idx] = arg_type;
-            }
-        }
+        process_attributes(tree, case_->attrs, case_);
     }
 
     return size(*tree.errs) == err_count;
@@ -2075,6 +2095,51 @@ bool plnnrc::infer_types(ast::Root& tree)
         return false;
 
     return true;
+}
+
+struct Attribute_Args_Spec
+{
+    Attribute_Arg_Class classes[2];
+};
+
+static const Attribute_Args_Spec s_attribute_specs[] =
+{
+    { { } },
+    #define PLNNRC_ATTRIBUTE(TAG, STR) { {
+    #define PLNNRC_ATTRIBUTE_ARG(TYPE) Attribute_Arg_##TYPE,
+    #define PLNNRC_ATTRIBUTE_END } },
+    #include "derplanner/compiler/attribute_tags.inl"
+    #undef PLNNRC_ATTRIBUTE_END
+    #undef PLNNRC_ATTRIBUTE_ARG
+    #undef PLNNRC_ATTRIBUTE
+};
+
+static const uint32_t s_attribute_arg_count[] =
+{
+    0,
+    #define PLNNRC_ATTRIBUTE(TAG, STR) (0
+    #define PLNNRC_ATTRIBUTE_ARG(TYPE) +1
+    #define PLNNRC_ATTRIBUTE_END ),
+    #include "derplanner/compiler/attribute_tags.inl"
+    #undef PLNNRC_ATTRIBUTE_END
+    #undef PLNNRC_ATTRIBUTE_ARG
+    #undef PLNNRC_ATTRIBUTE
+};
+
+uint32_t plnnrc::get_num_args(Attribute_Type type)
+{
+    if (type >= Attribute_Count)
+        return 0;
+
+    return s_attribute_arg_count[type];
+}
+
+const Attribute_Arg_Class* plnnrc::get_arg_classes(Attribute_Type type)
+{
+    if (type >= Attribute_Count)
+        return 0;
+
+    return s_attribute_specs[type].classes;
 }
 
 static const char* s_node_type_names[] =

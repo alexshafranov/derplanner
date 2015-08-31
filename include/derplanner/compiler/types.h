@@ -134,6 +134,13 @@ enum Attribute_Type
     Attribute_Custom,
 };
 
+// Class of attribute argument for generic error handling.
+enum Attribute_Arg_Class
+{
+    Attribute_Arg_Expression = 0,
+    Attribute_Arg_Constant_Expression = 1,
+};
+
 // Reference to signature (tuple of types), owned by `Signature_Table`.
 struct Signature
 {

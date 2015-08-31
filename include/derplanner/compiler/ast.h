@@ -77,6 +77,13 @@ Return_Type visit_node(const ast::Node* node, Visitor_Type* visitor);
 // finds the first attribute of a given type.
 ast::Attribute* find_attribute(const ast::Node* node, Attribute_Type type);
 
+/// Attributes.
+
+// returns the number of arguments allowed for an attribute of a given `type`.
+uint32_t                        get_num_args(Attribute_Type type);
+// returns an array of argument classes allowed for an attribute of a given `type`.
+const Attribute_Arg_Class*      get_arg_classes(Attribute_Type type);
+
 /// Expression transformations.
 
 // converts expression `root` to Disjunctive-Normal-Form.

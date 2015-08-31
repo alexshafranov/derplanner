@@ -22,7 +22,22 @@
     #define PLNNRC_ATTRIBUTE(TAG, STR)
 #endif
 
-PLNNRC_ATTRIBUTE(Sorted,    ":sorted")
-PLNNRC_ATTRIBUTE(Size,      ":size")
+#ifndef PLNNRC_ATTRIBUTE_ARG
+    #define PLNNRC_ATTRIBUTE_ARG(ARG_TYPE)
+#endif
 
+#ifndef PLNNRC_ATTRIBUTE_END
+    #define PLNNRC_ATTRIBUTE_END
+#endif
+
+PLNNRC_ATTRIBUTE(Sorted,    ":sorted")
+    PLNNRC_ATTRIBUTE_ARG(Expression)
+PLNNRC_ATTRIBUTE_END
+
+PLNNRC_ATTRIBUTE(Size,      ":size")
+    PLNNRC_ATTRIBUTE_ARG(Constant_Expression)
+PLNNRC_ATTRIBUTE_END
+
+#undef PLNNRC_ATTRIBUTE_END
+#undef PLNNRC_ATTRIBUTE_ARG
 #undef PLNNRC_ATTRIBUTE
