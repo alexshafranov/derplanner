@@ -1694,7 +1694,7 @@ static bool infer_global_types(ast::Root& tree)
     return updated;
 }
 
-static bool infer_params_from_task_lists(ast::Root& tree)
+static bool infer_params_from_local_task_lists(ast::Root& tree)
 {
     for (uint32_t task_idx = 0; task_idx < size(tree.domain->tasks); ++task_idx)
     {
@@ -2076,8 +2076,8 @@ bool plnnrc::infer_types(ast::Root& tree)
     if (!check_all_task_list_vars_bound(tree))
         return false;
 
-    // in the first step we set and unify variable types based on their usage in facts and primitive tasks.
-    // task parameter types are also set in this stage, if it's possible to derive them from their "local" usage in preconditions.
+    // the first step is local: we set and unify variable types based on their usage in facts and primitive tasks.
+    // task parameter types are also set in this stage, if it's possible to derive them from their usage in the task's preconditions.
     for (uint32_t task_idx = 0; task_idx < size(tree.domain->tasks); ++task_idx)
     {
         ast::Task* task = tree.domain->tasks[task_idx];
@@ -2087,7 +2087,8 @@ bool plnnrc::infer_types(ast::Root& tree)
     if (size(*tree.errs) > err_count)
         return false;
 
-    // in the second step we infer remaining parameter types based on their usage in task lists.
+    // the second step is global: we infer task parameter types based on the usage in the task lists in entire domain.
+    // variables referencing the updated parameters are also updated.
     for (;;)
     {
         bool has_updates = infer_global_types(tree);
@@ -2098,8 +2099,8 @@ bool plnnrc::infer_types(ast::Root& tree)
     if (size(*tree.errs) > err_count)
         return false;
 
-    // some task parameters could still have unknown type, try to get it from task lists (compound task usage).
-    if (!infer_params_from_task_lists(tree))
+    // some task parameters could still have unknown type, try to set it based on the usage in the task's task lists.
+    if (!infer_params_from_local_task_lists(tree))
         return false;
 
     // loop through tasks and give errors for type-less params.
