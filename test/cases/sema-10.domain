@@ -1,0 +1,16 @@
+//> error (9, 22): variable 'X' is already bound.
+//> error (14, 15): variable 'X' is already bound.
+domain test
+{
+    fact a(int32)
+
+    task t()
+    {
+        case( a(X) & X = 2 ) -> []
+    }
+
+    task s(X)
+    {
+        case( X = 1 ) -> []
+    }
+}

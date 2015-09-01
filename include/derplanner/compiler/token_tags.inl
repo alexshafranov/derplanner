@@ -79,11 +79,11 @@ PLNNRC_PUNCTUATOR_TOKEN(L_Square,       "[")
 PLNNRC_PUNCTUATOR_TOKEN(R_Square,       "]")
 PLNNRC_PUNCTUATOR_TOKEN(Comma,          ",")
 PLNNRC_PUNCTUATOR_TOKEN(Arrow,          "->")
-PLNNRC_PUNCTUATOR_TOKEN(Equality,       "=")
 
 // binary
 PLNNRC_OPERATOR_TOKEN(Or,               "|")
 PLNNRC_OPERATOR_TOKEN(And,              "&")
+PLNNRC_OPERATOR_TOKEN(Assign,           "=")
 PLNNRC_OPERATOR_TOKEN(Equal,            "==")
 PLNNRC_OPERATOR_TOKEN(NotEqual,         "~=")
 PLNNRC_OPERATOR_TOKEN(Less,             "<")

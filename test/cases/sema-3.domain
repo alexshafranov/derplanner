@@ -1,7 +1,8 @@
-//> error (11, 15): mismatching number of arguments for 'a'.
-//> error (16, 17): unbound variable 'x'.
-//> error (21, 21): task 'prim!' is not declared.
-//> error (31, 30): mismatching number of arguments for 't4'.
+//> error (12, 15): mismatching number of arguments for 'a'.
+//> error (17, 17): unbound variable 'x'.
+//> error (17, 20): unbound variable 'y'.
+//> error (22, 21): task 'prim!' is not declared.
+//> error (32, 30): mismatching number of arguments for 't4'.
 domain test
 {
     fact { a(id32, id32) }

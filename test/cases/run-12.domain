@@ -1,0 +1,30 @@
+//: // variables in preconditions
+//:
+//: plnnr::Fact_Table* a = plnnr::find_table(db, "a");
+//:
+//: plnnr::add_entry(a, int8_t(1), int8_t(0));
+//: plnnr::add_entry(a, int8_t(2), int8_t(1));
+//:
+//! check_plan("p!(4) p!(0)", pstate, domain);
+//!
+domain run_12
+{
+    fact a(int8, int8)
+    prim p!(int32)
+
+    task t()
+    {
+        case -> [ s(1), r(2) ]
+    }
+
+    task s(P)
+    {
+        each (U = P) & a(X, U) & (V = X + 2) -> [ p!(V) ]
+    }
+
+    task r(P)
+    {
+        // `V` type depends only on parameter `P` and fact bound argument `X`
+        case a(X, 0) & (V = X + P) -> [ p!(0) ]
+    }
+}

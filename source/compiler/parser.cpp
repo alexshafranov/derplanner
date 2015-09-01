@@ -561,7 +561,7 @@ static ast::Macro* parse_single_macro(Parser& state)
 
     Children_Builder<ast::Param> param_builder(&state, &macro->params);
     parse_params(state, param_builder);
-    plnnrc_expect_return(state, Token_Equality);
+    plnnrc_expect_return(state, Token_Assign);
     macro->expression = parse_precond(state);
     plnnrc_check_return(macro->expression);
     return macro;
@@ -572,7 +572,7 @@ static ast::Macro* parse_single_constant(Parser& state)
     Token tok = expect(state, Token_Id);
     plnnrc_check_return(!is_Error(tok));
     ast::Macro* macro = create_macro(state.tree, tok.value, tok.loc);
-    plnnrc_expect_return(state, Token_Equality);
+    plnnrc_expect_return(state, Token_Assign);
     macro->expression = parse_expr(state);
     plnnrc_check_return(macro->expression);
     return macro;
@@ -747,6 +747,7 @@ static uint8_t s_precedence[] =
 {
     1, // Token_Or
     2, // Token_And
+    3, // Token_Assign
     3, // Token_Equal
     3, // Token_NotEqual
     4, // Token_Less

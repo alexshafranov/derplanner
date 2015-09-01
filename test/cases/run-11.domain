@@ -30,6 +30,6 @@ domain run_11
 
     task t(P)
     {
-        each :sorted(P*X) (values1(X) | values2(X)) & check(X) -> [ p!(X) ]
+        each :sorted(P * X) ( (values1(X) | values2(X)) & check(X) ) -> [ p!(X) ]
     }
 }

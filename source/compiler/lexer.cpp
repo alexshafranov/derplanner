@@ -436,7 +436,7 @@ Token plnnrc::lex(Lexer& state)
                 return tok;
             }
 
-            tok.type = Token_Equality;
+            tok.type = Token_Assign;
             return tok;
         case '<':
             tok = make_token(state, Token_Less);

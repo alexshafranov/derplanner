@@ -70,6 +70,7 @@ void plnnrc::generate_header(Codegen& state, const char* header_guard, Writer* o
 
 static void generate_precondition(Codegen& state, uint32_t case_idx, Formatter& fmtr);
 static void generate_comparator(Codegen& state, ast::Expr* key_expr, Token_Type key_type, bool has_args, uint32_t case_index, uint32_t struct_index, uint32_t output_index, Formatter& fmtr);
+static void generate_empty_expansion(Codegen& state, ast::Task* task, Formatter& fmtr);
 static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_idx, Formatter& fmtr);
 static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* literal, uint32_t& handle_id, uint32_t& yield_id, bool store_binds, uint32_t case_index, uint32_t output_index, Formatter& fmtr);
 
@@ -338,7 +339,12 @@ struct Expr_Writer
 
     void visit(const ast::Var* node)
     {
-        plnnrc_assert(node->definition);
+        // the variable is an assignment target.
+        if (!node->definition)
+        {
+            write(*fmtr, "binds->_%d", node->output_index);
+            return;
+        }
 
         if (is_Param(node->definition))
         {
@@ -377,6 +383,7 @@ struct Expr_Writer
         case ast::Node_Or: return "||";
         case ast::Node_And: return "&&";
         case ast::Node_Not: return "!";
+        case ast::Node_Assign: return "=";
         case ast::Node_Equal: return "==";
         case ast::Node_NotEqual: return "!=";
         case ast::Node_Less: return "<";
@@ -497,6 +504,17 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
             Token_Value name = get(state.expand_names, case_idx);
             writeln(fmtr, "static bool %n(Planning_State*, Expansion_Frame*, Fact_Database*);", name);
         }
+
+        // tasks with no cases
+        for (uint32_t task_idx = 0; task_idx < size(domain->tasks); ++task_idx)
+        {
+            ast::Task* task = domain->tasks[task_idx];
+            if (empty(task->cases))
+            {
+                writeln(fmtr, "static bool %n_case_0(Planning_State*, Expansion_Frame*, Fact_Database*);", task->name);
+            }
+        }
+
         newline(fmtr);
     }
 
@@ -529,7 +547,7 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
             writeln(fmtr, "\"%n\",", fact->name);
         }
 
-        if (empty(domain->tasks))
+        if (empty(world->facts))
         {
             Indent_Scope s(fmtr);
             writeln(fmtr, "0");
@@ -656,7 +674,7 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
             Format_Param_Layout()(fmtr, state.task_and_binding_sigs, sig_idx);
         }
 
-        if (empty(state.task_and_binding_sigs.remap))
+        if (num_tasks == size(state.task_and_binding_sigs.remap))
         {
             Indent_Scope s(fmtr);
             writeln(fmtr, "{ 0, 0, 0, 0 }");
@@ -917,6 +935,16 @@ void plnnrc::generate_source(Codegen& state, const char* domain_header, Writer* 
         generate_expansion(state, case_, case_idx, fmtr);
     }
 
+    // generate empty expansions for the tasks without cases
+    for (uint32_t task_idx = 0; task_idx < size(domain->tasks); ++task_idx)
+    {
+        ast::Task* task = domain->tasks[task_idx];
+        if (empty(task->cases))
+        {
+            generate_empty_expansion(state, task, fmtr);
+        }
+    }
+
     flush(fmtr);
 }
 
@@ -1061,15 +1089,25 @@ static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* liter
         Expr_Writer visitor = { &fmtr, state.tree };
         ast::Expr* expr = is_Not(literal) ? literal->child : literal;
 
-        if (is_Not(literal))
-            write(fmtr, "%iif (!bool(");
+        if (is_Assign(expr))
+        {
+            write(fmtr, "%i");
+            visit_node<void>(expr, &visitor);
+            write(fmtr, "; {");
+            newline(fmtr);
+        }
         else
-            write(fmtr, "%iif (bool(");
+        {
+            if (is_Not(literal))
+                write(fmtr, "%iif (!bool(");
+            else
+                write(fmtr, "%iif (bool(");
 
-        visit_node<void>(expr, &visitor);
+            visit_node<void>(expr, &visitor);
 
-        write(fmtr, ")) {");
-        newline(fmtr);
+            write(fmtr, ")) {");
+            newline(fmtr);
+        }
 
         Indent_Scope indent_scope(fmtr);
 
@@ -1410,6 +1448,19 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
         writeln(fmtr, "plnnr_coroutine_end();");
     }
 
+    writeln(fmtr, "}");
+    newline(fmtr);
+}
+
+static void generate_empty_expansion(Codegen& /*state*/, ast::Task* task, Formatter& fmtr)
+{
+    writeln(fmtr, "static bool %n_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)", task->name);
+    writeln(fmtr, "{");
+    {
+        Indent_Scope s(fmtr);
+        writeln(fmtr, "plnnr_coroutine_begin(frame, expand_label);");
+        writeln(fmtr, "plnnr_coroutine_end();");
+    }
     writeln(fmtr, "}");
     newline(fmtr);
 }

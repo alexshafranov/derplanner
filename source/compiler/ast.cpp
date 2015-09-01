@@ -1221,7 +1221,7 @@ void plnnrc::annotate(ast::Root& tree)
 
 static const uint32_t Num_Types = Token_Group_Type_Last - Token_Group_Type_First + 1;
 
-static Token_Type unification_table[Num_Types][Num_Types] =
+static Token_Type s_unification_table[Num_Types][Num_Types] =
 {
 //                  Id32                  Id64                Int8                    Int32               Int64               Float               Vec3                Any               Fact_Ref
 /* Id32 */      { Token_Id32,           Token_Not_A_Type,   Token_Not_A_Type,       Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Id32,         Token_Not_A_Type },
@@ -1239,7 +1239,7 @@ Token_Type plnnrc::unify(Token_Type a, Token_Type b)
 {
     plnnrc_assert(is_Type(a));
     plnnrc_assert(is_Type(b));
-    return unification_table[a - Token_Group_Type_First][b - Token_Group_Type_First];
+    return s_unification_table[a - Token_Group_Type_First][b - Token_Group_Type_First];
 }
 
 static bool assign_fact_types(ast::Root& tree, Id_Table<Token_Type>& var_types, ast::Func* func, ast::Fact* fact)
@@ -1294,21 +1294,26 @@ static void init_var_types(Id_Table<Token_Type>& var_types, Memory* mem, ast::Ta
     }
 }
 
+static bool is_assignment_target(const ast::Var* var)
+{
+    const ast::Expr* parent = var->parent;
+    return is_Assign(parent) && (parent->child == var);
+}
+
 static bool check_all_precond_vars_bound(ast::Root& tree, ast::Case* case_)
 {
+    uint32_t err_count = size(*tree.errs);
+
     for (uint32_t var_idx = 0; var_idx < size(case_->precond_vars); ++var_idx)
     {
         ast::Var* var = case_->precond_vars[var_idx];
 
         // this var is not a parameter usage, nor used inside fact or primitive task.
         if (var->binding && is_Unknown(var->data_type))
-        {
             emit(tree, var->loc, Error_Unbound_Var) << var->name;
-            return false;
-        }
     }
 
-    return true;
+    return err_count == size(*tree.errs);
 }
 
 static bool has_var_in_all_conjuncts(ast::Expr* precond, ast::Var* var)
@@ -1338,6 +1343,37 @@ static bool has_var_in_all_conjuncts(ast::Expr* precond, ast::Var* var)
     }
 
     return true;
+}
+
+static bool init_precond_variable_assignments(ast::Root& tree)
+{
+    uint32_t err_count = size(*tree.errs);
+
+    for (uint32_t task_idx = 0; task_idx < size(tree.domain->tasks); ++task_idx)
+    {
+        ast::Task* task = tree.domain->tasks[task_idx];
+
+        for (uint32_t case_idx = 0; case_idx < size(task->cases); ++case_idx)
+        {
+            ast::Case* case_ = task->cases[case_idx];
+
+            for (uint32_t var_idx = 0; var_idx < size(case_->precond_vars); ++var_idx)
+            {
+                ast::Var* var = case_->precond_vars[var_idx];
+
+                // variable is an assignment target.
+                if (is_assignment_target(var))
+                {
+                    if (!var->binding)
+                        emit(tree, var->loc, Error_Already_Bound) << var->name;
+
+                    var->data_type = Token_Any_Type;
+                }
+            }
+        }
+    }
+
+    return size(*tree.errs) == err_count;
 }
 
 static bool check_all_task_list_vars_bound(ast::Root& tree)
@@ -1533,7 +1569,13 @@ struct Compute_Expr_Result_Type
 {
     ast::Root* tree;
 
-    Token_Type visit(ast::Var* node) { return node->data_type; }
+    Token_Type visit(ast::Var* node)
+    {
+        if (is_Unknown(node->data_type))
+            return Token_Not_A_Type;
+
+        return node->data_type;
+    }
 
     Token_Type visit(ast::Literal* node)
     {
@@ -1668,7 +1710,7 @@ static bool infer_global_types(ast::Root& tree)
                         continue;
                     }
 
-                    // general expression is used as an argument
+                    // expression is used as an argument
                     {
                         Compute_Expr_Result_Type visitor = { &tree };
                         Token_Type arg_type = visit_node<Token_Type>(arg, &visitor);
@@ -1684,6 +1726,30 @@ static bool infer_global_types(ast::Root& tree)
                         continue;
                     }
                 }
+            }
+
+            for (ast::Expr* node = case_->precond; node != 0; node = preorder_next(case_->precond, node))
+            {
+                if (!is_Assign(node))
+                    continue;
+
+                ast::Var* var = as_Var(node->child);
+                plnnrc_assert(var);
+                ast::Expr* rhs = node->child->next_sibling;
+                plnnrc_assert(rhs);
+
+                Compute_Expr_Result_Type visitor = { &tree };
+                Token_Type rhs_type = visit_node<Token_Type>(rhs, &visitor);
+                if (is_Not_A_Type(rhs_type))
+                    continue;
+
+                Token_Type unified_type = unify(rhs_type, var->data_type);
+                if (is_Not_A_Type(unified_type))
+                    continue;
+
+                updated |= (var->data_type != unified_type);
+                var->data_type = unified_type;
+                continue;
             }
 
             update_var_occurrence_types_after_params_update(case_->precond_vars);
@@ -1870,14 +1936,14 @@ struct Assign_Var_Defs_And_Types
     {
         ast::Task* task = case_->task;
 
-        if (ast::Var* def = get(case_->precond_var_lookup, node->name))
+        if (ast::Param* def = get(task->param_lookup, node->name))
         {
             node->definition = def;
             node->data_type = def->data_type;
             return true;
         }
 
-        if (ast::Param* def = get(task->param_lookup, node->name))
+        if (ast::Var* def = get(case_->precond_var_lookup, node->name))
         {
             node->definition = def;
             node->data_type = def->data_type;
@@ -2074,6 +2140,9 @@ bool plnnrc::infer_types(ast::Root& tree)
     uint32_t err_count = size(*tree.errs);
 
     if (!check_all_task_list_vars_bound(tree))
+        return false;
+
+    if (!init_precond_variable_assignments(tree))
         return false;
 
     // the first step is local: we set and unify variable types based on their usage in facts and primitive tasks.
