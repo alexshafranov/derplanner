@@ -35,6 +35,8 @@ namespace plnnrc
 
     extern void         flatten(ast::Expr* root);
     extern ast::Expr*   convert_to_nnf(ast::Root& tree, ast::Expr* root);
+
+    extern void         init_look_ahead(Parser& state);
 }
 
 namespace
@@ -137,7 +139,7 @@ namespace
         init(compiler.tree, &compiler.errors, compiler.mem_tree, compiler.mem_scratch);
         init(compiler.lexer, input, compiler.mem_scratch);
         init(compiler.parser, &compiler.lexer, &compiler.tree, &compiler.errors, compiler.mem_scratch);
-        compiler.parser.token = plnnrc::lex(compiler.lexer);
+        plnnrc::init_look_ahead(compiler.parser);
     }
 
     TEST(world_parsing)

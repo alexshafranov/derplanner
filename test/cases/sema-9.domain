@@ -1,6 +1,6 @@
 //> error (9, 19): only constant expression is allowed in ':size'.
-//> error (15, 37): variable 'X' isn't bound in all precondition conjuncts.
-//> error (20, 33): only single attribute ':sorted' is allowed.
+//> error (15, 22): variable 'X' isn't bound in all precondition conjuncts.
+//> error (20, 25): only single attribute ':sorted' is allowed.
 domain test
 {
     fact { a(int32) b(int32) }
@@ -12,11 +12,11 @@ domain test
 
     task t()
     {
-        case( a(X) | b(Y) ) :sorted(X) -> []
+        case :sorted(X) ( a(X) | b(Y) ) -> []
     }
 
     task s()
     {
-        case( a(X) ) :sorted(X) :sorted(X) -> []
+        case :sorted(X) :sorted(X) ( a(X) ) -> []
     }
 }

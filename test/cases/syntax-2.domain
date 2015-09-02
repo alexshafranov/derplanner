@@ -1,6 +1,4 @@
-//> error (6, 13): expected Id, got '###'.
-//> error (9, 16): expected '(', got '->'.
-//> error (11, 19): unexpected token ')'.
+//> error (4, 10): expected Id, got '###'.
 domain test
 {
     fact ### {}

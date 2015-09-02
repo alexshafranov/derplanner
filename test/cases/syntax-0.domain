@@ -1,4 +1,4 @@
-//> error (3, 2): expected Id, got '{'.
+//> error (3, 1): expected Id, got '{'.
 domain
 {
     fact xxx

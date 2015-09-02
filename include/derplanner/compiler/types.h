@@ -532,10 +532,14 @@ namespace ast
 // Parser state.
 struct Parser
 {
+    enum { Look_Ahead_Size = 2 };
+
     // token source for parsing.
     Lexer*                      lexer;
-    // last lexed token.
-    Token                       token;
+    // look-ahead token buffer.
+    Token                       buffer[Look_Ahead_Size];
+    // index of the current token in the look-ahead buffer.
+    uint32_t                    buffer_index;
     // maps built-in attribute names to attribute types.
     Id_Table<Attribute_Type>    attrs;
     // output Abstract-Syntax-Tree.

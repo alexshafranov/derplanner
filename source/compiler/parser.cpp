@@ -40,6 +40,7 @@ namespace plnnrc
     ast::Primitive*     parse_primitive(Parser& state);
     ast::Task*          parse_task(Parser& state);
     ast::Expr*          parse_precond(Parser& state);
+    void                init_look_ahead(Parser& state);
 }
 
 template <typename T>
@@ -93,15 +94,19 @@ void plnnrc::init(Parser& state, Lexer* lexer, ast::Root* tree, Array<Error>* er
 #undef PLNNRC_ATTRIBUTE
 }
 
-static Token peek(Parser& state)
+static Token peek(Parser& state, uint32_t look_ahead = 0)
 {
-    return state.token;
+    plnnrc_assert(look_ahead < Parser::Look_Ahead_Size);
+    const uint32_t index = (state.buffer_index + look_ahead) & (Parser::Look_Ahead_Size - 1);
+    return state.buffer[index];
 }
 
 static Token eat(Parser& state)
 {
-    Token tok = state.token;
-    state.token = lex(*state.lexer);
+    const uint32_t index = state.buffer_index;
+    const Token tok = state.buffer[index];
+    state.buffer[index] = lex(*state.lexer);
+    state.buffer_index = (state.buffer_index + 1) & (Parser::Look_Ahead_Size - 1);
     return tok;
 }
 
@@ -110,7 +115,7 @@ static Token make_error_token(Parser& state, Token_Type type)
     Token tok;
     tok.error = true;
     tok.type = type;
-    tok.loc = get_loc(*state.lexer);
+    tok.loc = peek(state).loc;
     const char* error_str = "<error>";
     tok.value.str = error_str;
     tok.value.length = sizeof(error_str) - 1;
@@ -120,16 +125,18 @@ static Token make_error_token(Parser& state, Token_Type type)
 static Error& emit(Parser& state, Error_Type error_type)
 {
     Error err;
-    init(err, error_type, get_loc(*state.lexer));
+    init(err, error_type, peek(state).loc);
     push_back(*state.errs, err);
     return back(*state.errs);
 }
 
 static Token expect(Parser& state, Token_Type token_type)
 {
-    if (peek(state).type != token_type)
+    const Token tok = peek(state);
+
+    if (tok.type != token_type)
     {
-        emit(state, Error_Expected) << token_type << peek(state);
+        emit(state, Error_Expected) << token_type << tok;
         eat(state);
         return make_error_token(state, token_type);
     }
@@ -226,10 +233,21 @@ struct Children_Builder
     }
 };
 
+void plnnrc::init_look_ahead(Parser& state)
+{
+    state.buffer_index = 0;
+
+    for (uint32_t i = 0; i < Parser::Look_Ahead_Size; ++i)
+    {
+        state.buffer[i] = lex(*state.lexer);
+    }
+}
+
 void plnnrc::parse(Parser& state)
 {
-    // buffer the first token.
-    state.token = lex(*state.lexer);
+    // initialize the look-ahead buffer.
+    init_look_ahead(state);
+
     ast::Domain* domain = parse_domain(state);
 
     if (!domain)
@@ -381,18 +399,8 @@ ast::Task* plnnrc::parse_task(Parser& state)
 
 ast::Expr* plnnrc::parse_precond(Parser& state)
 {
-    plnnrc_expect_return(state, Token_L_Paren);
-
-    // empty expression -> add dummy node.
-    if (is_R_Paren(peek(state)))
-    {
-        eat(state);
-        return create_op(state.tree, ast::Node_And);
-    }
-
     ast::Expr* expr = parse_expr(state);
     plnnrc_check_return(expr);
-    plnnrc_expect_return(state, Token_R_Paren);
     return expr;
 }
 
@@ -535,7 +543,7 @@ static bool parse_params(Parser& state, Children_Builder<ast::Param>& builder)
 
 static bool parse_attributes(Parser& state, Children_Builder<ast::Attribute>& builder)
 {
-    while (is_Literal_Symbol(peek(state)))
+    while (is_Literal_Symbol(peek(state, 0)) && is_L_Paren(peek(state, 1)))
     {
         ast::Attribute* attr = parse_attribute(state);
         plnnrc_check_return(attr);
@@ -611,12 +619,21 @@ static bool parse_case(Parser& state, ast::Task* task, Children_Builder<ast::Cas
     case_->foreach = is_Each(tok);
     case_->task = task;
 
-    ast::Expr* precond = parse_precond(state);
-    plnnrc_check_return(precond);
-    case_->precond = precond;
-
     Children_Builder<ast::Attribute> attrs_builder(&state, &case_->attrs);
     plnnrc_check_return(parse_attributes(state, attrs_builder));
+
+    if (!is_Arrow(peek(state)))
+    {
+        ast::Expr* precond = parse_precond(state);
+        plnnrc_check_return(precond);
+        case_->precond = precond;
+    }
+    else
+    {
+        // empty expression
+        ast::Expr* node_And = create_op(state.tree, ast::Node_And);
+        case_->precond = node_And;
+    }
 
     plnnrc_expect_return(state, Token_Arrow);
 
@@ -784,7 +801,7 @@ static ast::Expr* parse_binary_expr(Parser& state, uint8_t precedence)
 
         eat(state);
 
-        ast::Expr* node_Op = create_op(state.tree, get_op_type(tok.type), get_loc(*state.lexer));
+        ast::Expr* node_Op = create_op(state.tree, get_op_type(tok.type), tok.loc);
         append_child(node_Op, root);
 
         ast::Expr* next_expr = parse_binary_expr(state, new_precedence);
@@ -803,13 +820,13 @@ static ast::Expr* parse_term_expr(Parser& state)
 
     if (is_Literal(tok))
     {
-        return create_literal(state.tree, tok, get_loc(*state.lexer));
+        return create_literal(state.tree, tok, tok.loc);
     }
 
     // unary operators
     if (is_Not(tok) || is_Plus(tok) || is_Minus(tok))
     {
-        ast::Expr* node_op = create_op(state.tree, get_op_type(tok.type), get_loc(*state.lexer));
+        ast::Expr* node_op = create_op(state.tree, get_op_type(tok.type), tok.loc);
         ast::Expr* node_arg = parse_term_expr(state);
         plnnrc_check_return(node_arg);
         append_child(node_op, node_arg);
@@ -818,6 +835,13 @@ static ast::Expr* parse_term_expr(Parser& state)
 
     if (is_L_Paren(tok))
     {
+        // empty expression -> add dummy node.
+        if (is_R_Paren(peek(state)))
+        {
+            eat(state);
+            return create_op(state.tree, ast::Node_And);
+        }
+
         ast::Expr* expr = parse_expr(state);
         plnnrc_check_return(expr);
         plnnrc_expect_return(state, Token_R_Paren);
@@ -848,7 +872,7 @@ static ast::Expr* parse_postfix_expr(Parser& state, ast::Expr* lhs)
     if (is_Dot(peek(state)))
     {
         eat(state);
-        ast::Expr* node_Dot = create_op(state.tree, ast::Node_Dot, get_loc(*state.lexer));
+        ast::Expr* node_Dot = create_op(state.tree, ast::Node_Dot, peek(state).loc);
         Token tok = expect(state, Token_Id);
         plnnrc_check_return(!is_Error(tok));
         ast::Expr* rhs = create_var(state.tree, tok.value, tok.loc);

@@ -21,11 +21,6 @@
 #ifndef DERPLANNER_COMPILER_LEXER_INL_
 #define DERPLANNER_COMPILER_LEXER_INL_
 
-inline plnnrc::Location plnnrc::get_loc(const plnnrc::Lexer& state)
-{
-    return state.loc;
-}
-
 inline bool plnnrc::has_value(const plnnrc::Token& tok) { return tok.value.length > 0; }
 
 inline bool plnnrc::is_Error(const Token& tok) { return tok.error; }

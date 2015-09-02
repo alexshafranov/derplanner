@@ -33,9 +33,6 @@ void init(Lexer& state, const char* buffer, Memory_Stack* scratch);
 // lex next token from the input buffer.
 Token lex(Lexer& state);
 
-// current location in the input buffer.
-Location get_loc(const Lexer& state);
-
 // writes the nicely formatted token stream to `output`.
 void debug_output_tokens(const char* buffer, Writer* output);
 
