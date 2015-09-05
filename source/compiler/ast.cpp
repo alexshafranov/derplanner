@@ -964,6 +964,40 @@ void plnnrc::inline_macros(ast::Root& tree)
             }
         }
     }
+
+    // inline macros in attributes
+    for (uint32_t fact_idx = 0; fact_idx < size(tree.world->facts); ++fact_idx)
+    {
+        ast::Fact* fact = tree.world->facts[fact_idx];
+        for (uint32_t attr_idx = 0; attr_idx < size(fact->attrs); ++attr_idx)
+        {
+            ast::Attribute* attr = fact->attrs[attr_idx];
+            for (uint32_t arg_idx = 0; arg_idx < size(attr->args); ++arg_idx)
+            {
+                ast::Expr* arg = attr->args[arg_idx];
+                ast::Expr* new_root = create_op(&tree, ast::Node_And);
+                append_child(new_root, arg);
+                inline_macros_in_expr(tree, domain, 0, new_root);
+            }
+        }
+    }
+
+    for (uint32_t case_idx = 0; case_idx < size(tree.cases); ++case_idx)
+    {
+        ast::Case* case_ = tree.cases[case_idx];
+        ast::Task* task = case_->task;
+        for (uint32_t attr_idx = 0; attr_idx < size(case_->attrs); ++attr_idx)
+        {
+            ast::Attribute* attr = case_->attrs[attr_idx];
+            for (uint32_t arg_idx = 0; arg_idx < size(attr->args); ++arg_idx)
+            {
+                ast::Expr* arg = attr->args[arg_idx];
+                ast::Expr* new_root = create_op(&tree, ast::Node_And);
+                append_child(new_root, arg);
+                inline_macros_in_expr(tree, domain, task, new_root);
+            }
+        }
+    }
 }
 
 static void build_var_lookup(ast::Expr* expr, Array<ast::Var*>& out_vars, Id_Table<ast::Var*>& out_lookup)
