@@ -366,7 +366,7 @@ namespace ast
         Id_Table<Macro*>        macro_lookup;
     };
 
-    // Fact: Id + Parameters.
+    // Fact: Id & Parameters.
     struct Fact : public Node
     {
         // name of the fact.
@@ -458,7 +458,7 @@ namespace ast
         Array<ast::Fact*>       precond_facts;
     };
 
-    // Parameter: Id + Data type.
+    // Parameter: Id & Data type.
     struct Param : public Node
     {
         // name of the parameter.
