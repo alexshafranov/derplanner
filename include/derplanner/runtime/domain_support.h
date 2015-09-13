@@ -69,16 +69,20 @@ inline void compute_offsets_and_size(Param_Layout& layout)
 
 inline uint8_t* allocate_with_layout(Linear_Blob* blob, const Param_Layout& layout)
 {
-    if (layout.size == 0) return 0;
+    if (layout.size > 0)
+    {
+        Type first_type = layout.types[0];
+        size_t alignment = get_type_alignment(first_type);
+        size_t size = layout.size;
 
-    Type first_type = layout.types[0];
-    size_t alignment = get_type_alignment(first_type);
-    size_t size = layout.size;
+        uint8_t* bytes = (uint8_t*)(align(blob->top, alignment));
+        blob->top = bytes + size;
+        plnnr_assert(blob->top - blob->base <= blob->max_size);
 
-    uint8_t* bytes = static_cast<uint8_t*>(align(blob->top, alignment));
-    blob->top = bytes + size;
+        return bytes;
+    }
 
-    return bytes;
+    return 0;
 }
 
 inline void revert(Linear_Blob& blob, void* new_top)
@@ -90,13 +94,15 @@ inline void revert(Linear_Blob& blob, void* new_top)
 
 inline void allocate_precond_handles(Planning_State* state, Expansion_Frame* frame, uint32_t num_handles)
 {
-    if (num_handles == 0) return;
-
-    Linear_Blob* blob = &state->expansion_blob;
-    uint8_t* bytes = blob->top;
-    blob->top = (uint8_t*)align(blob->top, plnnr_alignof(Fact_Handle)) + sizeof(Fact_Handle) * num_handles;
-    frame->handles = reinterpret_cast<Fact_Handle*>(bytes);
-    frame->num_handles = (uint16_t)(num_handles);
+    if (num_handles > 0)
+    {
+        Linear_Blob* blob = &state->expansion_blob;
+        uint8_t* bytes = blob->top;
+        blob->top = (uint8_t*)align(blob->top, plnnr_alignof(Fact_Handle)) + sizeof(Fact_Handle) * num_handles;
+        plnnr_assert(blob->top - blob->base <= blob->max_size);
+        frame->handles = reinterpret_cast<Fact_Handle*>(bytes);
+        frame->num_handles = (uint16_t)(num_handles);
+    }
 }
 
 inline void* allocate_precond_bindings(Planning_State* state, const Param_Layout& output_type)
