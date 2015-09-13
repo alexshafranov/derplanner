@@ -77,7 +77,7 @@ inline uint8_t* allocate_with_layout(Linear_Blob* blob, const Param_Layout& layo
 
         uint8_t* bytes = (uint8_t*)(align(blob->top, alignment));
         blob->top = bytes + size;
-        plnnr_assert(blob->top - blob->base <= blob->max_size);
+        plnnr_assert((uint32_t)(blob->top - blob->base) <= blob->max_size);
 
         return bytes;
     }
@@ -99,7 +99,7 @@ inline void allocate_precond_handles(Planning_State* state, Expansion_Frame* fra
         Linear_Blob* blob = &state->expansion_blob;
         uint8_t* bytes = blob->top;
         blob->top = (uint8_t*)align(blob->top, plnnr_alignof(Fact_Handle)) + sizeof(Fact_Handle) * num_handles;
-        plnnr_assert(blob->top - blob->base <= blob->max_size);
+        plnnr_assert((uint32_t)(blob->top - blob->base) <= blob->max_size);
         frame->handles = reinterpret_cast<Fact_Handle*>(bytes);
         frame->num_handles = (uint16_t)(num_handles);
     }

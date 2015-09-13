@@ -55,21 +55,16 @@ solution "derplanner"
         includedirs { "include" }
         links { "derplanner-compiler" }
 
-    project "deps-unittestpp"
-        kind "StaticLib"
-        files { "deps/unittestpp/src/*.cpp" }
-        configuration { "linux or macosx" }
-            files { "deps/unittestpp/src/Posix/*.cpp" }
-        configuration { "vs*" }
-            files { "deps/unittestpp/src/Win32/*.cpp" }
-
     project "tests"
         kind "ConsoleApp"
-        files { "test/*.cpp" }
-        includedirs { "deps/unittestpp", "include", "source" }
-        links { "deps-unittestpp", "derplanner-compiler", "derplanner-runtime" }
+        files { "test/*.cpp", "test/unittestpp/src/*.cpp" }
+        includedirs { "test/unittestpp", "include", "source" }
+        links { "derplanner-compiler", "derplanner-runtime" }
         configuration { "linux or macosx" }
             buildoptions { "-std=c++0x" }
+            files { "test/unittestpp/src/Posix/*.cpp" }
+        configuration { "vs*" }
+            files { "test/unittestpp/src/Win32/*.cpp" }
 
     project "domain-travel"
         kind "SharedLib"
