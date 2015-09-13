@@ -1,0 +1,28 @@
+
+(:worldstate (travel)
+    (start          (int))
+    (finish         (int))
+    (short_distance (int) (int))
+    (long_distance  (int) (int))
+    (airport        (int) (int))
+)
+
+(:domain (travel)
+    (:method (root)
+        ((start s) (finish f))
+        ((travel s f))
+    )
+
+    (:method (travel x y)
+        (short_distance x y)
+        ((!ride_taxi x y))
+
+        (long_distance x y)
+        ((travel_by_air x y))
+    )
+
+    (:method (travel_by_air x y)
+        ((airport x ax) (airport y ay))
+        ((travel x ax) (!fly ax ay) (travel ay y))
+    )
+)

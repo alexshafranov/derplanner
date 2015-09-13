@@ -1,0 +1,163 @@
+; domain ported from jshop
+
+(:worldstate (blocks)
+    (block (int))
+
+    (on-table (int))
+    (on (int) (int))
+    (clear (int))
+
+    (goal-on-table (int))
+    (goal-on (int) (int))
+    (goal-clear (int))
+
+    (holding (int))
+    (dont-move (int))
+    (need-to-move (int))
+
+    (put-on-table (int))
+    (stack-on-block (int) (int))
+)
+
+(:domain (blocks)
+    (:operator (!pickup a)
+        (:add (holding a))
+        (:delete (clear a) (on-table a))
+    )
+
+    (:operator (!putdown a)
+        (:add (on-table a) (clear a))
+        (:delete (holding a))
+    )
+
+    (:operator (!stack a b)
+        (:add (on a b) (clear a))
+        (:delete (holding a) (clear b))
+    )
+
+    (:operator (!unstack a b)
+        (:add (holding a) (clear b))
+        (:delete (clear a) (on a b))
+    )
+
+    (:method (solve)
+        ()
+        ((mark-all-blocks) (find-all-movable) (move-block))
+    )
+
+    (:method (mark-all-blocks)
+        (:foreach
+            ((block x))
+            ((mark-block x))
+        )
+    )
+
+    (:method (mark-block x)
+        ((not (dont-move x)) (not (need-to-move x)))
+        ((mark-block-recursive x))
+
+        ()
+        ()
+    )
+
+    (:method (mark-block-recursive x)
+        (on x w)
+        ((mark-block-recursive w) (mark-block-term x))
+
+        ()
+        ((mark-block-term x))
+    )
+
+    (:method (mark-block-term x)
+        ((on x y) (goal-on x z) (!= y z))
+        ((:add (need-to-move x)))
+
+        ((on-table x) (goal-on x z))
+        ((:add (need-to-move x)))
+
+        ((on x y) (goal-on-table x))
+        ((:add (need-to-move x)))
+
+        ((on x y) (goal-clear y))
+        ((:add (need-to-move x)))
+
+        ((on x z) (goal-on y z) (!= x y))
+        ((:add (need-to-move x)))
+
+        ((on x w) (need-to-move w))
+        ((:add (need-to-move x)))
+
+        ()
+        ((:add (dont-move x)))
+    )
+
+    (:method (find-all-movable)
+        (:foreach
+            ((clear x) (need-to-move x))
+            ((mark-move-type x))
+        )
+    )
+
+    (:method (mark-move-type x)
+        ((goal-on-table x) (not (put-on-table x)))
+        ((:add (put-on-table x)))
+
+        ((goal-on x y) (not (stack-on-block x y)) (dont-move y) (clear y))
+        ((:add (stack-on-block x y)))
+
+        ()
+        ()
+    )
+
+    (:method (move-block)
+        (stack-on-block x y)
+        ((move-block1 x y) (move-block))
+
+        ((put-on-table x) (on x y))
+        ((!unstack x y) (!putdown x) (:add (dont-move x)) (:delete (need-to-move x) (put-on-table x)) (check x) (check2 y) (check3 y) (move-block))
+
+        ((clear x) (need-to-move x) (on x y))
+        ((!unstack x y) (!putdown x) (check2 y) (check3 y) (move-block))
+
+        ()
+        ()
+    )
+
+    (:method (check x)
+        ((goal-on y x) (clear y))
+        ((:add (stack-on-block y x)))
+
+        ()
+        ()
+    )
+
+    (:method (check2 x)
+        ((dont-move x) (goal-on y x) (clear y))
+        ((:add (stack-on-block y x)))
+
+        ()
+        ()
+    )
+
+    (:method (check3 x)
+        (dont-move x)
+        ()
+
+        ((goal-on x y) (clear y) (dont-move y))
+        ((:add (stack-on-block x y)))
+
+        ((goal-on-table x))
+        ((:add (put-on-table x)))
+
+        ()
+        ()
+    )
+
+    (:method (move-block1 x z)
+        (on x y)
+        ((!unstack x y) (!stack x z) (:add (dont-move x)) (:delete (need-to-move x) (stack-on-block x z)) (check x) (check2 y) (check3 y))
+
+        ()
+        ((!pickup x) (!stack x z) (:add (dont-move x)) (:delete (need-to-move x) (stack-on-block x z)) (check x))
+    )
+)
