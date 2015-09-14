@@ -70,7 +70,7 @@ static plnnr::Expansion_Frame* pop_expansion(plnnr::Planning_State* state)
     Expansion_Frame* new_top = top(state->expansion_stack);
 
     // revert all data allocated by old_top expansion.
-    Linear_Blob* blob = &state->expansion_blob;
+    Blob* blob = &state->expansion_blob;
     blob->top = blob->base + old_top->orig_blob_size;
 
     return new_top;
@@ -89,7 +89,7 @@ static void undo_expansion(plnnr::Planning_State* state)
     uint32_t curr_task_count = state->task_stack.size;
     uint32_t orig_task_count = frame->orig_task_count;
 
-    Linear_Blob* blob = &state->task_blob;
+    Blob* blob = &state->task_blob;
 
     // any tasks added by expansion?
     if (curr_task_count > orig_task_count)

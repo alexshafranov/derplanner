@@ -45,10 +45,10 @@ namespace plnnr {
 void compute_offsets_and_size(Param_Layout* layout);
 
 // allocates memory from the `blob`, by bumping the `blob->top` pointer.
-uint8_t* allocate_with_layout(Linear_Blob* blob, const Param_Layout* layout);
+uint8_t* allocate_with_layout(Blob* blob, const Param_Layout* layout);
 
 // reverts `blob->top` pointer to the `new_top`.
-inline void revert(Linear_Blob* blob, void* new_top);
+inline void revert(Blob* blob, void* new_top);
 
 
 // allocates `Fact_Handle` from the expansion blob.
@@ -111,7 +111,7 @@ inline void plnnr::compute_offsets_and_size(plnnr::Param_Layout* layout)
     layout->size = offset;
 }
 
-inline uint8_t* plnnr::allocate_with_layout(plnnr::Linear_Blob* blob, const plnnr::Param_Layout* layout)
+inline uint8_t* plnnr::allocate_with_layout(plnnr::Blob* blob, const plnnr::Param_Layout* layout)
 {
     if (!layout->size)
         return 0;
@@ -127,7 +127,7 @@ inline uint8_t* plnnr::allocate_with_layout(plnnr::Linear_Blob* blob, const plnn
     return bytes;
 }
 
-inline void plnnr::revert(plnnr::Linear_Blob* blob, void* new_top)
+inline void plnnr::revert(plnnr::Blob* blob, void* new_top)
 {
     blob->top = (uint8_t*)(new_top);
 }
@@ -137,7 +137,7 @@ inline void plnnr::allocate_precond_handles(plnnr::Planning_State* state, plnnr:
     if (!num_handles)
         return;
 
-    plnnr::Linear_Blob* blob = &state->expansion_blob;
+    plnnr::Blob* blob = &state->expansion_blob;
     uint8_t* bytes = blob->top;
     blob->top = (uint8_t*)align(blob->top, plnnr_alignof(Fact_Handle)) + sizeof(Fact_Handle) * num_handles;
     plnnr_assert((uint32_t)(blob->top - blob->base) <= blob->max_size);
@@ -147,7 +147,7 @@ inline void plnnr::allocate_precond_handles(plnnr::Planning_State* state, plnnr:
 
 inline void* plnnr::allocate_precond_bindings(plnnr::Planning_State* state, const plnnr::Param_Layout* output_type)
 {
-    plnnr::Linear_Blob* blob = &state->expansion_blob;
+    plnnr::Blob* blob = &state->expansion_blob;
     uint8_t* bytes = allocate_with_layout(blob, output_type);
     return bytes;
 }
@@ -164,7 +164,7 @@ inline void plnnr::begin_compound(plnnr::Planning_State* state, const plnnr::Dom
     plnnr::Compound_Task_Expand* expand = domain->task_info.expands[task_id - num_primitive];
     const plnnr::Param_Layout* param_layout = &domain->task_info.parameters[task_id];
 
-    plnnr::Linear_Blob* blob = &state->expansion_blob;
+    plnnr::Blob* blob = &state->expansion_blob;
     uint32_t blob_size = (uint32_t)(blob->top - blob->base);
 
     plnnr::Expansion_Frame frame;
@@ -195,7 +195,7 @@ inline bool plnnr::expand_next_case(plnnr::Planning_State* state, const plnnr::D
     void* arguments = frame->arguments;
 
     // rewind all data after this task arguments.
-    plnnr::Linear_Blob* blob = &state->expansion_blob;
+    plnnr::Blob* blob = &state->expansion_blob;
     // first rewind to the state before this task was added.
     blob->top = blob->base + frame->orig_blob_size;
     // next, skip over arguments (actual arguments are not cleared by this call).
@@ -222,7 +222,7 @@ inline void plnnr::begin_task(plnnr::Planning_State* state, const plnnr::Domain_
     plnnr_assert(task_id < domain->task_info.num_tasks);
     const plnnr::Param_Layout* param_layout = &domain->task_info.parameters[task_id];
 
-    plnnr::Linear_Blob* blob = &state->task_blob;
+    plnnr::Blob* blob = &state->task_blob;
     uint32_t blob_size = (uint32_t)(blob->top - blob->base);
 
     plnnr::Task_Frame frame;

@@ -190,8 +190,8 @@ struct Stack
     T*          frames;
 };
 
-// Helper: fixed size linear block of memory.
-struct Linear_Blob
+// Fixed size linear block of memory.
+struct Blob
 {
     uint32_t    max_size;
     uint8_t*    top;
@@ -215,9 +215,9 @@ struct Planning_State
     // the resulting plan is stored on this stack.
     Stack<Task_Frame>       task_stack;
     // compound task arguments and precondition state storage.
-    Linear_Blob             expansion_blob;
+    Blob                    expansion_blob;
     // task arguments storage.
-    Linear_Blob             task_blob;
+    Blob                    task_blob;
     // allocator used for allocating & growing planning blobs and stacks.
     Memory*                 memory;
 };
