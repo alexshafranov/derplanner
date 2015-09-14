@@ -101,7 +101,9 @@ bool plnnrc::compile(const Compiler_Config* config, const char* input_buffer)
         parse(parser);
 
         if (!empty(errors))
+        {
             break;
+        }
 
         // process AST.
         inline_macros(tree);
@@ -109,12 +111,16 @@ bool plnnrc::compile(const Compiler_Config* config, const char* input_buffer)
         annotate(tree);
 
         if (!empty(errors))
+        {
             break;
+        }
 
         infer_types(tree);
 
         if (!empty(errors))
+        {
             break;
+        }
 
         generate_header(codegen, config->header_guard, config->header_writer);
         generate_source(codegen, config->header_file_name, config->source_writer);
