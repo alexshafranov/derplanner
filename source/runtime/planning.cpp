@@ -19,7 +19,7 @@
 //
 
 #include <string.h> // memset
-#include "derplanner/runtime/domain_support.h"
+#include "derplanner/runtime/domain.h"
 #include "derplanner/runtime/planning.h"
 
 using namespace plnnr;

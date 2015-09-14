@@ -285,20 +285,20 @@ inline size_t get_type_alignment(Type t)
 /// `set_arg` functions for row-major tuple data. (specified by Param_Layout).
 
     template <typename T>
-    inline void set_arg(void*, Param_Layout, uint32_t, const T&)
+    inline void set_arg(void*, const Param_Layout*, uint32_t, const T&)
     {
         plnnr_assert(false);
     }
 
 #define PLNNR_TYPE(TYPE_TAG, TYPE_NAME)                                                                                     \
     template <>                                                                                                             \
-    inline void set_arg<TYPE_NAME>(void* data, Param_Layout layout, uint32_t param_index, const TYPE_NAME& value)           \
+    inline void set_arg<TYPE_NAME>(void* data, const Param_Layout* layout, uint32_t param_index, const TYPE_NAME& value)    \
     {                                                                                                                       \
         plnnr_assert(data != 0);                                                                                            \
-        plnnr_assert(param_index < layout.num_params);                                                                      \
-        plnnr_assert(Type_##TYPE_TAG == layout.types[param_index]);                                                         \
+        plnnr_assert(param_index < layout->num_params);                                                                     \
+        plnnr_assert(Type_##TYPE_TAG == layout->types[param_index]);                                                        \
         uint8_t* bytes = static_cast<uint8_t*>(data);                                                                       \
-        size_t offset = layout.offsets[param_index];                                                                        \
+        size_t offset = layout->offsets[param_index];                                                                       \
         TYPE_NAME* param = reinterpret_cast<TYPE_NAME*>(bytes + offset);                                                    \
         *param = value;                                                                                                     \
     }                                                                                                                       \

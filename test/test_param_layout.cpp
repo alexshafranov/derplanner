@@ -19,7 +19,7 @@
 //
 
 #include "unittestpp.h"
-#include "derplanner/runtime/domain_support.h"
+#include "derplanner/runtime/domain.h"
 
 using namespace plnnr;
 
@@ -53,16 +53,16 @@ namespace
         layout.types = types;
         layout.size = 0;
         layout.offsets = offsets;
-        compute_offsets_and_size(layout);
+        compute_offsets_and_size(&layout);
 
         Vec3    a0(5.f, 4.f, 3.f);
         int8_t  a1 = 111;
         Vec3    a2(1.f, 2.f, 3.f);
 
         char buffer[2048];
-        set_arg(&buffer, layout, 0, a0);
-        set_arg(&buffer, layout, 1, a1);
-        set_arg(&buffer, layout, 2, a2);
+        set_arg(&buffer, &layout, 0, a0);
+        set_arg(&buffer, &layout, 1, a1);
+        set_arg(&buffer, &layout, 2, a2);
 
         const S* const data = (S const*)(buffer);
 
