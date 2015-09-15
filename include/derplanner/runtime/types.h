@@ -85,7 +85,7 @@ struct Fact_Table
     uint32_t        num_entries;
     // total allocated number of entries.
     uint32_t        max_entries;
-    // linear block of memory accommodating entries' data.
+    // block of memory accommodating entries' data.
     void*           blob;
     // tuples in SOA layout.
     void*           columns[Max_Fact_Arity];
@@ -120,6 +120,7 @@ struct Fact_Database
 };
 
 struct Planning_State;
+
 struct Expansion_Frame;
 
 // Generated expansion function prototype.

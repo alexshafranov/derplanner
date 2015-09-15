@@ -23,6 +23,22 @@
 
 using namespace plnnr;
 
+static size_t get_blob_size(const Fact_Type* format, uint32_t max_entries)
+{
+    size_t size = 0;
+    // data columns
+    for (uint8_t i = 0; i < format->num_params; ++i)
+    {
+        size += get_type_alignment(format->types[i]) + max_entries * get_type_size(format->types[i]);
+    }
+
+    // generations
+    size = plnnr::align(size, plnnr_alignof(uint32_t));
+    size += sizeof(uint32_t) * max_entries;
+
+    return size;
+}
+
 void plnnr::init(Fact_Table* self, Memory* mem, const Fact_Type* format, uint32_t max_entries)
 {
     memset(self, 0, sizeof(Fact_Table));
@@ -31,20 +47,10 @@ void plnnr::init(Fact_Table* self, Memory* mem, const Fact_Type* format, uint32_
     self->num_entries = 0;
     self->max_entries = max_entries;
 
-    size_t size = 0;
-    // data columns
-    for (uint8_t i = 0; i < format->num_params; ++i)
-    {
-        size += get_type_alignment(format->types[i]) + max_entries * get_type_size(format->types[i]);
-    }
-    // generations
-    size = plnnr::align(size, plnnr_alignof(uint32_t));
-    size += sizeof(uint32_t) * max_entries;
-
+    const size_t size = get_blob_size(format, max_entries);
     void* blob = mem->allocate(size);
     memset(blob, 0, size);
 
-    // setup pointers
     self->blob = blob;
     uint8_t* bytes = static_cast<uint8_t*>(blob);
 
@@ -66,6 +72,41 @@ void plnnr::destroy(Fact_Table* self)
     Memory* mem = self->memory;
     mem->deallocate(self->blob);
     memset(self, 0, sizeof(Fact_Table));
+}
+
+void plnnr::set_max_entries(Fact_Table* self, uint32_t max_entries)
+{
+    plnnr_assert(max_entries >= self->num_entries);
+
+    Memory* mem = self->memory;
+    void* old_blob = self->blob;
+    const Fact_Type* format = &self->format;
+
+    const size_t size = get_blob_size(format, max_entries);
+    void* new_blob = mem->allocate(size);
+    memset(new_blob, 0, size);
+
+    self->blob = new_blob;
+    uint8_t* bytes = static_cast<uint8_t*>(new_blob);
+
+    for (uint8_t i = 0; i < format->num_params; ++i)
+    {
+        const Type param_type = format->types[i];
+        size_t param_align = get_type_alignment(param_type);
+        uint8_t* new_column = static_cast<uint8_t*>(plnnr::align(bytes, param_align));
+        bytes = new_column + max_entries * get_type_size(param_type);
+        const uint8_t* old_column = (const uint8_t*)(self->columns[i]);
+        memcpy(new_column, old_column, self->num_entries * get_type_size(param_type));
+        self->columns[i] = new_column;
+    }
+
+    const uint32_t* old_generations = self->generations;
+    uint32_t* new_generations = plnnr::align<uint32_t>(bytes);
+    memcpy(new_generations, old_generations, self->num_entries * sizeof(uint32_t));
+    self->generations = new_generations;
+
+    self->max_entries = max_entries;
+    mem->deallocate(old_blob);
 }
 
 void plnnr::init(Fact_Database* self, Memory* mem, const Database_Format* format)

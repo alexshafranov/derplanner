@@ -117,8 +117,9 @@ inline Fact_Handle next(const Fact_Database* self, Fact_Handle handle)
     Fact_Handle result;
     result.table = handle.table;
 
-    bool hasNext = (handle.entry < table.num_entries - 1);
-    if (hasNext)
+    const bool has_next = (handle.entry < table.num_entries - 1);
+
+    if (has_next)
     {
         result.entry = handle.entry + 1;
         result.generation = table.generations[result.entry];
@@ -266,9 +267,14 @@ inline uint32_t get_type_alignment(Type t)
 
 /// Fact_Table
 
-inline bool empty(const Fact_Table* table)
+inline void clear(Fact_Table* self)
 {
-    return table->num_entries == 0;
+    self->num_entries = 0;
+}
+
+inline bool empty(const Fact_Table* self)
+{
+    return self->num_entries == 0;
 }
 
 template <typename T0>

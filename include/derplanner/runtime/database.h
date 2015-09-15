@@ -32,6 +32,12 @@ namespace plnnr {
 void init(Fact_Table* self, Memory* mem, const Fact_Type* format, uint32_t max_entries);
 void destroy(Fact_Table* self);
 
+// resets the table size, memory is not deallocated.
+void clear(Fact_Table* self);
+
+// grows or compacts table stogare.
+void set_max_entries(Fact_Table* self, uint32_t max_entries);
+
 // retuns true if there're no tuples in the table.
 bool empty(const Fact_Table* self);
 
