@@ -1,6 +1,6 @@
 //:
-//: plnnr::Fact_Table* a = plnnr::find_table(db, "a");
-//: plnnr::Fact_Table* b = plnnr::find_table(db, "b");
+//: plnnr::Fact_Table* a = plnnr::find_table(&db, "a");
+//: plnnr::Fact_Table* b = plnnr::find_table(&db, "b");
 //: plnnr::add_entry(a, 1);
 //: plnnr::add_entry(b, 2);
 //:

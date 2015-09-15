@@ -73,7 +73,7 @@ TEST(run_4)
     const plnnr::Domain_Info* domain = run_4_get_domain_info();
 
     plnnr::Fact_Database db;
-    plnnr::init(db, &default_mem, domain->database_req);
+    plnnr::init(&db, &default_mem, &domain->database_req);
 
     plnnr::Planning_State_Config config;
     config.max_depth = 1024;
@@ -82,12 +82,12 @@ TEST(run_4)
     config.plan_data_size = 4096;
 
     plnnr::Planning_State pstate;
-    plnnr::init(pstate, &default_mem, config);
+    plnnr::init(&pstate, &default_mem, &config);
 
     // `each` case iterates over all satisfiers. It succeedes when at least one expansion is successfull.
 
-plnnr::Fact_Table* a = plnnr::find_table(db, "a");
-plnnr::Fact_Table* b = plnnr::find_table(db, "b");
+plnnr::Fact_Table* a = plnnr::find_table(&db, "a");
+plnnr::Fact_Table* b = plnnr::find_table(&db, "b");
 plnnr::add_entry(a, plnnr::Id32(1));
 plnnr::add_entry(a, plnnr::Id32(2));
 plnnr::add_entry(a, plnnr::Id32(3));
@@ -96,7 +96,7 @@ plnnr::add_entry(b, plnnr::Id32(2));
 plnnr::add_entry(b, plnnr::Id32(4));
 
 
-    plnnr::Find_Plan_Status status = plnnr::find_plan(domain, &db, &pstate);
+    plnnr::Find_Plan_Status status = plnnr::find_plan(&pstate, &db, domain);
     CHECK_EQUAL(plnnr::Find_Plan_Succeeded, status);
 
     check_plan("p1!(2) p2!(2) p1!(4) p2!(4)", pstate, domain);

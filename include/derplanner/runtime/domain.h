@@ -182,7 +182,7 @@ inline void plnnr::begin_compound(plnnr::Planning_State* state, const plnnr::Dom
     allocate_precond_handles(state, &frame, num_handles);
     allocate_precond_bindings(state, &frame, precond_output_layout);
 
-    push(state->expansion_stack, frame);
+    push(&state->expansion_stack, frame);
 }
 
 inline bool plnnr::expand_next_case(plnnr::Planning_State* state, const plnnr::Domain_Info* domain, uint32_t task_id,
@@ -231,7 +231,7 @@ inline void plnnr::begin_task(plnnr::Planning_State* state, const plnnr::Domain_
     frame.orig_blob_size = blob_size;
     frame.arguments = allocate_with_layout(blob, param_layout);
 
-    push(state->task_stack, frame);
+    push(&state->task_stack, frame);
 }
 
 inline void plnnr::continue_iteration(const plnnr::Planning_State* state, plnnr::Expansion_Frame* frame)
@@ -244,14 +244,14 @@ inline void plnnr::continue_iteration(const plnnr::Planning_State* state, plnnr:
 template <typename T>
 inline void plnnr::set_compound_arg(plnnr::Planning_State* state, const plnnr::Param_Layout* layout, uint32_t param_index, const T& value)
 {
-    plnnr::Expansion_Frame* frame = top(state->expansion_stack);
+    plnnr::Expansion_Frame* frame = top(&state->expansion_stack);
     set_arg(frame->arguments, layout, param_index, value);
 }
 
 template <typename T>
 inline void plnnr::set_task_arg(plnnr::Planning_State* state, const plnnr::Param_Layout* layout, uint32_t param_index, const T& value)
 {
-    plnnr::Task_Frame* frame = top(state->task_stack);
+    plnnr::Task_Frame* frame = top(&state->task_stack);
     set_arg(frame->arguments, layout, param_index, value);
 }
 

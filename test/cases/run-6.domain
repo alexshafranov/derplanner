@@ -1,6 +1,6 @@
 //: // expressions in preconditions and task lists.
 //:
-//: plnnr::Fact_Table* a = plnnr::find_table(db, "a");
+//: plnnr::Fact_Table* a = plnnr::find_table(&db, "a");
 //: plnnr::add_entry(a, int8_t(10), int32_t(10), int64_t(29), float(2.0f));
 //: plnnr::add_entry(a, int8_t(50), int32_t(25), int64_t(99), float(0.1f));
 //: plnnr::add_entry(a, int8_t(11), int32_t(10), int64_t(30), float(1.0f));

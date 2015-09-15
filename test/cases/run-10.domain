@@ -1,7 +1,7 @@
 //: // variable type is unified accross disjunction.
 //:
-//: plnnr::Fact_Table* a = plnnr::find_table(db, "a");
-//: plnnr::Fact_Table* b = plnnr::find_table(db, "b");
+//: plnnr::Fact_Table* a = plnnr::find_table(&db, "a");
+//: plnnr::Fact_Table* b = plnnr::find_table(&db, "b");
 //:
 //: plnnr::add_entry(a, int8_t(127));
 //: plnnr::add_entry(b, int32_t(128));

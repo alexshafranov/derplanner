@@ -73,7 +73,7 @@ TEST(run_11)
     const plnnr::Domain_Info* domain = run_11_get_domain_info();
 
     plnnr::Fact_Database db;
-    plnnr::init(db, &default_mem, domain->database_req);
+    plnnr::init(&db, &default_mem, &domain->database_req);
 
     plnnr::Planning_State_Config config;
     config.max_depth = 1024;
@@ -82,13 +82,13 @@ TEST(run_11)
     config.plan_data_size = 4096;
 
     plnnr::Planning_State pstate;
-    plnnr::init(pstate, &default_mem, config);
+    plnnr::init(&pstate, &default_mem, &config);
 
     // `:sorted` attribute
 
-plnnr::Fact_Table* values1  = plnnr::find_table(db, "values1");
-plnnr::Fact_Table* values2  = plnnr::find_table(db, "values2");
-plnnr::Fact_Table* check    = plnnr::find_table(db, "check");
+plnnr::Fact_Table* values1  = plnnr::find_table(&db, "values1");
+plnnr::Fact_Table* values2  = plnnr::find_table(&db, "values2");
+plnnr::Fact_Table* check    = plnnr::find_table(&db, "check");
 
 plnnr::add_entry(values1, 2);
 plnnr::add_entry(values1, 3);
@@ -100,7 +100,7 @@ plnnr::add_entry(check, 1);
 plnnr::add_entry(check, 4);
 
 
-    plnnr::Find_Plan_Status status = plnnr::find_plan(domain, &db, &pstate);
+    plnnr::Find_Plan_Status status = plnnr::find_plan(&pstate, &db, domain);
     CHECK_EQUAL(plnnr::Find_Plan_Succeeded, status);
 
     check_plan("p!(2) p!(4) p!(1)", pstate, domain);

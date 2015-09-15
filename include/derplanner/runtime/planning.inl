@@ -32,15 +32,15 @@ inline plnnr::Planning_State::~Planning_State()
 {
     if (memory != 0)
     {
-        destroy(*this);
+        destroy(this);
     }
 }
 
-inline plnnr::Plan plnnr::get_plan(const plnnr::Planning_State* state)
+inline plnnr::Plan plnnr::get_plan(const plnnr::Planning_State* self)
 {
     plnnr::Plan plan;
-    plan.tasks = state->task_stack.frames;
-    plan.length = size(state->task_stack);
+    plan.tasks = self->task_stack.frames;
+    plan.length = size(&self->task_stack);
     return plan;
 }
 
@@ -60,37 +60,37 @@ inline plnnr::Param_Layout plnnr::get_task_param_layout(const plnnr::Domain_Info
 /// Stack
 
 template <typename T>
-inline T* plnnr::top(const plnnr::Stack<T>& stack)
+inline T* plnnr::top(const plnnr::Stack<T>* self)
 {
-    return (stack.size > 0) ? stack.frames + (stack.size - 1) : 0;
+    return (self->size > 0) ? self->frames + (self->size - 1) : 0;
 }
 
 template <typename T>
-inline T* plnnr::pop(plnnr::Stack<T>& stack)
+inline T* plnnr::pop(plnnr::Stack<T>* self)
 {
-    plnnr_assert(stack.size > 0);
-    T* result = stack.frames + (stack.size - 1);
-    --stack.size;
+    plnnr_assert(self->size > 0);
+    T* result = self->frames + (self->size - 1);
+    --self->size;
     return result;
 }
 
 template <typename T>
-inline void plnnr::push(plnnr::Stack<T>& stack, const T& value)
+inline void plnnr::push(plnnr::Stack<T>* self, const T& value)
 {
-    plnnr_assert(size(stack) < max_size(stack));
-    stack.frames[stack.size++] = value;
+    plnnr_assert(size(self) < max_size(self));
+    self->frames[self->size++] = value;
 }
 
 template <typename T>
-inline uint32_t plnnr::size(const plnnr::Stack<T>& stack)
+inline uint32_t plnnr::size(const plnnr::Stack<T>* self)
 {
-    return stack.size;
+    return self->size;
 }
 
 template <typename T>
-inline uint32_t plnnr::max_size(const plnnr::Stack<T>& stack)
+inline uint32_t plnnr::max_size(const plnnr::Stack<T>* self)
 {
-    return stack.max_size;
+    return self->max_size;
 }
 
 #endif

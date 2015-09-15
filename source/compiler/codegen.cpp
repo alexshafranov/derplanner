@@ -368,7 +368,7 @@ struct Expr_Writer
             ast::Fact* fact = get_fact(*tree, node->value);
             plnnrc_assert(fact);
             uint32_t fact_idx = index_of(tree->world->facts, fact);
-            write(*fmtr, "db->tables[%d]", fact_idx);
+            write(*fmtr, "db->tables + %d", fact_idx);
         }
         else
         {

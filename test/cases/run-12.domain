@@ -1,6 +1,6 @@
 //: // variables in preconditions
 //:
-//: plnnr::Fact_Table* a = plnnr::find_table(db, "a");
+//: plnnr::Fact_Table* a = plnnr::find_table(&db, "a");
 //:
 //: plnnr::add_entry(a, int8_t(1), int8_t(0));
 //: plnnr::add_entry(a, int8_t(2), int8_t(1));

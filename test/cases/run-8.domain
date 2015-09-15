@@ -1,7 +1,7 @@
 //: // some vector operations.
 //:
-//: plnnr::Fact_Table* me = plnnr::find_table(db, "me");
-//: plnnr::Fact_Table* ob = plnnr::find_table(db, "object");
+//: plnnr::Fact_Table* me = plnnr::find_table(&db, "me");
+//: plnnr::Fact_Table* ob = plnnr::find_table(&db, "object");
 //:
 //: plnnr::add_entry(me, plnnr::Vec3(0.0f, 1.0f, 0.0f), plnnr::Vec3(1.f, 0.0f, 0.f));
 //:

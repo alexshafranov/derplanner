@@ -57,13 +57,13 @@ int main()
 
     // create database using format provided in domain info.
     plnnr::Fact_Database db;
-    plnnr::init(db, &default_mem, domain->database_req);
+    plnnr::init(&db, &default_mem, &domain->database_req);
 
-    plnnr::Fact_Table* start            = plnnr::find_table(db, "start");
-    plnnr::Fact_Table* finish           = plnnr::find_table(db, "finish");
-    plnnr::Fact_Table* short_distance   = plnnr::find_table(db, "short_distance");
-    plnnr::Fact_Table* long_distance    = plnnr::find_table(db, "long_distance");
-    plnnr::Fact_Table* airport          = plnnr::find_table(db, "airport");
+    plnnr::Fact_Table* start            = plnnr::find_table(&db, "start");
+    plnnr::Fact_Table* finish           = plnnr::find_table(&db, "finish");
+    plnnr::Fact_Table* short_distance   = plnnr::find_table(&db, "short_distance");
+    plnnr::Fact_Table* long_distance    = plnnr::find_table(&db, "long_distance");
+    plnnr::Fact_Table* airport          = plnnr::find_table(&db, "airport");
 
     plnnr::add_entry(start, SPB);
     plnnr::add_entry(finish, MSC);
@@ -93,9 +93,9 @@ int main()
     config.plan_data_size = 1024;
 
     plnnr::Planning_State pstate;
-    plnnr::init(pstate, &default_mem, config);
+    plnnr::init(&pstate, &default_mem, &config);
 
-    plnnr::Find_Plan_Status status = plnnr::find_plan(domain, &db, &pstate);
+    plnnr::Find_Plan_Status status = plnnr::find_plan(&pstate, &db, domain);
     if (status == plnnr::Find_Plan_Max_Depth_Exceeded)
     {
         printf("maximum expansion depth exceeded!\n");

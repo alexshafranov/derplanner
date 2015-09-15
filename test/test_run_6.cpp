@@ -73,7 +73,7 @@ TEST(run_6)
     const plnnr::Domain_Info* domain = run_6_get_domain_info();
 
     plnnr::Fact_Database db;
-    plnnr::init(db, &default_mem, domain->database_req);
+    plnnr::init(&db, &default_mem, &domain->database_req);
 
     plnnr::Planning_State_Config config;
     config.max_depth = 1024;
@@ -82,17 +82,17 @@ TEST(run_6)
     config.plan_data_size = 4096;
 
     plnnr::Planning_State pstate;
-    plnnr::init(pstate, &default_mem, config);
+    plnnr::init(&pstate, &default_mem, &config);
 
     // expressions in preconditions and task lists.
 
-plnnr::Fact_Table* a = plnnr::find_table(db, "a");
+plnnr::Fact_Table* a = plnnr::find_table(&db, "a");
 plnnr::add_entry(a, int8_t(10), int32_t(10), int64_t(29), float(2.0f));
 plnnr::add_entry(a, int8_t(50), int32_t(25), int64_t(99), float(0.1f));
 plnnr::add_entry(a, int8_t(11), int32_t(10), int64_t(30), float(1.0f));
 
 
-    plnnr::Find_Plan_Status status = plnnr::find_plan(domain, &db, &pstate);
+    plnnr::Find_Plan_Status status = plnnr::find_plan(&pstate, &db, domain);
     CHECK_EQUAL(plnnr::Find_Plan_Succeeded, status);
 
     check_plan("p!(0) p!(-60) p!(1) p!(65)", pstate, domain);

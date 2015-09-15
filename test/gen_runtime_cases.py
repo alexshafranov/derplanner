@@ -77,7 +77,7 @@ TEST(%(test_case_name)s)
     const plnnr::Domain_Info* domain = %(domain_name)s_get_domain_info();
 
     plnnr::Fact_Database db;
-    plnnr::init(db, &default_mem, domain->database_req);
+    plnnr::init(&db, &default_mem, &domain->database_req);
 
     plnnr::Planning_State_Config config;
     config.max_depth = 1024;
@@ -86,11 +86,11 @@ TEST(%(test_case_name)s)
     config.plan_data_size = 4096;
 
     plnnr::Planning_State pstate;
-    plnnr::init(pstate, &default_mem, config);
+    plnnr::init(&pstate, &default_mem, &config);
 
     %(database_source)s
 
-    plnnr::Find_Plan_Status status = plnnr::find_plan(domain, &db, &pstate);
+    plnnr::Find_Plan_Status status = plnnr::find_plan(&pstate, &db, domain);
     CHECK_EQUAL(plnnr::Find_Plan_Succeeded, status);
 
     %(checks_source)s

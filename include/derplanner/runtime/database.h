@@ -29,37 +29,85 @@ namespace plnnr {
 
 /// Fact_Table
 
-void init(Fact_Table& table, Memory* mem, const Fact_Type& format, uint32_t max_entries);
-void destroy(Fact_Table& t);
+void init(Fact_Table* self, Memory* mem, const Fact_Type* format, uint32_t max_entries);
+void destroy(Fact_Table* self);
 
 // retuns true if there're no tuples in the table.
-bool empty(Fact_Table& table);
+bool empty(const Fact_Table* self);
+
+// set `value` for a fact parameter.
+template <typename T>
+void set_arg(Fact_Table* self, uint32_t entry_index, uint32_t param_index, const T& value);
+
+// add fact (a0,) to the table `self`.
+template <typename T0>
+void add_entry(Fact_Table* self, const T0& a0);
+
+// add fact (a0, a1) to the table `self`.
+template <typename T0, typename T1>
+void add_entry(Fact_Table* self, const T0& a0, const T1& a1);
+
+// add fact (a0, a1, a2) to the table `self`.
+template <typename T0, typename T1, typename T2>
+void add_entry(Fact_Table* self, const T0& a0, const T1& a1, const T2& a2);
+
+// add fact (a0, a1, a2, a3) to the table `self`.
+template <typename T0, typename T1, typename T2, typename T3>
+void add_entry(Fact_Table* self, const T0& a0, const T1& a1, const T2& a2, const T3& a3);
+
+// add fact (a0, a1, a2, a3, a4) to the table `self`.
+template <typename T0, typename T1, typename T2, typename T3, typename T4>
+void add_entry(Fact_Table* self, const T0& a0, const T1& a1, const T2& a2, const T3& a3, const T4& a4);
+
+// add fact (a0, a1, a2, a3, a4, a5) to the table `self`.
+template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
+void add_entry(Fact_Table* self, const T0& a0, const T1& a1, const T2& a2, const T3& a3, const T4& a4, const T5& a5);
+
+// add fact (a0, a1, a2, a3, a4, a5, a6) to the table `self`.
+template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
+void add_entry(Fact_Table* self, const T0& a0, const T1& a1, const T2& a2, const T3& a3, const T4& a4, const T5& a5, const T6& a6);
+
+// add fact (a0, a1, a2, a3, a4, a6, a7) to the table `self`.
+template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
+void add_entry(Fact_Table* self, const T0& a0, const T1& a1, const T2& a2, const T3& a3, const T4& a4, const T5& a5, const T6& a6, const T7& a7);
+
+// fact argument accessors.
+#define PLNNR_TYPE(TYPE_TAG, TYPE_NAME)                                                         \
+    TYPE_NAME as_##TYPE_TAG(const Fact_Table* self, uint32_t entry_index, uint32_t arg_index);  \
+
+    #include "derplanner/runtime/type_tags.inl"
+#undef PLNNR_TYPE
+
+/// Param_Layout
+
+// set `value` for a tuple `data`, which has the memory layout specified by `Param_Layout`.
+template <typename T>
+void set_arg(void* data, const Param_Layout* layout, uint32_t param_index, const T& value);
 
 /// Fact_Database
 
-void init(Fact_Database& db, Memory* mem, const Database_Format& format);
-void destroy(Fact_Database& db);
+void init(Fact_Database* self, Memory* mem, const Database_Format* format);
+void destroy(Fact_Database* self);
 
 // returns a handle to the first entry in database table.
-Fact_Handle first(const Fact_Database* db, uint32_t table_index);
+Fact_Handle first(const Fact_Database* self, uint32_t table_index);
 // advances handle to the next entry.
-Fact_Handle next(const Fact_Database* db, Fact_Handle handle);
+Fact_Handle next(const Fact_Database* self, Fact_Handle handle);
 
 // search for table by fact name hash.
-Fact_Table* find_table(Fact_Database& db, const char* fact_name);
-const Fact_Table* find_table(const Fact_Database& db, const char* fact_name);
+const Fact_Table*   find_table(const Fact_Database* self, const char* fact_name);
+Fact_Table*         find_table(Fact_Database* self, const char* fact_name);
 
 /// Fact_Handle
 
-bool is_valid(const Fact_Database& db, Fact_Handle handle);
-bool is_valid(const Fact_Database* db, Fact_Handle handle);
+bool is_valid(const Fact_Database* self, Fact_Handle handle);
 
 /// Type
 
 // returns size of the type `t`.
-size_t get_type_size(Type t);
+uint32_t get_type_size(Type t);
 // returns alignment of the type `t`.
-size_t get_type_alignment(Type t);
+uint32_t get_type_alignment(Type t);
 
 // Murmur2 hash function used by compiler and runtime to generate hashes for the names used in domain (e.g. facts).
 uint32_t murmur2_32(const void* key, uint32_t len, uint32_t seed);

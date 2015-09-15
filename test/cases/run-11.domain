@@ -1,8 +1,8 @@
 //: // `:sorted` attribute
 //:
-//: plnnr::Fact_Table* values1  = plnnr::find_table(db, "values1");
-//: plnnr::Fact_Table* values2  = plnnr::find_table(db, "values2");
-//: plnnr::Fact_Table* check    = plnnr::find_table(db, "check");
+//: plnnr::Fact_Table* values1  = plnnr::find_table(&db, "values1");
+//: plnnr::Fact_Table* values2  = plnnr::find_table(&db, "values2");
+//: plnnr::Fact_Table* check    = plnnr::find_table(&db, "check");
 //:
 //: plnnr::add_entry(values1, 2);
 //: plnnr::add_entry(values1, 3);

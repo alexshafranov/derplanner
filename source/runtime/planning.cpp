@@ -24,50 +24,50 @@
 
 using namespace plnnr;
 
-void plnnr::init(Planning_State& result, Memory* mem, const Planning_State_Config& config)
+void plnnr::init(Planning_State* self, Memory* mem, const Planning_State_Config* config)
 {
-    memset(&result, 0, sizeof(result));
+    memset(self, 0, sizeof(Planning_State));
 
-    result.max_depth = config.max_depth;
-    result.max_plan_length = config.max_plan_length;
+    self->max_depth = config->max_depth;
+    self->max_plan_length = config->max_plan_length;
 
     // allocate `max_depth + 1` frames, so that we can check for maximum depth after the last frame is added.
-    Expansion_Frame* expansion_frames = allocate<Expansion_Frame>(mem, config.max_depth + 1);
-    result.expansion_stack.max_size = config.max_depth + 1;
-    result.expansion_stack.frames = expansion_frames;
+    Expansion_Frame* expansion_frames = allocate<Expansion_Frame>(mem, config->max_depth + 1);
+    self->expansion_stack.max_size = config->max_depth + 1;
+    self->expansion_stack.frames = expansion_frames;
 
     // allocate `max_plan_length + 1` frames, so that we can check for maximum length after the last frame is added.
-    Task_Frame* task_frames = allocate<Task_Frame>(mem, config.max_plan_length + 1);
-    result.task_stack.max_size = config.max_plan_length + 1;
-    result.task_stack.frames = task_frames;
+    Task_Frame* task_frames = allocate<Task_Frame>(mem, config->max_plan_length + 1);
+    self->task_stack.max_size = config->max_plan_length + 1;
+    self->task_stack.frames = task_frames;
 
-    uint8_t* expansion_data = allocate<uint8_t>(mem, config.expansion_data_size, plnnr::default_alignment);
-    result.expansion_blob.max_size = (uint32_t)(config.expansion_data_size);
-    result.expansion_blob.top = expansion_data;
-    result.expansion_blob.base = expansion_data;
+    uint8_t* expansion_data = allocate<uint8_t>(mem, config->expansion_data_size, plnnr::default_alignment);
+    self->expansion_blob.max_size = (uint32_t)(config->expansion_data_size);
+    self->expansion_blob.top = expansion_data;
+    self->expansion_blob.base = expansion_data;
 
-    uint8_t* plan_data = allocate<uint8_t>(mem, config.plan_data_size, plnnr::default_alignment);
-    result.task_blob.max_size = (uint32_t)(config.plan_data_size);
-    result.task_blob.top = plan_data;
-    result.task_blob.base = plan_data;
+    uint8_t* plan_data = allocate<uint8_t>(mem, config->plan_data_size, plnnr::default_alignment);
+    self->task_blob.max_size = (uint32_t)(config->plan_data_size);
+    self->task_blob.top = plan_data;
+    self->task_blob.base = plan_data;
 
-    result.memory = mem;
+    self->memory = mem;
 }
 
-void plnnr::destroy(Planning_State& s)
+void plnnr::destroy(Planning_State* self)
 {
-    Memory* mem = s.memory;
-    mem->deallocate(s.expansion_stack.frames);
-    mem->deallocate(s.task_stack.frames);
-    mem->deallocate(s.expansion_blob.base);
-    mem->deallocate(s.task_blob.base);
-    memset(&s, 0, sizeof(s));
+    Memory* mem = self->memory;
+    mem->deallocate(self->expansion_stack.frames);
+    mem->deallocate(self->task_stack.frames);
+    mem->deallocate(self->expansion_blob.base);
+    mem->deallocate(self->task_blob.base);
+    memset(self, 0, sizeof(Planning_State));
 }
 
 static plnnr::Expansion_Frame* pop_expansion(plnnr::Planning_State* state)
 {
-    Expansion_Frame* old_top = pop(state->expansion_stack);
-    Expansion_Frame* new_top = top(state->expansion_stack);
+    Expansion_Frame* old_top = pop(&state->expansion_stack);
+    Expansion_Frame* new_top = top(&state->expansion_stack);
 
     // revert all data allocated by old_top expansion.
     Blob* blob = &state->expansion_blob;
@@ -80,7 +80,7 @@ static void undo_expansion(plnnr::Planning_State* state)
 {
     plnnr_assert(state->expansion_stack.size > 0);
 
-    Expansion_Frame* frame = top(state->expansion_stack);
+    Expansion_Frame* frame = top(&state->expansion_stack);
     frame->status = Expansion_Frame::Status_None;
     // rewind to the expand function start, so the we exit expansion loop and try the next satisifer.
     frame->expand_label = 0;
@@ -101,7 +101,7 @@ static void undo_expansion(plnnr::Planning_State* state)
     }
 }
 
-void plnnr::find_plan_init(const Domain_Info* domain, Planning_State* state)
+void plnnr::find_plan_init(Planning_State* self, const Domain_Info* domain)
 {
     plnnr_assert(domain->task_info.num_compound > 0);
 
@@ -111,22 +111,22 @@ void plnnr::find_plan_init(const Domain_Info* domain, Planning_State* state)
     plnnr_assert(domain->task_info.parameters[root_id].num_params == 0);
 
     // put the root task on stack.
-    begin_compound(state, domain, root_id);
+    begin_compound(self, domain, root_id);
 }
 
-Find_Plan_Status plnnr::find_plan_step(Fact_Database* db, Planning_State* state)
+Find_Plan_Status plnnr::find_plan_step(Planning_State* self, Fact_Database* db)
 {
-    Expansion_Frame* frame = top(state->expansion_stack);
+    Expansion_Frame* frame = top(&self->expansion_stack);
 
-    if (frame->expand(state, frame, db))
+    if (frame->expand(self, frame, db))
     {
-        Expansion_Frame* new_top_frame = top(state->expansion_stack);
+        Expansion_Frame* new_top_frame = top(&self->expansion_stack);
 
         // expanded to primitive tasks -> pop all expanded compound tasks.
         if ((frame == new_top_frame) && (frame->status == Expansion_Frame::Status_Expanded))
         {
             while (frame && (frame->status == Expansion_Frame::Status_Expanded))
-                frame = pop_expansion(state);
+                frame = pop_expansion(self);
 
             // all compounds are now expanded -> plan found.
             if (!frame)
@@ -134,34 +134,34 @@ Find_Plan_Status plnnr::find_plan_step(Fact_Database* db, Planning_State* state)
         }
 
         // check if maximum expansion depth reached.
-        if (size(state->expansion_stack) > state->max_depth)
+        if (size(&self->expansion_stack) > self->max_depth)
             return Find_Plan_Max_Depth_Exceeded;
 
         // check if maximum plan length reached.
-        if (size(state->task_stack) > state->max_plan_length)
+        if (size(&self->task_stack) > self->max_plan_length)
             return Find_Plan_Max_Plan_Length_Exceeded;
 
         return Find_Plan_In_Progress;
     }
 
     // expansion failed -> pop expansion and revert tasks.
-    frame = pop_expansion(state);
+    frame = pop_expansion(self);
 
     if (!frame)
         return Find_Plan_Failed;
 
-    undo_expansion(state);
+    undo_expansion(self);
 
     return Find_Plan_In_Progress;
 }
 
-Find_Plan_Status plnnr::find_plan(const Domain_Info* domain, Fact_Database* db, Planning_State* state)
+Find_Plan_Status plnnr::find_plan(Planning_State* self, Fact_Database* db, const Domain_Info* domain)
 {
-    find_plan_init(domain, state);
+    find_plan_init(self, domain);
 
-    Find_Plan_Status status = find_plan_step(db, state);
+    Find_Plan_Status status = find_plan_step(self, db);
     while (status == Find_Plan_In_Progress)
-        status = find_plan_step(db, state);
+        status = find_plan_step(self, db);
 
     return status;
 }

@@ -18,24 +18,24 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#include <string.h> // memset
+#include <string.h> // memset, strlen
 #include "derplanner/runtime/database.h"
 
 using namespace plnnr;
 
-void plnnr::init(Fact_Table& result, Memory* mem, const Fact_Type& format, uint32_t max_entries)
+void plnnr::init(Fact_Table* self, Memory* mem, const Fact_Type* format, uint32_t max_entries)
 {
-    memset(&result, 0, sizeof(result));
+    memset(self, 0, sizeof(Fact_Table));
 
-    result.format = format;
-    result.num_entries = 0;
-    result.max_entries = max_entries;
+    self->format = *format;
+    self->num_entries = 0;
+    self->max_entries = max_entries;
 
     size_t size = 0;
     // data columns
-    for (uint8_t i = 0; i < format.num_params; ++i)
+    for (uint8_t i = 0; i < format->num_params; ++i)
     {
-        size += get_type_alignment(format.types[i]) + max_entries * get_type_size(format.types[i]);
+        size += get_type_alignment(format->types[i]) + max_entries * get_type_size(format->types[i]);
     }
     // generations
     size = plnnr::align(size, plnnr_alignof(uint32_t));
@@ -45,38 +45,38 @@ void plnnr::init(Fact_Table& result, Memory* mem, const Fact_Type& format, uint3
     memset(blob, 0, size);
 
     // setup pointers
-    result.blob = blob;
+    self->blob = blob;
     uint8_t* bytes = static_cast<uint8_t*>(blob);
 
-    for (uint8_t i = 0; i < format.num_params; ++i)
+    for (uint8_t i = 0; i < format->num_params; ++i)
     {
-        Type param_type = format.types[i];
+        Type param_type = format->types[i];
         size_t param_align = get_type_alignment(param_type);
         uint8_t* column = static_cast<uint8_t*>(plnnr::align(bytes, param_align));
         bytes = column + max_entries * get_type_size(param_type);
-        result.columns[i] = column;
+        self->columns[i] = column;
     }
 
-    result.generations = plnnr::align<uint32_t>(bytes);
-    result.memory = mem;
+    self->generations = plnnr::align<uint32_t>(bytes);
+    self->memory = mem;
 }
 
-void plnnr::destroy(Fact_Table& t)
+void plnnr::destroy(Fact_Table* self)
 {
-    Memory* mem = t.memory;
-    mem->deallocate(t.blob);
-    memset(&t, 0, sizeof(t));
+    Memory* mem = self->memory;
+    mem->deallocate(self->blob);
+    memset(self, 0, sizeof(Fact_Table));
 }
 
-void plnnr::init(Fact_Database& result, Memory* mem, const Database_Format& format)
+void plnnr::init(Fact_Database* self, Memory* mem, const Database_Format* format)
 {
-    memset(&result, 0, sizeof(result));
+    memset(self, 0, sizeof(Fact_Database));
 
-    result.num_tables = format.num_tables;
-    result.max_tables = format.num_tables;
-    result.hash_seed = format.hash_seed;
+    self->num_tables = format->num_tables;
+    self->max_tables = format->num_tables;
+    self->hash_seed = format->hash_seed;
 
-    const uint32_t max_tables = format.num_tables;
+    const uint32_t max_tables = format->num_tables;
     // hashes
     size_t size = plnnr_alignof(uint32_t) + sizeof(uint32_t) * max_tables;
     // names
@@ -87,37 +87,67 @@ void plnnr::init(Fact_Database& result, Memory* mem, const Database_Format& form
     size += sizeof(Fact_Table) * max_tables;
 
     void* blob = mem->allocate(size);
-    result.blob = blob;
+    self->blob = blob;
     uint8_t* bytes = static_cast<uint8_t*>(blob);
 
-    result.hashes = plnnr::align<uint32_t>(bytes);
+    self->hashes = plnnr::align<uint32_t>(bytes);
     bytes += sizeof(uint32_t) * max_tables;
-    result.names = plnnr::align<const char*>(bytes);
+    self->names = plnnr::align<const char*>(bytes);
     bytes += sizeof(void*) * max_tables;
-    result.tables = plnnr::align<Fact_Table>(bytes);
+    self->tables = plnnr::align<Fact_Table>(bytes);
 
-    for (uint32_t i = 0; i < format.num_tables; ++i)
+    for (uint32_t i = 0; i < format->num_tables; ++i)
     {
-        uint32_t size_hint = format.size_hints[i];
+        uint32_t size_hint = format->size_hints[i];
         uint32_t max_entries = ( size_hint > 0 ) ? size_hint : 128;
-        result.hashes[i] = format.hashes[i];
-        result.names[i] = format.names[i];
-        init(result.tables[i], mem, format.types[i], max_entries);
+        self->hashes[i] = format->hashes[i];
+        self->names[i] = format->names[i];
+        init(self->tables + i, mem, format->types + i, max_entries);
     }
 
-    result.memory = mem;
+    self->memory = mem;
 }
 
-void plnnr::destroy(Fact_Database& db)
+void plnnr::destroy(Fact_Database* self)
 {
-    Memory* mem = db.memory;
+    Memory* mem = self->memory;
 
-    for (uint32_t i = 0; i < db.num_tables; ++i)
+    for (uint32_t i = 0; i < self->num_tables; ++i)
     {
-        Fact_Table& table = db.tables[i];
+        Fact_Table* table = self->tables + i;
         destroy(table);
     }
 
-    mem->deallocate(db.blob);
-    memset(&db, 0, sizeof(db));
+    mem->deallocate(self->blob);
+    memset(self, 0, sizeof(Fact_Database));
+}
+
+const Fact_Table* plnnr::find_table(const Fact_Database* self, const char* fact_name)
+{
+    const uint32_t seed = self->hash_seed;
+    const uint32_t hash = murmur2_32(fact_name, (uint32_t)strlen(fact_name), seed);
+    const uint32_t* db_hashes = self->hashes;
+    const uint32_t num_hashes = self->num_tables;
+    const Fact_Table* db_tables = self->tables;
+
+    for (uint32_t i = 0; i < num_hashes; ++i)
+        if (hash == db_hashes[i])
+            return &db_tables[i];
+
+    return 0;
+}
+
+Fact_Table* plnnr::find_table(Fact_Database* self, const char* fact_name)
+{
+    const uint32_t seed = self->hash_seed;
+    const uint32_t hash = murmur2_32(fact_name, (uint32_t)strlen(fact_name), seed);
+    const uint32_t* db_hashes = self->hashes;
+    const uint32_t num_hashes = self->num_tables;
+    Fact_Table* db_tables = self->tables;
+
+    for (uint32_t i = 0; i < num_hashes; ++i)
+        if (hash == db_hashes[i])
+            return &db_tables[i];
+
+    return 0;
 }

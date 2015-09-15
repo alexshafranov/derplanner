@@ -54,7 +54,7 @@ enum Type
     Type_Count,
 };
 
-enum { Max_Fact_Arity = 16 };
+enum { Max_Fact_Arity = 8 };
 
 // Format of the fact tuple.
 struct Fact_Type

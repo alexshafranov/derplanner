@@ -41,8 +41,8 @@ struct Planning_State_Config
     size_t      plan_data_size;
 };
 
-void init(Planning_State& s, Memory* mem, const Planning_State_Config& config);
-void destroy(Planning_State& s);
+void init(Planning_State* self, Memory* mem, const Planning_State_Config* config);
+void destroy(Planning_State* self);
 
 /// Iterative planning interface.
 
@@ -61,39 +61,37 @@ enum Find_Plan_Status
 };
 
 // pushes the first compound task on the expansion stack.
-void find_plan_init(const Domain_Info* domain, Planning_State* state);
-
+void                find_plan_init(Planning_State* self, const Domain_Info* domain);
 // executes one step of the planning loop.
-Find_Plan_Status find_plan_step(Fact_Database* db, Planning_State* state);
+Find_Plan_Status    find_plan_step(Planning_State* self, Fact_Database* db);
 
 // runs the full planning loop (executes `find_plan_step` until status other than `Find_Plan_In_Progress` is returned).
-Find_Plan_Status find_plan(const Domain_Info* domain, Fact_Database* db, Planning_State* state);
+Find_Plan_Status    find_plan(Planning_State* self, Fact_Database* db, const Domain_Info* domain);
 
 // resulting plan.
-Plan get_plan(const Planning_State* state);
+Plan get_plan(const Planning_State* self);
 
 /// Domain_Info
 
-const char* get_task_name(const Domain_Info* domain, uint32_t task_id);
-
-Param_Layout get_task_param_layout(const Domain_Info* domain, uint32_t task_id);
+const char*     get_task_name(const Domain_Info* domain, uint32_t task_id);
+Param_Layout    get_task_param_layout(const Domain_Info* domain, uint32_t task_id);
 
 /// Stack
 
 template <typename T>
-T* top(const Stack<T>& stack);
+T* top(const Stack<T>* self);
 
 template <typename T>
-T* pop(Stack<T>& stack);
+T* pop(Stack<T>* self);
 
 template <typename T>
-void push(Stack<T>& stack, const T& value);
+void push(Stack<T>* self, const T& value);
 
 template <typename T>
-uint32_t size(const Stack<T>& stack);
+uint32_t size(const Stack<T>* self);
 
 template <typename T>
-uint32_t max_size(const Stack<T>& stack);
+uint32_t max_size(const Stack<T>* self);
 
 }
 
