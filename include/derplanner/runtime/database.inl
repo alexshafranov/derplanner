@@ -349,7 +349,7 @@ inline void add_entry(Fact_Table* self, const T0& a0, const T1& a1, const T2& a2
 }
 
 template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-inline void add_entry(Fact_Table& self, const T0& a0, const T1& a1, const T2& a2, const T3& a3, const T4& a4, const T5& a5, const T6& a6, const T7& a7)
+inline void add_entry(Fact_Table* self, const T0& a0, const T1& a1, const T2& a2, const T3& a3, const T4& a4, const T5& a5, const T6& a6, const T7& a7)
 {
     uint32_t entry = self->num_entries++;
     plnnr_assert(entry < self->max_entries);
