@@ -128,7 +128,7 @@ struct Memory_Stack_Context
         mem = Memory_Stack::create(page_size);
     }
 
-    Memory_Stack_Context()
+    ~Memory_Stack_Context()
     {
         Memory_Stack::destroy(mem);
     }
