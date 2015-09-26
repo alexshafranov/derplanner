@@ -365,9 +365,9 @@ struct Expr_Writer
     {
         if (is_Literal_Fact(node->value_type))
         {
-            ast::Fact* fact = get_fact(*tree, node->value);
+            ast::Fact* fact = get_fact(tree, node->value);
             plnnrc_assert(fact);
-            uint32_t fact_idx = index_of(tree->world->facts, fact);
+            const uint32_t fact_idx = index_of(tree->world->facts, fact);
             write(*fmtr, "db->tables + %d", fact_idx);
         }
         else
@@ -1120,7 +1120,7 @@ static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* liter
 
     ast::Fact* fact = 0;
     if (func)
-        fact = get_fact(*state.tree, func->name);
+        fact = get_fact(state.tree, func->name);
 
     // expression -> generate `if` check.
     if (!func || !fact)
@@ -1170,7 +1170,7 @@ static void generate_conjunct(Codegen& state, ast::Case* case_, ast::Expr* liter
     // fact -> generate iterator.
     else
     {
-        ast::Fact* fact = get_fact(*state.tree, func->name);
+        ast::Fact* fact = get_fact(state.tree, func->name);
         uint32_t fact_idx = index_of(state.tree->world->facts, fact);
 
         writeln(fmtr, "for (handles[%d] = first(db, %d); is_valid(db, handles[%d]); handles[%d] = next(db, handles[%d])) { // %n",
@@ -1407,7 +1407,7 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
             {
                 ast::Func* item = as_Func(case_->task_list[item_idx]);
                 // adding primitive task to expansion.
-                if (ast::Fact* primitive = get_primitive(*state.tree, item->name))
+                if (ast::Fact* primitive = get_primitive(state.tree, item->name))
                 {
                     uint32_t primitive_index = index_of(state.tree->primitive->tasks, primitive);
                     writeln(fmtr, "begin_task(state, &s_domain_info, %d); // %n",
@@ -1432,7 +1432,7 @@ static void generate_expansion(Codegen& state, ast::Case* case_, uint32_t case_i
                 }
 
                 // adding compound task to expansion.
-                if (ast::Task* compound = get_task(*state.tree, item->name))
+                if (ast::Task* compound = get_task(state.tree, item->name))
                 {
                     uint32_t compound_index = size(state.tree->primitive->tasks) + index_of(state.tree->domain->tasks, compound);
                     writeln(fmtr, "begin_compound(state, &s_domain_info, %d); // %n",

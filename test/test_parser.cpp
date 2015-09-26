@@ -34,7 +34,7 @@ namespace plnnrc
     extern ast::Expr*   parse_precond(Parser& state);
 
     extern void         flatten(ast::Expr* root);
-    extern ast::Expr*   convert_to_nnf(ast::Root& tree, ast::Expr* root);
+    extern ast::Expr*   convert_to_nnf(const ast::Root* tree, ast::Expr* root);
 
     extern void         init_look_ahead(Parser& state);
 }
@@ -136,7 +136,7 @@ namespace
         compiler.mem_scratch = plnnrc::Memory_Stack::create(1024);
         Array<Error> errors;
         init(compiler.errors, compiler.mem_tree, 16);
-        init(compiler.tree, &compiler.errors, compiler.mem_tree, compiler.mem_scratch);
+        init(&compiler.tree, &compiler.errors, compiler.mem_tree, compiler.mem_scratch);
         init(compiler.lexer, input, compiler.mem_scratch);
         init(compiler.parser, &compiler.lexer, &compiler.tree, &compiler.errors, compiler.mem_scratch);
         plnnrc::init_look_ahead(compiler.parser);
@@ -192,7 +192,7 @@ namespace
         Test_Compiler compiler;
         init(compiler, input);
         ast::Expr* expr = plnnrc::parse_precond(compiler.parser);
-        expr = plnnrc::convert_to_nnf(compiler.tree, expr);
+        expr = plnnrc::convert_to_nnf(&compiler.tree, expr);
         std::string actual;
         to_string(expr, actual);
         CHECK_EQUAL(expected, actual.c_str());
@@ -220,7 +220,7 @@ namespace
         Test_Compiler compiler;
         init(compiler, input);
         ast::Expr* expr = plnnrc::parse_precond(compiler.parser);
-        expr = plnnrc::convert_to_dnf(compiler.tree, expr);
+        expr = plnnrc::convert_to_dnf(&compiler.tree, expr);
         std::string actual;
         to_string(expr, actual);
         CHECK_EQUAL(expected, actual.c_str());

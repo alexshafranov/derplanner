@@ -27,34 +27,34 @@
 namespace plnnrc {
 
 // create AST.
-void init(ast::Root& root, Array<Error>* errors, Memory_Stack* mem_pool, Memory_Stack* mem_scratch);
+void init(ast::Root* self, Array<Error>* errors, Memory_Stack* mem_pool, Memory_Stack* mem_scratch);
 
 /// `create_*` functions for `ast` node types.
 
-ast::World*         create_world(ast::Root* tree);
-ast::Primitive*     create_primitive(ast::Root* tree);
-ast::Attribute*     create_attribute(ast::Root* tree, const Token_Value& name, const Location& loc);
-ast::Macro*         create_macro(ast::Root* tree, const Token_Value& name, const Location& loc);
-ast::Fact*          create_fact(ast::Root* tree, const Token_Value& name, const Location& loc);
-ast::Param*         create_param(ast::Root* tree, const Token_Value& name, const Location& loc);
-ast::Domain*        create_domain(ast::Root* tree, const Token_Value& name);
-ast::Task*          create_task(ast::Root* tree, const Token_Value& name, const Location& loc);
-ast::Case*          create_case(ast::Root* tree);
-ast::Data_Type*     create_type(ast::Root* tree, Token_Type data_type);
+ast::World*         create_world(const ast::Root* tree);
+ast::Primitive*     create_primitive(const ast::Root* tree);
+ast::Attribute*     create_attribute(const ast::Root* tree, const Token_Value& name, const Location& loc);
+ast::Macro*         create_macro(const ast::Root* tree, const Token_Value& name, const Location& loc);
+ast::Fact*          create_fact(const ast::Root* tree, const Token_Value& name, const Location& loc);
+ast::Param*         create_param(const ast::Root* tree, const Token_Value& name, const Location& loc);
+ast::Domain*        create_domain(const ast::Root* tree, const Token_Value& name);
+ast::Task*          create_task(const ast::Root* tree, const Token_Value& name, const Location& loc);
+ast::Case*          create_case(const ast::Root* tree);
+ast::Data_Type*     create_type(const ast::Root* tree, Token_Type data_type);
 
-ast::Op*            create_op(ast::Root* tree, ast::Node_Type operation_type);
-ast::Op*            create_op(ast::Root* tree, ast::Node_Type operation_type, const Location& loc);
-ast::Var*           create_var(ast::Root* tree, const Token_Value& name, const Location& loc);
-ast::Literal*       create_literal(ast::Root* tree, const Token& token, const Location& loc);
-ast::Func*          create_func(ast::Root* tree, const Token_Value& name, const Location& loc);
+ast::Op*            create_op(const ast::Root* tree, ast::Node_Type operation_type);
+ast::Op*            create_op(const ast::Root* tree, ast::Node_Type operation_type, const Location& loc);
+ast::Var*           create_var(const ast::Root* tree, const Token_Value& name, const Location& loc);
+ast::Literal*       create_literal(const ast::Root* tree, const Token& token, const Location& loc);
+ast::Func*          create_func(const ast::Root* tree, const Token_Value& name, const Location& loc);
 
 
 // lookup `ast::Task` node by name.
-ast::Task*      get_task(ast::Root& tree, const Token_Value& name);
+ast::Task*      get_task(const ast::Root* self, const Token_Value& name);
 // lookup `ast::Fact` node by name.
-ast::Fact*      get_fact(ast::Root& tree, const Token_Value& name);
+ast::Fact*      get_fact(const ast::Root* self, const Token_Value& name);
 // lookup `ast::Fact` node for primitive task by name.
-ast::Fact*      get_primitive(ast::Root& tree, const Token_Value& name);
+ast::Fact*      get_primitive(const ast::Root* self, const Token_Value& name);
 
 /// ast::Expr
 
@@ -65,7 +65,7 @@ void        insert_child(ast::Expr* after, ast::Expr* child);
 // unparent `node` from it's current parent.
 void        unparent(ast::Expr* node);
 // returns the next node in pre-order (visit node then visit it's children) traversal.
-ast::Expr*  preorder_next(const ast::Expr* root, ast::Expr* current);
+ast::Expr*  preorder_next(const ast::Expr* root, const ast::Expr* current);
 
 // calls a proper `visit` method overload depending on the node type.
 template <typename Return_Type, typename Visitor_Type>
@@ -87,19 +87,19 @@ const Attribute_Arg_Class*      get_arg_classes(Attribute_Type type);
 /// Expression transformations.
 
 // converts expression `root` to Disjunctive-Normal-Form.
-ast::Expr*  convert_to_dnf(ast::Root& tree, ast::Expr* root);
+ast::Expr*  convert_to_dnf(const ast::Root* tree, ast::Expr* root);
 
 // inline macros into the case preconditions.
-void        inline_macros(ast::Root& tree);
+void        inline_macros(ast::Root* tree);
 
 // converts all preconditions to DNF.
-void        convert_to_dnf(ast::Root& tree);
+void        convert_to_dnf(const ast::Root* tree);
 
 // build various look-ups and traversal info.
-void        annotate(ast::Root& tree);
+void        annotate(ast::Root* tree);
 
 // figure out types of parameters and variables.
-bool        infer_types(ast::Root& tree);
+bool        infer_types(const ast::Root* tree);
 
 // convert literal token value to integer.
 int64_t as_int(const ast::Literal* node);
@@ -112,7 +112,7 @@ Token_Type unify(Token_Type a, Token_Type b);
 // gets token type name as a string to help debugging.
 const char*     get_type_name(ast::Node_Type token_type);
 // writes formatted Abstract-Syntax-Tree to `output`.
-void            debug_output_ast(const ast::Root& root, Writer* output);
+void            debug_output_ast(const ast::Root* root, Writer* output);
 
 #define PLNNRC_NODE(TAG, TYPE)                          \
     bool            is_##TAG(ast::Node_Type type);      \

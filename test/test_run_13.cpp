@@ -92,11 +92,14 @@ plnnr::Fact_Table* b = plnnr::find_table(&db, "b");
 plnnr::add_entry(a, int8_t(1), int8_t(2));
 plnnr::add_entry(b, int8_t(3), int8_t(4));
 
+plnnr::add_entry(a, int8_t(1), int8_t(6));
+plnnr::add_entry(b, int8_t(8), int8_t(7));
+
 
     plnnr::Find_Plan_Status status = plnnr::find_plan(&pstate, &db, domain);
     CHECK_EQUAL(plnnr::Find_Plan_Succeeded, status);
 
-    check_plan("p!(2) p!(3)", pstate, domain);
+    check_plan("p!(2) p!(3) p!(7)", pstate, domain);
 
 }
 

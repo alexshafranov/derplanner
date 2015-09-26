@@ -15,9 +15,11 @@ using namespace plnnr;
 #endif
 
 static bool r_case_0(Planning_State*, Expansion_Frame*, Fact_Database*);
+static bool s_case_0(Planning_State*, Expansion_Frame*, Fact_Database*);
 
 static Compound_Task_Expand* s_task_expands[] = {
   r_case_0,
+  s_case_0,
 };
 
 static const char* s_fact_names[] = {
@@ -28,6 +30,7 @@ static const char* s_fact_names[] = {
 static const char* s_task_names[] = {
   "p!",
   "r",
+  "s",
  };
 
 static Fact_Type s_fact_types[] = {
@@ -48,18 +51,22 @@ static size_t s_layout_offsets[5];
 static Param_Layout s_task_parameters[] = {
   { 1, s_layout_types + 0, 0, s_layout_offsets + 0 },
   { 0, 0, 0, 0 },
+  { 1, s_layout_types + 0, 0, s_layout_offsets + 0 },
 };
 
 static Param_Layout s_bindings[] = {
+  { 4, s_layout_types + 1, 0, s_layout_offsets + 0 },
   { 4, s_layout_types + 1, 0, s_layout_offsets + 0 },
 };
 
 static uint32_t s_num_cases[] = {
   1, 
+  1, 
 };
 
 static uint32_t s_first_case[] = {
   0, 
+  1, 
 };
 
 static uint32_t s_size_hints[] = {
@@ -69,6 +76,7 @@ static uint32_t s_size_hints[] = {
 
 static uint32_t s_num_case_handles[] = {
   2, 
+  4, 
 };
 
 static uint32_t s_fact_name_hashes[] = {
@@ -79,6 +87,7 @@ static uint32_t s_fact_name_hashes[] = {
 static uint32_t s_task_name_hashes[] = {
   1274055463, 
   744399309, 
+  389143345, 
 };
 
 static const char* s_symbol_values[] = {
@@ -90,7 +99,7 @@ static uint32_t s_symbol_hashes[] = {
 };
 
 static Domain_Info s_domain_info = {
-  { 2, 1, 1, s_num_cases, s_first_case, 0, s_task_name_hashes, s_task_names, s_task_parameters, s_bindings, s_num_case_handles, s_task_expands },
+  { 3, 1, 2, s_num_cases, s_first_case, 0, s_task_name_hashes, s_task_names, s_task_parameters, s_bindings, s_num_case_handles, s_task_expands },
   { 2, 0, s_size_hints, s_fact_types, s_fact_name_hashes, s_fact_names },
   { 0, 0, s_symbol_hashes, s_symbol_values }
 };
@@ -110,6 +119,10 @@ const Domain_Info* run_13_get_domain_info() { return &s_domain_info; }
 
 struct S_1 {
   int8_t _0;
+};
+
+struct S_2 {
+  int8_t _0;
   int8_t _1;
   int8_t _2;
   int8_t _3;
@@ -118,7 +131,7 @@ struct S_1 {
 static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
 {
   Fact_Handle* handles = frame->handles;
-  S_1* binds = (S_1*)(frame->bindings);
+  S_2* binds = (S_2*)(frame->bindings);
 
   plnnr_coroutine_begin(frame, precond_label);
 
@@ -135,9 +148,50 @@ static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
   plnnr_coroutine_end();
 }
 
+static bool p1_next(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
+{
+  Fact_Handle* handles = frame->handles;
+  const S_1* args = (const S_1*)(frame->arguments);
+  S_2* binds = (S_2*)(frame->bindings);
+
+  plnnr_coroutine_begin(frame, precond_label);
+
+  for (handles[0] = first(db, 0); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // a
+    if (args->_0 != int8_t(as_Int8(db, handles[0], 0))) {
+      continue;
+    }
+
+    binds->_0 = int8_t(as_Int8(db, handles[0], 1));
+    for (handles[1] = first(db, 1); is_valid(db, handles[1]); handles[1] = next(db, handles[1])) { // b
+      if (int8_t(8) != as_Int8(db, handles[1], 0)) {
+        continue;
+      }
+
+      binds->_1 = int8_t(as_Int8(db, handles[1], 1));
+      for (handles[2] = first(db, 0); is_valid(db, handles[2]); handles[2] = next(db, handles[2])) { // a
+        if (args->_0 != int8_t(as_Int8(db, handles[2], 0))) {
+          continue;
+        }
+
+        binds->_2 = int8_t(as_Int8(db, handles[2], 1));
+        for (handles[3] = first(db, 1); is_valid(db, handles[3]); handles[3] = next(db, handles[3])) { // b
+          if (int8_t(3) != as_Int8(db, handles[3], 0)) {
+            continue;
+          }
+
+          binds->_3 = int8_t(as_Int8(db, handles[3], 1));
+          plnnr_coroutine_yield(frame, precond_label, 1);
+        }
+      }
+    }
+  }
+
+  plnnr_coroutine_end();
+}
+
 static bool r_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
 {
-  const S_1* binds = (const S_1*)(frame->bindings);
+  const S_2* binds = (const S_2*)(frame->bindings);
 
   plnnr_coroutine_begin(frame, expand_label);
 
@@ -149,8 +203,31 @@ static bool r_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Databas
 
     begin_task(state, &s_domain_info, 0); // p!
     set_task_arg(state, &s_task_parameters[0], 0, int8_t(binds->_2));
-    frame->status = Expansion_Frame::Status_Expanded;
     plnnr_coroutine_yield(frame, expand_label, 2);
+
+    begin_compound(state, &s_domain_info, 2); // s
+    set_compound_arg(state, &s_task_parameters[2], 0, int8_t(1));
+    frame->status = Expansion_Frame::Status_Expanded;
+    plnnr_coroutine_yield(frame, expand_label, 3);
+
+  }
+
+  plnnr_coroutine_end();
+}
+
+static bool s_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Database* db)
+{
+  const S_1* args = (const S_1*)(frame->arguments);
+  const S_2* binds = (const S_2*)(frame->bindings);
+
+  plnnr_coroutine_begin(frame, expand_label);
+
+  while (p1_next(state, frame, db)) {
+    binds = binds + frame->binding_index;
+    begin_task(state, &s_domain_info, 0); // p!
+    set_task_arg(state, &s_task_parameters[0], 0, int8_t(7));
+    frame->status = Expansion_Frame::Status_Expanded;
+    plnnr_coroutine_yield(frame, expand_label, 1);
 
   }
 

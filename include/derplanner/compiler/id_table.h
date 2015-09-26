@@ -254,7 +254,7 @@ namespace id_table
 template <typename T>
 inline void plnnrc::init(plnnrc::Id_Table<T>& table, plnnrc::Memory* mem, uint32_t max_size)
 {
-    max_size = id_table::required_size(max_size);
+    max_size = id_table::required_size(max_size > 0 ? max_size : 4);
     table.size = 0;
     table.max_size = max_size;
     table.hashes = plnnrc::allocate<uint32_t>(mem, max_size);

@@ -281,7 +281,7 @@ void plnnrc::parse(Parser& state)
 #define plnnrc_check_skip(STATE, NODE, SKIP)    \
     if (!NODE)                                  \
     {                                           \
-        if (!SKIP(state))                       \
+        if (!SKIP(STATE))                       \
             return 0;                           \
                                                 \
         continue;                               \

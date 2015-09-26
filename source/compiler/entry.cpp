@@ -59,7 +59,7 @@ struct Debug
         if (config->print_debug_info)
         {
             plnnrc::debug_output_tokens(input_buffer, config->debug_writer);
-            plnnrc::debug_output_ast(*tree, config->debug_writer);
+            plnnrc::debug_output_ast(tree, config->debug_writer);
 
             const size_t requested_size = tree->pool->get_total_requested();
             const size_t total_size = tree->pool->get_total_allocated();
@@ -88,7 +88,7 @@ bool plnnrc::compile(const Compiler_Config* config, const char* input_buffer)
     Parser parser;
     Codegen codegen;
 
-    init(tree, &errors, config->data_allocator, config->scratch_allocator);
+    init(&tree, &errors, config->data_allocator, config->scratch_allocator);
     init(lexer, input_buffer, config->scratch_allocator);
     init(parser, &lexer, &tree, &errors, config->scratch_allocator);
     init(codegen, &tree, config->scratch_allocator);
@@ -106,16 +106,16 @@ bool plnnrc::compile(const Compiler_Config* config, const char* input_buffer)
         }
 
         // process AST.
-        inline_macros(tree);
-        convert_to_dnf(tree);
-        annotate(tree);
+        inline_macros(&tree);
+        convert_to_dnf(&tree);
+        annotate(&tree);
 
         if (!empty(errors))
         {
             break;
         }
 
-        infer_types(tree);
+        infer_types(&tree);
 
         if (!empty(errors))
         {

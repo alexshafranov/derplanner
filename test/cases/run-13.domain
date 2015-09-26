@@ -6,7 +6,10 @@
 //: plnnr::add_entry(a, int8_t(1), int8_t(2));
 //: plnnr::add_entry(b, int8_t(3), int8_t(4));
 //:
-//! check_plan("p!(2) p!(3)", pstate, domain);
+//: plnnr::add_entry(a, int8_t(1), int8_t(6));
+//: plnnr::add_entry(b, int8_t(8), int8_t(7));
+//:
+//! check_plan("p!(2) p!(3) p!(7)", pstate, domain);
 //!
 domain run_13
 {
@@ -16,6 +19,14 @@ domain run_13
 
     task r()
     {
-        case a(_, X) & b(Y, _) -> [ p!(X), p!(Y) ]
+        case a(_, X) & b(Y, _) -> [ p!(X), p!(Y), s(1) ]
+    }
+
+    task s(P)
+    {
+        // `Z` must be local in the macro definition.
+        macro m(X) = a(P, _) & b(X, Z)
+        // otherwise, it will be matched in m(3), rather then bound again.
+        case m(8) & m(3) -> [ p!(7) ]
     }
 }

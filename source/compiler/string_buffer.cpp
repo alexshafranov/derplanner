@@ -36,14 +36,14 @@ void plnnrc::destroy(plnnrc::String_Buffer& buffer)
 
 void plnnrc::push_back(plnnrc::String_Buffer& buffer, const char* str)
 {
-    uint32_t length = (uint32_t)strlen(str);
+    const uint32_t length = (uint32_t)strlen(str);
     plnnrc::Token_Value token = { length, str };
     plnnrc::push_back(buffer, token);
 }
 
 void plnnrc::push_back(plnnrc::String_Buffer& buffer, const plnnrc::Token_Value& token)
 {
-    uint32_t offset = plnnrc::size(buffer.buffer);
+    const uint32_t offset = plnnrc::size(buffer.buffer);
     plnnrc::push_back(buffer.buffer, token.str, token.length);
     plnnrc::push_back(buffer.offsets, offset);
     plnnrc::push_back(buffer.lengths, token.length);
@@ -51,10 +51,10 @@ void plnnrc::push_back(plnnrc::String_Buffer& buffer, const plnnrc::Token_Value&
 
 plnnrc::Token_Value plnnrc::get(const String_Buffer& buffer, uint32_t index)
 {
-    uint32_t offset = buffer.offsets[index];
-    uint32_t length = buffer.lengths[index];
+    const uint32_t offset = buffer.offsets[index];
+    const uint32_t length = buffer.lengths[index];
     const char* str = &buffer.buffer[offset];
-    plnnrc::Token_Value token = { length, str };
+    const plnnrc::Token_Value token = { length, str };
     return token;
 }
 
@@ -65,7 +65,7 @@ uint32_t plnnrc::size(const plnnrc::String_Buffer& buffer)
 
 void plnnrc::begin_string(plnnrc::String_Buffer& buffer)
 {
-    uint32_t offset = plnnrc::size(buffer.buffer);
+    const uint32_t offset = plnnrc::size(buffer.buffer);
     plnnrc::push_back(buffer.offsets, offset);
 }
 
@@ -76,6 +76,6 @@ void plnnrc::put_chars(plnnrc::String_Buffer& buffer, const char* chars, uint32_
 
 void plnnrc::end_string(plnnrc::String_Buffer& buffer)
 {
-    uint32_t length = plnnrc::size(buffer.buffer) - plnnrc::back(buffer.offsets);
+    const uint32_t length = plnnrc::size(buffer.buffer) - plnnrc::back(buffer.offsets);
     plnnrc::push_back(buffer.lengths, length);
 }
