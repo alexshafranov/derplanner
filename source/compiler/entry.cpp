@@ -89,16 +89,16 @@ bool plnnrc::compile(const Compiler_Config* config, const char* input_buffer)
     Codegen codegen;
 
     init(&tree, &errors, config->data_allocator, config->scratch_allocator);
-    init(lexer, input_buffer, config->scratch_allocator);
-    init(parser, &lexer, &tree, &errors, config->scratch_allocator);
-    init(codegen, &tree, config->scratch_allocator);
+    init(&lexer, input_buffer, config->scratch_allocator);
+    init(&parser, &lexer, &tree, &errors, config->scratch_allocator);
+    init(&codegen, &tree, config->scratch_allocator);
 
     Debug debug(config, &tree, input_buffer);
 
     for (;;)
     {
         // build AST.
-        parse(parser);
+        parse(&parser);
 
         if (!empty(errors))
         {
@@ -122,8 +122,8 @@ bool plnnrc::compile(const Compiler_Config* config, const char* input_buffer)
             break;
         }
 
-        generate_header(codegen, config->header_guard, config->header_writer);
-        generate_source(codegen, config->header_file_name, config->source_writer);
+        generate_header(&codegen, config->header_guard, config->header_writer);
+        generate_source(&codegen, config->header_file_name, config->source_writer);
 
         return true;
     }

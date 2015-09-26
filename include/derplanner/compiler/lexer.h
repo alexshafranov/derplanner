@@ -28,10 +28,10 @@ namespace plnnrc {
 /// Lexer
 
 // initialize lexer state.
-void init(Lexer& state, const char* buffer, Memory_Stack* scratch);
+void init(Lexer* self, const char* buffer, Memory_Stack* scratch);
 
 // lex next token from the input buffer.
-Token lex(Lexer& state);
+Token lex(Lexer* self);
 
 // writes the nicely formatted token stream to `output`.
 void debug_output_tokens(const char* buffer, Writer* output);

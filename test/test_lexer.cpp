@@ -40,7 +40,7 @@ namespace
     void init(Test_Lexer& lexer, const char* input)
     {
         lexer.mem_scratch = plnnrc::Memory_Stack::create(1024);
-        init(lexer.state, input, lexer.mem_scratch);
+        init(&lexer.state, input, lexer.mem_scratch);
     }
 
     TEST(ids_and_keywords)
@@ -53,7 +53,7 @@ namespace
 
         for (unsigned i = 0; i < sizeof(expected_types)/sizeof(expected_types[0]); ++i)
         {
-            plnnrc::Token actual = plnnrc::lex(lexer.state);
+            plnnrc::Token actual = plnnrc::lex(&lexer.state);
             CHECK_EQUAL(expected_types[i], actual.type);
             if (expected_strings[i] != 0)
             {
@@ -66,8 +66,8 @@ namespace
     {
         Test_Lexer lexer;
         init(lexer, "id1 \n id2");
-        plnnrc::Token tok1 = plnnrc::lex(lexer.state);
-        plnnrc::Token tok2 = plnnrc::lex(lexer.state);
+        plnnrc::Token tok1 = plnnrc::lex(&lexer.state);
+        plnnrc::Token tok2 = plnnrc::lex(&lexer.state);
         CHECK_EQUAL(1u, tok1.loc.line);
         CHECK_EQUAL(1u, tok1.loc.column);
         CHECK_EQUAL(2u, tok2.loc.line);
@@ -78,7 +78,7 @@ namespace
     {
         Test_Lexer lexer;
         init(lexer, "$");
-        plnnrc::Token tok = plnnrc::lex(lexer.state);
+        plnnrc::Token tok = plnnrc::lex(&lexer.state);
         CHECK_EQUAL(plnnrc::Token_Unknown, tok.type);
     }
 
@@ -86,7 +86,7 @@ namespace
     {
         Test_Lexer lexer;
         init(lexer, str);
-        plnnrc::Token tok = plnnrc::lex(lexer.state);
+        plnnrc::Token tok = plnnrc::lex(&lexer.state);
         CHECK_EQUAL(expected, tok.type);
     }
 
@@ -94,7 +94,7 @@ namespace
     {
         Test_Lexer lexer;
         init(lexer, str);
-        plnnrc::Token tok = plnnrc::lex(lexer.state);
+        plnnrc::Token tok = plnnrc::lex(&lexer.state);
         float actual = (float)strtod(tok.value.str, 0);
         CHECK_EQUAL(expected, actual);
     }
@@ -103,7 +103,7 @@ namespace
     {
         Test_Lexer lexer;
         init(lexer, str);
-        plnnrc::Token tok = plnnrc::lex(lexer.state);
+        plnnrc::Token tok = plnnrc::lex(&lexer.state);
         int actual = (int)strtol(tok.value.str, 0, 10);
         CHECK_EQUAL(expected, actual);
     }

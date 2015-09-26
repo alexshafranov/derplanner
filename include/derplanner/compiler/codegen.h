@@ -28,12 +28,12 @@ namespace plnnrc {
 /// Codegen
 
 // initialize code generator state.
-void init(Codegen& state, ast::Root* tree, Memory_Stack* scratch);
+void init(Codegen* self, ast::Root* tree, Memory_Stack* scratch);
 
 // writes domain header code. `header_guard` string is used as macro include guard.
-void generate_header(Codegen& state, const char* header_guard, Writer* output);
+void generate_header(Codegen* self, const char* header_guard, Writer* output);
 // writes domain source code.
-void generate_source(Codegen& state, const char* domain_header, Writer* output);
+void generate_source(Codegen* self, const char* domain_header, Writer* output);
 
 }
 

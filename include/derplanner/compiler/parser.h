@@ -28,10 +28,10 @@ namespace plnnrc {
 /// Parser
 
 // initialize parsing state.
-void init(Parser& state, Lexer* lexer, ast::Root* tree, Array<Error>* errors, Memory_Stack* scratch);
+void init(Parser* self, Lexer* lexer, ast::Root* tree, Array<Error>* errors, Memory_Stack* scratch);
 
 // parse token stream to Abstract-Syntax-Tree.
-void parse(Parser& state);
+void parse(Parser* self);
 
 }
 

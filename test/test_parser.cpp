@@ -30,13 +30,13 @@ using namespace plnnrc;
 // bring in parser implementation details.
 namespace plnnrc
 {
-    extern ast::World*  parse_world(Parser& state);
-    extern ast::Expr*   parse_precond(Parser& state);
+    extern ast::World*  parse_world(Parser*);
+    extern ast::Expr*   parse_precond(Parser*);
 
-    extern void         flatten(ast::Expr* root);
+    extern void         flatten(ast::Expr*);
     extern ast::Expr*   convert_to_nnf(const ast::Root* tree, ast::Expr* root);
 
-    extern void         init_look_ahead(Parser& state);
+    extern void         init_look_ahead(Parser*);
 }
 
 namespace
@@ -137,9 +137,9 @@ namespace
         Array<Error> errors;
         init(compiler.errors, compiler.mem_tree, 16);
         init(&compiler.tree, &compiler.errors, compiler.mem_tree, compiler.mem_scratch);
-        init(compiler.lexer, input, compiler.mem_scratch);
-        init(compiler.parser, &compiler.lexer, &compiler.tree, &compiler.errors, compiler.mem_scratch);
-        plnnrc::init_look_ahead(compiler.parser);
+        init(&compiler.lexer, input, compiler.mem_scratch);
+        init(&compiler.parser, &compiler.lexer, &compiler.tree, &compiler.errors, compiler.mem_scratch);
+        plnnrc::init_look_ahead(&compiler.parser);
     }
 
     TEST(world_parsing)
@@ -147,7 +147,7 @@ namespace
         Test_Compiler compiler;
         init(compiler, "fact { f1(int32) f2(float, int32) f3() }");
         const char* expected = "f1[Int32] f2[Float, Int32] f3[]";
-        ast::World* world = plnnrc::parse_world(compiler.parser);
+        ast::World* world = plnnrc::parse_world(&compiler.parser);
         std::string world_str = to_string(world);
         CHECK_EQUAL(expected, world_str.c_str());
     }
@@ -156,7 +156,7 @@ namespace
     {
         Test_Compiler compiler;
         init(compiler, input);
-        ast::Expr* expr = plnnrc::parse_precond(compiler.parser);
+        ast::Expr* expr = plnnrc::parse_precond(&compiler.parser);
         std::string actual;
         to_string(expr, actual);
         CHECK_EQUAL(expected, actual.c_str());
@@ -174,7 +174,7 @@ namespace
     {
         Test_Compiler compiler;
         init(compiler, input);
-        ast::Expr* expr = plnnrc::parse_precond(compiler.parser);
+        ast::Expr* expr = plnnrc::parse_precond(&compiler.parser);
         plnnrc::flatten(expr);
         std::string actual;
         to_string(expr, actual);
@@ -191,7 +191,7 @@ namespace
     {
         Test_Compiler compiler;
         init(compiler, input);
-        ast::Expr* expr = plnnrc::parse_precond(compiler.parser);
+        ast::Expr* expr = plnnrc::parse_precond(&compiler.parser);
         expr = plnnrc::convert_to_nnf(&compiler.tree, expr);
         std::string actual;
         to_string(expr, actual);
@@ -219,7 +219,7 @@ namespace
     {
         Test_Compiler compiler;
         init(compiler, input);
-        ast::Expr* expr = plnnrc::parse_precond(compiler.parser);
+        ast::Expr* expr = plnnrc::parse_precond(&compiler.parser);
         expr = plnnrc::convert_to_dnf(&compiler.tree, expr);
         std::string actual;
         to_string(expr, actual);
