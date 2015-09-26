@@ -212,6 +212,7 @@ ast::Var* plnnrc::create_var(const ast::Root* tree, const Token_Value& name, con
     ast::Var* node = pool_alloc<ast::Var>(tree);
     node->type = ast::Node_Var;
     node->name = name;
+    node->original_name = name;
     node->loc = loc;
     return node;
 }
@@ -1432,7 +1433,7 @@ static bool check_all_precond_vars_bound(const ast::Root* tree, const ast::Case*
 
         // this var is not a parameter usage, nor used inside fact or primitive task.
         if (var->binding && is_Unknown(var->data_type))
-            emit(tree, var->loc, Error_Unbound_Var) << var->name;
+            emit(tree, var->loc, Error_Unbound_Var) << var->original_name;
     }
 
     return err_count == size(*tree->errs);
@@ -1528,7 +1529,7 @@ static bool check_all_task_list_vars_bound(const ast::Root* tree)
                     continue;
                 }
 
-                emit(tree, var->loc, Error_Unbound_Var) << var->name;
+                emit(tree, var->loc, Error_Unbound_Var) << var->original_name;
                 failed = true;
             }
         }
@@ -2075,7 +2076,7 @@ struct Assign_Var_Defs_And_Types
             return true;
         }
 
-        emit(tree, node->loc, Error_Unbound_Var) << node->name;
+        emit(tree, node->loc, Error_Unbound_Var) << node->original_name;
         return false;
     }
 

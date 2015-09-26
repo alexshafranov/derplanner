@@ -494,6 +494,8 @@ namespace ast
     {
         // name of the variable.
         Token_Value             name;
+        // original name, in case `name` is overridden.
+        Token_Value             original_name;
         // `ast::Param` or the first occurrence in a precondition expression (`ast::Var`); null if this var is the first occurrence.
         Node*                   definition;
         // `true` if this occurrence creates a binding, i.e. the variable is used for the first time inside a conjunct.
