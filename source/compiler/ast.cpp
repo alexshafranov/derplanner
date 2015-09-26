@@ -27,6 +27,7 @@
 #include "derplanner/compiler/id_table.h"
 #include "derplanner/compiler/errors.h"
 #include "derplanner/compiler/lexer.h"
+#include "derplanner/compiler/string_buffer.h"
 #include "derplanner/compiler/function_table.h"
 #include "derplanner/compiler/ast.h"
 
@@ -50,6 +51,7 @@ void plnnrc::init(ast::Root& root, Array<Error>* errors, Memory_Stack* mem_pool,
     root.scratch = mem_scratch;
 
     init(root.symbols, root.pool, 16);
+    init(root.names, root.pool, 64, 512);
 
     // add instrinsics to the function table.
     init(root.functions, root.pool, 16);
@@ -96,6 +98,15 @@ static Error& emit(ast::Root& tree, const Location& loc, Error_Type error_type)
     init(err, error_type, loc);
     push_back(*tree.errs, err);
     return back(*tree.errs);
+}
+
+static Token_Value make_unique_name(ast::Root& tree)
+{
+    const uint32_t next_idx = size(tree.names);
+    begin_string(tree.names);
+    write(tree.names.buffer, "$%d", next_idx);
+    end_string(tree.names);
+    return get(tree.names, next_idx);
 }
 
 ast::World* plnnrc::create_world(ast::Root* tree)
@@ -1002,6 +1013,25 @@ void plnnrc::inline_macros(ast::Root& tree)
     }
 }
 
+static void replace_underscores_with_unique_names(ast::Root& tree, ast::Expr* expr)
+{
+    Token_Value underscore;
+    underscore.str = "_";
+    underscore.length = 1;
+
+    for (ast::Expr* node = expr; node != 0; node = preorder_next(expr, node))
+    {
+        if (ast::Var* var = as_Var(node))
+        {
+            if (equal(underscore, var->name))
+            {
+                const Token_Value name = make_unique_name(tree);
+                var->name = name;
+            }
+        }
+    }
+}
+
 static void build_var_lookup(ast::Expr* expr, Array<ast::Var*>& out_vars, Id_Table<ast::Var*>& out_lookup)
 {
     for (ast::Expr* node = expr; node != 0; node = preorder_next(expr, node))
@@ -1136,6 +1166,7 @@ void plnnrc::annotate(ast::Root& tree)
             init(case_->task_list_var_lookup, tree.pool, 8);
             init(case_->task_list_vars, tree.pool, 8);
 
+            replace_underscores_with_unique_names(tree, case_->precond);
             build_var_lookup(case_->precond, case_->precond_vars, case_->precond_var_lookup);
 
             for (uint32_t task_idx = 0; task_idx < size(case_->task_list); ++task_idx)
@@ -1144,6 +1175,7 @@ void plnnrc::annotate(ast::Root& tree)
 
                 create_fact_ref_literals(tree, task_expr);
 
+                replace_underscores_with_unique_names(tree, task_expr);
                 build_var_lookup(task_expr, case_->task_list_vars, case_->task_list_var_lookup);
 
                 for (ast::Expr* node = task_expr; node != 0; node = preorder_next(task_expr, node))

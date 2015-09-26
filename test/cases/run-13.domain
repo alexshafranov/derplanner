@@ -1,0 +1,21 @@
+//: // `_` variables
+//:
+//: plnnr::Fact_Table* a = plnnr::find_table(&db, "a");
+//: plnnr::Fact_Table* b = plnnr::find_table(&db, "b");
+//:
+//: plnnr::add_entry(a, int8_t(1), int8_t(2));
+//: plnnr::add_entry(b, int8_t(3), int8_t(4));
+//:
+//! check_plan("p!(2) p!(3)", pstate, domain);
+//!
+domain run_13
+{
+    fact a(int8, int8)
+    fact b(int8, int8)
+    prim p!(int8)
+
+    task r()
+    {
+        case a(_, X) & b(Y, _) -> [ p!(X), p!(Y) ]
+    }
+}

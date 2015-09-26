@@ -326,6 +326,8 @@ namespace ast
         Array<Case*>            cases;
         // symbol literals appearing in the domain.
         Id_Table<Token_Value>   symbols;
+        // a buffer with uniquely generated names, used e.g. to turn `_` into an unique var.
+        String_Buffer           names;
         // parsed `fact` block.
         World*                  world;
         // parsed `prim` block.
