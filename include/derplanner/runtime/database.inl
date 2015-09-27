@@ -91,7 +91,7 @@ inline bool is_valid(const Fact_Database* self, const Fact_Handle handle)
     plnnr_assert(handle.table < self->num_tables);
     const Fact_Table* table = self->tables + handle.table;
     const uint32_t num_entries = table->num_entries;
-    return handle.entry < table->num_entries;
+    return handle.entry < num_entries;
 }
 
 /// Fact_Database
