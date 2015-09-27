@@ -71,8 +71,6 @@ inline uint32_t murmur2_32(const void* key, uint32_t len, uint32_t seed)
     return h;
 } 
 
-enum { Invalid_Generation_Id = 0x0000000000ffffffull };
-
 inline Fact_Database::Fact_Database()
     : memory(0)
 {
@@ -88,48 +86,29 @@ inline Fact_Database::~Fact_Database()
 
 /// Fact_Handle
 
-inline bool is_valid(const Fact_Database* self, Fact_Handle handle)
+inline bool is_valid(const Fact_Database* self, const Fact_Handle handle)
 {
+    plnnr_assert(handle.table < self->num_tables);
     const Fact_Table* table = self->tables + handle.table;
-    return handle.generation == table->generations[handle.entry];
+    const uint32_t num_entries = table->num_entries;
+    return handle.entry < table->num_entries;
 }
 
 /// Fact_Database
 
-inline Fact_Handle first(const Fact_Database* self, uint32_t table_index)
+inline Fact_Handle first(const Fact_Database* /*self*/, const uint32_t table_index)
 {
-    plnnr_assert(table_index < self->num_tables);
-    const Fact_Table& table = self->tables[table_index];
-
     Fact_Handle handle;
     handle.table = table_index;
     handle.entry = 0;
-    handle.generation = (table.num_entries > 0) ? table.generations[0] : (uint64_t) Invalid_Generation_Id;
-
     return handle;
 }
 
-inline Fact_Handle next(const Fact_Database* self, Fact_Handle handle)
+inline Fact_Handle next(const Fact_Database* /*self*/, const Fact_Handle handle)
 {
-    plnnr_assert(is_valid(self, handle));
-    const Fact_Table& table = self->tables[handle.table];
-
     Fact_Handle result;
     result.table = handle.table;
-
-    const bool has_next = (handle.entry < table.num_entries - 1);
-
-    if (has_next)
-    {
-        result.entry = handle.entry + 1;
-        result.generation = table.generations[result.entry];
-    }
-    else
-    {
-        result.entry = 0;
-        result.generation = Invalid_Generation_Id;
-    }
-
+    result.entry = handle.entry + 1;
     return result;
 }
 

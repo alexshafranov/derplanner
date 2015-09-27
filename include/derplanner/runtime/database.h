@@ -96,9 +96,9 @@ void init(Fact_Database* self, Memory* mem, const Database_Format* format);
 void destroy(Fact_Database* self);
 
 // returns a handle to the first entry in database table.
-Fact_Handle first(const Fact_Database* self, uint32_t table_index);
+Fact_Handle first(const Fact_Database* self, const uint32_t table_index);
 // advances handle to the next entry.
-Fact_Handle next(const Fact_Database* self, Fact_Handle handle);
+Fact_Handle next(const Fact_Database* self, const Fact_Handle handle);
 
 // search for table by fact name hash.
 const Fact_Table*   find_table(const Fact_Database* self, const char* fact_name);
@@ -106,7 +106,7 @@ Fact_Table*         find_table(Fact_Database* self, const char* fact_name);
 
 /// Fact_Handle
 
-bool is_valid(const Fact_Database* self, Fact_Handle handle);
+bool is_valid(const Fact_Database* self, const Fact_Handle handle);
 
 /// Type
 

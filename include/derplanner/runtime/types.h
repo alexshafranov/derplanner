@@ -65,15 +65,13 @@ struct Fact_Type
     Type types[Max_Fact_Arity];
 };
 
-// Weak pointer to a fact tuple in Fact_Database.
+// Points to a fact tuple in Fact_Database.
 struct Fact_Handle
 {
     // index of table in Fact_Database.
-    uint64_t table      : 20;
+    uint32_t table;
     // index of entry in Fact_Table.
-    uint64_t entry      : 20;
-    // entry generation when this handle was obtained.
-    uint64_t generation : 24;
+    uint32_t entry;
 };
 
 // Collection of tuples of a single fact type.
@@ -89,8 +87,6 @@ struct Fact_Table
     void*           blob;
     // tuples in SOA layout.
     void*           columns[Max_Fact_Arity];
-    // generation per each entry to support weak handles.
-    uint32_t*       generations;
     // allocator.
     Memory*         memory;
 };

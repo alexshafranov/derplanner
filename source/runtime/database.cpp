@@ -32,10 +32,6 @@ static size_t get_blob_size(const Fact_Type* format, uint32_t max_entries)
         size += get_type_alignment(format->types[i]) + max_entries * get_type_size(format->types[i]);
     }
 
-    // generations
-    size = plnnr::align(size, plnnr_alignof(uint32_t));
-    size += sizeof(uint32_t) * max_entries;
-
     return size;
 }
 
@@ -63,7 +59,6 @@ void plnnr::init(Fact_Table* self, Memory* mem, const Fact_Type* format, uint32_
         self->columns[i] = column;
     }
 
-    self->generations = plnnr::align<uint32_t>(bytes);
     self->memory = mem;
 }
 
@@ -100,12 +95,8 @@ void plnnr::set_max_entries(Fact_Table* self, uint32_t max_entries)
         self->columns[i] = new_column;
     }
 
-    const uint32_t* old_generations = self->generations;
-    uint32_t* new_generations = plnnr::align<uint32_t>(bytes);
-    memcpy(new_generations, old_generations, self->num_entries * sizeof(uint32_t));
-    self->generations = new_generations;
-
     self->max_entries = max_entries;
+
     mem->deallocate(old_blob);
 }
 

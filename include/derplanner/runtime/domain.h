@@ -165,7 +165,7 @@ inline void plnnr::begin_compound(plnnr::Planning_State* state, const plnnr::Dom
     const plnnr::Param_Layout* param_layout = &domain->task_info.parameters[task_id];
 
     plnnr::Blob* blob = &state->expansion_blob;
-    uint32_t blob_size = (uint32_t)(blob->top - blob->base);
+    const uint32_t blob_size = (uint32_t)(blob->top - blob->base);
 
     plnnr::Expansion_Frame frame;
     memset(&frame, 0, sizeof(plnnr::Expansion_Frame));
@@ -223,7 +223,7 @@ inline void plnnr::begin_task(plnnr::Planning_State* state, const plnnr::Domain_
     const plnnr::Param_Layout* param_layout = &domain->task_info.parameters[task_id];
 
     plnnr::Blob* blob = &state->task_blob;
-    uint32_t blob_size = (uint32_t)(blob->top - blob->base);
+    const uint32_t blob_size = (uint32_t)(blob->top - blob->base);
 
     plnnr::Task_Frame frame;
     memset(&frame, 0, sizeof(Task_Frame));
