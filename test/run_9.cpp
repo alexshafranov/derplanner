@@ -118,16 +118,16 @@ static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 
   plnnr_coroutine_begin(frame, precond_label);
 
-  for (handles[0] = first(db, 1); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // object2
+  for (handles[0] = first(db, tbl(state, 1)); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // object2
     binds->_0 = Id32(as_Id32(db, handles[0], 0));
-    for (handles[1] = first(db, 0); is_valid(db, handles[1]); handles[1] = next(db, handles[1])) { // object1
+    for (handles[1] = first(db, tbl(state, 0)); is_valid(db, handles[1]); handles[1] = next(db, handles[1])) { // object1
       binds->_1 = Id32(as_Id32(db, handles[1], 0));
       plnnr_coroutine_yield(frame, precond_label, 1);
     }
   }
-  for (handles[2] = first(db, 1); is_valid(db, handles[2]); handles[2] = next(db, handles[2])) { // object2
+  for (handles[2] = first(db, tbl(state, 1)); is_valid(db, handles[2]); handles[2] = next(db, handles[2])) { // object2
     binds->_0 = Id32(as_Id32(db, handles[2], 0));
-    for (handles[3] = first(db, 1); is_valid(db, handles[3]); handles[3] = next(db, handles[3])) { // object2
+    for (handles[3] = first(db, tbl(state, 1)); is_valid(db, handles[3]); handles[3] = next(db, handles[3])) { // object2
       binds->_1 = Id32(as_Id32(db, handles[3], 0));
       plnnr_coroutine_yield(frame, precond_label, 2);
     }

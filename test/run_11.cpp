@@ -159,9 +159,9 @@ static bool p1_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
   plnnr_coroutine_begin(frame, precond_label);
 
   frame->num_bindings = 0;
-  for (handles[0] = first(db, 0); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // values1
+  for (handles[0] = first(db, tbl(state, 0)); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // values1
     binds->_0 = int32_t(as_Int32(db, handles[0], 0));
-    for (handles[1] = first(db, 2); is_valid(db, handles[1]); handles[1] = next(db, handles[1])) { // check
+    for (handles[1] = first(db, tbl(state, 2)); is_valid(db, handles[1]); handles[1] = next(db, handles[1])) { // check
       if (binds->_0 != int32_t(as_Int32(db, handles[1], 0))) {
         continue;
       }
@@ -183,9 +183,9 @@ static bool p1_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 
   revert(&state->expansion_blob, binds + 1);
   frame->num_bindings = 0;
-  for (handles[2] = first(db, 1); is_valid(db, handles[2]); handles[2] = next(db, handles[2])) { // values2
+  for (handles[2] = first(db, tbl(state, 1)); is_valid(db, handles[2]); handles[2] = next(db, handles[2])) { // values2
     binds->_0 = int32_t(as_Int32(db, handles[2], 0));
-    for (handles[3] = first(db, 2); is_valid(db, handles[3]); handles[3] = next(db, handles[3])) { // check
+    for (handles[3] = first(db, tbl(state, 2)); is_valid(db, handles[3]); handles[3] = next(db, handles[3])) { // check
       if (binds->_0 != int32_t(as_Int32(db, handles[3], 0))) {
         continue;
       }

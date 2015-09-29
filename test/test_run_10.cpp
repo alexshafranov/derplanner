@@ -78,11 +78,13 @@ TEST(run_10)
     plnnr::Planning_State_Config config;
     config.max_depth = 1024;
     config.max_plan_length = 512;
+    config.max_bound_tables = domain->database_req.num_tables;
     config.expansion_data_size = 4096;
     config.plan_data_size = 4096;
 
     plnnr::Planning_State pstate;
     plnnr::init(&pstate, &default_mem, &config);
+    plnnr::bind(&pstate, domain, &db);
 
     // variable type is unified accross disjunction.
 

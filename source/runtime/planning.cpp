@@ -20,6 +20,7 @@
 
 #include <string.h> // memset
 #include "derplanner/runtime/domain.h"
+#include "derplanner/runtime/database.h"
 #include "derplanner/runtime/planning.h"
 
 using namespace plnnr;
@@ -51,17 +52,37 @@ void plnnr::init(Planning_State* self, Memory* mem, const Planning_State_Config*
     self->task_blob.top = plan_data;
     self->task_blob.base = plan_data;
 
+    self->table_indices = allocate<uint32_t>(mem, config->max_bound_tables);
+
     self->memory = mem;
 }
 
 void plnnr::destroy(Planning_State* self)
 {
     Memory* mem = self->memory;
+    mem->deallocate(self->table_indices);
     mem->deallocate(self->expansion_stack.frames);
     mem->deallocate(self->task_stack.frames);
     mem->deallocate(self->expansion_blob.base);
     mem->deallocate(self->task_blob.base);
     memset(self, 0, sizeof(Planning_State));
+}
+
+bool plnnr::bind(Planning_State* self, const Domain_Info* domain, const Fact_Database* db)
+{
+    const Database_Format& req = domain->database_req;
+
+    for (uint32_t i = 0; i < req.num_tables; ++i)
+    {
+        const Fact_Table* table = find_table(db, req.names[i]);
+        if (!table)
+            return false;
+
+        uint32_t idx = (uint32_t)(table - db->tables);
+        self->table_indices[i] = idx;
+    }
+
+    return true;
 }
 
 static plnnr::Expansion_Frame* pop_expansion(plnnr::Planning_State* state)

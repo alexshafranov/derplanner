@@ -91,9 +91,11 @@ int main()
     config.max_plan_length = 3;
     config.expansion_data_size = 1024;
     config.plan_data_size = 1024;
+    config.max_bound_tables = domain->database_req.num_tables;
 
     plnnr::Planning_State pstate;
     plnnr::init(&pstate, &default_mem, &config);
+    plnnr::bind(&pstate, domain, &db);
 
     plnnr::Find_Plan_Status status = plnnr::find_plan(&pstate, &db, domain);
     if (status == plnnr::Find_Plan_Max_Depth_Exceeded)

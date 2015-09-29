@@ -35,6 +35,8 @@ struct Planning_State_Config
     uint32_t    max_depth;
     // maximum plan length.
     uint32_t    max_plan_length;
+    // maximum size of the domain to database binding (i.e. table indices mapping).
+    uint32_t    max_bound_tables;
     // maximum size of the expansions data block (arguments & preconditions).
     size_t      expansion_data_size;
     // maximum size of the plan data block (arguments & preconditions).
@@ -43,6 +45,9 @@ struct Planning_State_Config
 
 void init(Planning_State* self, Memory* mem, const Planning_State_Config* config);
 void destroy(Planning_State* self);
+
+// builds index map for tables required by this domain to an actual `Fact_Database`.
+bool bind(Planning_State* self, const Domain_Info* domain, const Fact_Database* db);
 
 /// Iterative planning interface.
 

@@ -218,6 +218,8 @@ struct Planning_State
     Blob                    expansion_blob;
     // task arguments storage.
     Blob                    task_blob;
+    // maps domain fact table indices to actual table indices in `Fact_Database`.
+    uint32_t*               table_indices;
     // allocator used for allocating & growing planning blobs and stacks.
     Memory*                 memory;
 };

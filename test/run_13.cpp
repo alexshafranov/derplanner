@@ -135,10 +135,10 @@ static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 
   plnnr_coroutine_begin(frame, precond_label);
 
-  for (handles[0] = first(db, 0); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // a
+  for (handles[0] = first(db, tbl(state, 0)); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // a
     binds->_0 = int8_t(as_Int8(db, handles[0], 0));
     binds->_1 = int8_t(as_Int8(db, handles[0], 1));
-    for (handles[1] = first(db, 1); is_valid(db, handles[1]); handles[1] = next(db, handles[1])) { // b
+    for (handles[1] = first(db, tbl(state, 1)); is_valid(db, handles[1]); handles[1] = next(db, handles[1])) { // b
       binds->_2 = int8_t(as_Int8(db, handles[1], 0));
       binds->_3 = int8_t(as_Int8(db, handles[1], 1));
       plnnr_coroutine_yield(frame, precond_label, 1);
@@ -156,25 +156,25 @@ static bool p1_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 
   plnnr_coroutine_begin(frame, precond_label);
 
-  for (handles[0] = first(db, 0); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // a
+  for (handles[0] = first(db, tbl(state, 0)); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // a
     if (args->_0 != int8_t(as_Int8(db, handles[0], 0))) {
       continue;
     }
 
     binds->_0 = int8_t(as_Int8(db, handles[0], 1));
-    for (handles[1] = first(db, 1); is_valid(db, handles[1]); handles[1] = next(db, handles[1])) { // b
+    for (handles[1] = first(db, tbl(state, 1)); is_valid(db, handles[1]); handles[1] = next(db, handles[1])) { // b
       if (int8_t(8) != as_Int8(db, handles[1], 0)) {
         continue;
       }
 
       binds->_1 = int8_t(as_Int8(db, handles[1], 1));
-      for (handles[2] = first(db, 0); is_valid(db, handles[2]); handles[2] = next(db, handles[2])) { // a
+      for (handles[2] = first(db, tbl(state, 0)); is_valid(db, handles[2]); handles[2] = next(db, handles[2])) { // a
         if (args->_0 != int8_t(as_Int8(db, handles[2], 0))) {
           continue;
         }
 
         binds->_2 = int8_t(as_Int8(db, handles[2], 1));
-        for (handles[3] = first(db, 1); is_valid(db, handles[3]); handles[3] = next(db, handles[3])) { // b
+        for (handles[3] = first(db, tbl(state, 1)); is_valid(db, handles[3]); handles[3] = next(db, handles[3])) { // b
           if (int8_t(3) != as_Int8(db, handles[3], 0)) {
             continue;
           }

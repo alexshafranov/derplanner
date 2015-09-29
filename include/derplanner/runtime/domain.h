@@ -81,6 +81,9 @@ void set_compound_arg(Planning_State* state, const Param_Layout* layout, uint32_
 template <typename T>
 void set_task_arg(Planning_State* state, const Param_Layout* layout, uint32_t param_index, const T& value);
 
+// helper for generated code to map domain table index to a database table index.
+uint32_t tbl(const Planning_State* state, uint32_t domain_table_idx);
+
 }
 
 inline void plnnr::compute_offsets_and_size(plnnr::Param_Layout* layout)
@@ -253,6 +256,11 @@ inline void plnnr::set_task_arg(plnnr::Planning_State* state, const plnnr::Param
 {
     plnnr::Task_Frame* frame = top(&state->task_stack);
     set_arg(frame->arguments, layout, param_index, value);
+}
+
+inline uint32_t plnnr::tbl(const plnnr::Planning_State* state, uint32_t domain_table_idx)
+{
+    return state->table_indices[domain_table_idx];
 }
 
 #endif

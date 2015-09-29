@@ -1166,7 +1166,7 @@ static void generate_conjunct(Codegen* self, ast::Case* case_, ast::Expr* litera
         ast::Fact* fact = get_fact(self->tree, func->name);
         uint32_t fact_idx = index_of(self->tree->world->facts, fact);
 
-        writeln(fmtr, "for (handles[%d] = first(db, %d); is_valid(db, handles[%d]); handles[%d] = next(db, handles[%d])) { // %n",
+        writeln(fmtr, "for (handles[%d] = first(db, tbl(state, %d)); is_valid(db, handles[%d]); handles[%d] = next(db, handles[%d])) { // %n",
             handle_id, fact_idx, handle_id, handle_id, handle_id, fact->name);
         {
             Indent_Scope indent_scope(fmtr);

@@ -159,7 +159,7 @@ static bool p1_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
   plnnr_coroutine_begin(frame, precond_label);
 
   (binds->_0 = args->_0); {
-    for (handles[0] = first(db, 0); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // a
+    for (handles[0] = first(db, tbl(state, 0)); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // a
       binds->_1 = int8_t(as_Int8(db, handles[0], 0));
       if (binds->_0 != int8_t(as_Int8(db, handles[0], 1))) {
         continue;
@@ -182,7 +182,7 @@ static bool p2_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 
   plnnr_coroutine_begin(frame, precond_label);
 
-  for (handles[0] = first(db, 0); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // a
+  for (handles[0] = first(db, tbl(state, 0)); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // a
     binds->_0 = int8_t(as_Int8(db, handles[0], 0));
     if (int8_t(0) != as_Int8(db, handles[0], 1)) {
       continue;

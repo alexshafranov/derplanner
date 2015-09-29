@@ -135,7 +135,7 @@ static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 
   plnnr_coroutine_begin(frame, precond_label);
 
-  for (handles[0] = first(db, 0); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // a
+  for (handles[0] = first(db, tbl(state, 0)); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // a
     binds->_0 = int8_t(as_Int8(db, handles[0], 0));
     binds->_1 = int32_t(as_Int32(db, handles[0], 1));
     if (int64_t(((binds->_1 * 2) + (binds->_0 - 1))) != as_Int64(db, handles[0], 2)) {

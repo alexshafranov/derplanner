@@ -1,5 +1,5 @@
-//> error (11, 26): failed to resolve function call empty(Fact_Ref, type 'int8').
-//> error (11, 55): failed to resolve function call empty(type 'int8', Fact_Ref).
+//> error (11, 26): failed to resolve function call empty(type 'table', type 'int8').
+//> error (11, 55): failed to resolve function call empty(type 'int8', type 'table').
 domain test
 {
     fact { a(int32) b(int32) }

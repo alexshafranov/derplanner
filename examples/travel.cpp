@@ -153,9 +153,9 @@ static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 
   plnnr_coroutine_begin(frame, precond_label);
 
-  for (handles[0] = first(db, 0); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // start
+  for (handles[0] = first(db, tbl(state, 0)); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // start
     binds->_0 = Id32(as_Id32(db, handles[0], 0));
-    for (handles[1] = first(db, 1); is_valid(db, handles[1]); handles[1] = next(db, handles[1])) { // finish
+    for (handles[1] = first(db, tbl(state, 1)); is_valid(db, handles[1]); handles[1] = next(db, handles[1])) { // finish
       binds->_1 = Id32(as_Id32(db, handles[1], 0));
       plnnr_coroutine_yield(frame, precond_label, 1);
     }
@@ -171,7 +171,7 @@ static bool p1_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 
   plnnr_coroutine_begin(frame, precond_label);
 
-  for (handles[0] = first(db, 2); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // short_distance
+  for (handles[0] = first(db, tbl(state, 2)); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // short_distance
     if (args->_0 != Id32(as_Id32(db, handles[0], 0))) {
       continue;
     }
@@ -193,7 +193,7 @@ static bool p2_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 
   plnnr_coroutine_begin(frame, precond_label);
 
-  for (handles[0] = first(db, 3); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // long_distance
+  for (handles[0] = first(db, tbl(state, 3)); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // long_distance
     if (args->_0 != Id32(as_Id32(db, handles[0], 0))) {
       continue;
     }
@@ -216,13 +216,13 @@ static bool p3_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 
   plnnr_coroutine_begin(frame, precond_label);
 
-  for (handles[0] = first(db, 4); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // airport
+  for (handles[0] = first(db, tbl(state, 4)); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // airport
     if (args->_0 != Id32(as_Id32(db, handles[0], 0))) {
       continue;
     }
 
     binds->_0 = Id32(as_Id32(db, handles[0], 1));
-    for (handles[1] = first(db, 4); is_valid(db, handles[1]); handles[1] = next(db, handles[1])) { // airport
+    for (handles[1] = first(db, tbl(state, 4)); is_valid(db, handles[1]); handles[1] = next(db, handles[1])) { // airport
       if (args->_1 != Id32(as_Id32(db, handles[1], 0))) {
         continue;
       }
