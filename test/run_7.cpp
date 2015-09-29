@@ -111,8 +111,8 @@ static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 
   plnnr_coroutine_begin(frame, precond_label);
 
-  if (bool(plnnr::empty(db->tables + 0))) {
-    if (bool(plnnr::empty(db->tables + 1))) {
+  if (bool(plnnr::empty(Fact_Table_Ptr(db->tables + 0)))) {
+    if (bool(plnnr::empty(Fact_Table_Ptr(db->tables + 1)))) {
       plnnr_coroutine_yield(frame, precond_label, 1);
     }
   }
@@ -128,7 +128,7 @@ static bool r_case_0(Planning_State* state, Expansion_Frame* frame, Fact_Databas
   while (p0_next(state, frame, db)) {
     begin_task(state, &s_domain_info, 0); // p!
     set_task_arg(state, &s_task_parameters[0], 0, int32_t(777));
-    set_task_arg(state, &s_task_parameters[0], 1, int8_t(plnnr::empty(db->tables + 1)));
+    set_task_arg(state, &s_task_parameters[0], 1, int8_t(plnnr::empty(Fact_Table_Ptr(db->tables + 1))));
     frame->status = Expansion_Frame::Status_Expanded;
     plnnr_coroutine_yield(frame, expand_label, 1);
 

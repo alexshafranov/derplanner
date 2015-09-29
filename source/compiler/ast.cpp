@@ -1346,16 +1346,16 @@ static const uint32_t Num_Types = Token_Group_Type_Last - Token_Group_Type_First
 
 static Token_Type s_unification_table[Num_Types][Num_Types] =
 {
-//                  Id32                  Id64                Int8                    Int32               Int64               Float               Vec3                Any               Fact_Ref
-/* Id32 */      { Token_Id32,           Token_Not_A_Type,   Token_Not_A_Type,       Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Id32,         Token_Not_A_Type },
-/* Id64 */      { Token_Not_A_Type,     Token_Id64,         Token_Not_A_Type,       Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Id64,         Token_Not_A_Type },
-/* Int8 */      { Token_Not_A_Type,     Token_Not_A_Type,   Token_Int8,             Token_Int32,        Token_Int64,        Token_Float,        Token_Not_A_Type,   Token_Int8,         Token_Not_A_Type },
-/* Int32 */     { Token_Not_A_Type,     Token_Not_A_Type,   Token_Int32,            Token_Int32,        Token_Int64,        Token_Float,        Token_Not_A_Type,   Token_Int32,        Token_Not_A_Type },
-/* Int64 */     { Token_Not_A_Type,     Token_Not_A_Type,   Token_Int64,            Token_Int64,        Token_Int64,        Token_Float,        Token_Not_A_Type,   Token_Int64,        Token_Not_A_Type },
-/* Float */     { Token_Not_A_Type,     Token_Not_A_Type,   Token_Float,            Token_Float,        Token_Float,        Token_Float,        Token_Not_A_Type,   Token_Float,        Token_Not_A_Type },
-/* Vec3 */      { Token_Not_A_Type,     Token_Not_A_Type,   Token_Not_A_Type,       Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Vec3,         Token_Vec3,         Token_Not_A_Type },
-/* Fact_Ref */  { Token_Not_A_Type,     Token_Not_A_Type,   Token_Not_A_Type,       Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Fact_Ref   },
-/* Any */       { Token_Id32,           Token_Id64,         Token_Int8,             Token_Int32,        Token_Int64,        Token_Float,        Token_Vec3,         Token_Any_Type,     Token_Not_A_Type },
+//                  Id32                  Id64                Int8                    Int32               Int64               Float               Vec3              Fact_Ref,           Any               
+/* Id32 */      { Token_Id32,           Token_Not_A_Type,   Token_Not_A_Type,       Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Id32,     },
+/* Id64 */      { Token_Not_A_Type,     Token_Id64,         Token_Not_A_Type,       Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Id64,     },
+/* Int8 */      { Token_Not_A_Type,     Token_Not_A_Type,   Token_Int8,             Token_Int32,        Token_Int64,        Token_Float,        Token_Not_A_Type,   Token_Not_A_Type,   Token_Int8,     },
+/* Int32 */     { Token_Not_A_Type,     Token_Not_A_Type,   Token_Int32,            Token_Int32,        Token_Int64,        Token_Float,        Token_Not_A_Type,   Token_Not_A_Type,   Token_Int32,    },
+/* Int64 */     { Token_Not_A_Type,     Token_Not_A_Type,   Token_Int64,            Token_Int64,        Token_Int64,        Token_Float,        Token_Not_A_Type,   Token_Not_A_Type,   Token_Int64,    },
+/* Float */     { Token_Not_A_Type,     Token_Not_A_Type,   Token_Float,            Token_Float,        Token_Float,        Token_Float,        Token_Not_A_Type,   Token_Not_A_Type,   Token_Float,    },
+/* Vec3 */      { Token_Not_A_Type,     Token_Not_A_Type,   Token_Not_A_Type,       Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Vec3,         Token_Not_A_Type,   Token_Vec3,     },
+/* Fact_Ref */  { Token_Not_A_Type,     Token_Not_A_Type,   Token_Not_A_Type,       Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Fact_Ref,     Token_Fact_Ref, },
+/* Any */       { Token_Id32,           Token_Id64,         Token_Int8,             Token_Int32,        Token_Int64,        Token_Float,        Token_Vec3,         Token_Not_A_Type,   Token_Any_Type, },
 };
 
 Token_Type plnnrc::unify(Token_Type a, Token_Type b)
@@ -1722,7 +1722,7 @@ struct Compute_Expr_Result_Type
 
     Token_Type get_integral_literal_type(const ast::Literal* node)
     {
-        int64_t val = as_int(node);
+        const int64_t val = as_int(node);
 
         if (val >= std::numeric_limits<int8_t>::min() && val <= std::numeric_limits<int8_t>::max())
             return Token_Int8;
