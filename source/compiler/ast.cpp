@@ -1354,8 +1354,8 @@ static Token_Type s_unification_table[Num_Types][Num_Types] =
 /* Int64 */     { Token_Not_A_Type,     Token_Not_A_Type,   Token_Int64,            Token_Int64,        Token_Int64,        Token_Float,        Token_Not_A_Type,   Token_Int64,        Token_Not_A_Type },
 /* Float */     { Token_Not_A_Type,     Token_Not_A_Type,   Token_Float,            Token_Float,        Token_Float,        Token_Float,        Token_Not_A_Type,   Token_Float,        Token_Not_A_Type },
 /* Vec3 */      { Token_Not_A_Type,     Token_Not_A_Type,   Token_Not_A_Type,       Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Vec3,         Token_Vec3,         Token_Not_A_Type },
-/* Any */       { Token_Id32,           Token_Id64,         Token_Int8,             Token_Int32,        Token_Int64,        Token_Float,        Token_Vec3,         Token_Any_Type,     Token_Not_A_Type },
 /* Fact_Ref */  { Token_Not_A_Type,     Token_Not_A_Type,   Token_Not_A_Type,       Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Not_A_Type,   Token_Fact_Ref   },
+/* Any */       { Token_Id32,           Token_Id64,         Token_Int8,             Token_Int32,        Token_Int64,        Token_Float,        Token_Vec3,         Token_Any_Type,     Token_Not_A_Type },
 };
 
 Token_Type plnnrc::unify(Token_Type a, Token_Type b)

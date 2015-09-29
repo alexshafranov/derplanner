@@ -91,6 +91,9 @@ struct Fact_Table
     Memory*         memory;
 };
 
+// Fact table pointer typedef to use as a runtime type for `table`.
+typedef Fact_Table* Fact_Table_Ptr;
+
 // A set of fact tables.
 struct Fact_Database
 {

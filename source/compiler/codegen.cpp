@@ -439,16 +439,9 @@ struct Expr_Writer
             const ast::Expr* arg = func->args[arg_idx];
             const Token_Type param_type = sig.types[arg_idx];
 
-            if (param_type != Token_Fact_Ref)
-            {
-                write(*fmtr, "%s(", get_runtime_type_name(param_type));
-                visit_node<void>(arg, this);
-                write(*fmtr, ")");
-            }
-            else
-            {
-                visit_node<void>(arg, this);
-            }
+            write(*fmtr, "%s(", get_runtime_type_name(param_type));
+            visit_node<void>(arg, this);
+            write(*fmtr, ")");
 
             if (arg->next_sibling != 0)
                 write(*fmtr, ", ");
