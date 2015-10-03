@@ -1,12 +1,38 @@
 [![Build Status](https://travis-ci.org/alexshafranov/derplanner.png?branch=master)](https://travis-ci.org/alexshafranov/derplanner)
-
-Derplanner
+----------
+derplanner
 ==========
+* derplanner is a C++ game AI decision making library.  
+* derplanner is based on Hierarchical-Task-Network Planning.  
+* derplanner is a compiler, it turns the custom domain description language into C++ code.  
 
-Derplanner is a C++ game AI decision making library.
+*Here's a sneak peek at domain syntax:*
+```
+domain turret {
+  fact location(vec3, vec3)
+  fact target(id32, vec3)
+  
+  prim fire!(id32)
+  
+  const Fov = cos(pi() / 4.0)
+  
+  task attack_visible() {
+    each :sorted(1.0 - Dot)
+      location(Pos, Dir) & target(Id, Tgt) &
+      (Dot = dot(norm(Tgt - Pos), Dir)) & (Dot >= Fov) -> [ fire!(Id) ]
+  }
+}
+```
 
-Derplanner is based on Hierarchical-Task-Network planning.
+## Building Library
+Derplanner uses premake5 to generate visual studio project files / makefiles.  
+Pre-built premake5 executable is shipped as part of the project.  
 
-Derplanner is a compiler, turning the custom planning domain description language into C++ code.
+* On Windows run ```premake5 vs2015``` (vs2010, vs2012 and vs2013 should also work)
+* On Linux run ```./premake5 gmake```
 
-![turret](/images/turret.png?raw=true)
+There's no external dependencies, so alternatively, you can just include derplanner code in your own build system.
+
+## License
+
+derplanner is licensed under [zlib license](./LICENSE.txt)
