@@ -38,9 +38,9 @@ struct Planning_State_Config
     // maximum size of the domain to database binding (i.e. table indices mapping).
     uint32_t    max_bound_tables;
     // maximum size of the expansions data block (arguments & preconditions).
-    size_t      expansion_data_size;
+    uint32_t    expansion_data_size;
     // maximum size of the plan data block (arguments & preconditions).
-    size_t      plan_data_size;
+    uint32_t    plan_data_size;
 };
 
 void init(Planning_State* self, Memory* mem, const Planning_State_Config* config);
