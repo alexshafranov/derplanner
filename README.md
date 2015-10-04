@@ -31,7 +31,7 @@ Pre-built premake5 executable is shipped as part of the project.
 * On Windows run ```premake5 vs2015``` (vs2010, vs2012 and vs2013 should also work)
 * On Linux run ```./premake5 gmake```
 
-There's no external dependencies, so alternatively, you can just include derplanner code in your own build system.
+There're no external dependencies, so alternatively, you can just include derplanner code in your own build system.
 
 ## License
 
