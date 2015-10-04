@@ -20,7 +20,6 @@
 
 #include <new>
 #include <stdlib.h>
-#include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/memory.h"
 
 namespace

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2013 Alexander Shafranov shafranov@gmail.com
+// Copyright (c) 2015 Alexander Shafranov shafranov@gmail.com
 //
 // This software is provided 'as-is', without any express or implied
 // warranty.  In no event will the authors be held liable for any damages
@@ -18,18 +18,29 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef DERPLANNER_RUNTIME_ASSERT_H_
-#define DERPLANNER_RUNTIME_ASSERT_H_
-
-// if external plnnr_assert is not provided
-#ifndef plnnr_assert
-    #ifdef NDEBUG
-        // http://cnicholson.net/2009/02/stupid-c-tricks-adventures-in-assert/
-        #define plnnr_assert(e) do { (void)sizeof(e); } while ((void)(__LINE__==-1), false)
-    #else
-        #include <assert.h>
-        #define plnnr_assert assert
-    #endif
+#if defined(_MSC_VER)
+    #define PLNNR_MSVC_VERSION _MSC_VER
 #endif
 
+#if defined(PLNNR_MSVC_VERSION) && (PLNNR_MSVC_VERSION <= 1600)
+    typedef signed      __int8      int8_t;
+    typedef signed      __int16     int16_t;
+    typedef signed      __int32     int32_t;
+    typedef signed      __int64     int64_t;
+    typedef unsigned    __int8      uint8_t;
+    typedef unsigned    __int16     uint16_t;
+    typedef unsigned    __int32     uint32_t;
+    typedef unsigned    __int64     uint64_t;
+    typedef size_t uintptr_t;
+#else
+    #include <stdint.h>
+#endif
+
+#ifndef plnnr_assert
+    #include <assert.h>
+    #define plnnr_assert(X) assert(X)
+#endif
+
+#ifndef plnnr_alignof
+    #define plnnr_alignof(X) __alignof(X)
 #endif

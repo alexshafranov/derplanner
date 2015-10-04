@@ -21,8 +21,9 @@
 #ifndef DERPLANNER_RUNTIME_TYPES_H_
 #define DERPLANNER_RUNTIME_TYPES_H_
 
-#include <stdint.h>
-#include <stddef.h>
+#include <stddef.h> // size_t
+
+#include "derplanner/runtime/base.h"
 
 namespace plnnr {
 

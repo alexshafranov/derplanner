@@ -61,7 +61,6 @@ solution "derplanner"
         includedirs { "test/unittestpp", "include", "source" }
         links { "derplanner-compiler", "derplanner-runtime" }
         configuration { "linux or macosx" }
-            buildoptions { "-std=c++0x" }
             files { "test/unittestpp/src/Posix/*.cpp" }
         configuration { "vs*" }
             files { "test/unittestpp/src/Win32/*.cpp" }

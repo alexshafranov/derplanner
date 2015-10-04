@@ -21,7 +21,6 @@
 #ifndef DERPLANNER_COMPILER_AST_H_
 #define DERPLANNER_COMPILER_AST_H_
 
-#include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/types.h"
 
 namespace plnnrc {

@@ -22,7 +22,6 @@
 #define DERPLANNER_COMPILER_ERRORS_H_
 
 #include <string.h>
-#include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/types.h"
 
 namespace plnnrc {

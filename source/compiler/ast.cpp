@@ -21,7 +21,6 @@
 #include <limits>
 #include <stdlib.h>
 
-#include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/io.h"
 #include "derplanner/compiler/array.h"
 #include "derplanner/compiler/id_table.h"
@@ -244,7 +243,11 @@ ast::Fact* plnnrc::get_primitive(const ast::Root* self, const Token_Value& name)
 
 int64_t plnnrc::as_int(const ast::Literal* node)
 {
-    return int64_t(strtoll(node->value.str, 0, 10));
+    #ifdef PLNNRC_MSVC_VERSION
+        return int64_t(_strtoi64(node->value.str, 0, 10));
+    #else
+        return int64_t(strtoll(node->value.str, 0, 10));
+    #endif
 }
 
 float plnnrc::as_float(const ast::Literal* node)

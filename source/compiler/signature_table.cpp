@@ -18,7 +18,6 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/lexer.h"
 #include "derplanner/compiler/signature_table.h"
 

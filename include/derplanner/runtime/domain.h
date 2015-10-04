@@ -26,7 +26,6 @@
 #include <algorithm>    // std::sort
 #include <string.h>     // memset
 
-#include "derplanner/runtime/assert.h"
 #include "derplanner/runtime/memory.h"
 #include "derplanner/runtime/intrinsics.h"
 #include "derplanner/runtime/database.h"

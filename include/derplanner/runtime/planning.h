@@ -21,7 +21,6 @@
 #ifndef DERPLANNER_RUNTIME_PLANNING_H_
 #define DERPLANNER_RUNTIME_PLANNING_H_
 
-#include "derplanner/runtime/assert.h"
 #include "derplanner/runtime/memory.h"
 #include "derplanner/runtime/types.h"
 

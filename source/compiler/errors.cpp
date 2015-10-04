@@ -21,7 +21,6 @@
 #include <ctype.h>
 
 #include "derplanner/compiler/array.h"
-#include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/errors.h"
 #include "derplanner/compiler/lexer.h"
 #include "derplanner/compiler/io.h"

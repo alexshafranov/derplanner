@@ -22,11 +22,8 @@
 #define DERPLANNER_RUNTIME_MEMORY_H_
 
 #include <stddef.h> // for size_t
-#include <stdint.h> // for uintptr_t
 
-#ifndef plnnr_alignof
-    #define plnnr_alignof(T) __alignof(T)
-#endif
+#include "derplanner/runtime/base.h"
 
 namespace plnnr {
 

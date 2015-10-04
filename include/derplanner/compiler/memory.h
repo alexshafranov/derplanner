@@ -22,11 +22,8 @@
 #define DERPLANNER_COMPILER_MEMORY_H_
 
 #include <stddef.h> // for size_t
-#include <stdint.h> // for uintptr_t
 
-#ifndef plnnrc_alignof
-    #define plnnrc_alignof(T) __alignof(T)
-#endif
+#include "derplanner/compiler/base.h"
 
 namespace plnnrc {
 

@@ -19,7 +19,6 @@
 //
 
 #include <stdlib.h>
-#include "derplanner/runtime/assert.h"
 #include "derplanner/runtime/memory.h"
 
 namespace

@@ -19,7 +19,6 @@
 //
 
 #include <string.h>
-#include "derplanner/compiler/assert.h"
 #include "derplanner/compiler/memory.h"
 #include "derplanner/compiler/array.h"
 #include "derplanner/compiler/io.h"

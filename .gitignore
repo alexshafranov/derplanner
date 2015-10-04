@@ -10,3 +10,6 @@ obj
 *.opensdf
 *.sdf
 *.suo
+*.vcproj
+*.ncb
+*.vcproj.*.user

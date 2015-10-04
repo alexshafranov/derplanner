@@ -21,7 +21,7 @@
 #ifndef DERPLANNER_COMPILER_TYPES_H_
 #define DERPLANNER_COMPILER_TYPES_H_
 
-#include <stdint.h>
+#include "derplanner/compiler/base.h"
 
 namespace plnnrc {
 
