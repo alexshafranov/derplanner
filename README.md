@@ -1,10 +1,12 @@
-[![Build Status](https://travis-ci.org/alexshafranov/derplanner.png?branch=master)](https://travis-ci.org/alexshafranov/derplanner)
-----------
 derplanner
 ==========
-* derplanner is a C++ game AI decision making library.  
-* derplanner is based on Hierarchical-Task-Network Planning.  
-* derplanner is a compiler, it turns the custom domain description language into C++ code.  
+[![Build Status](https://travis-ci.org/alexshafranov/derplanner.png?branch=master)](https://travis-ci.org/alexshafranov/derplanner)
+
+**derplanner** is a:
+
+* C++ game AI decision making library.  
+* Hierarchical-Task-Network Planner.  
+* Compiler, turning the custom domain description language into C++ code.  
 
 *Here's a sneak peek at domain syntax:*
 ```
@@ -24,15 +26,15 @@ domain turret {
 }
 ```
 
-## Building Library
-Derplanner uses premake5 to generate visual studio project files / makefiles.  
-Pre-built premake5 executable is shipped as part of the project.  
+## Building
+**derplanner** has no external dependencies, so it can be included into your own build system.  
 
-* On Windows run ```premake5 vs2015``` (vs2010, vs2012 and vs2013 should also work)
-* On Linux run ```./premake5 gmake```
+Alternatively, you can use premake5 executable shipped with the project to generate project files / makefiles.
+
+* On Windows run ```premake5 vs2015```. Any Visual Studio version, starting from **Visual C++ 2008** should work as well.
+* On Linux run ```./premake5 gmake```. Linux build is regularly tested on **gcc 4.6.3** and **clang 3.4**.
 
 There're no external dependencies, so alternatively, you can just include derplanner code in your own build system.
 
 ## License
-
 derplanner is licensed under [zlib license](./LICENSE.txt)
