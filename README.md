@@ -43,22 +43,22 @@ Alternatively, you can use premake5 executable shipped with the project to gener
 * ```vec3``` 3-component vector type.
 
 ### Fact Database
-Fact database is a collection of typed tuples, it represents domain knowledge about the world.  
+Fact database is a collection of typed tuples, representing domain knowledge about the world.  
 
-A domain can specify the required database format:  
+Domain database requirements are specified in the following way:
 ```fact { location(vec3) target(id32, vec3) }```
 
 ### Primitive Task
-The resuling plan is a sequence of primitive task instances (i.e. a task  + argument tuple):  
+Plan is a sequence of primitive task instances, where task instance is a task type and an argument tuple:  
 ```goto!(A) melee!(T) goto!(B)```  
 
-Primitive tasks can be defined in the following way:  
+Primitive task is defined in the following way:  
 ```prim { goto!(vec3) melee!(id32) }```
 
 ### Compound Task
 Compound tasks make the planning process hierarchical and recursive.  
 
-A compound task defines one or more *cases*. Each case is a pre-condition and a task list:  
+Compound task defines one or more *cases*, where each case is a pre-condition and a task list:  
 ```
 task attack(Bot, Enemy) {
   case pos(Bot, Src) & pos(Enemy, Dst) & dist(Src, Dst) < Close_Range
@@ -68,8 +68,9 @@ task attack(Bot, Enemy) {
     -> [ select_weapon(Bot), fire!(Enemy) ]
 }
 ```
+Task list can contain both primitive or compound task instances. It defines the way to execute a parent compound task.
 
-### Planning
+### Planning Process
 The plan is formulated in a simple *left-to-right* and *top-to-bottom* way:  
 
 * Initially, the plan is a single compound task (the first one defined in a domain).  
@@ -77,7 +78,7 @@ The plan is formulated in a simple *left-to-right* and *top-to-bottom* way:
   * For each case, in order of definition:  
     * If the case precondition is satisifed, replace the compound task instance with the task list.  
   * If no satisified cases found, back-track.  
-* Once the plan consists of only primitive tasks, the planning process is finished.
+* Once the plan consists of only primitive tasks, the planning process is finished.  
 
 ## License
 derplanner is licensed under [zlib license](./LICENSE.txt)
