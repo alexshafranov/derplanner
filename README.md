@@ -77,6 +77,7 @@ The plan is formulated in a simple *left-to-right* and *top-to-bottom* way:
   * For each case, in order of definition:  
     * If the case precondition is satisifed, replace the compound task instance with the task list.  
   * If no satisified cases found, back-track.  
+* Once the plan consists of only primitive tasks, the planning process is finished.
 
 ## License
 derplanner is licensed under [zlib license](./LICENSE.txt)
