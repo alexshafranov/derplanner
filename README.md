@@ -74,7 +74,7 @@ The plan is formulated in a simple *left-to-right* and *top-to-bottom* way:
 
 * Initially, the plan is a single compound task (the first one defined in a domain).  
 * For each compoud task instance in the plan:  
-  * For each case, in order of their definition:  
+  * For each case, in order of definition:  
     * If the case precondition is satisifed, replace the compound task instance with the task list.  
   * If no satisified cases found, back-track.  
 
