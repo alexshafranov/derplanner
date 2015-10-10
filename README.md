@@ -68,7 +68,7 @@ task attack(Bot, Enemy) {
     -> [ select_weapon(Bot), fire!(Enemy) ]
 }
 ```
-Task list can contain both primitive or compound task instances. It defines the way to execute a parent compound task.
+Task list can contain both primitive and compound task instances. It defines the way to execute a parent compound task.
 
 ### Planning Process
 The plan is formulated in a simple *left-to-right* and *top-to-bottom* way:  
