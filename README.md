@@ -45,7 +45,7 @@ Alternatively, you can use premake5 executable shipped with the project to gener
 ### Fact Database
 Fact database is a collection of typed tuples, representing domain knowledge about the world.  
 
-Domain database requirements are specified in the following way:
+Domain database requirements are specified in the following way:  
 ```fact { location(vec3) target(id32, vec3) }```
 
 ### Primitive Task
