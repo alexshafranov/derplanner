@@ -18,6 +18,9 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
+#ifndef DERPLANNER_COMPILER_BASE_H_
+#define DERPLANNER_COMPILER_BASE_H_
+
 #if defined(_MSC_VER)
     #define PLNNRC_MSVC_VERSION _MSC_VER
 #endif
@@ -43,4 +46,6 @@
 
 #ifndef plnnrc_alignof
     #define plnnrc_alignof(X) __alignof(X)
+#endif
+
 #endif

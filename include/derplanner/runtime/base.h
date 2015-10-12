@@ -18,6 +18,9 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
+#ifndef DERPLANNER_RUNTIME_BASE_H_
+#define DERPLANNER_RUNTIME_BASE_H_
+
 #if defined(_MSC_VER)
     #define PLNNR_MSVC_VERSION _MSC_VER
 #endif
@@ -43,4 +46,6 @@
 
 #ifndef plnnr_alignof
     #define plnnr_alignof(X) __alignof(X)
+#endif
+
 #endif
