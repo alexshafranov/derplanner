@@ -103,7 +103,7 @@ static void undo_expansion(plnnr::Planning_State* state)
 
     Expansion_Frame* frame = top(&state->expansion_stack);
     frame->status = Expansion_Frame::Status_None;
-    // rewind to the expand function start, so the we exit expansion loop and try the next satisifer.
+    // rewind to the expand function start, so that we exit expansion loop and try the next satisifer.
     frame->expand_label = 0;
 
     // now revert any tasks parent expansion has produced.
