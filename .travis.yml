@@ -12,25 +12,25 @@ script:
     - ./premake5 gmake
 
     # build debug compiler first.
-    - make config=debug_x64 derplannerc
+    - make config=debug_x86_64 derplannerc
     # then generate test case code.
     - python ./test/gen_runtime_cases.py
     # and premake again.
     - ./premake5 gmake
 
-    # release x64
-    - make config=release_x64
-    - ./bin/x64/release/tests
-    - ./bin/x64/release/derplannerc --out examples examples/travel.domain
-    - make config=release_x64 example-travel
-    - ./bin/x64/release/example-travel
+    # release x86_64
+    - make config=release_x86_64
+    - ./bin/x86_64/release/tests
+    - ./bin/x86_64/release/derplannerc --out examples examples/travel.domain
+    - make config=release_x86_64 example-travel
+    - ./bin/x86_64/release/example-travel
 
-    # debug x64
-    - make config=debug_x64
-    - ./bin/x64/debug/tests
-    - ./bin/x64/debug/derplannerc --out examples examples/travel.domain
-    - make config=debug_x64 example-travel
-    - ./bin/x64/debug/example-travel
+    # debug x86_64
+    - make config=debug_x86_64
+    - ./bin/x86_64/debug/tests
+    - ./bin/x86_64/debug/derplannerc --out examples examples/travel.domain
+    - make config=debug_x86_64 example-travel
+    - ./bin/x86_64/debug/example-travel
 
     # compiler tests
     - python ./test/run_compiler_cases.py

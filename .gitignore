@@ -13,3 +13,4 @@ obj
 *.vcproj
 *.ncb
 *.vcproj.*.user
+*.VC.opendb

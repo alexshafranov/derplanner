@@ -154,7 +154,7 @@ def make_test(domain_path):
     domain_name = domain_name.replace('-', '_')
     domain_source = open(domain_path, 'rt').read()
 
-    exe = os.path.join('bin', 'x64', 'debug', 'derplannerc')
+    exe = os.path.join('bin', 'x86_64', 'debug', 'derplannerc')
     p = subprocess.Popen(args=[exe, '-o', test_output_path, domain_path], stderr=subprocess.PIPE)
     (stdoutdata, stderrdata) = p.communicate()
     if p.returncode != 0:

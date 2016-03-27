@@ -39,7 +39,7 @@ def make_test(domain_path):
 
     def test(self):
         expected = read_expected(domain_path)
-        exe = os.path.join('bin', 'x64', 'debug', 'derplannerc')
+        exe = os.path.join('bin', 'x86_64', 'debug', 'derplannerc')
         temp_dir = tempfile.mkdtemp()
         p = subprocess.Popen(args=[exe, '-o', temp_dir, domain_path], stderr=subprocess.PIPE)
         (stdoutdata, stderrdata) = p.communicate()

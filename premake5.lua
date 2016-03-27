@@ -1,51 +1,52 @@
-solution "derplanner"
-    platforms { "x64", "x32" }
+workspace "derplanner"
+    platforms { "x86_64", "x86_32" }
     configurations { "release", "debug" }
     language "C++"
 
-    flags { "NoPCH", "NoRTTI", "FatalWarnings" }
+    flags { "NoPCH", "FatalWarnings" }
+    rtti "Off"
     warnings "Extra"
     objdir ".build/obj"
 
-    configuration "debug"
+    filter "debug"
         flags "Symbols"
 
-    configuration "release"
+    filter "release"
         flags "Symbols"
 
-    configuration "release"
+    filter "release"
         optimize "Speed"
         defines { "NDEBUG" }
 
-    configuration { "debug", "x32" }
-        targetdir "bin/x32/debug"
+    filter { "debug", "architecture:x86_32" }
+        targetdir "bin/x86_32/debug"
 
-    configuration { "release", "x32" }
-        targetdir "bin/x32/release"
+    filter { "release", "architecture:x86_32" }
+        targetdir "bin/x86_32/release"
 
-    configuration { "debug", "x64" }
-        targetdir "bin/x64/debug"
+    filter { "debug", "architecture:x86_64" }
+        targetdir "bin/x86_64/debug"
 
-    configuration { "release", "x64" }
-        targetdir "bin/x64/release"
+    filter { "release", "architecture:x86_64" }
+        targetdir "bin/x86_64/release"
 
-    configuration { "gmake" }
+    filter { "action:gmake" }
         buildoptions { "-Wno-missing-field-initializers" }
 
-    configuration { "vs*" }
+    filter { "action:vs*" }
         defines { "_CRT_SECURE_NO_WARNINGS" }
         buildoptions { "/wd4456" } -- declaration of '...' hides previous local declaration.
         buildoptions { "/wd4577" } -- 'noexcept' used with no exception handling mode specified; termination on exception is not guaranteed.
 
     project "derplanner-compiler"
         kind "StaticLib"
-        flags { "NoExceptions" }
+        exceptionhandling "Off"
         files { "source/compiler/*.cpp" }
         includedirs { "include" }
 
     project "derplanner-runtime"
         kind "StaticLib"
-        flags { "NoExceptions" }
+        exceptionhandling "Off"
         files { "source/runtime/*.cpp" }
         includedirs { "include" }
 
@@ -60,16 +61,16 @@ solution "derplanner"
         files { "test/*.cpp", "test/unittestpp/src/*.cpp" }
         includedirs { "test/unittestpp", "include", "source" }
         links { "derplanner-compiler", "derplanner-runtime" }
-        configuration { "linux or macosx" }
+        filter { "system:linux or system:macosx" }
             files { "test/unittestpp/src/Posix/*.cpp" }
-        configuration { "vs*" }
+        filter { "action:vs*" }
             files { "test/unittestpp/src/Win32/*.cpp" }
 
     project "domain-travel"
         kind "SharedLib"
         files { "examples/travel.cpp" }
         includedirs { "include" }
-        configuration { "vs*" }
+        filter { "action:vs*" }
             defines { "PLNNR_DOMAIN_API=__declspec(dllexport)" }
 
     project "example-travel"
@@ -77,5 +78,5 @@ solution "derplanner"
         files { "examples/travel.main.cpp" }
         includedirs { "include" }
         links { "derplanner-runtime", "domain-travel" }
-        configuration { "vs*" }
+        filter { "action:vs*" }
             defines { "PLNNR_DOMAIN_API=__declspec(dllimport)" }
