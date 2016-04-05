@@ -634,7 +634,7 @@ void plnnrc::generate_source(Codegen* self, const char* domain_header, Writer* o
                 Indent_Scope s(fmtr);
                 if (sig.length > 0)
                 {
-                    writeln(fmtr, "{ %d, s_layout_types + %d, 0, s_layout_offsets + 0 },", sig.length, sig.offset);
+                    writeln(fmtr, "{ %d, s_layout_types + %d, 0, s_layout_offsets + %d },", sig.length, sig.offset, sig.offset);
                 }
                 else
                 {
