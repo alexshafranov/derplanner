@@ -117,7 +117,7 @@ static Token make_error_token(const Parser* self, Token_Type type)
     tok.loc = peek(self).loc;
     const char* error_str = "<error>";
     tok.value.str = error_str;
-    tok.value.length = sizeof(error_str) - 1;
+    tok.value.length = (uint32_t) strlen(error_str);
     return tok;
 }
 
