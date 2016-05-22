@@ -95,6 +95,16 @@ inline void plnnr::compute_offsets_and_size(plnnr::Param_Layout* layout)
         return;
     }
 
+    size_t max_alignment = 0;
+    for (uint8_t i = 0; i < num_params; ++i)
+    {
+        const plnnr::Type type = layout->types[i];
+        const size_t type_alignment = get_type_alignment(type);
+        max_alignment = (type_alignment > max_alignment) ? type_alignment : max_alignment;
+    }
+
+    layout->alignment = max_alignment;
+
     const plnnr::Type first_type = layout->types[0];
     layout->offsets[0] = 0;
 
@@ -118,8 +128,7 @@ inline uint8_t* plnnr::allocate_with_layout(plnnr::Blob* blob, const plnnr::Para
     if (!layout->size)
         return 0;
 
-    const Type first_type = layout->types[0];
-    const size_t alignment = get_type_alignment(first_type);
+    const size_t alignment = layout->alignment;
     const size_t size = layout->size;
 
     uint8_t* bytes = (uint8_t*)(align(blob->top, alignment));

@@ -34,6 +34,7 @@ struct Vec3
     Vec3(float x, float y, float z) :x(x), y(y), z(z) {}
 
     float x, y, z;
+    float pad;
 };
 
 // 32-bit size handle to point to entities in a fact database.
@@ -256,10 +257,12 @@ struct Param_Layout
 {
     // number of parameters.
     uint8_t     num_params;
-    // type of each parameter.
-    Type*       types;
     // size in bytes needed for this layout.
     size_t      size;
+    // required alignment of the layout, maximum of the param alignments.
+    size_t      alignment;
+    // type of each parameter.
+    Type*       types;
     // offset in bytes for each parameter.
     size_t*     offsets;
 };

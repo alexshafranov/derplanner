@@ -37,21 +37,21 @@ static Fact_Type s_fact_types[] = {
 
 static Type s_layout_types[] = {
   Type_Id32,
-  Type_Vec3,
-  Type_Vec3,
   Type_Id32,
+  Type_Vec3,
+  Type_Vec3,
   Type_Vec3,
 };
 
 static size_t s_layout_offsets[5];
 
 static Param_Layout s_task_parameters[] = {
-  { 1, s_layout_types + 0, 0, s_layout_offsets + 0 },
-  { 0, 0, 0, 0 },
+  { 1, 0, 0, s_layout_types + 0, s_layout_offsets + 0 },
+  { 0, 0, 0, 0, 0 },
 };
 
 static Param_Layout s_bindings[] = {
-  { 4, s_layout_types + 1, 0, s_layout_offsets + 0 },
+  { 4, 0, 0, s_layout_types + 1, s_layout_offsets + 1 },
 };
 
 static uint32_t s_num_cases[] = {
@@ -109,9 +109,9 @@ void run_8_init_domain_info()
 const Domain_Info* run_8_get_domain_info() { return &s_domain_info; }
 
 struct S_1 {
-  Vec3 _0;
+  Id32 _0;
   Vec3 _1;
-  Id32 _2;
+  Vec3 _2;
   Vec3 _3;
 };
 
@@ -122,13 +122,13 @@ static bool p0_next(Planning_State* state, Expansion_Frame* frame, Fact_Database
 
   plnnr_coroutine_begin(frame, precond_label);
 
-  for (handles[0] = first(db, tbl(state, 0)); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // me
-    binds->_0 = Vec3(as_Vec3(db, handles[0], 0));
+  for (handles[0] = first(db, tbl(state, 1)); is_valid(db, handles[0]); handles[0] = next(db, handles[0])) { // object
+    binds->_0 = Id32(as_Id32(db, handles[0], 0));
     binds->_1 = Vec3(as_Vec3(db, handles[0], 1));
-    for (handles[1] = first(db, tbl(state, 1)); is_valid(db, handles[1]); handles[1] = next(db, handles[1])) { // object
-      binds->_2 = Id32(as_Id32(db, handles[1], 0));
+    for (handles[1] = first(db, tbl(state, 0)); is_valid(db, handles[1]); handles[1] = next(db, handles[1])) { // me
+      binds->_2 = Vec3(as_Vec3(db, handles[1], 0));
       binds->_3 = Vec3(as_Vec3(db, handles[1], 1));
-      if (bool((plnnr::dot(Vec3(plnnr::norm(Vec3((binds->_3 - binds->_0)))), Vec3(binds->_1)) >= plnnr::cos(float((plnnr::pi() / 4.0)))))) {
+      if (bool((plnnr::dot(Vec3(plnnr::norm(Vec3((binds->_1 - binds->_2)))), Vec3(binds->_3)) >= plnnr::cos(float((plnnr::pi() / 4.0)))))) {
         plnnr_coroutine_yield(frame, precond_label, 1);
       }
     }
@@ -146,7 +146,7 @@ static bool attack_all_visible_case_0(Planning_State* state, Expansion_Frame* fr
   while (p0_next(state, frame, db)) {
     binds = binds + frame->binding_index;
     begin_task(state, &s_domain_info, 0); // attack!
-    set_task_arg(state, &s_task_parameters[0], 0, Id32(binds->_2));
+    set_task_arg(state, &s_task_parameters[0], 0, Id32(binds->_0));
     plnnr_coroutine_yield(frame, expand_label, 1);
 
     continue_iteration(state, frame);

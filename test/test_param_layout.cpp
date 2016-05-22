@@ -37,14 +37,14 @@ namespace
 {
     struct S
     {
-        Vec3    _0;
-        uint8_t _1;
+        uint8_t _0;
+        Vec3    _1;
         Vec3    _2;
     };
 
     TEST(layout_struct_aliasing)
     {
-        Type types[] = { Type_Vec3, Type_Int8, Type_Vec3 };
+        Type types[] = { Type_Int8, Type_Vec3, Type_Vec3 };
         const size_t num_types = plnnr_static_array_size(types);
         size_t offsets[num_types];
 
@@ -55,16 +55,18 @@ namespace
         layout.offsets = offsets;
         compute_offsets_and_size(&layout);
 
-        Vec3    a0(5.f, 4.f, 3.f);
-        int8_t  a1 = 111;
+        char buffer[2 * sizeof(S)];
+        void* object = plnnr::align(buffer + 1, layout.alignment);
+
+        int8_t  a0 = 111;
+        Vec3    a1(5.f, 4.f, 3.f);
         Vec3    a2(1.f, 2.f, 3.f);
 
-        char buffer[2048];
-        set_arg(&buffer, &layout, 0, a0);
-        set_arg(&buffer, &layout, 1, a1);
-        set_arg(&buffer, &layout, 2, a2);
+        set_arg(object, &layout, 0, a0);
+        set_arg(object, &layout, 1, a1);
+        set_arg(object, &layout, 2, a2);
 
-        const S* const data = (S const*)(buffer);
+        const S* data = plnnr::align<S>(object);
 
         CHECK_EQUAL(a0, data->_0);
         CHECK_EQUAL(a1, data->_1);

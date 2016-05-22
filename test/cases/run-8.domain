@@ -27,6 +27,6 @@ domain run_8
 
     task attack_all_visible()
     {
-        each( me(Pos, Dir) & object(Id, Tgt) & visible(Pos, Dir, Tgt) ) -> [ attack!(Id) ]
+        each( object(Id, Tgt) & me(Pos, Dir) & visible(Pos, Dir, Tgt) ) -> [ attack!(Id) ]
     }
 }

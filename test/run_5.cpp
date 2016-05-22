@@ -41,12 +41,12 @@ static Type s_layout_types[] = {
 static size_t s_layout_offsets[2];
 
 static Param_Layout s_task_parameters[] = {
-  { 2, s_layout_types + 0, 0, s_layout_offsets + 0 },
-  { 0, 0, 0, 0 },
+  { 2, 0, 0, s_layout_types + 0, s_layout_offsets + 0 },
+  { 0, 0, 0, 0, 0 },
 };
 
 static Param_Layout s_bindings[] = {
-  { 2, s_layout_types + 0, 0, s_layout_offsets + 0 },
+  { 2, 0, 0, s_layout_types + 0, s_layout_offsets + 0 },
 };
 
 static uint32_t s_num_cases[] = {
