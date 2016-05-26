@@ -34,7 +34,6 @@ struct Vec3
     Vec3(float x, float y, float z) :x(x), y(y), z(z) {}
 
     float x, y, z;
-    float pad;
 };
 
 // 32-bit size handle to point to entities in a fact database.
