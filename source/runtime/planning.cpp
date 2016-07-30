@@ -32,12 +32,12 @@ void plnnr::init(Planning_State* self, Memory* mem, const Planning_State_Config*
     self->max_depth = config->max_depth;
     self->max_plan_length = config->max_plan_length;
 
-    // allocate `max_depth + 1` frames, so that we can check for maximum depth after the last frame is added.
+    // allocate `max_depth + 1` frames, so that we can check for the maximum depth after the last frame is added.
     Expansion_Frame* expansion_frames = allocate<Expansion_Frame>(mem, config->max_depth + 1);
     self->expansion_stack.max_size = config->max_depth + 1;
     self->expansion_stack.frames = expansion_frames;
 
-    // allocate `max_plan_length + 1` frames, so that we can check for maximum length after the last frame is added.
+    // allocate `max_plan_length + 1` frames, so that we can check for the maximum length after the last frame is added.
     Task_Frame* task_frames = allocate<Task_Frame>(mem, config->max_plan_length + 1);
     self->task_stack.max_size = config->max_plan_length + 1;
     self->task_stack.frames = task_frames;
@@ -107,8 +107,8 @@ static void undo_expansion(plnnr::Planning_State* state)
     frame->expand_label = 0;
 
     // now revert any tasks parent expansion has produced.
-    uint32_t curr_task_count = state->task_stack.size;
-    uint32_t orig_task_count = frame->orig_task_count;
+    const uint32_t curr_task_count = state->task_stack.size;
+    const uint32_t orig_task_count = frame->orig_task_count;
 
     Blob* blob = &state->task_blob;
 
@@ -130,6 +130,12 @@ void plnnr::find_plan_init(Planning_State* self, const Domain_Info* domain)
     uint32_t root_id = domain->task_info.num_primitive;
     // this find_plan variant doesn't support root tasks with arguments.
     plnnr_assert(domain->task_info.parameters[root_id].num_params == 0);
+
+    // reset previous planning loop state.
+    self->expansion_stack.size = 0;
+    self->task_stack.size = 0;
+    self->expansion_blob.top = self->expansion_blob.base;
+    self->task_blob.top = self->task_blob.base;
 
     // put the root task on stack.
     begin_compound(self, domain, root_id);
@@ -154,11 +160,11 @@ Find_Plan_Status plnnr::find_plan_step(Planning_State* self, Fact_Database* db)
                 return Find_Plan_Succeeded;
         }
 
-        // check if maximum expansion depth reached.
+        // check if the maximum expansion depth reached.
         if (size(&self->expansion_stack) > self->max_depth)
             return Find_Plan_Max_Depth_Exceeded;
 
-        // check if maximum plan length reached.
+        // check if the maximum plan length reached.
         if (size(&self->task_stack) > self->max_plan_length)
             return Find_Plan_Max_Plan_Length_Exceeded;
 
